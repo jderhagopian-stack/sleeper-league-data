@@ -16,6 +16,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,6 +43,5 @@ jobs:
             echo "No Sleeper data changes to commit."
           else
             git commit -m "Update Sleeper league data"
-            git pull --rebase origin main
-            git push
+            git push origin HEAD:main
           fi
