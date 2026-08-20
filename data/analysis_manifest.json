@@ -1,0 +1,27 @@
+{
+  "capabilities": [
+    "live_current_rosters_and_pick_ownership",
+    "historical_completed_trade_ledger",
+    "owner_trade_behavior_profiles",
+    "rookie_only_draft_tendencies_2023_plus",
+    "waiver_and_free_agent_behavior",
+    "owner_specific_history_with_jimmy",
+    "asset_lineage_trade_trees",
+    "future_pick_provenance",
+    "transaction_phase_tags",
+    "approximate_pretrade_roster_context",
+    "player_age_and_draft_stage_metadata",
+    "draft_retention_outcome_proxies",
+    "waiver_retention_outcome_proxies",
+    "league_specific_trade_structure_market_summary",
+    "patrick_mahomes_mocha_trade_tree"
+  ],
+  "important_limitations": [
+    "Sleeper exposes completed transactions, not a historical archive of rejected or expired offers.",
+    "Multi-asset trade lineage cannot assign exact economic weight to each input; mixed trades are explicitly marked.",
+    "Draft and waiver retention are outcome proxies, not true fantasy-value hit rates.",
+    "Historical market-value-at-time-of-transaction requires an external historical dynasty valuation source.",
+    "Pre-trade roster context is reconstructed from final season rosters plus completed transactions and is approximate."
+  ],
+  "recommended_manual_layer": "Log rejected offers, counters, verbal asking prices, and untouchable-player statements going forward."
+}

@@ -1,0 +1,416 @@
+{
+  "currently_held_descendant_asset_keys": [
+    "pick:2024:R1:orig5",
+    "pick:2024:R3:orig2",
+    "pick:2025:R1:orig9",
+    "pick:2025:R2:orig10",
+    "pick:2026:R1:orig10",
+    "pick:2026:R2:orig10",
+    "pick:2026:R2:orig4",
+    "pick:2026:R2:orig8",
+    "pick:2027:R1:orig5",
+    "pick:2027:R2:orig8",
+    "pick:2027:R3:orig4",
+    "pick:2027:R3:orig5"
+  ],
+  "direct_return_assets": [
+    {
+      "asset_key": "pick:2024:R3:orig1",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2024 Round 3 (original roster 1)",
+      "original_roster_id": "1",
+      "round": 3,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2026:R1:orig10",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 1 (original roster 10)",
+      "original_roster_id": "10",
+      "round": 1,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig10",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 2 (original roster 10)",
+      "original_roster_id": "10",
+      "round": 2,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2024:R3:orig2",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2024 Round 3 (original roster 2)",
+      "original_roster_id": "2",
+      "round": 3,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2024:R1:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2024 Round 1 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 1,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2026 Round 2 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 2,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2025:R1:orig6",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2025 Round 1 (original roster 6)",
+      "original_roster_id": "6",
+      "round": 1,
+      "season": "2025"
+    },
+    {
+      "asset_key": "pick:2025:R1:orig9",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2025 Round 1 (original roster 9)",
+      "original_roster_id": "9",
+      "round": 1,
+      "season": "2025"
+    }
+  ],
+  "edges": [
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2024:R3:orig1",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2026:R1:orig10",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2026:R2:orig10",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2024:R3:orig2",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2024:R1:orig5",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2026:R2:orig5",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2025:R1:orig6",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1716676223640,
+      "event_type": "root_trade_return",
+      "from_asset_key": "player:4046",
+      "season": "2024",
+      "to_asset_key": "pick:2025:R1:orig9",
+      "transaction_id": "1100223461307322368"
+    },
+    {
+      "attribution": "direct",
+      "created": 1717307494044,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2024:R3:orig1",
+      "season": "2024",
+      "to_asset_key": "pick:2025:R3:orig6",
+      "transaction_id": "1102871201287938048"
+    },
+    {
+      "attribution": "direct",
+      "created": 1748714758766,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R1:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2026:R3:orig5",
+      "transaction_id": "1234602817340055552"
+    },
+    {
+      "attribution": "direct",
+      "created": 1748714758766,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R1:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2027:R1:orig5",
+      "transaction_id": "1234602817340055552"
+    },
+    {
+      "attribution": "direct",
+      "created": 1748714758766,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R1:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2027:R3:orig5",
+      "transaction_id": "1234602817340055552"
+    },
+    {
+      "attribution": "mixed_with_non_lineage_assets",
+      "created": 1748716452267,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R3:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2025:R2:orig10",
+      "transaction_id": "1234609920398069760"
+    },
+    {
+      "attribution": "mixed_with_non_lineage_assets",
+      "created": 1748716452267,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R3:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2026:R2:orig4",
+      "transaction_id": "1234609920398069760"
+    },
+    {
+      "attribution": "mixed_with_non_lineage_assets",
+      "created": 1748716452267,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2025:R3:orig6",
+      "season": "2025",
+      "to_asset_key": "pick:2027:R3:orig4",
+      "transaction_id": "1234609920398069760"
+    },
+    {
+      "attribution": "direct",
+      "created": 1783796903205,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2026:R2:orig5",
+      "season": "2026",
+      "to_asset_key": "pick:2027:R2:orig8",
+      "transaction_id": "1381747996089159680"
+    },
+    {
+      "attribution": "mixed_with_non_lineage_assets",
+      "created": 1783797043962,
+      "event_type": "downstream_trade",
+      "from_asset_key": "pick:2026:R3:orig5",
+      "season": "2026",
+      "to_asset_key": "pick:2026:R2:orig8",
+      "transaction_id": "1381748586462601216"
+    }
+  ],
+  "methodology_note": "When a lineage asset was packaged with unrelated assets, all return assets are retained in the tree but marked mixed_with_non_lineage_assets; exact economic attribution cannot be known from Sleeper transaction data alone.",
+  "nodes": [
+    {
+      "asset_key": "player:4046",
+      "asset_type": "player",
+      "currently_held_in_lineage": false,
+      "label": "Patrick Mahomes",
+      "nfl_team": "KC",
+      "player_id": "4046",
+      "position": "QB"
+    },
+    {
+      "asset_key": "pick:2024:R3:orig1",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2024 Round 3 (original roster 1)",
+      "original_roster_id": "1",
+      "round": 3,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2026:R1:orig10",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 1 (original roster 10)",
+      "original_roster_id": "10",
+      "round": 1,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig10",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 2 (original roster 10)",
+      "original_roster_id": "10",
+      "round": 2,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2024:R3:orig2",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2024 Round 3 (original roster 2)",
+      "original_roster_id": "2",
+      "round": 3,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2024:R1:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2024 Round 1 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 1,
+      "season": "2024"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2026 Round 2 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 2,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2025:R1:orig6",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2025 Round 1 (original roster 6)",
+      "original_roster_id": "6",
+      "round": 1,
+      "season": "2025"
+    },
+    {
+      "asset_key": "pick:2025:R1:orig9",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2025 Round 1 (original roster 9)",
+      "original_roster_id": "9",
+      "round": 1,
+      "season": "2025"
+    },
+    {
+      "asset_key": "pick:2025:R3:orig6",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2025 Round 3 (original roster 6)",
+      "original_roster_id": "6",
+      "round": 3,
+      "season": "2025"
+    },
+    {
+      "asset_key": "pick:2026:R3:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": false,
+      "label": "2026 Round 3 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 3,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2027:R1:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2027 Round 1 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 1,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2027:R3:orig5",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2027 Round 3 (original roster 5)",
+      "original_roster_id": "5",
+      "round": 3,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2025:R2:orig10",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2025 Round 2 (original roster 10)",
+      "original_roster_id": "10",
+      "round": 2,
+      "season": "2025"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig4",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 2 (original roster 4)",
+      "original_roster_id": "4",
+      "round": 2,
+      "season": "2026"
+    },
+    {
+      "asset_key": "pick:2027:R3:orig4",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2027 Round 3 (original roster 4)",
+      "original_roster_id": "4",
+      "round": 3,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2027:R2:orig8",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2027 Round 2 (original roster 8)",
+      "original_roster_id": "8",
+      "round": 2,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2026:R2:orig8",
+      "asset_type": "pick",
+      "currently_held_in_lineage": true,
+      "label": "2026 Round 2 (original roster 8)",
+      "original_roster_id": "8",
+      "round": 2,
+      "season": "2026"
+    }
+  ],
+  "owner_user_id": "844785316274483200",
+  "owner_username": "MochaSmev",
+  "root_created": 1716676223640,
+  "root_created_utc": "2024-05-25T22:30:23Z",
+  "root_player": "Patrick Mahomes",
+  "root_transaction_id": "1100223461307322368"
+}
