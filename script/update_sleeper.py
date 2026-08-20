@@ -471,6 +471,281 @@ def build_trade_analytics(history, players):
     }
 
 
+
+def build_owner_directory(history):
+    owners = {}
+    season_rosters = {}
+
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = {}
+
+        for roster in season_data.get("rosters", []):
+            roster_id = roster.get("roster_id")
+            owner_id = roster.get("owner_id")
+            if roster_id is not None and owner_id is not None:
+                roster_to_user[str(roster_id)] = str(owner_id)
+
+        season_rosters[season] = roster_to_user
+
+        for user in season_data.get("users", []):
+            user_id = user.get("user_id")
+            if user_id is None:
+                continue
+            user_id = str(user_id)
+            display_name = user.get("display_name") or user.get("username") or user_id
+            username = user.get("username") or user.get("display_name") or user_id
+            metadata = user.get("metadata") or {}
+            team_name = metadata.get("team_name") or display_name
+
+            if user_id not in owners:
+                owners[user_id] = {
+                    "user_id": user_id,
+                    "username": username,
+                    "manager": display_name,
+                    "team_name": team_name,
+                    "aliases": [],
+                }
+
+            for alias in [username, display_name, team_name]:
+                if alias and alias not in owners[user_id]["aliases"]:
+                    owners[user_id]["aliases"].append(alias)
+
+    return owners, season_rosters
+
+
+def build_draft_analytics(history, players):
+    owners, season_rosters = build_owner_directory(history)
+    ledger = []
+    stats = defaultdict(lambda: {
+        "total_picks": 0,
+        "picks_by_season": Counter(),
+        "picks_by_round": Counter(),
+        "positions": Counter(),
+        "first_round_positions": Counter(),
+        "second_round_positions": Counter(),
+        "third_round_positions": Counter(),
+        "pick_numbers": [],
+    })
+
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+
+        for draft_record in season_data.get("drafts", []):
+            draft = draft_record.get("draft") or {}
+            draft_id = str(draft.get("draft_id") or "")
+            draft_type = draft.get("type")
+            status = draft.get("status")
+
+            for pick in draft_record.get("picks", []):
+                player_id = str(pick.get("player_id")) if pick.get("player_id") is not None else None
+                roster_id = pick.get("roster_id")
+                picked_by = pick.get("picked_by")
+
+                user_id = None
+                if picked_by is not None and str(picked_by) in owners:
+                    user_id = str(picked_by)
+                elif roster_id is not None:
+                    user_id = roster_to_user.get(str(roster_id))
+
+                player = players.get(player_id, {}) if player_id else {}
+                round_number = pick.get("round")
+                pick_no = pick.get("pick_no")
+                draft_slot = pick.get("draft_slot")
+
+                ledger.append({
+                    "season": season,
+                    "draft_id": draft_id,
+                    "draft_type": draft_type,
+                    "draft_status": status,
+                    "pick_no": pick_no,
+                    "round": round_number,
+                    "draft_slot": draft_slot,
+                    "roster_id": str(roster_id) if roster_id is not None else None,
+                    "user_id": user_id,
+                    "manager": owners.get(user_id, {}).get("manager") if user_id else None,
+                    "team_name": owners.get(user_id, {}).get("team_name") if user_id else None,
+                    "player_id": player_id,
+                    "player_name": player.get("full_name") or player_id,
+                    "position": player.get("position"),
+                    "nfl_team": player.get("team"),
+                })
+
+                if not user_id:
+                    continue
+
+                s = stats[user_id]
+                s["total_picks"] += 1
+                s["picks_by_season"][season] += 1
+                if round_number is not None:
+                    s["picks_by_round"][str(round_number)] += 1
+                if pick_no is not None:
+                    s["pick_numbers"].append(pick_no)
+
+                position = player.get("position") or "UNKNOWN"
+                s["positions"][position] += 1
+                if round_number == 1:
+                    s["first_round_positions"][position] += 1
+                elif round_number == 2:
+                    s["second_round_positions"][position] += 1
+                elif round_number == 3:
+                    s["third_round_positions"][position] += 1
+
+    ledger.sort(key=lambda x: (str(x.get("season")), x.get("pick_no") or 9999), reverse=True)
+
+    summary = []
+    for user_id, owner in owners.items():
+        s = stats[user_id]
+        total = s["total_picks"]
+        summary.append({
+            **owner,
+            "total_draft_picks": total,
+            "picks_by_season": dict(sorted(s["picks_by_season"].items())),
+            "picks_by_round": dict(sorted(s["picks_by_round"].items())),
+            "positions_drafted": dict(s["positions"].most_common()),
+            "first_round_positions": dict(s["first_round_positions"].most_common()),
+            "second_round_positions": dict(s["second_round_positions"].most_common()),
+            "third_round_positions": dict(s["third_round_positions"].most_common()),
+            "average_overall_pick": (
+                round(sum(s["pick_numbers"]) / len(s["pick_numbers"]), 2)
+                if s["pick_numbers"] else None
+            ),
+        })
+
+    summary.sort(key=lambda x: (-x["total_draft_picks"], x["manager"]))
+    return {"draft_ledger": ledger, "owner_draft_summary": summary}
+
+
+def build_acquisition_analytics(history, players):
+    owners, season_rosters = build_owner_directory(history)
+    ledger = []
+    stats = defaultdict(lambda: {
+        "total_acquisitions": 0,
+        "waiver_claims": 0,
+        "free_agent_adds": 0,
+        "adds_by_season": Counter(),
+        "positions_added": Counter(),
+        "faab_spent": 0,
+        "faab_bids": [],
+        "players_dropped": 0,
+    })
+
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+
+        for transaction in season_data.get("transactions", []):
+            ttype = transaction.get("type")
+            status = transaction.get("status")
+
+            if ttype not in {"waiver", "free_agent"}:
+                continue
+            if status not in {None, "complete", "completed"}:
+                continue
+
+            created = transaction.get("created")
+            settings = transaction.get("settings") or {}
+            waiver_bid = settings.get("waiver_bid")
+            adds = transaction.get("adds") or {}
+            drops = transaction.get("drops") or {}
+
+            # Group adds by receiving roster so one transaction can be represented cleanly.
+            by_roster = defaultdict(list)
+            for player_id, roster_id in adds.items():
+                by_roster[str(roster_id)].append(str(player_id))
+
+            for roster_id, player_ids in by_roster.items():
+                user_id = roster_to_user.get(roster_id)
+                owner = owners.get(user_id, {})
+                added_players = []
+
+                for player_id in player_ids:
+                    player = players.get(player_id, {})
+                    added_players.append({
+                        "player_id": player_id,
+                        "name": player.get("full_name") or player_id,
+                        "position": player.get("position"),
+                        "nfl_team": player.get("team"),
+                    })
+
+                    if user_id:
+                        s = stats[user_id]
+                        s["total_acquisitions"] += 1
+                        s["adds_by_season"][season] += 1
+                        s["positions_added"][player.get("position") or "UNKNOWN"] += 1
+                        if ttype == "waiver":
+                            s["waiver_claims"] += 1
+                        else:
+                            s["free_agent_adds"] += 1
+
+                dropped_players = []
+                for player_id, drop_roster in drops.items():
+                    if str(drop_roster) != roster_id:
+                        continue
+                    player = players.get(str(player_id), {})
+                    dropped_players.append({
+                        "player_id": str(player_id),
+                        "name": player.get("full_name") or str(player_id),
+                        "position": player.get("position"),
+                    })
+                    if user_id:
+                        stats[user_id]["players_dropped"] += 1
+
+                bid = waiver_bid if ttype == "waiver" and waiver_bid is not None else 0
+                if user_id and bid:
+                    stats[user_id]["faab_spent"] += bid
+                    stats[user_id]["faab_bids"].append(bid)
+
+                ledger.append({
+                    "transaction_id": transaction.get("transaction_id"),
+                    "season": season,
+                    "created": created,
+                    "created_utc": time.strftime(
+                        "%Y-%m-%dT%H:%M:%SZ",
+                        time.gmtime(created / 1000),
+                    ) if created else None,
+                    "type": ttype,
+                    "status": status,
+                    "roster_id": roster_id,
+                    "user_id": user_id,
+                    "manager": owner.get("manager"),
+                    "team_name": owner.get("team_name"),
+                    "faab_bid": bid,
+                    "players_added": added_players,
+                    "players_dropped": dropped_players,
+                })
+
+    ledger.sort(key=lambda x: x.get("created") or 0, reverse=True)
+
+    summary = []
+    for user_id, owner in owners.items():
+        s = stats[user_id]
+        bids = s["faab_bids"]
+        summary.append({
+            **owner,
+            "total_acquisitions": s["total_acquisitions"],
+            "waiver_claims": s["waiver_claims"],
+            "free_agent_adds": s["free_agent_adds"],
+            "players_dropped": s["players_dropped"],
+            "adds_by_season": dict(sorted(s["adds_by_season"].items())),
+            "positions_added": dict(s["positions_added"].most_common()),
+            "faab_spent_on_recorded_waiver_claims": s["faab_spent"],
+            "average_faab_bid_when_positive": (
+                round(sum(bids) / len(bids), 2) if bids else 0
+            ),
+            "largest_recorded_faab_bid": max(bids) if bids else 0,
+        })
+
+    summary.sort(key=lambda x: (-x["total_acquisitions"], x["manager"]))
+    return {
+        "acquisition_ledger": ledger,
+        "owner_waiver_summary": summary,
+    }
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -478,6 +753,8 @@ def main():
     history = build_history()
     players = build_compact_player_map(history)
     trade_analytics = build_trade_analytics(history, players)
+    draft_analytics = build_draft_analytics(history, players)
+    acquisition_analytics = build_acquisition_analytics(history, players)
 
     current = history[0] if history else None
 
@@ -508,6 +785,10 @@ def main():
     write_json("owner_trade_summary.json", trade_analytics["owner_trade_summary"])
     write_json("trade_pairs.json", trade_analytics["trade_pairs"])
     write_json("jimmy_trade_history.json", trade_analytics["target_trade_history"])
+    write_json("draft_ledger.json", draft_analytics["draft_ledger"])
+    write_json("owner_draft_summary.json", draft_analytics["owner_draft_summary"])
+    write_json("acquisition_ledger.json", acquisition_analytics["acquisition_ledger"])
+    write_json("owner_waiver_summary.json", acquisition_analytics["owner_waiver_summary"])
 
     if current:
         write_json("league.json", current.get("league", {}))
@@ -536,6 +817,16 @@ def main():
     print(
         f"Completed trades captured: "
         f"{len(trade_analytics['trade_ledger'])}"
+    )
+
+    print(
+        f"Draft picks captured: "
+        f"{len(draft_analytics['draft_ledger'])}"
+    )
+
+    print(
+        f"Waiver/free-agent acquisition records captured: "
+        f"{len(acquisition_analytics['acquisition_ledger'])}"
     )
 
 
