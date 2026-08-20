@@ -30,64 +30,96 @@
     {
       "asset_key": "pick:2024:R3:orig1",
       "asset_type": "pick",
-      "label": "2024 Round 3 (original roster 1)",
+      "label": "2024 3rd \u00e2\u0080\u0094 HUNGRY DAWGS",
+      "original_owner_display": "HUNGRY DAWGS",
+      "original_owner_manager": "jaco057",
+      "original_owner_user_id": "833709164739014656",
       "original_roster_id": "1",
+      "original_team_name": "HUNGRY DAWGS",
       "round": 3,
       "season": "2024"
     },
     {
       "asset_key": "pick:2026:R1:orig10",
       "asset_type": "pick",
-      "label": "2026 Round 1 (original roster 10)",
+      "label": "2026 1st \u00e2\u0080\u0094 The Shish Kebab Boys",
+      "original_owner_display": "The Shish Kebab Boys",
+      "original_owner_manager": "jder52",
+      "original_owner_user_id": "850548458887704576",
       "original_roster_id": "10",
+      "original_team_name": "The Shish Kebab Boys",
       "round": 1,
       "season": "2026"
     },
     {
       "asset_key": "pick:2026:R2:orig10",
       "asset_type": "pick",
-      "label": "2026 Round 2 (original roster 10)",
+      "label": "2026 2nd \u00e2\u0080\u0094 The Shish Kebab Boys",
+      "original_owner_display": "The Shish Kebab Boys",
+      "original_owner_manager": "jder52",
+      "original_owner_user_id": "850548458887704576",
       "original_roster_id": "10",
+      "original_team_name": "The Shish Kebab Boys",
       "round": 2,
       "season": "2026"
     },
     {
       "asset_key": "pick:2024:R3:orig2",
       "asset_type": "pick",
-      "label": "2024 Round 3 (original roster 2)",
+      "label": "2024 3rd \u00e2\u0080\u0094 Chef Niners",
+      "original_owner_display": "Chef Niners",
+      "original_owner_manager": "nuckyniners",
+      "original_owner_user_id": "709546576091090944",
       "original_roster_id": "2",
+      "original_team_name": "Chef Niners",
       "round": 3,
       "season": "2024"
     },
     {
       "asset_key": "pick:2024:R1:orig5",
       "asset_type": "pick",
-      "label": "2024 Round 1 (original roster 5)",
+      "label": "2024 1st \u00e2\u0080\u0094 Ball Knower",
+      "original_owner_display": "Ball Knower",
+      "original_owner_manager": "ddersimon",
+      "original_owner_user_id": "840356119955251200",
       "original_roster_id": "5",
+      "original_team_name": "Ball Knower",
       "round": 1,
       "season": "2024"
     },
     {
       "asset_key": "pick:2026:R2:orig5",
       "asset_type": "pick",
-      "label": "2026 Round 2 (original roster 5)",
+      "label": "2026 2nd \u00e2\u0080\u0094 Ball Knower",
+      "original_owner_display": "Ball Knower",
+      "original_owner_manager": "ddersimon",
+      "original_owner_user_id": "840356119955251200",
       "original_roster_id": "5",
+      "original_team_name": "Ball Knower",
       "round": 2,
       "season": "2026"
     },
     {
       "asset_key": "pick:2025:R1:orig6",
       "asset_type": "pick",
-      "label": "2025 Round 1 (original roster 6)",
+      "label": "2025 1st \u00e2\u0080\u0094 Trash Incessant Talkers",
+      "original_owner_display": "Trash Incessant Talkers",
+      "original_owner_manager": "CoachKoko",
+      "original_owner_user_id": "844772511156670464",
       "original_roster_id": "6",
+      "original_team_name": "Trash Incessant Talkers",
       "round": 1,
       "season": "2025"
     },
     {
       "asset_key": "pick:2025:R1:orig9",
       "asset_type": "pick",
-      "label": "2025 Round 1 (original roster 9)",
+      "label": "2025 1st \u00e2\u0080\u0094 Hurts So Good",
+      "original_owner_display": "Hurts So Good",
+      "original_owner_manager": "jimmygoodjob",
+      "original_owner_user_id": "846634401482792960",
       "original_roster_id": "9",
+      "original_team_name": "Hurts So Good",
       "round": 1,
       "season": "2025"
     }
@@ -111,7 +143,147 @@
     1405,
     1413
   ],
-  "methodology": "Owner-specific, transaction-rooted, chronological lineage. Each asset is consumed only at its next qualifying trade or draft event for the same owner.",
+  "methodology": "Owner-specific, transaction-rooted, chronological lineage. Each asset is consumed only at its next qualifying trade or draft event for the same owner. Mixed-input trades also list the exact other outgoing assets packaged with the lineage asset.",
+  "mixed_attribution_notes_by_asset": {
+    "pick:2025:R2:orig10": [
+      {
+        "created_utc": "2025-05-31T18:34:12Z",
+        "lineage_asset_used": {
+          "asset_key": "pick:2025:R3:orig6",
+          "label": "2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers"
+        },
+        "note": "2025 2nd \u00e2\u0080\u0094 The Shish Kebab Boys came from a mixed trade where 2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers was packaged with 2025 3rd \u00e2\u0080\u0094 STINKS, 2025 2nd \u00e2\u0080\u0094 MochaSmevs.",
+        "other_outgoing_assets": [
+          {
+            "asset_key": "pick:2025:R3:orig3",
+            "asset_type": "pick",
+            "label": "2025 3rd \u00e2\u0080\u0094 STINKS",
+            "original_roster_id": "3",
+            "player_id": null,
+            "position": null,
+            "round": 3,
+            "season": "2025"
+          },
+          {
+            "asset_key": "pick:2025:R2:orig7",
+            "asset_type": "pick",
+            "label": "2025 2nd \u00e2\u0080\u0094 MochaSmevs",
+            "original_roster_id": "7",
+            "player_id": null,
+            "position": null,
+            "round": 2,
+            "season": "2025"
+          }
+        ],
+        "return_asset": {
+          "asset_key": "pick:2025:R2:orig10",
+          "label": "2025 2nd \u00e2\u0080\u0094 The Shish Kebab Boys"
+        },
+        "transaction_id": "1234609920398069760"
+      }
+    ],
+    "pick:2026:R2:orig4": [
+      {
+        "created_utc": "2025-05-31T18:34:12Z",
+        "lineage_asset_used": {
+          "asset_key": "pick:2025:R3:orig6",
+          "label": "2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers"
+        },
+        "note": "2026 2nd \u00e2\u0080\u0094 The Associate  came from a mixed trade where 2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers was packaged with 2025 3rd \u00e2\u0080\u0094 STINKS, 2025 2nd \u00e2\u0080\u0094 MochaSmevs.",
+        "other_outgoing_assets": [
+          {
+            "asset_key": "pick:2025:R3:orig3",
+            "asset_type": "pick",
+            "label": "2025 3rd \u00e2\u0080\u0094 STINKS",
+            "original_roster_id": "3",
+            "player_id": null,
+            "position": null,
+            "round": 3,
+            "season": "2025"
+          },
+          {
+            "asset_key": "pick:2025:R2:orig7",
+            "asset_type": "pick",
+            "label": "2025 2nd \u00e2\u0080\u0094 MochaSmevs",
+            "original_roster_id": "7",
+            "player_id": null,
+            "position": null,
+            "round": 2,
+            "season": "2025"
+          }
+        ],
+        "return_asset": {
+          "asset_key": "pick:2026:R2:orig4",
+          "label": "2026 2nd \u00e2\u0080\u0094 The Associate "
+        },
+        "transaction_id": "1234609920398069760"
+      }
+    ],
+    "pick:2026:R2:orig8": [
+      {
+        "created_utc": "2026-07-11T19:10:43Z",
+        "lineage_asset_used": {
+          "asset_key": "pick:2026:R3:orig5",
+          "label": "2026 3rd \u00e2\u0080\u0094 Ball Knower"
+        },
+        "note": "2026 2nd \u00e2\u0080\u0094 The Bodini Blitzers \ud83c\udfc6\ud83e\udd47 came from a mixed trade where 2026 3rd \u00e2\u0080\u0094 Ball Knower was packaged with 2026 3rd \u00e2\u0080\u0094 The Shish Kebab Boys.",
+        "other_outgoing_assets": [
+          {
+            "asset_key": "pick:2026:R3:orig10",
+            "asset_type": "pick",
+            "label": "2026 3rd \u00e2\u0080\u0094 The Shish Kebab Boys",
+            "original_roster_id": "10",
+            "player_id": null,
+            "position": null,
+            "round": 3,
+            "season": "2026"
+          }
+        ],
+        "return_asset": {
+          "asset_key": "pick:2026:R2:orig8",
+          "label": "2026 2nd \u00e2\u0080\u0094 The Bodini Blitzers \ud83c\udfc6\ud83e\udd47"
+        },
+        "transaction_id": "1381748586462601216"
+      }
+    ],
+    "pick:2027:R3:orig4": [
+      {
+        "created_utc": "2025-05-31T18:34:12Z",
+        "lineage_asset_used": {
+          "asset_key": "pick:2025:R3:orig6",
+          "label": "2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers"
+        },
+        "note": "2027 3rd came from a mixed trade where 2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers was packaged with 2025 3rd \u00e2\u0080\u0094 STINKS, 2025 2nd \u00e2\u0080\u0094 MochaSmevs.",
+        "other_outgoing_assets": [
+          {
+            "asset_key": "pick:2025:R3:orig3",
+            "asset_type": "pick",
+            "label": "2025 3rd \u00e2\u0080\u0094 STINKS",
+            "original_roster_id": "3",
+            "player_id": null,
+            "position": null,
+            "round": 3,
+            "season": "2025"
+          },
+          {
+            "asset_key": "pick:2025:R2:orig7",
+            "asset_type": "pick",
+            "label": "2025 2nd \u00e2\u0080\u0094 MochaSmevs",
+            "original_roster_id": "7",
+            "player_id": null,
+            "position": null,
+            "round": 2,
+            "season": "2025"
+          }
+        ],
+        "return_asset": {
+          "asset_key": "pick:2027:R3:orig4",
+          "label": "2027 3rd"
+        },
+        "transaction_id": "1234609920398069760"
+      }
+    ]
+  },
   "owner_manager": "MochaSmev",
   "owner_team_name": "MochaSmevs",
   "owner_user_id": "844785316274483200",
@@ -140,8 +312,13 @@
       "current_owner_team": "MochaSmevs",
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_held_future_pick",
-      "label": "2027 Round 1 (original roster 5)",
+      "label": "2027 1st",
+      "mixed_attribution_notes": [],
+      "original_owner_display": null,
+      "original_owner_manager": null,
+      "original_owner_user_id": null,
       "original_roster_id": "5",
+      "original_team_name": null,
       "round": 1,
       "season": "2027"
     },
@@ -152,8 +329,13 @@
       "current_owner_team": "MochaSmevs",
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_held_future_pick",
-      "label": "2027 Round 2 (original roster 8)",
+      "label": "2027 2nd",
+      "mixed_attribution_notes": [],
+      "original_owner_display": null,
+      "original_owner_manager": null,
+      "original_owner_user_id": null,
       "original_roster_id": "8",
+      "original_team_name": null,
       "round": 2,
       "season": "2027"
     },
@@ -164,8 +346,49 @@
       "current_owner_team": "MochaSmevs",
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_held_future_pick",
-      "label": "2027 Round 3 (original roster 4)",
+      "label": "2027 3rd",
+      "mixed_attribution_notes": [
+        {
+          "created_utc": "2025-05-31T18:34:12Z",
+          "lineage_asset_used": {
+            "asset_key": "pick:2025:R3:orig6",
+            "label": "2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers"
+          },
+          "note": "2027 3rd came from a mixed trade where 2025 3rd \u00e2\u0080\u0094 Trash Incessant Talkers was packaged with 2025 3rd \u00e2\u0080\u0094 STINKS, 2025 2nd \u00e2\u0080\u0094 MochaSmevs.",
+          "other_outgoing_assets": [
+            {
+              "asset_key": "pick:2025:R3:orig3",
+              "asset_type": "pick",
+              "label": "2025 3rd \u00e2\u0080\u0094 STINKS",
+              "original_roster_id": "3",
+              "player_id": null,
+              "position": null,
+              "round": 3,
+              "season": "2025"
+            },
+            {
+              "asset_key": "pick:2025:R2:orig7",
+              "asset_type": "pick",
+              "label": "2025 2nd \u00e2\u0080\u0094 MochaSmevs",
+              "original_roster_id": "7",
+              "player_id": null,
+              "position": null,
+              "round": 2,
+              "season": "2025"
+            }
+          ],
+          "return_asset": {
+            "asset_key": "pick:2027:R3:orig4",
+            "label": "2027 3rd"
+          },
+          "transaction_id": "1234609920398069760"
+        }
+      ],
+      "original_owner_display": null,
+      "original_owner_manager": null,
+      "original_owner_user_id": null,
       "original_roster_id": "4",
+      "original_team_name": null,
       "round": 3,
       "season": "2027"
     },
@@ -176,8 +399,13 @@
       "current_owner_team": "MochaSmevs",
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_held_future_pick",
-      "label": "2027 Round 3 (original roster 5)",
+      "label": "2027 3rd",
+      "mixed_attribution_notes": [],
+      "original_owner_display": null,
+      "original_owner_manager": null,
+      "original_owner_user_id": null,
       "original_roster_id": "5",
+      "original_team_name": null,
       "round": 3,
       "season": "2027"
     },
@@ -189,6 +417,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Jayden Daniels",
+      "mixed_attribution_notes": [],
       "nfl_team": "WAS",
       "player_id": "11566",
       "position": "QB"
@@ -197,6 +426,7 @@
       "asset_key": "player:11596",
       "asset_type": "player",
       "label": "Ben Sinnott",
+      "mixed_attribution_notes": [],
       "nfl_team": "WAS",
       "player_id": "11596",
       "position": "TE"
@@ -209,6 +439,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Jayden Higgins",
+      "mixed_attribution_notes": [],
       "nfl_team": "HOU",
       "player_id": "12484",
       "position": "WR"
@@ -221,6 +452,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Tyler Warren",
+      "mixed_attribution_notes": [],
       "nfl_team": "IND",
       "player_id": "12518",
       "position": "TE"
@@ -233,6 +465,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Jordyn Tyson",
+      "mixed_attribution_notes": [],
       "nfl_team": "NO",
       "player_id": "13281",
       "position": "WR"
@@ -245,6 +478,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Chris Bell",
+      "mixed_attribution_notes": [],
       "nfl_team": "MIA",
       "player_id": "13311",
       "position": "WR"
@@ -257,6 +491,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Zachariah Branch",
+      "mixed_attribution_notes": [],
       "nfl_team": "ATL",
       "player_id": "13320",
       "position": "WR"
@@ -269,6 +504,7 @@
       "current_owner_user_id": "844785316274483200",
       "current_status": "currently_rostered_player",
       "label": "Kaytron Allen",
+      "mixed_attribution_notes": [],
       "nfl_team": "WAS",
       "player_id": "13405",
       "position": "RB"

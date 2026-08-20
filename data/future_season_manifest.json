@@ -1,0 +1,27 @@
+{
+  "active_league_season": "2026",
+  "active_nfl_season": "2026",
+  "discovered_fsffl_seasons": [
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "2026"
+  ],
+  "discovered_nfl_stat_seasons": [
+    "2015",
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "2026"
+  ],
+  "future_season_behavior": "On every workflow run the script reads Sleeper NFL state and linked league history. New NFL seasons are automatically added under data/stats/nfl/<season>/, while new FSFFL seasons are automatically added under data/stats/fsffl/<season>/.",
+  "historical_cache_behavior": "Completed seasons reuse committed raw files. The active season is refreshed as new weeks become available."
+}

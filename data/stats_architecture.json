@@ -1,0 +1,30 @@
+{
+  "fsffl_history": {
+    "contains": [
+      "league matchup rosters",
+      "FSFFL-scored weekly production",
+      "owner-attributed player production"
+    ],
+    "owner_attribution": true,
+    "path_pattern": "data/stats/fsffl/<season>/",
+    "seasons": [
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ]
+  },
+  "future_seasons": "Both layers extend automatically. NFL history follows Sleeper NFL state; FSFFL history follows linked league seasons.",
+  "nfl_history": {
+    "contains": [
+      "raw weekly player stats",
+      "normalized weekly player stats",
+      "raw season player stats"
+    ],
+    "ends": "2026",
+    "owner_attribution": false,
+    "path_pattern": "data/stats/nfl/<season>/",
+    "starts": "2015"
+  }
+}
