@@ -1,7 +1,9 @@
 import json
+import datetime
 import os
 import time
 import urllib.request
+import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -3247,14 +3249,26 @@ REGULAR_SEASON_WEEKS = 18
 
 def safe_api_get(url, params=None, timeout=30):
     """
-    Sleeper stats endpoints are separate from the documented v1 league API.
-    Fail gracefully so a transient stats outage does not break the entire
-    league-data refresh.
+    Fetch JSON using only Python's standard library so GitHub Actions does not
+    need any extra package installation.
     """
     try:
-        response = requests.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+        if params:
+            query = urllib.parse.urlencode(params)
+            separator = "&" if "?" in url else "?"
+            url = f"{url}{separator}{query}"
+
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "sleeper-league-data/1.0"},
+        )
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout,
+        ) as response:
+            return json.loads(
+                response.read().decode("utf-8")
+            )
     except Exception as exc:
         print(f"WARNING: API fetch failed: {url} ({exc})")
         return None
@@ -4370,7 +4384,7 @@ def main():
     mixed_attribution_index = build_mixed_attribution_index(
         universal_lineage,
     )
-    data_dir = DATA_DIR
+    data_dir = OUTPUT_DIR
     discovered_fsffl_seasons = discover_fsffl_seasons(
         history,
         nfl_state,
