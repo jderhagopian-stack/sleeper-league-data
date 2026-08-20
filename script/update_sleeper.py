@@ -1119,6 +1119,76 @@ def build_advanced_owner_profiles(history, players):
     }
 
 
+
+def build_pick_origin_display_lookup(history):
+    """
+    Map (season, original_roster_id) -> human-readable original owner/team.
+
+    The roster_id remains the canonical identity for matching, but reports
+    and lineage labels use team/manager names whenever available.
+    """
+    owners, season_rosters = build_owner_directory(history)
+    lookup = {}
+
+    for season, roster_to_user in season_rosters.items():
+        for roster_id, user_id in roster_to_user.items():
+            owner = owners.get(user_id, {})
+            team_name = owner.get("team_name")
+            manager = owner.get("manager")
+
+            display_name = team_name or manager or f"Roster {roster_id}"
+
+            lookup[(str(season), str(roster_id))] = {
+                "original_owner_user_id": user_id,
+                "original_owner_manager": manager,
+                "original_team_name": team_name,
+                "original_owner_display": display_name,
+            }
+
+    return lookup
+
+
+def enrich_pick_asset_display(asset, pick_origin_lookup):
+    """
+    Add human-friendly team/manager provenance to a normalized pick asset.
+    """
+    if not asset or asset.get("asset_type") != "pick":
+        return asset
+
+    season = str(asset.get("season")) if asset.get("season") is not None else None
+    roster_id = (
+        str(asset.get("original_roster_id"))
+        if asset.get("original_roster_id") is not None
+        else None
+    )
+
+    origin = pick_origin_lookup.get((season, roster_id), {})
+    team_name = origin.get("original_team_name")
+    manager = origin.get("original_owner_manager")
+    display = origin.get("original_owner_display")
+
+    asset = dict(asset)
+    asset["original_owner_user_id"] = origin.get("original_owner_user_id")
+    asset["original_owner_manager"] = manager
+    asset["original_team_name"] = team_name
+    asset["original_owner_display"] = display
+
+    round_number = asset.get("round")
+    if season and round_number:
+        round_suffix = {
+            1: "1st",
+            2: "2nd",
+            3: "3rd",
+        }.get(round_number, f"Round {round_number}")
+
+        asset["label"] = (
+            f"{season} {round_suffix} â {display}"
+            if display
+            else f"{season} {round_suffix}"
+        )
+
+    return asset
+
 def classify_transaction_phase(created_ms):
     if not created_ms:
         return "unknown"
@@ -1204,6 +1274,7 @@ def player_asset(player_id, players):
 
 def build_pick_provenance(history):
     owners, season_rosters = build_owner_directory(history)
+    pick_origin_lookup = build_pick_origin_display_lookup(history)
     records = {}
 
     for season_data in reversed(history):
@@ -1241,11 +1312,38 @@ def build_pick_provenance(history):
             if not key:
                 continue
 
+            origin = pick_origin_lookup.get(
+                (pick_season, original_roster_id),
+                {},
+            )
             record = records.setdefault(key, {
                 "asset_key": key,
                 "season": pick_season,
                 "round": round_number,
                 "original_roster_id": original_roster_id,
+                "original_owner_user_id": origin.get(
+                    "original_owner_user_id"
+                ),
+                "original_owner_manager": origin.get(
+                    "original_owner_manager"
+                ),
+                "original_team_name": origin.get("original_team_name"),
+                "original_owner_display": origin.get(
+                    "original_owner_display"
+                ),
+                "label": (
+                    f"{pick_season} "
+                    + {
+                        1: "1st",
+                        2: "2nd",
+                        3: "3rd",
+                    }.get(round_number, f"Round {round_number}")
+                    + (
+                        f" â {origin.get('original_owner_display')}"
+                        if origin.get("original_owner_display")
+                        else ""
+                    )
+                ),
                 "observed_transfers": [],
                 "latest_observed_owner_roster_id": None,
                 "latest_observed_owner_user_id": None,
@@ -1409,6 +1507,7 @@ def build_asset_lineage_graph(history, players):
     owners, season_rosters = build_owner_directory(history)
     nodes = {}
     edges = []
+    pick_origin_lookup = build_pick_origin_display_lookup(history)
 
     def register(asset):
         if not asset or not asset.get("asset_key"):
@@ -2305,6 +2404,7 @@ def build_trade_asset_index(history, players):
     This is deliberately generic so any trade can become a lineage root.
     """
     owners, season_rosters = build_owner_directory(history)
+    pick_origin_lookup = build_pick_origin_display_lookup(history)
     trades = []
     by_transaction_id = {}
 
@@ -2344,7 +2444,10 @@ def build_trade_asset_index(history, players):
                         sent.append(player_asset(player_id, players))
 
                 for pick in transaction.get("draft_picks") or []:
-                    asset = pick_asset_from_trade(pick)
+                    asset = enrich_pick_asset_display(
+                        pick_asset_from_trade(pick),
+                        pick_origin_lookup,
+                    )
 
                     if (
                         pick.get("owner_id") is not None
@@ -2449,6 +2552,23 @@ def build_generic_asset_lineage(
             )
 
             for source in sent:
+                other_outgoing_assets = [
+                    {
+                        "asset_key": other.get("asset_key"),
+                        "asset_type": other.get("asset_type"),
+                        "label": other.get("label"),
+                        "player_id": other.get("player_id"),
+                        "position": other.get("position"),
+                        "season": other.get("season"),
+                        "round": other.get("round"),
+                        "original_roster_id": other.get(
+                            "original_roster_id"
+                        ),
+                    }
+                    for other in sent
+                    if other.get("asset_key") != source.get("asset_key")
+                ]
+
                 for target in received:
                     edges.append({
                         "from_asset_key": source["asset_key"],
@@ -2464,23 +2584,38 @@ def build_generic_asset_lineage(
                         "attribution": attribution,
                         "sent_asset_count": len(sent),
                         "received_asset_count": len(received),
+                        "other_outgoing_assets": other_outgoing_assets,
+                        "mixed_attribution_note": (
+                            (
+                                f"{source.get('label')} was packaged with "
+                                + ", ".join(
+                                    a.get("label") or a.get("asset_key")
+                                    for a in other_outgoing_assets
+                                )
+                            )
+                            if other_outgoing_assets
+                            else None
+                        ),
                     })
 
     # Register every pick -> player conversion using the corrected resolver.
     for conversion in draft_conversion_index["conversions"]:
-        pick_asset = {
-            "asset_key": conversion["pick_asset_key"],
-            "asset_type": "pick",
-            "season": conversion["season"],
-            "round": conversion["round"],
-            "original_roster_id": conversion["original_roster_id"],
-            "label": (
-                f"{conversion['season']} Round "
-                f"{conversion['round']} "
-                f"(original roster "
-                f"{conversion['original_roster_id']})"
-            ),
-        }
+        pick_asset = enrich_pick_asset_display(
+            {
+                "asset_key": conversion["pick_asset_key"],
+                "asset_type": "pick",
+                "season": conversion["season"],
+                "round": conversion["round"],
+                "original_roster_id": conversion["original_roster_id"],
+                "label": (
+                    f"{conversion['season']} Round "
+                    f"{conversion['round']} "
+                    f"(original roster "
+                    f"{conversion['original_roster_id']})"
+                ),
+            },
+            pick_origin_lookup,
+        )
         drafted_asset = player_asset(
             conversion["player_id"],
             players,
@@ -2554,6 +2689,12 @@ def build_generic_asset_lineage(
             if pick.get("owner_id") is not None else None
         )
         user_id = current_roster_to_user.get(owner_roster)
+
+        enriched = enrich_pick_asset_display(
+            nodes[key],
+            pick_origin_lookup,
+        )
+        nodes[key].update(enriched)
 
         nodes[key]["current_owner_user_id"] = user_id
         nodes[key]["current_owner_manager"] = (
@@ -2761,6 +2902,45 @@ def build_trade_lineage_index(
     return result
 
 
+
+def build_mixed_attribution_index(lineage_graph):
+    """
+    Flat league-wide index of mixed-input lineage edges.
+    """
+    nodes = {
+        n["asset_key"]: n
+        for n in lineage_graph.get("nodes", [])
+    }
+    rows = []
+
+    for edge in lineage_graph.get("edges", []):
+        if edge.get("attribution") != "mixed_input_exchange":
+            continue
+
+        source_key = edge.get("from_asset_key")
+        target_key = edge.get("to_asset_key")
+        others = edge.get("other_outgoing_assets") or []
+
+        rows.append({
+            "transaction_id": edge.get("transaction_id"),
+            "created": edge.get("created"),
+            "created_utc": edge.get("created_utc"),
+            "owner_user_id": edge.get("owner_user_id"),
+            "owner_manager": edge.get("owner_manager"),
+            "lineage_asset_key": source_key,
+            "lineage_asset_label": (
+                nodes.get(source_key, {}).get("label") or source_key
+            ),
+            "other_outgoing_assets": others,
+            "return_asset_key": target_key,
+            "return_asset_label": (
+                nodes.get(target_key, {}).get("label") or target_key
+            ),
+            "note": edge.get("mixed_attribution_note"),
+        })
+
+    return rows
+
 def build_lineage_validation(
     draft_conversion_index,
     lineage_graph,
@@ -2790,6 +2970,61 @@ def build_lineage_validation(
         ),
     }
 
+
+
+def build_trace_mixed_attribution_notes(trace, lineage_graph):
+    """
+    Human-readable mixed-attribution notes keyed by resulting asset.
+    """
+    nodes = {
+        n["asset_key"]: n
+        for n in lineage_graph.get("nodes", [])
+    }
+    edges = lineage_graph.get("edges", [])
+    notes_by_asset = defaultdict(list)
+
+    for edge_id in trace.get("edge_ids", []):
+        if edge_id >= len(edges):
+            continue
+
+        edge = edges[edge_id]
+        if edge.get("attribution") != "mixed_input_exchange":
+            continue
+
+        others = edge.get("other_outgoing_assets") or []
+        if not others:
+            continue
+
+        source_key = edge.get("from_asset_key")
+        target_key = edge.get("to_asset_key")
+        source_label = nodes.get(source_key, {}).get("label") or source_key
+        target_label = nodes.get(target_key, {}).get("label") or target_key
+        other_labels = [
+            a.get("label") or a.get("asset_key")
+            for a in others
+        ]
+
+        notes_by_asset[target_key].append({
+            "transaction_id": edge.get("transaction_id"),
+            "created_utc": edge.get("created_utc"),
+            "lineage_asset_used": {
+                "asset_key": source_key,
+                "label": source_label,
+            },
+            "other_outgoing_assets": others,
+            "return_asset": {
+                "asset_key": target_key,
+                "label": target_label,
+            },
+            "note": (
+                f"{target_label} came from a mixed trade where "
+                f"{source_label} was packaged with "
+                + ", ".join(other_labels)
+                + "."
+            ),
+        })
+
+    return dict(notes_by_asset)
 
 def trace_owner_side_lineage(
     transaction_id,
@@ -2907,6 +3142,20 @@ def trace_owner_side_lineage(
             queue.append((target, next_available, depth + 1))
 
     terminal_keys = sorted({k for k, _ in terminal_states})
+
+    mixed_notes_by_asset = build_trace_mixed_attribution_notes(
+        {'edge_ids': sorted(used_edges)},
+        lineage_graph,
+    )
+
+    terminal_assets = []
+    for key in terminal_keys:
+        asset = dict(nodes.get(key, {'asset_key': key}))
+        asset['mixed_attribution_notes'] = (
+            mixed_notes_by_asset.get(key, [])
+        )
+        terminal_assets.append(asset)
+
     return {
         'root_transaction_id': str(transaction_id),
         'root_created': trade.get('created'),
@@ -2917,15 +3166,14 @@ def trace_owner_side_lineage(
         'direct_return_assets': side.get('received_assets', []),
         'descendant_asset_keys': sorted(descendant_assets),
         'terminal_asset_keys': terminal_keys,
-        'terminal_assets': [
-            nodes.get(key, {'asset_key': key})
-            for key in terminal_keys
-        ],
+        'terminal_assets': terminal_assets,
         'edge_ids': sorted(used_edges),
+        'mixed_attribution_notes_by_asset': mixed_notes_by_asset,
         'methodology': (
             'Owner-specific, transaction-rooted, chronological lineage. '
             'Each asset is consumed only at its next qualifying trade or '
-            'draft event for the same owner.'
+            'draft event for the same owner. Mixed-input trades also list '
+            'the exact other outgoing assets packaged with the lineage asset.'
         ),
     }
 
@@ -2987,6 +3235,1086 @@ def build_transaction_rooted_lineage_index(
             )
     return rows
 
+
+# ---------------------------------------------------------------------------
+# HISTORICAL PERFORMANCE + FUTURE-SEASON AUTOMATION
+# ---------------------------------------------------------------------------
+
+STATS_BASE = "https://api.sleeper.com/stats/nfl"
+REGULAR_SEASON_WEEKS = 18
+
+
+def safe_api_get(url, params=None, timeout=30):
+    """
+    Sleeper stats endpoints are separate from the documented v1 league API.
+    Fail gracefully so a transient stats outage does not break the entire
+    league-data refresh.
+    """
+    try:
+        response = requests.get(url, params=params, timeout=timeout)
+        response.raise_for_status()
+        return response.json()
+    except Exception as exc:
+        print(f"WARNING: API fetch failed: {url} ({exc})")
+        return None
+
+
+def discover_fsffl_seasons(history, nfl_state):
+    """
+    Seasons in which the FSFFL league exists.
+
+    This controls owner/roster/matchup attribution only.
+    """
+    seasons = set()
+
+    for season_data in history:
+        league = season_data.get("league") or {}
+        season = league.get("season")
+        if season is not None:
+            seasons.add(str(season))
+
+    # Include the active linked league season automatically.
+    value = (nfl_state or {}).get("league_season")
+    if value is not None:
+        seasons.add(str(value))
+
+    return sorted(
+        seasons,
+        key=lambda x: int(x) if str(x).isdigit() else 9999,
+    )
+
+
+def discover_nfl_stat_seasons(
+    nfl_state,
+    stats_start_year=2015,
+):
+    """
+    Seasons for historical NFL player-performance ingestion.
+
+    This is intentionally independent of league inception. It backfills from
+    `stats_start_year` through the current Sleeper/NFL season and automatically
+    extends as future seasons arrive.
+
+    The default floor of 2015 is configurable in one place and can be moved
+    earlier later without changing the rest of the pipeline.
+    """
+    active = (
+        (nfl_state or {}).get("season")
+        or (nfl_state or {}).get("league_season")
+    )
+
+    try:
+        active_year = int(active)
+    except Exception:
+        active_year = datetime.datetime.utcnow().year
+
+    return [
+        str(year)
+        for year in range(int(stats_start_year), active_year + 1)
+    ]
+
+
+def season_is_complete(season, nfl_state):
+    """
+    Treat seasons older than the NFL state's active league season as complete.
+    Completed season raw files can be reused instead of repeatedly fetched.
+    """
+    try:
+        active = int(
+            (nfl_state or {}).get("league_season")
+            or (nfl_state or {}).get("season")
+        )
+        return int(season) < active
+    except Exception:
+        return False
+
+
+def fetch_sleeper_weekly_player_stats(season, week):
+    """
+    Fetch all NFL player stats for one regular-season week.
+    Endpoint:
+      https://api.sleeper.com/stats/nfl/<season>/<week>
+          ?season_type=regular
+    """
+    url = f"{STATS_BASE}/{season}/{week}"
+    payload = safe_api_get(
+        url,
+        params={"season_type": "regular"},
+    )
+    return payload if isinstance(payload, list) else []
+
+
+def fetch_sleeper_player_season_stats(season):
+    """
+    Season aggregate from Sleeper's stats service.
+    """
+    url = f"{STATS_BASE}/{season}"
+    payload = safe_api_get(
+        url,
+        params={"season_type": "regular"},
+    )
+    return payload if isinstance(payload, list) else []
+
+
+def normalize_stat_row(row, season=None, week=None):
+    """
+    Sleeper stats responses typically contain player_id plus a nested `stats`
+    mapping. Preserve the raw statistics but normalize core identity fields.
+    """
+    if not isinstance(row, dict):
+        return None
+
+    player_id = row.get("player_id")
+    stats = row.get("stats") or {}
+
+    if player_id is None:
+        player = row.get("player") or {}
+        player_id = player.get("player_id")
+
+    if player_id is None:
+        return None
+
+    return {
+        "player_id": str(player_id),
+        "season": str(season) if season is not None else None,
+        "week": week,
+        "stats": stats,
+        "sleeper_points": {
+            key: value
+            for key, value in row.items()
+            if str(key).startswith("pts_")
+        },
+        "raw": row,
+    }
+
+
+def score_stats_with_league_settings(stats, scoring_settings):
+    """
+    Generic FSFFL scoring calculator.
+
+    Sleeper's scoring_settings keys largely mirror statistic keys. Summing the
+    intersection means this keeps working if the league changes scoring rules
+    in a future season. It also avoids baking 2026 scoring into the script.
+    """
+    if not isinstance(stats, dict):
+        return 0.0
+
+    total = 0.0
+    contributions = {}
+
+    for stat_key, multiplier in (scoring_settings or {}).items():
+        if stat_key not in stats:
+            continue
+
+        try:
+            stat_value = float(stats.get(stat_key) or 0)
+            multiplier_value = float(multiplier or 0)
+        except (TypeError, ValueError):
+            continue
+
+        points = stat_value * multiplier_value
+        if points:
+            contributions[stat_key] = round(points, 4)
+        total += points
+
+    return round(total, 4), contributions
+
+
+def get_season_scoring_settings(history, season):
+    for season_data in history:
+        league = season_data.get("league") or {}
+        if str(league.get("season")) == str(season):
+            return league.get("scoring_settings") or {}
+    return {}
+
+
+def get_season_league_id(history, season):
+    for season_data in history:
+        league = season_data.get("league") or {}
+        if str(league.get("season")) == str(season):
+            return str(league.get("league_id"))
+    return None
+
+
+def get_season_roster_owner_map(history, season):
+    """
+    roster_id -> user_id for a particular league season.
+    """
+    for season_data in history:
+        league = season_data.get("league") or {}
+        if str(league.get("season")) != str(season):
+            continue
+
+        mapping = {}
+        for roster in season_data.get("rosters", []):
+            roster_id = roster.get("roster_id")
+            owner_id = roster.get("owner_id")
+            if roster_id is not None and owner_id is not None:
+                mapping[str(roster_id)] = str(owner_id)
+        return mapping
+
+    return {}
+
+
+def fetch_weekly_matchup_rosters(league_id, week):
+    """
+    Official Sleeper league matchup endpoint. This is crucial because the
+    matchup payload records every player rostered by each team in that week,
+    letting us attribute fantasy production to the owner who actually held the
+    player when the points were scored.
+    """
+    if not league_id:
+        return []
+
+    url = (
+        f"https://api.sleeper.app/v1/league/"
+        f"{league_id}/matchups/{week}"
+    )
+    payload = safe_api_get(url)
+    return payload if isinstance(payload, list) else []
+
+
+
+def build_nfl_historical_performance(
+    players,
+    season,
+    data_dir,
+    nfl_state,
+):
+    """
+    Historical NFL player stats independent of FSFFL.
+
+    Stores:
+      data/stats/nfl/<season>/player_weekly_raw.json
+      data/stats/nfl/<season>/player_weekly_normalized.json
+      data/stats/nfl/<season>/player_season_raw.json
+
+    No FSFFL owner attribution is attempted here.
+    """
+    season = str(season)
+    season_dir = data_dir / "stats" / "nfl" / season
+    season_dir.mkdir(parents=True, exist_ok=True)
+
+    raw_weekly_path = season_dir / "player_weekly_raw.json"
+    normalized_weekly_path = (
+        season_dir / "player_weekly_normalized.json"
+    )
+    raw_season_path = season_dir / "player_season_raw.json"
+
+    complete = season_is_complete(season, nfl_state)
+
+    raw_weekly = None
+    raw_season = None
+
+    if complete and raw_weekly_path.exists():
+        try:
+            raw_weekly = json.loads(
+                raw_weekly_path.read_text(encoding="utf-8")
+            )
+        except Exception:
+            raw_weekly = None
+
+    if complete and raw_season_path.exists():
+        try:
+            raw_season = json.loads(
+                raw_season_path.read_text(encoding="utf-8")
+            )
+        except Exception:
+            raw_season = None
+
+    if complete:
+        max_week = REGULAR_SEASON_WEEKS
+    else:
+        try:
+            state_season = str(
+                (nfl_state or {}).get("season")
+                or (nfl_state or {}).get("league_season")
+            )
+            state_week = int((nfl_state or {}).get("week") or 0)
+            max_week = (
+                min(REGULAR_SEASON_WEEKS, max(0, state_week))
+                if state_season == season
+                else REGULAR_SEASON_WEEKS
+            )
+        except Exception:
+            max_week = REGULAR_SEASON_WEEKS
+
+    if raw_weekly is None:
+        raw_weekly = {}
+        for week in range(1, max_week + 1):
+            raw_weekly[str(week)] = (
+                fetch_sleeper_weekly_player_stats(
+                    season,
+                    week,
+                )
+            )
+        raw_weekly_path.write_text(
+            json.dumps(
+                raw_weekly,
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+
+    if raw_season is None:
+        raw_season = fetch_sleeper_player_season_stats(
+            season
+        )
+        raw_season_path.write_text(
+            json.dumps(
+                raw_season,
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+
+    normalized = []
+    for week_str, rows in raw_weekly.items():
+        try:
+            week = int(week_str)
+        except Exception:
+            continue
+
+        for raw_row in rows or []:
+            row = normalize_stat_row(
+                raw_row,
+                season=season,
+                week=week,
+            )
+            if not row:
+                continue
+
+            pid = row["player_id"]
+            player = players.get(pid, {})
+            normalized.append({
+                "season": season,
+                "week": week,
+                "player_id": pid,
+                "player_name": (
+                    player.get("full_name") or pid
+                ),
+                "position": player.get("position"),
+                "nfl_team": player.get("team"),
+                "stats": row.get("stats") or {},
+                "sleeper_points": (
+                    row.get("sleeper_points") or {}
+                ),
+            })
+
+    normalized.sort(
+        key=lambda x: (
+            int(x["season"]),
+            x["week"],
+            x.get("player_name") or "",
+        )
+    )
+
+    normalized_weekly_path.write_text(
+        json.dumps(
+            normalized,
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+    return {
+        "season": season,
+        "weekly_rows": normalized,
+        "raw_season_rows": raw_season,
+        "paths": {
+            "raw_weekly_stats": str(raw_weekly_path),
+            "normalized_weekly_stats": str(
+                normalized_weekly_path
+            ),
+            "raw_season_stats": str(raw_season_path),
+        },
+    }
+
+
+def build_all_nfl_historical_performance(
+    players,
+    nfl_state,
+    data_dir,
+    stats_start_year=2015,
+):
+    """
+    Backfill and maintain NFL stats history independent of league history.
+    """
+    seasons = discover_nfl_stat_seasons(
+        nfl_state,
+        stats_start_year=stats_start_year,
+    )
+    results = []
+
+    for season in seasons:
+        print(
+            f"Building historical NFL stats layer: "
+            f"{season}"
+        )
+        results.append(
+            build_nfl_historical_performance(
+                players,
+                season,
+                data_dir,
+                nfl_state,
+            )
+        )
+
+    return results
+
+def build_season_weekly_performance(
+    history,
+    players,
+    season,
+    data_dir,
+    nfl_state,
+):
+    """
+    Fetch/cache raw weekly Sleeper stats + league matchup rosters, then build a
+    compact FSFFL-scored weekly performance file.
+
+    Historical seasons:
+      reuse committed raw files if present.
+    Active season:
+      refresh every workflow run.
+
+    Future seasons:
+      automatically appear once Sleeper's linked league history/NFL state
+      rolls forward.
+    """
+    season = str(season)
+    season_dir = data_dir / "stats" / "fsffl" / season
+    season_dir.mkdir(parents=True, exist_ok=True)
+
+    raw_stats_path = season_dir / "player_weekly_raw.json"
+    raw_matchups_path = season_dir / "league_matchups_raw.json"
+    scored_path = season_dir / "player_weekly_fsffl.json"
+    season_summary_path = season_dir / "player_season_fsffl.json"
+
+    complete = season_is_complete(season, nfl_state)
+
+    raw_stats = None
+    raw_matchups = None
+
+    if complete and raw_stats_path.exists():
+        try:
+            raw_stats = json.loads(
+                raw_stats_path.read_text(encoding="utf-8")
+            )
+        except Exception:
+            raw_stats = None
+
+    if complete and raw_matchups_path.exists():
+        try:
+            raw_matchups = json.loads(
+                raw_matchups_path.read_text(encoding="utf-8")
+            )
+        except Exception:
+            raw_matchups = None
+
+    # Determine how far an active season has progressed.
+    if complete:
+        max_week = REGULAR_SEASON_WEEKS
+    else:
+        try:
+            state_season = str(
+                (nfl_state or {}).get("season")
+                or (nfl_state or {}).get("league_season")
+            )
+            state_week = int((nfl_state or {}).get("week") or 0)
+            max_week = (
+                min(REGULAR_SEASON_WEEKS, max(0, state_week))
+                if state_season == season
+                else REGULAR_SEASON_WEEKS
+            )
+        except Exception:
+            max_week = REGULAR_SEASON_WEEKS
+
+    if raw_stats is None:
+        raw_stats = {}
+        for week in range(1, max_week + 1):
+            rows = fetch_sleeper_weekly_player_stats(season, week)
+            raw_stats[str(week)] = rows
+
+        raw_stats_path.write_text(
+            json.dumps(raw_stats, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
+    if raw_matchups is None:
+        raw_matchups = {}
+        league_id = get_season_league_id(history, season)
+
+        if league_id:
+            for week in range(1, max_week + 1):
+                raw_matchups[str(week)] = (
+                    fetch_weekly_matchup_rosters(league_id, week)
+                )
+
+        raw_matchups_path.write_text(
+            json.dumps(raw_matchups, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
+    scoring_settings = get_season_scoring_settings(history, season)
+    roster_to_user = get_season_roster_owner_map(history, season)
+
+    weekly_rows = []
+    season_totals = defaultdict(lambda: {
+        "games_with_stats": 0,
+        "fsffl_points": 0.0,
+        "weeks_rostered": 0,
+        "points_by_owner": defaultdict(float),
+        "weeks_by_owner": defaultdict(int),
+    })
+
+    # week -> player -> roster_id
+    weekly_player_roster = {}
+
+    for week_str, matchup_rows in raw_matchups.items():
+        player_map = {}
+        for matchup in matchup_rows or []:
+            roster_id = str(matchup.get("roster_id"))
+            for pid in matchup.get("players") or []:
+                player_map[str(pid)] = roster_id
+        weekly_player_roster[str(week_str)] = player_map
+
+    for week_str, stat_rows in raw_stats.items():
+        try:
+            week = int(week_str)
+        except Exception:
+            continue
+
+        player_rosters = weekly_player_roster.get(str(week), {})
+
+        for raw_row in stat_rows or []:
+            row = normalize_stat_row(
+                raw_row,
+                season=season,
+                week=week,
+            )
+            if not row:
+                continue
+
+            pid = row["player_id"]
+            player = players.get(pid, {})
+            fsffl_points, contributions = (
+                score_stats_with_league_settings(
+                    row["stats"],
+                    scoring_settings,
+                )
+            )
+
+            roster_id = player_rosters.get(pid)
+            owner_user_id = (
+                roster_to_user.get(roster_id)
+                if roster_id is not None
+                else None
+            )
+
+            weekly_row = {
+                "season": season,
+                "week": week,
+                "player_id": pid,
+                "player_name": (
+                    player.get("full_name") or pid
+                ),
+                "position": player.get("position"),
+                "nfl_team": player.get("team"),
+                "fsffl_points": fsffl_points,
+                "scoring_contributions": contributions,
+                "league_roster_id": roster_id,
+                "owner_user_id": owner_user_id,
+                "stats": row["stats"],
+            }
+            weekly_rows.append(weekly_row)
+
+            summary = season_totals[pid]
+            summary["games_with_stats"] += 1
+            summary["fsffl_points"] += fsffl_points
+
+            if owner_user_id:
+                summary["weeks_rostered"] += 1
+                summary["points_by_owner"][owner_user_id] += (
+                    fsffl_points
+                )
+                summary["weeks_by_owner"][owner_user_id] += 1
+
+    season_rows = []
+    for pid, summary in season_totals.items():
+        player = players.get(pid, {})
+        season_rows.append({
+            "season": season,
+            "player_id": pid,
+            "player_name": player.get("full_name") or pid,
+            "position": player.get("position"),
+            "nfl_team": player.get("team"),
+            "games_with_stats": summary["games_with_stats"],
+            "fsffl_points": round(
+                summary["fsffl_points"],
+                3,
+            ),
+            "fsffl_ppg": round(
+                summary["fsffl_points"]
+                / summary["games_with_stats"],
+                3,
+            ) if summary["games_with_stats"] else None,
+            "points_by_owner": {
+                uid: round(points, 3)
+                for uid, points
+                in summary["points_by_owner"].items()
+            },
+            "weeks_by_owner": dict(
+                summary["weeks_by_owner"]
+            ),
+        })
+
+    weekly_rows.sort(
+        key=lambda x: (
+            int(x["season"]),
+            x["week"],
+            x.get("position") or "",
+            -(x.get("fsffl_points") or 0),
+        )
+    )
+    season_rows.sort(
+        key=lambda x: -(x.get("fsffl_points") or 0)
+    )
+
+    scored_path.write_text(
+        json.dumps(weekly_rows, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    season_summary_path.write_text(
+        json.dumps(season_rows, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+    return {
+        "season": season,
+        "weekly_rows": weekly_rows,
+        "season_rows": season_rows,
+        "paths": {
+            "raw_weekly_stats": str(raw_stats_path),
+            "raw_matchups": str(raw_matchups_path),
+            "weekly_fsffl": str(scored_path),
+            "season_fsffl": str(season_summary_path),
+        },
+    }
+
+
+def build_all_fsffl_performance(
+    history,
+    players,
+    nfl_state,
+    data_dir,
+):
+    """
+    Master seasonal runner. No season list is hard-coded.
+    """
+    seasons = discover_fsffl_seasons(history, nfl_state)
+    results = []
+
+    for season in seasons:
+        print(f"Building Sleeper performance layer: {season}")
+        result = build_season_weekly_performance(
+            history,
+            players,
+            season,
+            data_dir,
+            nfl_state,
+        )
+        results.append(result)
+
+    return results
+
+
+def build_player_franchise_history(
+    history,
+    players,
+    acquisition_ledger,
+):
+    """
+    Player movement / franchise history using transaction acquisition events.
+    Answers:
+      - who has been on the most teams?
+      - who has been traded most?
+      - who was reacquired?
+      - full league career path for Player X
+    """
+    owners, _ = build_owner_directory(history)
+
+    player_events = defaultdict(list)
+
+    # Draft/trade/waiver/free-agent additions from acquisition ledger.
+    for event in acquisition_ledger:
+        user_id = event.get("user_id")
+        for asset in event.get("players_added", []) or []:
+            pid = str(asset.get("player_id"))
+            player_events[pid].append({
+                "created": event.get("created"),
+                "created_utc": event.get("created_utc"),
+                "season": event.get("season"),
+                "event_type": event.get("type"),
+                "transaction_id": event.get("transaction_id"),
+                "user_id": user_id,
+                "manager": event.get("manager"),
+                "team_name": event.get("team_name"),
+                "faab_bid": event.get("faab_bid"),
+            })
+
+    # Trades are important enough to classify precisely.
+    trade_analytics = build_trade_analytics(history, players)
+    trade_count_by_player = Counter()
+
+    for trade in trade_analytics["trade_ledger"]:
+        for side in trade.get("sides", []):
+            for asset in side.get("received_players", []) or []:
+                pid = str(asset.get("player_id"))
+                trade_count_by_player[pid] += 1
+
+    rows = []
+
+    for pid, events in player_events.items():
+        events.sort(key=lambda x: x.get("created") or 0)
+
+        unique_owners = []
+        seen = set()
+
+        for event in events:
+            uid = event.get("user_id")
+            if uid and uid not in seen:
+                seen.add(uid)
+                unique_owners.append(uid)
+
+        player = players.get(pid, {})
+        owner_names = [
+            owners.get(uid, {}).get("team_name")
+            or owners.get(uid, {}).get("manager")
+            or uid
+            for uid in unique_owners
+        ]
+
+        # Count reacquisitions: same owner appearing in non-consecutive stints.
+        owner_sequence = [
+            e.get("user_id")
+            for e in events
+            if e.get("user_id")
+        ]
+        compressed = []
+        for uid in owner_sequence:
+            if not compressed or compressed[-1] != uid:
+                compressed.append(uid)
+
+        reacquisitions = max(
+            0,
+            len(compressed) - len(set(compressed)),
+        )
+
+        rows.append({
+            "player_id": pid,
+            "player_name": player.get("full_name") or pid,
+            "position": player.get("position"),
+            "nfl_team": player.get("team"),
+            "unique_fsffl_teams": len(unique_owners),
+            "fsffl_team_history": owner_names,
+            "trade_acquisitions": trade_count_by_player.get(
+                pid, 0
+            ),
+            "recorded_acquisition_events": len(events),
+            "reacquisitions": reacquisitions,
+            "events": events,
+        })
+
+    rows.sort(
+        key=lambda x: (
+            -x["unique_fsffl_teams"],
+            -x["trade_acquisitions"],
+            -x["recorded_acquisition_events"],
+            x["player_name"],
+        )
+    )
+    return rows
+
+
+def build_owner_player_production(
+    all_season_performance,
+    owners,
+):
+    """
+    How many FSFFL-scored points each owner actually received from each player,
+    based on weekly matchup roster attribution.
+    """
+    aggregate = defaultdict(lambda: {
+        "points": 0.0,
+        "weeks": 0,
+        "seasons": set(),
+    })
+    player_names = {}
+    player_positions = {}
+
+    for season_result in all_season_performance:
+        for row in season_result["weekly_rows"]:
+            uid = row.get("owner_user_id")
+            pid = row.get("player_id")
+            if not uid or not pid:
+                continue
+
+            key = (uid, pid)
+            aggregate[key]["points"] += (
+                row.get("fsffl_points") or 0
+            )
+            aggregate[key]["weeks"] += 1
+            aggregate[key]["seasons"].add(
+                row.get("season")
+            )
+            player_names[pid] = row.get("player_name")
+            player_positions[pid] = row.get("position")
+
+    rows = []
+    for (uid, pid), data in aggregate.items():
+        rows.append({
+            "user_id": uid,
+            "manager": owners.get(uid, {}).get("manager"),
+            "team_name": owners.get(uid, {}).get("team_name"),
+            "player_id": pid,
+            "player_name": player_names.get(pid),
+            "position": player_positions.get(pid),
+            "fsffl_points_while_rostered": round(
+                data["points"], 3
+            ),
+            "weeks_rostered_with_stats": data["weeks"],
+            "points_per_rostered_week": round(
+                data["points"] / data["weeks"],
+                3,
+            ) if data["weeks"] else None,
+            "seasons": sorted(data["seasons"]),
+        })
+
+    rows.sort(
+        key=lambda x: -x["fsffl_points_while_rostered"]
+    )
+    return rows
+
+
+def build_transaction_performance_index(
+    trade_asset_index,
+    all_season_performance,
+    players,
+):
+    """
+    Post-acquisition production for every player received in a trade.
+
+    This is the foundation for:
+      - best/worst rentals
+      - points produced after a trade
+      - owners who buy before breakouts
+      - trade ROI using actual league production
+    """
+    weekly_by_player = defaultdict(list)
+
+    for season_result in all_season_performance:
+        for row in season_result["weekly_rows"]:
+            weekly_by_player[row["player_id"]].append(row)
+
+    rows = []
+
+    for trade in trade_asset_index["trades"]:
+        trade_created = trade.get("created")
+        trade_season = str(trade.get("season"))
+
+        for side in trade.get("sides", []):
+            uid = side.get("user_id")
+
+            for asset in side.get("received_assets", []):
+                if asset.get("asset_type") != "player":
+                    continue
+
+                pid = asset.get("player_id")
+                post_rows = [
+                    row
+                    for row in weekly_by_player.get(pid, [])
+                    if str(row.get("season")) >= trade_season
+                    and row.get("owner_user_id") == uid
+                ]
+
+                total_points = sum(
+                    row.get("fsffl_points") or 0
+                    for row in post_rows
+                )
+
+                rows.append({
+                    "transaction_id": trade.get(
+                        "transaction_id"
+                    ),
+                    "trade_created": trade_created,
+                    "trade_created_utc": trade.get(
+                        "created_utc"
+                    ),
+                    "season": trade_season,
+                    "acquiring_user_id": uid,
+                    "acquiring_manager": side.get("manager"),
+                    "acquiring_team": side.get("team_name"),
+                    "player_id": pid,
+                    "player_name": (
+                        players.get(pid, {}).get("full_name")
+                        or asset.get("label")
+                    ),
+                    "position": asset.get("position"),
+                    "fsffl_points_for_acquirer_after_trade": round(
+                        total_points, 3
+                    ),
+                    "weeks_with_acquirer_after_trade": len(
+                        post_rows
+                    ),
+                    "points_per_week_after_trade": round(
+                        total_points / len(post_rows),
+                        3,
+                    ) if post_rows else None,
+                })
+
+    rows.sort(
+        key=lambda x: -x[
+            "fsffl_points_for_acquirer_after_trade"
+        ]
+    )
+    return rows
+
+
+def classify_owner_state_snapshot(
+    owner_profile,
+    current_roster_context=None,
+):
+    """
+    Structured feature layer for advice/acceptance modeling.
+
+    This intentionally produces explainable features rather than pretending
+    we have enough observations for a calibrated ML acceptance probability.
+    """
+    trade_summary = owner_profile.get("trade_summary") or {}
+    draft_summary = owner_profile.get("draft_summary") or {}
+    waiver_summary = owner_profile.get("waiver_summary") or {}
+
+    features = {
+        "trade_volume": trade_summary.get("trade_count", 0),
+        "trade_initiation_rate": trade_summary.get(
+            "initiation_rate"
+        ),
+        "multi_asset_trade_rate": trade_summary.get(
+            "multi_asset_rate"
+        ),
+        "firsts_acquired": trade_summary.get(
+            "first_round_picks_acquired", 0
+        ),
+        "firsts_sent": trade_summary.get(
+            "first_round_picks_sent", 0
+        ),
+        "rookie_picks_made": draft_summary.get(
+            "rookie_picks", 0
+        ),
+        "waiver_acquisitions": waiver_summary.get(
+            "acquisition_count", 0
+        ),
+    }
+
+    if current_roster_context:
+        features["roster_context"] = current_roster_context
+
+    return features
+
+
+def build_endpoint_confidence_index(
+    transaction_rooted_lineage,
+):
+    """
+    Quality flag for every lineage endpoint:
+      exact
+      mixed_attribution
+      partial_history
+      unresolved
+    """
+    rows = []
+
+    for trace in transaction_rooted_lineage:
+        if trace.get("error"):
+            rows.append({
+                "root_transaction_id": trace.get(
+                    "root_transaction_id"
+                ),
+                "confidence": "unresolved",
+                "reason": trace.get("error"),
+            })
+            continue
+
+        mixed = trace.get(
+            "mixed_attribution_notes_by_asset", {}
+        )
+
+        for asset in trace.get("terminal_assets", []):
+            key = asset.get("asset_key")
+            mixed_notes = mixed.get(key, [])
+
+            confidence = (
+                "mixed_attribution"
+                if mixed_notes
+                else "exact"
+            )
+
+            rows.append({
+                "root_transaction_id": trace.get(
+                    "root_transaction_id"
+                ),
+                "owner_user_id": trace.get("owner_user_id"),
+                "endpoint_asset_key": key,
+                "endpoint_label": asset.get("label"),
+                "confidence": confidence,
+                "mixed_attribution_notes": mixed_notes,
+                "current_status": asset.get("current_status"),
+                "current_owner_user_id": asset.get(
+                    "current_owner_user_id"
+                ),
+                "current_owner_manager": asset.get(
+                    "current_owner_manager"
+                ),
+                "current_owner_team": asset.get(
+                    "current_owner_team"
+                ),
+            })
+
+    return rows
+
+
+def build_future_season_manifest(
+    fsffl_seasons,
+    nfl_seasons,
+    nfl_state,
+):
+    """
+    Small machine-readable manifest showing that new seasons are discovered
+    automatically rather than requiring a code edit.
+    """
+    return {
+        "discovered_fsffl_seasons": fsffl_seasons,
+        "discovered_nfl_stat_seasons": nfl_seasons,
+        "active_nfl_season": (nfl_state or {}).get("season"),
+        "active_league_season": (
+            nfl_state or {}
+        ).get("league_season"),
+        "future_season_behavior": (
+            "On every workflow run the script reads Sleeper NFL state and "
+            "linked league history. New NFL seasons are automatically added "
+            "under data/stats/nfl/<season>/, while new FSFFL seasons are "
+            "automatically added under data/stats/fsffl/<season>/."
+        ),
+        "historical_cache_behavior": (
+            "Completed seasons reuse committed raw files. The active season "
+            "is refreshed as new weeks become available."
+        ),
+    }
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -3038,6 +4366,63 @@ def main():
         draft_pick_conversion_index,
         universal_lineage,
     )
+    mixed_attribution_index = build_mixed_attribution_index(
+        universal_lineage,
+    )
+    data_dir = DATA_DIR
+    discovered_fsffl_seasons = discover_fsffl_seasons(
+        history,
+        nfl_state,
+    )
+    discovered_nfl_seasons = discover_nfl_stat_seasons(
+        nfl_state,
+        stats_start_year=2015,
+    )
+
+    all_nfl_historical_performance = (
+        build_all_nfl_historical_performance(
+            players,
+            nfl_state,
+            data_dir,
+            stats_start_year=2015,
+        )
+    )
+
+    all_season_performance = build_all_fsffl_performance(
+        history,
+        players,
+        nfl_state,
+        data_dir,
+    )
+
+    owners_directory, _season_rosters_tmp = build_owner_directory(
+        history
+    )
+
+    player_franchise_history = build_player_franchise_history(
+        history,
+        players,
+        acquisition_analytics["acquisition_ledger"],
+    )
+
+    owner_player_production = build_owner_player_production(
+        all_season_performance,
+        owners_directory,
+    )
+
+    transaction_performance_index = (
+        build_transaction_performance_index(
+            trade_asset_index,
+            all_season_performance,
+            players,
+        )
+    )
+
+    future_season_manifest = build_future_season_manifest(
+        discovered_fsffl_seasons,
+        discovered_nfl_seasons,
+        nfl_state,
+    )
 
     # Generic Mahomes trace is now only a demonstration/query result,
     # not special lineage logic.
@@ -3057,6 +4442,9 @@ def main():
     transaction_rooted_lineage = build_transaction_rooted_lineage_index(
         trade_asset_index,
         universal_lineage,
+    )
+    endpoint_confidence_index = build_endpoint_confidence_index(
+        transaction_rooted_lineage,
     )
 
     # Demonstration query: Mocha's side of the exact Patrick Mahomes trade.
@@ -3159,6 +4547,97 @@ def main():
         lineage_validation,
     )
     write_json(
+        "mixed_attribution_index.json",
+        mixed_attribution_index,
+    )
+    write_json(
+        "player_franchise_history.json",
+        player_franchise_history,
+    )
+    write_json(
+        "owner_player_production.json",
+        owner_player_production,
+    )
+    write_json(
+        "transaction_performance_index.json",
+        transaction_performance_index,
+    )
+    write_json(
+        "lineage_endpoint_confidence.json",
+        endpoint_confidence_index,
+    )
+    write_json(
+        "future_season_manifest.json",
+        future_season_manifest,
+    )
+    write_json(
+        "stats_architecture.json",
+        {
+            "nfl_history": {
+                "path_pattern": "data/stats/nfl/<season>/",
+                "starts": discovered_nfl_seasons[0]
+                if discovered_nfl_seasons else None,
+                "ends": discovered_nfl_seasons[-1]
+                if discovered_nfl_seasons else None,
+                "contains": [
+                    "raw weekly player stats",
+                    "normalized weekly player stats",
+                    "raw season player stats",
+                ],
+                "owner_attribution": False,
+            },
+            "fsffl_history": {
+                "path_pattern": "data/stats/fsffl/<season>/",
+                "seasons": discovered_fsffl_seasons,
+                "contains": [
+                    "league matchup rosters",
+                    "FSFFL-scored weekly production",
+                    "owner-attributed player production",
+                ],
+                "owner_attribution": True,
+            },
+            "future_seasons": (
+                "Both layers extend automatically. NFL history follows "
+                "Sleeper NFL state; FSFFL history follows linked league "
+                "seasons."
+            ),
+        },
+    )
+    write_json(
+        "performance_index.json",
+        {
+            "nfl_history": [
+                {
+                    "season": result["season"],
+                    "weekly_record_count": len(
+                        result["weekly_rows"]
+                    ),
+                    "season_raw_record_count": len(
+                        result["raw_season_rows"] or []
+                    ),
+                    "paths": result["paths"],
+                }
+                for result in all_nfl_historical_performance
+            ],
+            "fsffl_history": [
+                {
+                    "season": result["season"],
+                    "weekly_record_count": len(
+                        result["weekly_rows"]
+                    ),
+                    "season_player_count": len(
+                        result["season_rows"]
+                    ),
+                    "paths": result["paths"],
+                }
+                for result in all_season_performance
+            ],
+            "historical_nfl_stats_independent_of_league": True,
+            "future_season_auto_discovery": True,
+            "nfl_stats_start_year": 2015,
+        },
+    )
+    write_json(
         "patrick_mahomes_generic_trace.json",
         generic_mahomes_trace,
     )
@@ -3243,6 +4722,28 @@ def main():
     print(
         f"Lineage validation passed: "
         f"{lineage_validation['validation_passed']}"
+    )
+
+    print(
+        f"Mixed-attribution lineage edges indexed: "
+        f"{len(mixed_attribution_index)}"
+    )
+
+    print(
+        f"NFL stat seasons maintained: "
+        f"{', '.join(discovered_nfl_seasons)}"
+    )
+    print(
+        f"FSFFL performance seasons maintained: "
+        f"{', '.join(discovered_fsffl_seasons)}"
+    )
+    print(
+        f"Player franchise histories: "
+        f"{len(player_franchise_history)}"
+    )
+    print(
+        f"Owner/player production rows: "
+        f"{len(owner_player_production)}"
     )
 
 
