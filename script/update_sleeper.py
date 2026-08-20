@@ -2314,6 +2314,23 @@ def build_draft_pick_conversion_index(history, players):
             draft = draft_record.get("draft") or {}
             draft_order = draft.get("draft_order") or {}
 
+            # Startup drafts are NOT rookie-pick conversions. Treating a
+            # startup snake draft as "2022 R1 origX" creates duplicate /
+            # impossible pick identities because managers make many startup
+            # selections. For lineage purposes only linear rookie drafts
+            # become traded-pick -> drafted-player conversion edges.
+            draft_type = str(draft.get("type") or "").lower()
+            draft_rounds = (
+                (draft.get("settings") or {}).get("rounds")
+            )
+            if draft_type and draft_type != "linear":
+                continue
+            try:
+                if draft_rounds is not None and int(draft_rounds) > 5:
+                    continue
+            except (TypeError, ValueError):
+                pass
+
             # Sleeper: user_id -> slot. Invert to slot -> original user.
             slot_to_original_user = {
                 str(slot): str(user_id)
@@ -2399,6 +2416,69 @@ def build_draft_pick_conversion_index(history, players):
         "by_pick_key": by_pick_key,
     }
 
+
+
+def build_startup_draft_history(history, players):
+    """
+    Preserve startup-draft selections as initial roster acquisition history,
+    separate from rookie-pick lineage.
+
+    This supports questions such as:
+      - who had the best startup draft?
+      - what startup pick produced the most FSFFL points?
+      - which original players are still with their drafting franchise?
+    """
+    rows = []
+
+    for season_data in history:
+        for draft_record in season_data.get("drafts", []):
+            draft = draft_record.get("draft") or {}
+            draft_type = str(draft.get("type") or "").lower()
+            rounds = (draft.get("settings") or {}).get("rounds")
+
+            is_startup = draft_type == "snake"
+            try:
+                if rounds is not None and int(rounds) > 5:
+                    is_startup = True
+            except (TypeError, ValueError):
+                pass
+
+            if not is_startup:
+                continue
+
+            for pick in draft_record.get("picks", []):
+                pid = (
+                    str(pick.get("player_id"))
+                    if pick.get("player_id") is not None
+                    else None
+                )
+                if not pid:
+                    continue
+
+                player = players.get(pid, {})
+                rows.append({
+                    "draft_id": draft.get("draft_id"),
+                    "season": str(draft.get("season") or ""),
+                    "pick_no": pick.get("pick_no"),
+                    "round": pick.get("round"),
+                    "draft_slot": pick.get("draft_slot"),
+                    "picked_by_user_id": (
+                        str(pick.get("picked_by"))
+                        if pick.get("picked_by") is not None
+                        else None
+                    ),
+                    "roster_id": pick.get("roster_id"),
+                    "player_id": pid,
+                    "player_name": player.get("full_name") or pid,
+                    "position": player.get("position"),
+                    "nfl_team": player.get("team"),
+                })
+
+    rows.sort(key=lambda x: (
+        str(x.get("season")),
+        x.get("pick_no") or 9999,
+    ))
+    return rows
 
 def build_trade_asset_index(history, players):
     """
@@ -2956,6 +3036,16 @@ def build_lineage_validation(
     conversions = draft_conversion_index["conversions"]
     unresolved_past_picks = []
 
+    pick_key_counts = Counter(
+        c.get("pick_asset_key")
+        for c in conversions
+        if c.get("pick_asset_key")
+    )
+    duplicate_pick_keys = sorted(
+        key for key, count in pick_key_counts.items()
+        if count > 1
+    )
+
     # Every resolved past pick should explicitly be consumed in a draft.
     for c in conversions:
         key = c["pick_asset_key"]
@@ -2965,11 +3055,17 @@ def build_lineage_validation(
 
     return {
         "resolved_pick_to_player_conversions": len(conversions),
+        "duplicate_pick_asset_keys": duplicate_pick_keys,
         "unresolved_resolved_pick_status_errors": unresolved_past_picks,
-        "validation_passed": not unresolved_past_picks,
+        "validation_passed": (
+            not unresolved_past_picks
+            and not duplicate_pick_keys
+        ),
         "note": (
-            "This validates that every pick for which we found an exact "
-            "draft conversion is no longer represented as a live pick."
+            "Validates exact rookie-pick conversions, confirms resolved "
+            "historical picks are consumed, and rejects duplicate canonical "
+            "pick identities. Startup drafts are stored separately and do "
+            "not create rookie-pick lineage edges."
         ),
     }
 
@@ -4363,6 +4459,10 @@ def main():
         history,
         players,
     )
+    startup_draft_history = build_startup_draft_history(
+        history,
+        players,
+    )
     trade_asset_index = build_trade_asset_index(
         history,
         players,
@@ -4532,6 +4632,10 @@ def main():
     write_json(
         "draft_pick_conversion_index.json",
         draft_pick_conversion_index["conversions"],
+    )
+    write_json(
+        "startup_draft_history.json",
+        startup_draft_history,
     )
     write_json(
         "trade_asset_index.json",
