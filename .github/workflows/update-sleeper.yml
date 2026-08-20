@@ -36,5 +36,6 @@ jobs:
             echo "No Sleeper data changes to commit."
           else
             git commit -m "Update Sleeper league data"
+            git pull --rebase origin main
             git push
           fi
