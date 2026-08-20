@@ -247,26 +247,33 @@ def main():
         "players": players,
     }
 
-    output_path = OUTPUT_DIR / "latest.json"
+    def write_json(filename, data):
+        path = OUTPUT_DIR / filename
+        with path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, sort_keys=True)
+        print(f"Saved {path}")
 
-    with output_path.open(
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            output,
-            file,
-            indent=2,
-            sort_keys=True,
+    write_json("latest.json", output)
+    write_json("players.json", players)
+    write_json("league_history.json", history)
+    write_json("nfl_state.json", nfl_state)
+
+    if current:
+        write_json("league.json", current.get("league", {}))
+        write_json("users.json", current.get("users", []))
+        write_json("rosters.json", current.get("rosters", []))
+        write_json(
+            "traded_picks.json",
+            current.get("traded_picks", []),
         )
+        write_json(
+            "transactions.json",
+            current.get("transactions", []),
+        )
+        write_json("drafts.json", current.get("drafts", []))
 
     print(
-        f"\nSaved Sleeper snapshot to "
-        f"{output_path}"
-    )
-
-    print(
-        f"League seasons captured: "
+        f"\nLeague seasons captured: "
         f"{len(history)}"
     )
 
