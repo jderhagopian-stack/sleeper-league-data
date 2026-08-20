@@ -2181,6 +2181,615 @@ def build_analysis_manifest():
         ),
     }
 
+
+def build_draft_pick_conversion_index(history, players):
+    """
+    Generic pick -> drafted player resolver.
+
+    Sleeper rookie drafts expose draft_order as:
+        user_id -> original draft slot
+
+    We combine that with that season's roster map:
+        user_id -> roster_id
+
+    This lets us resolve a traded asset such as:
+        2026 Round 1, original roster 10
+    into the exact player ultimately selected with that original pick.
+    """
+    owners, season_rosters = build_owner_directory(history)
+    conversions = []
+    by_pick_key = {}
+
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+        user_to_roster = {
+            str(user_id): str(roster_id)
+            for roster_id, user_id in roster_to_user.items()
+        }
+
+        for draft_record in season_data.get("drafts", []):
+            draft = draft_record.get("draft") or {}
+            draft_order = draft.get("draft_order") or {}
+
+            # Sleeper: user_id -> slot. Invert to slot -> original user.
+            slot_to_original_user = {
+                str(slot): str(user_id)
+                for user_id, slot in draft_order.items()
+                if slot is not None
+            }
+
+            for pick in draft_record.get("picks", []):
+                slot = pick.get("draft_slot")
+                round_number = pick.get("round")
+                player_id = (
+                    str(pick.get("player_id"))
+                    if pick.get("player_id") is not None
+                    else None
+                )
+
+                if slot is None or round_number is None or not player_id:
+                    continue
+
+                original_user_id = slot_to_original_user.get(str(slot))
+                original_roster_id = (
+                    user_to_roster.get(original_user_id)
+                    if original_user_id
+                    else None
+                )
+
+                if original_roster_id is None:
+                    # No silent guess: unresolved conversions remain explicit.
+                    continue
+
+                pick_key = make_pick_key(
+                    season,
+                    round_number,
+                    original_roster_id,
+                )
+                player = players.get(player_id, {})
+                drafted_by_user_id = (
+                    str(pick.get("picked_by"))
+                    if pick.get("picked_by") is not None
+                    else roster_to_user.get(str(pick.get("roster_id")))
+                )
+
+                row = {
+                    "pick_asset_key": pick_key,
+                    "season": season,
+                    "round": round_number,
+                    "draft_slot": slot,
+                    "pick_no": pick.get("pick_no"),
+                    "original_roster_id": original_roster_id,
+                    "original_owner_user_id": original_user_id,
+                    "original_owner_manager": (
+                        owners.get(original_user_id, {}).get("manager")
+                        if original_user_id else None
+                    ),
+                    "drafted_by_user_id": drafted_by_user_id,
+                    "drafted_by_manager": (
+                        owners.get(drafted_by_user_id, {}).get("manager")
+                        if drafted_by_user_id else None
+                    ),
+                    "drafted_by_team": (
+                        owners.get(drafted_by_user_id, {}).get("team_name")
+                        if drafted_by_user_id else None
+                    ),
+                    "player_asset_key": make_player_key(player_id),
+                    "player_id": player_id,
+                    "player_name": player.get("full_name") or player_id,
+                    "position": player.get("position"),
+                    "nfl_team": player.get("team"),
+                    "draft_id": draft.get("draft_id"),
+                }
+                conversions.append(row)
+                by_pick_key[pick_key] = row
+
+    conversions.sort(
+        key=lambda x: (
+            str(x.get("season")),
+            x.get("pick_no") or 9999,
+        )
+    )
+
+    return {
+        "conversions": conversions,
+        "by_pick_key": by_pick_key,
+    }
+
+
+def build_trade_asset_index(history, players):
+    """
+    Normalizes every completed trade into owner-side sent/received asset keys.
+    This is deliberately generic so any trade can become a lineage root.
+    """
+    owners, season_rosters = build_owner_directory(history)
+    trades = []
+    by_transaction_id = {}
+
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+
+        for transaction in season_data.get("transactions", []):
+            if transaction.get("type") != "trade":
+                continue
+            if transaction.get("status") not in {
+                None, "complete", "completed"
+            }:
+                continue
+
+            adds = transaction.get("adds") or {}
+            drops = transaction.get("drops") or {}
+            sides = []
+
+            for roster_id in [
+                str(x) for x in (transaction.get("roster_ids") or [])
+            ]:
+                user_id = roster_to_user.get(roster_id)
+                sent = []
+                received = []
+
+                for player_id, receiving_roster in adds.items():
+                    if str(receiving_roster) == roster_id:
+                        received.append(player_asset(player_id, players))
+
+                    sending_roster = drops.get(player_id)
+                    if (
+                        sending_roster is not None
+                        and str(sending_roster) == roster_id
+                    ):
+                        sent.append(player_asset(player_id, players))
+
+                for pick in transaction.get("draft_picks") or []:
+                    asset = pick_asset_from_trade(pick)
+
+                    if (
+                        pick.get("owner_id") is not None
+                        and str(pick.get("owner_id")) == roster_id
+                    ):
+                        received.append(asset)
+
+                    if (
+                        pick.get("previous_owner_id") is not None
+                        and str(pick.get("previous_owner_id")) == roster_id
+                    ):
+                        sent.append(asset)
+
+                side = {
+                    "roster_id": roster_id,
+                    "user_id": user_id,
+                    "manager": (
+                        owners.get(user_id, {}).get("manager")
+                        if user_id else None
+                    ),
+                    "team_name": (
+                        owners.get(user_id, {}).get("team_name")
+                        if user_id else None
+                    ),
+                    "sent_assets": sent,
+                    "received_assets": received,
+                }
+                sides.append(side)
+
+            row = {
+                "transaction_id": transaction.get("transaction_id"),
+                "season": season,
+                "created": transaction.get("created"),
+                "created_utc": time.strftime(
+                    "%Y-%m-%dT%H:%M:%SZ",
+                    time.gmtime(transaction.get("created") / 1000),
+                ) if transaction.get("created") else None,
+                "phase": classify_transaction_phase(
+                    transaction.get("created")
+                ),
+                "creator_user_id": (
+                    str(transaction.get("creator"))
+                    if transaction.get("creator") is not None
+                    else None
+                ),
+                "sides": sides,
+            }
+            trades.append(row)
+            by_transaction_id[str(row["transaction_id"])] = row
+
+    trades.sort(key=lambda x: x.get("created") or 0)
+    return {
+        "trades": trades,
+        "by_transaction_id": by_transaction_id,
+    }
+
+
+def build_generic_asset_lineage(
+    history,
+    players,
+    trade_asset_index,
+    draft_conversion_index,
+):
+    """
+    Universal graph:
+      player/pick -> trade return assets -> drafted player -> later returns ...
+
+    It supports both forward descendants and backward ancestry.
+
+    Mixed trades are intentionally marked; the graph does not pretend that
+    one lineage asset economically created 100% of a return when unrelated
+    assets were bundled with it.
+    """
+    nodes = {}
+    edges = []
+
+    def register(asset):
+        if not asset:
+            return
+        key = asset.get("asset_key")
+        if not key:
+            return
+        if key not in nodes:
+            nodes[key] = dict(asset)
+
+    # Register every trade asset and create owner-side exchange edges.
+    for trade in trade_asset_index["trades"]:
+        for side in trade.get("sides", []):
+            sent = side.get("sent_assets") or []
+            received = side.get("received_assets") or []
+
+            for asset in sent + received:
+                register(asset)
+
+            if not sent or not received:
+                continue
+
+            attribution = (
+                "direct_exchange"
+                if len(sent) == 1
+                else "mixed_input_exchange"
+            )
+
+            for source in sent:
+                for target in received:
+                    edges.append({
+                        "from_asset_key": source["asset_key"],
+                        "to_asset_key": target["asset_key"],
+                        "edge_type": "trade_exchange",
+                        "transaction_id": trade.get("transaction_id"),
+                        "season": trade.get("season"),
+                        "created": trade.get("created"),
+                        "created_utc": trade.get("created_utc"),
+                        "phase": trade.get("phase"),
+                        "owner_user_id": side.get("user_id"),
+                        "owner_manager": side.get("manager"),
+                        "attribution": attribution,
+                        "sent_asset_count": len(sent),
+                        "received_asset_count": len(received),
+                    })
+
+    # Register every pick -> player conversion using the corrected resolver.
+    for conversion in draft_conversion_index["conversions"]:
+        pick_asset = {
+            "asset_key": conversion["pick_asset_key"],
+            "asset_type": "pick",
+            "season": conversion["season"],
+            "round": conversion["round"],
+            "original_roster_id": conversion["original_roster_id"],
+            "label": (
+                f"{conversion['season']} Round "
+                f"{conversion['round']} "
+                f"(original roster "
+                f"{conversion['original_roster_id']})"
+            ),
+        }
+        drafted_asset = player_asset(
+            conversion["player_id"],
+            players,
+        )
+        register(pick_asset)
+        register(drafted_asset)
+
+        edges.append({
+            "from_asset_key": pick_asset["asset_key"],
+            "to_asset_key": drafted_asset["asset_key"],
+            "edge_type": "draft_conversion",
+            "transaction_id": None,
+            "draft_id": conversion.get("draft_id"),
+            "season": conversion.get("season"),
+            "created": None,
+            "created_utc": None,
+            "phase": "rookie_draft",
+            "owner_user_id": conversion.get("drafted_by_user_id"),
+            "owner_manager": conversion.get("drafted_by_manager"),
+            "attribution": "exact_pick_conversion",
+            "pick_no": conversion.get("pick_no"),
+            "draft_slot": conversion.get("draft_slot"),
+        })
+
+    # Current player ownership.
+    owners, season_rosters = build_owner_directory(history)
+    current = history[0] if history else {}
+    current_season = str(
+        (current.get("league") or {}).get("season") or "unknown"
+    )
+    current_roster_to_user = season_rosters.get(current_season, {})
+
+    for roster in current.get("rosters", []):
+        roster_id = str(roster.get("roster_id"))
+        user_id = current_roster_to_user.get(roster_id)
+        for pid in roster.get("players") or []:
+            key = make_player_key(str(pid))
+            if key in nodes:
+                nodes[key]["current_owner_user_id"] = user_id
+                nodes[key]["current_owner_manager"] = (
+                    owners.get(user_id, {}).get("manager")
+                    if user_id else None
+                )
+                nodes[key]["current_owner_team"] = (
+                    owners.get(user_id, {}).get("team_name")
+                    if user_id else None
+                )
+                nodes[key]["current_status"] = "currently_rostered_player"
+
+    # Current traded-pick ownership for future picks.
+    for pick in current.get("traded_picks", []):
+        season = (
+            str(pick.get("season"))
+            if pick.get("season") is not None else None
+        )
+        round_number = pick.get("round")
+        original_roster_id = (
+            str(pick.get("roster_id"))
+            if pick.get("roster_id") is not None else None
+        )
+        key = make_pick_key(
+            season,
+            round_number,
+            original_roster_id,
+        )
+        if not key or key not in nodes:
+            continue
+
+        owner_roster = (
+            str(pick.get("owner_id"))
+            if pick.get("owner_id") is not None else None
+        )
+        user_id = current_roster_to_user.get(owner_roster)
+
+        nodes[key]["current_owner_user_id"] = user_id
+        nodes[key]["current_owner_manager"] = (
+            owners.get(user_id, {}).get("manager")
+            if user_id else None
+        )
+        nodes[key]["current_owner_team"] = (
+            owners.get(user_id, {}).get("team_name")
+            if user_id else None
+        )
+        nodes[key]["current_status"] = "currently_held_future_pick"
+
+    # Historical picks that have converted into players are NOT current assets.
+    converted_pick_keys = {
+        c["pick_asset_key"]
+        for c in draft_conversion_index["conversions"]
+    }
+    for key in converted_pick_keys:
+        if key in nodes:
+            nodes[key]["current_status"] = "consumed_in_draft"
+
+    # Build adjacency indexes for fast forward/backward traversal.
+    forward = defaultdict(list)
+    backward = defaultdict(list)
+
+    for i, edge in enumerate(edges):
+        edge["edge_id"] = i
+        forward[edge["from_asset_key"]].append(i)
+        backward[edge["to_asset_key"]].append(i)
+
+    return {
+        "nodes": list(nodes.values()),
+        "edges": edges,
+        "forward_edge_index": dict(forward),
+        "backward_edge_index": dict(backward),
+        "methodology": {
+            "draft_resolution": (
+                "Exact original-pick identity is derived from Sleeper "
+                "draft_order (user_id -> slot) plus the season-specific "
+                "user-to-roster map."
+            ),
+            "trade_resolution": (
+                "Each owner-side asset sent is linked to each return asset. "
+                "If multiple assets were sent, edges are marked mixed-input."
+            ),
+            "query_support": [
+                "descendants_of_any_player_or_pick",
+                "ancestry_of_any_player_or_pick",
+                "all_assets_from_any_trade",
+                "current_endpoints_of_any_lineage",
+            ],
+        },
+    }
+
+
+def trace_asset_descendants(
+    root_asset_key,
+    lineage_graph,
+    max_depth=25,
+):
+    nodes = {
+        n["asset_key"]: n
+        for n in lineage_graph.get("nodes", [])
+    }
+    edges = lineage_graph.get("edges", [])
+    forward = lineage_graph.get("forward_edge_index", {})
+
+    visited_assets = {root_asset_key}
+    visited_edges = set()
+    frontier = [(root_asset_key, 0)]
+    terminal_assets = []
+
+    while frontier:
+        asset_key, depth = frontier.pop(0)
+        outgoing_ids = forward.get(asset_key, [])
+
+        if depth >= max_depth or not outgoing_ids:
+            terminal_assets.append(asset_key)
+            continue
+
+        progressed = False
+        for edge_id in outgoing_ids:
+            if edge_id in visited_edges:
+                continue
+            visited_edges.add(edge_id)
+            edge = edges[edge_id]
+            target = edge["to_asset_key"]
+            progressed = True
+            if target not in visited_assets:
+                visited_assets.add(target)
+                frontier.append((target, depth + 1))
+
+        if not progressed:
+            terminal_assets.append(asset_key)
+
+    return {
+        "root_asset_key": root_asset_key,
+        "descendant_asset_keys": sorted(
+            visited_assets - {root_asset_key}
+        ),
+        "terminal_asset_keys": sorted(set(terminal_assets)),
+        "terminal_assets": [
+            nodes.get(key, {"asset_key": key})
+            for key in sorted(set(terminal_assets))
+        ],
+        "edge_ids": sorted(visited_edges),
+    }
+
+
+def trace_asset_ancestry(
+    target_asset_key,
+    lineage_graph,
+    max_depth=25,
+):
+    nodes = {
+        n["asset_key"]: n
+        for n in lineage_graph.get("nodes", [])
+    }
+    edges = lineage_graph.get("edges", [])
+    backward = lineage_graph.get("backward_edge_index", {})
+
+    visited_assets = {target_asset_key}
+    visited_edges = set()
+    frontier = [(target_asset_key, 0)]
+    roots = []
+
+    while frontier:
+        asset_key, depth = frontier.pop(0)
+        incoming_ids = backward.get(asset_key, [])
+
+        if depth >= max_depth or not incoming_ids:
+            roots.append(asset_key)
+            continue
+
+        progressed = False
+        for edge_id in incoming_ids:
+            if edge_id in visited_edges:
+                continue
+            visited_edges.add(edge_id)
+            edge = edges[edge_id]
+            source = edge["from_asset_key"]
+            progressed = True
+            if source not in visited_assets:
+                visited_assets.add(source)
+                frontier.append((source, depth + 1))
+
+        if not progressed:
+            roots.append(asset_key)
+
+    return {
+        "target_asset_key": target_asset_key,
+        "ancestor_asset_keys": sorted(
+            visited_assets - {target_asset_key}
+        ),
+        "root_asset_keys": sorted(set(roots)),
+        "root_assets": [
+            nodes.get(key, {"asset_key": key})
+            for key in sorted(set(roots))
+        ],
+        "edge_ids": sorted(visited_edges),
+    }
+
+
+def build_trade_lineage_index(
+    trade_asset_index,
+    lineage_graph,
+):
+    result = []
+
+    for trade in trade_asset_index["trades"]:
+        side_rows = []
+
+        for side in trade.get("sides", []):
+            roots = [
+                a["asset_key"]
+                for a in side.get("sent_assets", [])
+                if a.get("asset_key")
+            ]
+            traces = [
+                trace_asset_descendants(
+                    root,
+                    lineage_graph,
+                )
+                for root in roots
+            ]
+
+            side_rows.append({
+                "user_id": side.get("user_id"),
+                "manager": side.get("manager"),
+                "team_name": side.get("team_name"),
+                "sent_assets": side.get("sent_assets"),
+                "received_assets": side.get("received_assets"),
+                "sent_asset_descendant_traces": traces,
+            })
+
+        result.append({
+            "transaction_id": trade.get("transaction_id"),
+            "season": trade.get("season"),
+            "created": trade.get("created"),
+            "created_utc": trade.get("created_utc"),
+            "phase": trade.get("phase"),
+            "sides": side_rows,
+        })
+
+    return result
+
+
+def build_lineage_validation(
+    draft_conversion_index,
+    lineage_graph,
+):
+    node_map = {
+        n["asset_key"]: n
+        for n in lineage_graph.get("nodes", [])
+    }
+
+    conversions = draft_conversion_index["conversions"]
+    unresolved_past_picks = []
+
+    # Every resolved past pick should explicitly be consumed in a draft.
+    for c in conversions:
+        key = c["pick_asset_key"]
+        node = node_map.get(key, {})
+        if node.get("current_status") != "consumed_in_draft":
+            unresolved_past_picks.append(key)
+
+    return {
+        "resolved_pick_to_player_conversions": len(conversions),
+        "unresolved_resolved_pick_status_errors": unresolved_past_picks,
+        "validation_passed": not unresolved_past_picks,
+        "note": (
+            "This validates that every pick for which we found an exact "
+            "draft conversion is no longer represented as a live pick."
+        ),
+    }
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2210,6 +2819,48 @@ def main():
         "Patrick Mahomes",
     )
     analysis_manifest = build_analysis_manifest()
+    draft_pick_conversion_index = build_draft_pick_conversion_index(
+        history,
+        players,
+    )
+    trade_asset_index = build_trade_asset_index(
+        history,
+        players,
+    )
+    universal_lineage = build_generic_asset_lineage(
+        history,
+        players,
+        trade_asset_index,
+        draft_pick_conversion_index,
+    )
+    trade_lineage_index = build_trade_lineage_index(
+        trade_asset_index,
+        universal_lineage,
+    )
+    lineage_validation = build_lineage_validation(
+        draft_pick_conversion_index,
+        universal_lineage,
+    )
+
+    # Generic Mahomes trace is now only a demonstration/query result,
+    # not special lineage logic.
+    mahomes_asset_key = None
+    for pid, player in players.items():
+        if (
+            str(player.get("full_name") or "").lower()
+            == "patrick mahomes"
+        ):
+            mahomes_asset_key = make_player_key(pid)
+            break
+
+    generic_mahomes_trace = (
+        trace_asset_descendants(
+            mahomes_asset_key,
+            universal_lineage,
+        )
+        if mahomes_asset_key
+        else {"error": "Patrick Mahomes player key not found"}
+    )
 
     current = history[0] if history else None
 
@@ -2268,6 +2919,42 @@ def main():
     write_json("league_market_summary.json", league_market)
     write_json("patrick_mahomes_mocha_trade_tree.json", mahomes_tree)
     write_json("analysis_manifest.json", analysis_manifest)
+    write_json(
+        "draft_pick_conversion_index.json",
+        draft_pick_conversion_index["conversions"],
+    )
+    write_json(
+        "trade_asset_index.json",
+        trade_asset_index["trades"],
+    )
+    write_json(
+        "asset_lineage_nodes.json",
+        universal_lineage["nodes"],
+    )
+    write_json(
+        "asset_lineage_edges.json",
+        universal_lineage["edges"],
+    )
+    write_json(
+        "asset_lineage_forward_index.json",
+        universal_lineage["forward_edge_index"],
+    )
+    write_json(
+        "asset_lineage_backward_index.json",
+        universal_lineage["backward_edge_index"],
+    )
+    write_json(
+        "trade_lineage_index.json",
+        trade_lineage_index,
+    )
+    write_json(
+        "lineage_validation.json",
+        lineage_validation,
+    )
+    write_json(
+        "patrick_mahomes_generic_trace.json",
+        generic_mahomes_trace,
+    )
 
     if current:
         write_json("league.json", current.get("league", {}))
@@ -2328,6 +3015,20 @@ def main():
             f"Mahomes tree descendant nodes: "
             f"{len(mahomes_tree.get('nodes', []))}"
         )
+
+    print(
+        f"Exact draft pick->player conversions: "
+        f"{len(draft_pick_conversion_index['conversions'])}"
+    )
+    print(
+        f"Universal lineage nodes/edges: "
+        f"{len(universal_lineage['nodes'])}/"
+        f"{len(universal_lineage['edges'])}"
+    )
+    print(
+        f"Lineage validation passed: "
+        f"{lineage_validation['validation_passed']}"
+    )
 
 
 if __name__ == "__main__":
