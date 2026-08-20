@@ -1,0 +1,199 @@
+{
+  "seasons": [
+    "2022",
+    "2023",
+    "2024",
+    "2025"
+  ],
+  "status": "REVIEW",
+  "weekly_lineups_checked": 864,
+  "weekly_lineup_reconciliation_failures": 0,
+  "violation_count": 10,
+  "violations": [
+    {
+      "type": "rostered_exceeds_career",
+      "season": "2022",
+      "roster_id": "12",
+      "player_id": "5127",
+      "player_name": "Kyle Allen",
+      "position": "QB",
+      "fsffl_points_while_rostered": 19.94,
+      "weeks_rostered": 2,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": 19.94
+    },
+    {
+      "type": "rostered_exceeds_career",
+      "season": "2022",
+      "roster_id": "4",
+      "player_id": "7605",
+      "player_name": "Kyle Trask",
+      "position": "QB",
+      "fsffl_points_while_rostered": 0.92,
+      "weeks_rostered": 16,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": 0.92
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2025",
+      "roster_id": "11",
+      "player_id": "11630",
+      "player_name": "Roman Wilson",
+      "position": "WR",
+      "fsffl_points_while_rostered": -0.1,
+      "weeks_rostered": 2,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.1
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2023",
+      "roster_id": "1",
+      "player_id": "4943",
+      "player_name": "Sam Darnold",
+      "position": "QB",
+      "fsffl_points_while_rostered": -0.16,
+      "weeks_rostered": 7,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.16
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2025",
+      "roster_id": "3",
+      "player_id": "9230",
+      "player_name": "Tanner McKee",
+      "position": "QB",
+      "fsffl_points_while_rostered": -0.2,
+      "weeks_rostered": 10,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.2
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2024",
+      "roster_id": "3",
+      "player_id": "8208",
+      "player_name": "Tyler Badie",
+      "position": "RB",
+      "fsffl_points_while_rostered": -0.4,
+      "weeks_rostered": 1,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.4
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2022",
+      "roster_id": "8",
+      "player_id": "8255",
+      "player_name": "Raheem Blackshear",
+      "position": "RB",
+      "fsffl_points_while_rostered": -0.5,
+      "weeks_rostered": 1,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.5
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2025",
+      "roster_id": "9",
+      "player_id": "12510",
+      "player_name": "Jalen Milroe",
+      "position": "QB",
+      "fsffl_points_while_rostered": -0.6,
+      "weeks_rostered": 18,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -0.6
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2024",
+      "roster_id": "10",
+      "player_id": "8123",
+      "player_name": "Hassan Haskins",
+      "position": "RB",
+      "fsffl_points_while_rostered": -1.0,
+      "weeks_rostered": 1,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -1.0
+    },
+    {
+      "type": "started_exceeds_rostered",
+      "season": "2022",
+      "roster_id": "4",
+      "player_id": "8171",
+      "player_name": "Kyle Philips",
+      "position": "WR",
+      "fsffl_points_while_rostered": -1.0,
+      "weeks_rostered": 1,
+      "fsffl_points_while_started": 0.0,
+      "starts": 0,
+      "bench_points": -1.0
+    }
+  ],
+  "sentinel_players": {
+    "Patrick Mahomes": {
+      "player_id": "4046",
+      "player_name": "Patrick Mahomes",
+      "position": "QB",
+      "career_fsffl_points": 1312.82,
+      "points_by_season": {
+        "2022": 428.9,
+        "2023": 294.22,
+        "2024": 293.52,
+        "2025": 296.18
+      }
+    },
+    "Trey McBride": {
+      "player_id": "8130",
+      "player_name": "Trey McBride",
+      "position": "TE",
+      "career_fsffl_points": 635.2,
+      "points_by_season": {
+        "2022": 47.0,
+        "2023": 141.0,
+        "2024": 194.3,
+        "2025": 252.9
+      }
+    },
+    "Jared Goff": {
+      "player_id": "3163",
+      "player_name": "Jared Goff",
+      "position": "QB",
+      "career_fsffl_points": 1237.94,
+      "points_by_season": {
+        "2022": 290.82,
+        "2023": 301.1,
+        "2024": 335.96,
+        "2025": 310.06
+      }
+    },
+    "Geno Smith": {
+      "player_id": "1373",
+      "player_name": "Geno Smith",
+      "position": "QB",
+      "career_fsffl_points": 1023.54,
+      "points_by_season": {
+        "2022": 314.88,
+        "2023": 235.76,
+        "2024": 281.0,
+        "2025": 191.9
+      }
+    }
+  },
+  "definitions": {
+    "player_career_scoring": "All FSFFL points scored, regardless of roster/start status.",
+    "franchise_rostered_scoring": "Points scored while on a franchise roster.",
+    "franchise_started_scoring": "Only points scored while in a franchise starting lineup."
+  }
+}
