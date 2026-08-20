@@ -1,0 +1,50 @@
+name: Build FSFFL Competition Records
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-competition-records:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build competition record-book dataset
+        run: python script/build_competition_record_book.py
+
+      - name: Show summary
+        run: |
+          python - <<'PY'
+          import json
+
+          p = "data/record_book/competition_records.json"
+          d = json.load(open(p))
+
+          print(d["counts"])
+          print("Top win streaks:", d["longest_winning_streaks"][:5])
+          print("Top loss streaks:", d["longest_losing_streaks"][:5])
+          PY
+
+      - name: Commit generated dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/record_book/competition_records.json
+
+          if git diff --cached --quiet; then
+            echo "No competition-record changes to commit."
+          else
+            git commit -m "Build FSFFL competition records"
+            git push
+          fi
