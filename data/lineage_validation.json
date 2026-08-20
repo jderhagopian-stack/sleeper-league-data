@@ -1,6 +1,7 @@
 {
-  "note": "This validates that every pick for which we found an exact draft conversion is no longer represented as a live pick.",
-  "resolved_pick_to_player_conversions": 384,
+  "duplicate_pick_asset_keys": [],
+  "note": "Validates exact rookie-pick conversions, confirms resolved historical picks are consumed, and rejects duplicate canonical pick identities. Startup drafts are stored separately and do not create rookie-pick lineage edges.",
+  "resolved_pick_to_player_conversions": 144,
   "unresolved_resolved_pick_status_errors": [],
   "validation_passed": true
 }
