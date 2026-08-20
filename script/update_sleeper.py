@@ -2523,6 +2523,7 @@ def build_generic_asset_lineage(
     """
     nodes = {}
     edges = []
+    pick_origin_lookup = build_pick_origin_display_lookup(history)
 
     def register(asset):
         if not asset:
