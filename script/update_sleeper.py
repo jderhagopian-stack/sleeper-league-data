@@ -746,6 +746,374 @@ def build_acquisition_analytics(history, players):
         "owner_waiver_summary": summary,
     }
 
+
+def build_advanced_owner_profiles(history, players):
+    owners, season_rosters = build_owner_directory(history)
+
+    def fresh_stats():
+        return {
+            "trade_total": 0,
+            "trade_initiated": 0,
+            "trade_seasons": Counter(),
+            "recent_trades_2025_2026": 0,
+            "players_in": Counter(),
+            "players_out": Counter(),
+            "player_positions_in": Counter(),
+            "player_positions_out": Counter(),
+            "picks_in": Counter(),
+            "picks_out": Counter(),
+            "firsts_in": 0,
+            "firsts_out": 0,
+            "seconds_in": 0,
+            "seconds_out": 0,
+            "thirds_in": 0,
+            "thirds_out": 0,
+            "faab_in": 0,
+            "faab_out": 0,
+            "one_for_one_trades": 0,
+            "multi_asset_trades": 0,
+            "trade_partners": Counter(),
+            "rookie_picks_total": 0,
+            "rookie_picks_by_season": Counter(),
+            "rookie_picks_by_round": Counter(),
+            "rookie_positions": Counter(),
+            "rookie_first_round_positions": Counter(),
+            "rookie_second_round_positions": Counter(),
+            "rookie_third_round_positions": Counter(),
+            "waiver_claims": 0,
+            "free_agent_adds": 0,
+            "waiver_positions": Counter(),
+            "faab_spent": 0,
+            "positive_faab_bids": [],
+        }
+
+    stats = defaultdict(fresh_stats)
+
+    # Completed trades
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+
+        for transaction in season_data.get("transactions", []):
+            if transaction.get("type") != "trade":
+                continue
+            if transaction.get("status") not in {None, "complete", "completed"}:
+                continue
+
+            roster_ids = [str(x) for x in (transaction.get("roster_ids") or [])]
+            users = [roster_to_user.get(r) for r in roster_ids if roster_to_user.get(r)]
+            users = list(dict.fromkeys(users))
+            creator = str(transaction.get("creator")) if transaction.get("creator") is not None else None
+
+            adds = transaction.get("adds") or {}
+            drops = transaction.get("drops") or {}
+            picks = transaction.get("draft_picks") or []
+            waiver_budget = transaction.get("waiver_budget") or []
+
+            # Count total assets moved on each side for complexity.
+            assets_by_roster = Counter()
+            for _, recv_roster in adds.items():
+                assets_by_roster[str(recv_roster)] += 1
+            for p in picks:
+                if p.get("owner_id") is not None:
+                    assets_by_roster[str(p.get("owner_id"))] += 1
+            for b in waiver_budget:
+                if b.get("receiver") is not None and (b.get("amount") or 0) > 0:
+                    assets_by_roster[str(b.get("receiver"))] += 1
+
+            for user_id in users:
+                s = stats[user_id]
+                s["trade_total"] += 1
+                s["trade_seasons"][season] += 1
+                if season in {"2025", "2026"}:
+                    s["recent_trades_2025_2026"] += 1
+                if creator == user_id:
+                    s["trade_initiated"] += 1
+
+                for partner_id in users:
+                    if partner_id != user_id:
+                        s["trade_partners"][partner_id] += 1
+
+                user_rosters = [r for r in roster_ids if roster_to_user.get(r) == user_id]
+                received_asset_count = sum(assets_by_roster[r] for r in user_rosters)
+                if len(users) == 2 and all(assets_by_roster[r] == 1 for r in roster_ids):
+                    s["one_for_one_trades"] += 1
+                else:
+                    s["multi_asset_trades"] += 1
+
+            # Player directions
+            for player_id, recv_roster in adds.items():
+                recv_roster = str(recv_roster)
+                recv_user = roster_to_user.get(recv_roster)
+                player = players.get(str(player_id), {})
+                name = player.get("full_name") or str(player_id)
+                pos = player.get("position") or "UNKNOWN"
+                if recv_user:
+                    stats[recv_user]["players_in"][name] += 1
+                    stats[recv_user]["player_positions_in"][pos] += 1
+
+                send_roster = drops.get(player_id)
+                if send_roster is not None:
+                    send_user = roster_to_user.get(str(send_roster))
+                    if send_user:
+                        stats[send_user]["players_out"][name] += 1
+                        stats[send_user]["player_positions_out"][pos] += 1
+
+            # Pick directions
+            for p in picks:
+                rnd = p.get("round")
+                season_pick = str(p.get("season")) if p.get("season") is not None else "unknown"
+                label = f"{season_pick} R{rnd}" if rnd is not None else season_pick
+                recv = p.get("owner_id")
+                send = p.get("previous_owner_id")
+
+                if recv is not None:
+                    recv_user = roster_to_user.get(str(recv))
+                    if recv_user:
+                        stats[recv_user]["picks_in"][label] += 1
+                        if rnd == 1: stats[recv_user]["firsts_in"] += 1
+                        if rnd == 2: stats[recv_user]["seconds_in"] += 1
+                        if rnd == 3: stats[recv_user]["thirds_in"] += 1
+
+                if send is not None:
+                    send_user = roster_to_user.get(str(send))
+                    if send_user:
+                        stats[send_user]["picks_out"][label] += 1
+                        if rnd == 1: stats[send_user]["firsts_out"] += 1
+                        if rnd == 2: stats[send_user]["seconds_out"] += 1
+                        if rnd == 3: stats[send_user]["thirds_out"] += 1
+
+            for b in waiver_budget:
+                amount = b.get("amount") or 0
+                sender = b.get("sender")
+                receiver = b.get("receiver")
+                if sender is not None:
+                    u = roster_to_user.get(str(sender))
+                    if u: stats[u]["faab_out"] += amount
+                if receiver is not None:
+                    u = roster_to_user.get(str(receiver))
+                    if u: stats[u]["faab_in"] += amount
+
+    # Rookie drafts only; exclude 2022 startup.
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        if season == "2022":
+            continue
+        roster_to_user = season_rosters.get(season, {})
+
+        for draft_record in season_data.get("drafts", []):
+            draft = draft_record.get("draft") or {}
+            # This league's post-startup drafts are linear rookie drafts.
+            for pick in draft_record.get("picks", []):
+                roster_id = pick.get("roster_id")
+                picked_by = pick.get("picked_by")
+                user_id = None
+                if picked_by is not None and str(picked_by) in owners:
+                    user_id = str(picked_by)
+                elif roster_id is not None:
+                    user_id = roster_to_user.get(str(roster_id))
+                if not user_id:
+                    continue
+
+                player_id = str(pick.get("player_id")) if pick.get("player_id") is not None else None
+                player = players.get(player_id, {}) if player_id else {}
+                pos = player.get("position") or "UNKNOWN"
+                rnd = pick.get("round")
+
+                s = stats[user_id]
+                s["rookie_picks_total"] += 1
+                s["rookie_picks_by_season"][season] += 1
+                if rnd is not None:
+                    s["rookie_picks_by_round"][str(rnd)] += 1
+                s["rookie_positions"][pos] += 1
+                if rnd == 1:
+                    s["rookie_first_round_positions"][pos] += 1
+                elif rnd == 2:
+                    s["rookie_second_round_positions"][pos] += 1
+                elif rnd == 3:
+                    s["rookie_third_round_positions"][pos] += 1
+
+    # Waiver/free-agent behavior
+    for season_data in history:
+        league = season_data.get("league", {})
+        season = str(league.get("season") or "unknown")
+        roster_to_user = season_rosters.get(season, {})
+
+        for transaction in season_data.get("transactions", []):
+            ttype = transaction.get("type")
+            if ttype not in {"waiver", "free_agent"}:
+                continue
+            if transaction.get("status") not in {None, "complete", "completed"}:
+                continue
+
+            settings = transaction.get("settings") or {}
+            bid = settings.get("waiver_bid")
+            adds = transaction.get("adds") or {}
+
+            for player_id, recv_roster in adds.items():
+                user_id = roster_to_user.get(str(recv_roster))
+                if not user_id:
+                    continue
+                player = players.get(str(player_id), {})
+                pos = player.get("position") or "UNKNOWN"
+                s = stats[user_id]
+                if ttype == "waiver":
+                    s["waiver_claims"] += 1
+                    if bid is not None and bid > 0:
+                        s["faab_spent"] += bid
+                        s["positive_faab_bids"].append(bid)
+                else:
+                    s["free_agent_adds"] += 1
+                s["waiver_positions"][pos] += 1
+
+    profiles = []
+    for user_id, owner in owners.items():
+        s = stats[user_id]
+        total_trades = s["trade_total"]
+        total_acq = s["waiver_claims"] + s["free_agent_adds"]
+        bids = s["positive_faab_bids"]
+
+        # Simple descriptive flags, not value judgments.
+        trade_activity = (
+            "very_high" if total_trades >= 35 else
+            "high" if total_trades >= 24 else
+            "moderate" if total_trades >= 15 else
+            "low"
+        )
+        initiation_rate = round(s["trade_initiated"] / total_trades, 3) if total_trades else 0
+        complexity_rate = round(s["multi_asset_trades"] / total_trades, 3) if total_trades else 0
+        waiver_aggression = (
+            "high" if (len(bids) >= 20 and (sum(bids)/len(bids) if bids else 0) >= 12) else
+            "active" if s["waiver_claims"] >= 25 else
+            "selective"
+        )
+
+        profiles.append({
+            **owner,
+            "trade_profile": {
+                "activity_band": trade_activity,
+                "total_trades": total_trades,
+                "trades_initiated": s["trade_initiated"],
+                "initiation_rate": initiation_rate,
+                "recent_trades_2025_2026": s["recent_trades_2025_2026"],
+                "trades_by_season": dict(sorted(s["trade_seasons"].items())),
+                "one_for_one_trades": s["one_for_one_trades"],
+                "multi_asset_trades": s["multi_asset_trades"],
+                "multi_asset_rate": complexity_rate,
+                "player_positions_acquired": dict(s["player_positions_in"].most_common()),
+                "player_positions_sent": dict(s["player_positions_out"].most_common()),
+                "firsts_acquired": s["firsts_in"],
+                "firsts_sent": s["firsts_out"],
+                "seconds_acquired": s["seconds_in"],
+                "seconds_sent": s["seconds_out"],
+                "thirds_acquired": s["thirds_in"],
+                "thirds_sent": s["thirds_out"],
+                "faab_acquired_in_trades": s["faab_in"],
+                "faab_sent_in_trades": s["faab_out"],
+                "top_trade_partners": [
+                    {
+                        "user_id": pid,
+                        "manager": owners.get(pid, {}).get("manager") or pid,
+                        "team_name": owners.get(pid, {}).get("team_name"),
+                        "trades": count,
+                    }
+                    for pid, count in s["trade_partners"].most_common(5)
+                ],
+            },
+            "rookie_draft_profile": {
+                "rookie_picks_made_2023_plus": s["rookie_picks_total"],
+                "picks_by_season": dict(sorted(s["rookie_picks_by_season"].items())),
+                "picks_by_round": dict(sorted(s["rookie_picks_by_round"].items())),
+                "positions": dict(s["rookie_positions"].most_common()),
+                "first_round_positions": dict(s["rookie_first_round_positions"].most_common()),
+                "second_round_positions": dict(s["rookie_second_round_positions"].most_common()),
+                "third_round_positions": dict(s["rookie_third_round_positions"].most_common()),
+            },
+            "waiver_profile": {
+                "aggression_band": waiver_aggression,
+                "waiver_claims": s["waiver_claims"],
+                "free_agent_adds": s["free_agent_adds"],
+                "total_acquisitions": total_acq,
+                "positions_added": dict(s["waiver_positions"].most_common()),
+                "recorded_faab_spent": s["faab_spent"],
+                "average_positive_bid": (
+                    round(sum(bids) / len(bids), 2) if bids else 0
+                ),
+                "largest_positive_bid": max(bids) if bids else 0,
+            },
+        })
+
+    profiles.sort(
+        key=lambda x: (
+            -x["trade_profile"]["total_trades"],
+            x["manager"]
+        )
+    )
+
+    # Jimmy-specific counterparty history
+    target_id = None
+    for uid, owner in owners.items():
+        if str(owner.get("username", "")).lower() == TARGET_USERNAME.lower():
+            target_id = uid
+            break
+
+    counterparties = []
+    if target_id:
+        for other_id, owner in owners.items():
+            if other_id == target_id:
+                continue
+
+            shared = []
+            for season_data in history:
+                league = season_data.get("league", {})
+                season = str(league.get("season") or "unknown")
+                roster_to_user = season_rosters.get(season, {})
+
+                for transaction in season_data.get("transactions", []):
+                    if transaction.get("type") != "trade":
+                        continue
+                    if transaction.get("status") not in {None, "complete", "completed"}:
+                        continue
+                    roster_ids = [str(x) for x in (transaction.get("roster_ids") or [])]
+                    participants = {
+                        roster_to_user.get(r)
+                        for r in roster_ids
+                        if roster_to_user.get(r)
+                    }
+                    if target_id in participants and other_id in participants:
+                        shared.append({
+                            "season": season,
+                            "created": transaction.get("created"),
+                            "creator": str(transaction.get("creator")) if transaction.get("creator") is not None else None,
+                            "transaction_id": transaction.get("transaction_id"),
+                        })
+
+            shared.sort(key=lambda x: x.get("created") or 0, reverse=True)
+            if shared:
+                initiated_by_jimmy = sum(1 for t in shared if t["creator"] == target_id)
+                initiated_by_other = sum(1 for t in shared if t["creator"] == other_id)
+                counterparties.append({
+                    "user_id": other_id,
+                    "manager": owner.get("manager"),
+                    "team_name": owner.get("team_name"),
+                    "completed_trades_with_jimmy": len(shared),
+                    "initiated_by_jimmy": initiated_by_jimmy,
+                    "initiated_by_counterparty": initiated_by_other,
+                    "seasons": dict(Counter(t["season"] for t in shared)),
+                    "transaction_ids": [t["transaction_id"] for t in shared],
+                })
+
+        counterparties.sort(
+            key=lambda x: (-x["completed_trades_with_jimmy"], x["manager"])
+        )
+
+    return {
+        "owner_behavior_profiles": profiles,
+        "jimmy_counterparty_profiles": counterparties,
+    }
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -755,6 +1123,7 @@ def main():
     trade_analytics = build_trade_analytics(history, players)
     draft_analytics = build_draft_analytics(history, players)
     acquisition_analytics = build_acquisition_analytics(history, players)
+    advanced_profiles = build_advanced_owner_profiles(history, players)
 
     current = history[0] if history else None
 
@@ -789,6 +1158,8 @@ def main():
     write_json("owner_draft_summary.json", draft_analytics["owner_draft_summary"])
     write_json("acquisition_ledger.json", acquisition_analytics["acquisition_ledger"])
     write_json("owner_waiver_summary.json", acquisition_analytics["owner_waiver_summary"])
+    write_json("owner_behavior_profiles.json", advanced_profiles["owner_behavior_profiles"])
+    write_json("jimmy_counterparty_profiles.json", advanced_profiles["jimmy_counterparty_profiles"])
 
     if current:
         write_json("league.json", current.get("league", {}))
