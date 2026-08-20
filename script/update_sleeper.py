@@ -2790,6 +2790,203 @@ def build_lineage_validation(
         ),
     }
 
+
+def trace_owner_side_lineage(
+    transaction_id,
+    owner_user_id,
+    trade_asset_index,
+    lineage_graph,
+    max_depth=25,
+):
+    """
+    Trace what one owner's return from ONE specific trade ultimately became.
+
+    Critical rules:
+    - Start from that owner's received assets, not from a timeless player node.
+    - Continue only through transactions/drafts performed by the same owner.
+    - Move forward chronologically.
+    - For each asset, consume it at its NEXT qualifying event only.
+      This prevents a player/pick node from leaking into unrelated later history.
+    """
+    trade = trade_asset_index['by_transaction_id'].get(str(transaction_id))
+    if not trade:
+        return {'error': f'Trade {transaction_id} not found'}
+
+    side = None
+    for candidate in trade.get('sides', []):
+        if str(candidate.get('user_id')) == str(owner_user_id):
+            side = candidate
+            break
+    if not side:
+        return {
+            'error': (
+                f'Owner {owner_user_id} was not found on trade '
+                f'{transaction_id}'
+            )
+        }
+
+    nodes = {
+        n['asset_key']: n
+        for n in lineage_graph.get('nodes', [])
+    }
+    edges = lineage_graph.get('edges', [])
+    forward = lineage_graph.get('forward_edge_index', {})
+
+    root_time = trade.get('created') or 0
+    root_assets = [
+        a['asset_key']
+        for a in side.get('received_assets', [])
+        if a.get('asset_key')
+    ]
+
+    visited_states = set()
+    used_edges = set()
+    descendant_assets = set(root_assets)
+    terminal_states = []
+    queue = [(key, root_time, 0) for key in root_assets]
+
+    while queue:
+        asset_key, available_after, depth = queue.pop(0)
+        state = (asset_key, available_after)
+        if state in visited_states:
+            continue
+        visited_states.add(state)
+
+        if depth >= max_depth:
+            terminal_states.append((asset_key, available_after))
+            continue
+
+        candidate_edges = []
+        for edge_id in forward.get(asset_key, []):
+            edge = edges[edge_id]
+            edge_owner = edge.get('owner_user_id')
+            if str(edge_owner) != str(owner_user_id):
+                continue
+
+            edge_type = edge.get('edge_type')
+            # Draft conversions did not originally retain a timestamp; they
+            # are ordered by season and can follow a pick from that season.
+            if edge_type == 'draft_conversion':
+                node = nodes.get(asset_key, {})
+                pick_season = str(node.get('season') or '')
+                trade_year = time.gmtime(available_after / 1000).tm_year if available_after else 0
+                if pick_season and int(pick_season) < trade_year:
+                    continue
+                event_time = int(pick_season or trade_year) * 10**13 + 1
+            else:
+                event_time = edge.get('created') or 0
+                if event_time <= available_after:
+                    continue
+
+            candidate_edges.append((event_time, edge_id, edge))
+
+        if not candidate_edges:
+            terminal_states.append((asset_key, available_after))
+            continue
+
+        # One asset can only be consumed once. Use the next event, then take
+        # all edges from that same event (e.g. one pick traded for 3 assets).
+        candidate_edges.sort(key=lambda x: x[0])
+        next_time = candidate_edges[0][0]
+        next_event_edges = [
+            item for item in candidate_edges
+            if item[0] == next_time
+        ]
+
+        for _, edge_id, edge in next_event_edges:
+            used_edges.add(edge_id)
+            target = edge['to_asset_key']
+            descendant_assets.add(target)
+
+            if edge.get('edge_type') == 'draft_conversion':
+                # Make the drafted player available immediately after draft.
+                next_available = max(available_after, next_time)
+            else:
+                next_available = edge.get('created') or available_after
+
+            queue.append((target, next_available, depth + 1))
+
+    terminal_keys = sorted({k for k, _ in terminal_states})
+    return {
+        'root_transaction_id': str(transaction_id),
+        'root_created': trade.get('created'),
+        'root_created_utc': trade.get('created_utc'),
+        'owner_user_id': str(owner_user_id),
+        'owner_manager': side.get('manager'),
+        'owner_team_name': side.get('team_name'),
+        'direct_return_assets': side.get('received_assets', []),
+        'descendant_asset_keys': sorted(descendant_assets),
+        'terminal_asset_keys': terminal_keys,
+        'terminal_assets': [
+            nodes.get(key, {'asset_key': key})
+            for key in terminal_keys
+        ],
+        'edge_ids': sorted(used_edges),
+        'methodology': (
+            'Owner-specific, transaction-rooted, chronological lineage. '
+            'Each asset is consumed only at its next qualifying trade or '
+            'draft event for the same owner.'
+        ),
+    }
+
+
+def build_player_trade_instances(trade_asset_index, players):
+    """
+    Allows any player name/id to be queried safely by listing each distinct
+    completed trade instance in which the player was sent. A caller can then
+    choose the exact transaction/owner side rather than using a timeless node.
+    """
+    result = defaultdict(list)
+
+    for trade in trade_asset_index['trades']:
+        for side in trade.get('sides', []):
+            for asset in side.get('sent_assets', []):
+                if asset.get('asset_type') != 'player':
+                    continue
+                pid = asset.get('player_id')
+                key = asset.get('asset_key')
+                row = {
+                    'transaction_id': trade.get('transaction_id'),
+                    'created': trade.get('created'),
+                    'created_utc': trade.get('created_utc'),
+                    'season': trade.get('season'),
+                    'owner_user_id': side.get('user_id'),
+                    'owner_manager': side.get('manager'),
+                    'owner_team_name': side.get('team_name'),
+                    'player_id': pid,
+                    'player_name': asset.get('label'),
+                    'player_asset_key': key,
+                    'received_assets': side.get('received_assets', []),
+                }
+                result[str(pid)].append(row)
+
+    for pid in result:
+        result[pid].sort(key=lambda x: x.get('created') or 0)
+
+    return dict(result)
+
+
+def build_transaction_rooted_lineage_index(
+    trade_asset_index,
+    lineage_graph,
+):
+    """Precompute a safe lineage trace for every owner-side of every trade."""
+    rows = []
+    for trade in trade_asset_index['trades']:
+        for side in trade.get('sides', []):
+            user_id = side.get('user_id')
+            if not user_id:
+                continue
+            rows.append(
+                trace_owner_side_lineage(
+                    trade.get('transaction_id'),
+                    user_id,
+                    trade_asset_index,
+                    lineage_graph,
+                )
+            )
+    return rows
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2853,13 +3050,23 @@ def main():
             mahomes_asset_key = make_player_key(pid)
             break
 
-    generic_mahomes_trace = (
-        trace_asset_descendants(
-            mahomes_asset_key,
-            universal_lineage,
-        )
-        if mahomes_asset_key
-        else {"error": "Patrick Mahomes player key not found"}
+    player_trade_instances = build_player_trade_instances(
+        trade_asset_index,
+        players,
+    )
+    transaction_rooted_lineage = build_transaction_rooted_lineage_index(
+        trade_asset_index,
+        universal_lineage,
+    )
+
+    # Demonstration query: Mocha's side of the exact Patrick Mahomes trade.
+    mocha_user_id = "844785316274483200"
+    mahomes_trade_id = "1100223461307322368"
+    generic_mahomes_trace = trace_owner_side_lineage(
+        mahomes_trade_id,
+        mocha_user_id,
+        trade_asset_index,
+        universal_lineage,
     )
 
     current = history[0] if history else None
@@ -2954,6 +3161,14 @@ def main():
     write_json(
         "patrick_mahomes_generic_trace.json",
         generic_mahomes_trace,
+    )
+    write_json(
+        "player_trade_instances.json",
+        player_trade_instances,
+    )
+    write_json(
+        "transaction_rooted_lineage_index.json",
+        transaction_rooted_lineage,
     )
 
     if current:
