@@ -34,6 +34,9 @@ jobs:
 
       - name: Fetch full FSFFL schedule
         run: python script/update_full_schedule.py
+
+      - name: Build FSFFL projection sources
+        run: python script/build_fsffl_player_projections.py
         
       - name: Build FSFFL GM Engine
         run: python script/build_fsffl_gm_engine.py
