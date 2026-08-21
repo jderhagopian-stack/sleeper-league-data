@@ -12,10 +12,11 @@ It currently:
 1. Detects the active season from data/league.json.
 2. Downloads the latest open weekly fantasy ranking/projection feed from
    DynastyProcess / ffverse.
-3. Downloads cross-platform player ID mappings.
-4. Maps those players to Sleeper IDs, with conservative name fallback.
-5. Saves raw source snapshots for audit/history.
-6. Writes a normalized weekly source table and source-quality audit.
+3. Downloads the latest preseason/draft FantasyPros consensus feed.
+4. Downloads cross-platform player ID mappings.
+5. Maps both ranking sources to Sleeper IDs, with conservative name fallback.
+6. Saves raw source snapshots for audit/history.
+7. Writes normalized weekly + draft source tables and source-quality audit.
 
 Later projection layers can blend this source with additional season
 projections, usage, expected points, injury availability, schedule, and
@@ -41,6 +42,10 @@ SIM_ROOT = DATA / "simulator"
 WEEKLY_URL = (
     "https://raw.githubusercontent.com/"
     "dynastyprocess/data/master/files/fp_latest_weekly.csv"
+)
+DRAFT_URL = (
+    "https://raw.githubusercontent.com/"
+    "dynastyprocess/data/master/files/db_fpecr_latest.csv"
 )
 PLAYER_IDS_URL = (
     "https://raw.githubusercontent.com/"
@@ -169,61 +174,20 @@ def detect_week(rows: List[Dict[str, str]]):
     return None
 
 
-def main():
-    league = load_json(DATA / "league.json")
-    players = load_json(DATA / "players.json", {})
-
-    if not league:
-        raise RuntimeError("Missing data/league.json")
-    if not players:
-        raise RuntimeError("Missing data/players.json")
-
-    season = str(league.get("season"))
-    if not season:
-        raise RuntimeError("League season is missing.")
-
-    season_dir = SIM_ROOT / season
-    sources_dir = season_dir / "sources"
-    outputs_dir = season_dir / "outputs"
-    sources_dir.mkdir(parents=True, exist_ok=True)
-    outputs_dir.mkdir(parents=True, exist_ok=True)
-
-    generated = now_utc()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-
-    print("Downloading weekly ffverse/DynastyProcess source...")
-    weekly_text = fetch_text(WEEKLY_URL)
-    print("Downloading player ID mapping...")
-    ids_text = fetch_text(PLAYER_IDS_URL)
-
-    # Preserve exact downloaded source files for reproducibility/backtesting.
-    weekly_snapshot = sources_dir / f"fp_latest_weekly_{stamp}.csv"
-    ids_snapshot = sources_dir / f"db_playerids_{stamp}.csv"
-    weekly_snapshot.write_text(weekly_text, encoding="utf-8")
-    ids_snapshot.write_text(ids_text, encoding="utf-8")
-
-    # Also maintain convenient latest aliases.
-    (sources_dir / "fp_latest_weekly.csv").write_text(
-        weekly_text, encoding="utf-8"
-    )
-    (sources_dir / "db_playerids.csv").write_text(
-        ids_text, encoding="utf-8"
-    )
-
-    weekly_rows = parse_csv(weekly_text)
-    id_rows = parse_csv(ids_text)
-
-    fp_to_sleeper = build_fp_to_sleeper(id_rows)
-    name_index = sleeper_player_name_index(players)
-    detected_week = detect_week(weekly_rows)
-
+def normalize_rank_rows(
+    rows: List[Dict[str, str]],
+    fp_to_sleeper: Dict[str, str],
+    name_index: Dict[str, List[str]],
+    source_type: str,
+    detected_week=None,
+):
     normalized = []
     direct_matches = 0
     name_matches = 0
     ambiguous_name_matches = 0
     unmatched = 0
 
-    for row in weekly_rows:
+    for row in rows:
         fp_id = find_column(row, "fantasypros_id", "fp_id")
         name = find_column(row, "player_name", "name")
         pos = find_column(row, "pos", "position")
@@ -251,27 +215,115 @@ def main():
                 match_method = "unmatched"
 
         normalized.append({
+            "source_type": source_type,
             "sleeper_id": sleeper_id,
             "fantasypros_id": str(fp_id).strip() if fp_id else None,
             "player_name": name,
             "position": pos,
             "team": team,
             "source_week": detected_week,
-            "ecr": to_float(find_column(row, "ecr")),
-            "rank": to_float(find_column(row, "rank")),
-            "expert_rank_sd": to_float(find_column(row, "sd")),
+            "ecr": to_float(find_column(row, "ecr", "avg", "average")),
+            "rank": to_float(find_column(row, "rank", "rk")),
+            "expert_rank_sd": to_float(find_column(row, "sd", "std.dev", "std_dev")),
             "best_rank": to_float(find_column(row, "best")),
             "worst_rank": to_float(find_column(row, "worst")),
-            "pos_rank": find_column(row, "pos_rank"),
-            "bye_week": to_int(find_column(row, "player_bye_week")),
-            "opponent": find_column(row, "player_opponent"),
+            "pos_rank": find_column(row, "pos_rank", "pos rank"),
+            "bye_week": to_int(find_column(row, "player_bye_week", "bye")),
+            "opponent": find_column(row, "player_opponent", "opponent"),
             "start_sit_grade": find_column(row, "start_sit_grade"),
-            # r2p_pts is retained exactly as a source field, but is NOT
-            # automatically promoted to our final fantasy-point mean.
             "rank_to_points": to_float(find_column(row, "r2p_pts")),
             "match_method": match_method,
         })
 
+    return normalized, {
+        "fantasypros_id": direct_matches,
+        "normalized_name": name_matches,
+        "ambiguous_name": ambiguous_name_matches,
+        "unmatched": unmatched,
+    }
+
+
+def main():
+    league = load_json(DATA / "league.json")
+    players = load_json(DATA / "players.json", {})
+
+    if not league:
+        raise RuntimeError("Missing data/league.json")
+    if not players:
+        raise RuntimeError("Missing data/players.json")
+
+    season = str(league.get("season"))
+    if not season:
+        raise RuntimeError("League season is missing.")
+
+    season_dir = SIM_ROOT / season
+    sources_dir = season_dir / "sources"
+    outputs_dir = season_dir / "outputs"
+    sources_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+
+    generated = now_utc()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+    print("Downloading weekly ffverse/DynastyProcess source...")
+    weekly_text = fetch_text(WEEKLY_URL)
+    print("Downloading preseason/draft ffverse/DynastyProcess source...")
+    draft_text = fetch_text(DRAFT_URL)
+    print("Downloading player ID mapping...")
+    ids_text = fetch_text(PLAYER_IDS_URL)
+
+    # Preserve exact downloaded source files for reproducibility/backtesting.
+    weekly_snapshot = sources_dir / f"fp_latest_weekly_{stamp}.csv"
+    draft_snapshot = sources_dir / f"db_fpecr_latest_{stamp}.csv"
+    ids_snapshot = sources_dir / f"db_playerids_{stamp}.csv"
+    weekly_snapshot.write_text(weekly_text, encoding="utf-8")
+    draft_snapshot.write_text(draft_text, encoding="utf-8")
+    ids_snapshot.write_text(ids_text, encoding="utf-8")
+
+    # Also maintain convenient latest aliases.
+    (sources_dir / "fp_latest_weekly.csv").write_text(
+        weekly_text, encoding="utf-8"
+    )
+    (sources_dir / "db_fpecr_latest.csv").write_text(
+        draft_text, encoding="utf-8"
+    )
+    (sources_dir / "db_playerids.csv").write_text(
+        ids_text, encoding="utf-8"
+    )
+
+    weekly_rows = parse_csv(weekly_text)
+    draft_rows = parse_csv(draft_text)
+    id_rows = parse_csv(ids_text)
+
+    fp_to_sleeper = build_fp_to_sleeper(id_rows)
+    name_index = sleeper_player_name_index(players)
+    detected_week = detect_week(weekly_rows)
+
+    normalized_weekly, weekly_methods = normalize_rank_rows(
+        weekly_rows,
+        fp_to_sleeper,
+        name_index,
+        source_type="weekly",
+        detected_week=detected_week,
+    )
+    normalized_draft, draft_methods = normalize_rank_rows(
+        draft_rows,
+        fp_to_sleeper,
+        name_index,
+        source_type="draft",
+        detected_week=None,
+    )
+
+    weekly_mapped = sum(1 for row in normalized_weekly if row["sleeper_id"])
+    weekly_total = len(normalized_weekly)
+    weekly_coverage = weekly_mapped / weekly_total if weekly_total else 0.0
+
+    draft_mapped = sum(1 for row in normalized_draft if row["sleeper_id"])
+    draft_total = len(normalized_draft)
+    draft_coverage = draft_mapped / draft_total if draft_total else 0.0
+
+    # Union of sources is what matters for simulator coverage.
+    normalized = normalized_weekly + normalized_draft
     mapped = sum(1 for row in normalized if row["sleeper_id"])
     total = len(normalized)
     coverage = mapped / total if total else 0.0
@@ -319,16 +371,30 @@ def main():
     source_payload = {
         "generated_at_utc": generated,
         "season": season,
-        "source": {
-            "name": "DynastyProcess / ffverse weekly fantasy rankings",
-            "url": WEEKLY_URL,
-            "player_ids_url": PLAYER_IDS_URL,
-            "source_week": detected_week,
-        },
+        "sources": [
+            {
+                "name": "DynastyProcess / ffverse weekly fantasy rankings",
+                "type": "weekly",
+                "url": WEEKLY_URL,
+                "source_week": detected_week,
+                "rows": weekly_total,
+                "mapped_rows": weekly_mapped,
+                "mapping_coverage": round(weekly_coverage, 5),
+            },
+            {
+                "name": "DynastyProcess / ffverse preseason draft rankings",
+                "type": "draft",
+                "url": DRAFT_URL,
+                "rows": draft_total,
+                "mapped_rows": draft_mapped,
+                "mapping_coverage": round(draft_coverage, 5),
+            },
+        ],
+        "player_ids_url": PLAYER_IDS_URL,
         "important_note": (
-            "This is a normalized source layer, not the final player weekly "
-            "projection feed. ECR/rank/rank_to_points are retained as inputs "
-            "for later blending and calibration."
+            "These are normalized ranking/projection source layers, not the final "
+            "player weekly projection feed. Weekly and draft consensus are retained "
+            "as distinct inputs for later blending and calibration."
         ),
         "players": normalized,
     }
@@ -339,11 +405,17 @@ def main():
         "source_rows": total,
         "mapped_rows": mapped,
         "mapping_coverage": round(coverage, 5),
-        "mapping_methods": {
-            "fantasypros_id": direct_matches,
-            "normalized_name": name_matches,
-            "ambiguous_name": ambiguous_name_matches,
-            "unmatched": unmatched,
+        "weekly_source": {
+            "rows": weekly_total,
+            "mapped_rows": weekly_mapped,
+            "mapping_coverage": round(weekly_coverage, 5),
+            "mapping_methods": weekly_methods,
+        },
+        "draft_source": {
+            "rows": draft_total,
+            "mapped_rows": draft_mapped,
+            "mapping_coverage": round(draft_coverage, 5),
+            "mapping_methods": draft_methods,
         },
         "detected_source_week": detected_week,
         "fsffl_roster_coverage": {
@@ -403,20 +475,42 @@ def main():
             ),
         })
 
-    if name_matches:
+    total_name_matches = (
+        weekly_methods.get("normalized_name", 0)
+        + draft_methods.get("normalized_name", 0)
+    )
+    if total_name_matches:
         audit["quality_flags"].append({
             "severity": "info",
             "code": "NAME_FALLBACK_USED",
             "message": (
-                f"{name_matches} rows required normalized-name fallback. "
-                "This is expected for some players, especially where upstream "
-                "FantasyPros IDs are incomplete."
+                f"{total_name_matches} rows required normalized-name fallback "
+                "across weekly + draft sources."
             ),
         })
 
     write_json(
-        sources_dir / "normalized_weekly_rankings.json",
+        sources_dir / "normalized_rankings_combined.json",
         source_payload,
+    )
+    write_json(
+        sources_dir / "normalized_weekly_rankings.json",
+        {
+            "generated_at_utc": generated,
+            "season": season,
+            "source": "weekly",
+            "source_week": detected_week,
+            "players": normalized_weekly,
+        },
+    )
+    write_json(
+        sources_dir / "normalized_draft_rankings.json",
+        {
+            "generated_at_utc": generated,
+            "season": season,
+            "source": "draft",
+            "players": normalized_draft,
+        },
     )
     write_json(
         outputs_dir / "projection_source_audit.json",
@@ -425,7 +519,8 @@ def main():
 
     print(
         f"Projection source build complete for {season}: "
-        f"{mapped}/{total} rows mapped to Sleeper ({coverage:.1%})."
+        f"weekly {weekly_mapped}/{weekly_total} ({weekly_coverage:.1%}), "
+        f"draft {draft_mapped}/{draft_total} ({draft_coverage:.1%})."
     )
     print(
         "No final player_weekly_projections.json was overwritten. "
