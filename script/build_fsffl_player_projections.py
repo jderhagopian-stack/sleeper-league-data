@@ -20,6 +20,9 @@ It currently:
 8. Writes normalized weekly + draft source tables and source-quality audit.
 9. Inventories draft page types and FSFFL roster coverage before selecting a
    scoring-format projection source.
+10. Selects a current-season preseason prior using redraft superflex rankings
+    first, with redraft overall only as a coverage fallback. Dynasty rankings
+    are deliberately excluded from the scoring prior.
 
 Later projection layers can blend this source with additional season
 projections, usage, expected points, injury availability, schedule, and
@@ -343,6 +346,88 @@ def build_draft_page_inventory(
     return output
 
 
+def select_preseason_prior(
+    normalized_draft: List[Dict[str, Any]],
+    rostered_ids,
+):
+    """
+    Build the season-current preseason prior used by Simulator 1.0.
+
+    Primary source: redraft-op (FantasyPros redraft superflex / overall-player
+    ranking set, identified upstream by ecr_type=rsf).
+
+    Fallback source: redraft-overall for players absent from redraft-op.
+
+    Dynasty ranking sets are intentionally excluded from the scoring prior:
+    dynasty market value is not the same thing as expected current-season
+    fantasy production.
+    """
+    primary_type = "redraft-op"
+    fallback_type = "redraft-overall"
+
+    by_type: Dict[str, Dict[str, Dict[str, Any]]] = {
+        primary_type: {},
+        fallback_type: {},
+    }
+
+    for row in normalized_draft:
+        page_type = row.get("page_type")
+        sid = str(row["sleeper_id"]) if row.get("sleeper_id") else None
+        if page_type not in by_type or not sid:
+            continue
+
+        # One row per Sleeper player per selected page type.
+        # Keep the row with the best (lowest) ECR if duplicates exist.
+        existing = by_type[page_type].get(sid)
+        if existing is None:
+            by_type[page_type][sid] = row
+        else:
+            old_ecr = existing.get("ecr")
+            new_ecr = row.get("ecr")
+            if (
+                new_ecr is not None
+                and (old_ecr is None or float(new_ecr) < float(old_ecr))
+            ):
+                by_type[page_type][sid] = row
+
+    selected = {}
+    source_counts = {
+        primary_type: 0,
+        fallback_type: 0,
+        "missing": 0,
+    }
+
+    for sid in sorted(rostered_ids):
+        row = by_type[primary_type].get(sid)
+        chosen_source = primary_type
+
+        if row is None:
+            row = by_type[fallback_type].get(sid)
+            chosen_source = fallback_type
+
+        if row is None:
+            source_counts["missing"] += 1
+            continue
+
+        selected[sid] = {
+            "sleeper_id": sid,
+            "player_name": row.get("player_name"),
+            "position": row.get("position"),
+            "team": row.get("team"),
+            "preseason_ecr": row.get("ecr"),
+            "expert_rank_sd": row.get("expert_rank_sd"),
+            "best_rank": row.get("best_rank"),
+            "worst_rank": row.get("worst_rank"),
+            "bye_week": row.get("bye_week"),
+            "source_page_type": chosen_source,
+            "source_ecr_type": row.get("ecr_type"),
+            "scrape_date": row.get("scrape_date"),
+        }
+        source_counts[chosen_source] += 1
+
+    return selected, source_counts
+
+
 def main():
     league = load_json(DATA / "league.json")
     players = load_json(DATA / "players.json", {})
@@ -457,6 +542,11 @@ def main():
         normalized_draft,
         rostered_ids,
         active_roster_ids,
+    )
+
+    preseason_prior, preseason_prior_counts = select_preseason_prior(
+        normalized_draft,
+        rostered_ids,
     )
 
     missing_details = []
@@ -630,6 +720,32 @@ def main():
                 "position-specific ranking sets."
             ),
             "pages": draft_page_inventory,
+        },
+    )
+    write_json(
+        sources_dir / "selected_preseason_prior.json",
+        {
+            "generated_at_utc": generated,
+            "season": season,
+            "purpose": (
+                "Current-season preseason prior for Simulator 1.0. "
+                "Uses redraft superflex rankings first and redraft overall "
+                "only as a coverage fallback. Dynasty rankings are excluded "
+                "from the scoring prior."
+            ),
+            "selection_policy": {
+                "primary_page_type": "redraft-op",
+                "primary_ecr_type": "rsf",
+                "fallback_page_type": "redraft-overall",
+                "excluded_from_scoring_prior": [
+                    "dynasty-op",
+                    "dynasty-overall",
+                    "best-overall",
+                    "position-only dynasty pages",
+                ],
+            },
+            "source_counts": preseason_prior_counts,
+            "players": preseason_prior,
         },
     )
     write_json(
