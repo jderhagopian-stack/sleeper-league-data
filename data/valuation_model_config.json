@@ -1,0 +1,55 @@
+{
+  "model_version": "GM-1.0",
+  "market_source": "FantasyCalc current values",
+  "market_settings": {
+    "dynasty": true,
+    "num_qbs": 2,
+    "num_teams": 12,
+    "ppr": 0.5,
+    "te_premium": false
+  },
+  "owner_value_weights": {
+    "roster_need_max_adjustment": 0.08,
+    "historical_position_preference_max_adjustment": 0.05,
+    "competitive_window_max_adjustment": 0.07,
+    "current_owner_endowment_premium": 0.05,
+    "starter_dependency_premium": 0.08,
+    "thin_depth_hold_premium": 0.04
+  },
+  "performance_weights": {
+    "recent_games": 6,
+    "short_window_games": 3,
+    "season_weight": 0.3,
+    "recent_weight": 0.55,
+    "momentum_weight": 0.15,
+    "max_adjustment": 0.1
+  },
+  "football_intelligence_weights": {
+    "usage_max_adjustment": 0.1,
+    "snap_trend_max_adjustment": 0.06,
+    "injury_max_adjustment": 0.12,
+    "manual_signal_max_adjustment": 0.15,
+    "market_momentum_max_adjustment": 0.06
+  },
+  "championship_utility": {
+    "starter_upgrade_weight": 0.75,
+    "depth_insurance_weight": 0.25,
+    "max_trade_utility_adjustment": 0.12
+  },
+  "pick_value_weights": {
+    "pick_preference_max_adjustment": 0.1,
+    "rebuild_pick_window_max_adjustment": 0.08,
+    "contender_pick_discount_max_adjustment": 0.05
+  },
+  "package_effective_value_weights": [
+    1.0,
+    0.92,
+    0.84
+  ],
+  "notes": [
+    "Values are estimates, not probabilities or guaranteed trade prices.",
+    "FantasyCalc provides the market anchor; FSFFL and owner values are model adjustments.",
+    "Current-owner hold value intentionally includes a modest endowment/replacement premium.",
+    "Owner behavior is inferred from completed transactions, drafts and waivers; rejected offers are not available."
+  ]
+}
