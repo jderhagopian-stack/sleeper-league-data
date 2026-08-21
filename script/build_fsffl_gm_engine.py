@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v1.1.1 — STANDALONE
+FSFFL GM Engine v1.1.2 — STANDALONE
 
 Single-file full GM model. Includes the original GM-1.0 market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -13,6 +13,7 @@ This file DOES NOT import or require another GM-engine Python file.
 from __future__ import annotations
 
 import csv
+import functools
 import gzip
 import io
 import itertools
