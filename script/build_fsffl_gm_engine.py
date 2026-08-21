@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v1.1 — STANDALONE
+FSFFL GM Engine v1.1.1 — STANDALONE
 
 Single-file full GM model. Includes the original GM-1.0 market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -1714,6 +1714,7 @@ CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
     "GM-1.1 creates a sell-leverage board across every opponent valuation.",
+    "GM-1.1.1 fixes runtime dispatch so optimized-lineup and trade-ranking functions are actually used by base_main.",
 ]
 
 FALLBACK_LINEUP_SLOTS = [
@@ -2248,12 +2249,13 @@ def write_optimal_lineup_index():
 
 
 def main():
-    # Patch the v1.0 decision layer while retaining its tested data/market plumbing.
-    build_team_strengths = optimized_team_strengths
-    starter_sets = optimized_starter_sets
-    current_starting_lineup_value = optimized_current_starting_lineup_value
-    hsg_trade_championship_utility = lineup_after_trade_utility
-    build_hsg_trade_opportunities = build_hsg_trade_opportunities_v11
+    # Patch the v1.0 decision layer in module globals so base_main() actually
+    # resolves the GM-1.1 implementations at runtime.
+    globals()["build_team_strengths"] = optimized_team_strengths
+    globals()["starter_sets"] = optimized_starter_sets
+    globals()["current_starting_lineup_value"] = optimized_current_starting_lineup_value
+    globals()["hsg_trade_championship_utility"] = lineup_after_trade_utility
+    globals()["build_hsg_trade_opportunities"] = build_hsg_trade_opportunities_v11
 
     base_main()
 
