@@ -276,6 +276,46 @@ def main():
     total = len(normalized)
     coverage = mapped / total if total else 0.0
 
+    # FSFFL-specific roster coverage is more important than global source coverage.
+    rosters = load_json(DATA / "rosters.json", [])
+    rostered_ids = set()
+    taxi_ids = set()
+    reserve_ids = set()
+    for roster in rosters or []:
+        rostered_ids.update(str(x) for x in (roster.get("players") or []))
+        taxi_ids.update(str(x) for x in (roster.get("taxi") or []))
+        reserve_ids.update(str(x) for x in (roster.get("reserve") or []))
+
+    mapped_sleeper_ids = {
+        str(row["sleeper_id"])
+        for row in normalized
+        if row.get("sleeper_id")
+    }
+
+    rostered_covered = sorted(rostered_ids & mapped_sleeper_ids)
+    rostered_missing = sorted(rostered_ids - mapped_sleeper_ids)
+    active_roster_ids = rostered_ids - taxi_ids
+    active_covered = sorted(active_roster_ids & mapped_sleeper_ids)
+    active_missing = sorted(active_roster_ids - mapped_sleeper_ids)
+
+    roster_coverage = len(rostered_covered) / max(1, len(rostered_ids))
+    active_roster_coverage = len(active_covered) / max(1, len(active_roster_ids))
+
+    missing_details = []
+    for pid in rostered_missing:
+        p = (players or {}).get(str(pid)) or {}
+        full_name = p.get("full_name")
+        if not full_name:
+            full_name = f'{p.get("first_name") or ""} {p.get("last_name") or ""}'.strip()
+        missing_details.append({
+            "sleeper_id": str(pid),
+            "name": full_name or str(pid),
+            "position": p.get("position"),
+            "team": p.get("team"),
+            "on_taxi": str(pid) in taxi_ids,
+            "on_reserve": str(pid) in reserve_ids,
+        })
+
     source_payload = {
         "generated_at_utc": generated,
         "season": season,
@@ -306,6 +346,21 @@ def main():
             "unmatched": unmatched,
         },
         "detected_source_week": detected_week,
+        "fsffl_roster_coverage": {
+            "all_rostered_players": {
+                "total": len(rostered_ids),
+                "covered": len(rostered_covered),
+                "missing": len(rostered_missing),
+                "coverage": round(roster_coverage, 5),
+            },
+            "active_non_taxi_players": {
+                "total": len(active_roster_ids),
+                "covered": len(active_covered),
+                "missing": len(active_missing),
+                "coverage": round(active_roster_coverage, 5),
+            },
+            "missing_players": missing_details,
+        },
         "quality_flags": [],
     }
 
@@ -315,6 +370,26 @@ def main():
             "code": "LOW_MAPPING_COVERAGE",
             "message": (
                 f"Only {coverage:.1%} of weekly source rows mapped to Sleeper."
+            ),
+        })
+
+    if roster_coverage < 0.95:
+        audit["quality_flags"].append({
+            "severity": "warning",
+            "code": "LOW_FSFFL_ROSTER_COVERAGE",
+            "message": (
+                f"Only {roster_coverage:.1%} of currently rostered FSFFL players "
+                "are present in the weekly source."
+            ),
+        })
+
+    if active_roster_coverage < 0.95:
+        audit["quality_flags"].append({
+            "severity": "warning",
+            "code": "LOW_FSFFL_ACTIVE_ROSTER_COVERAGE",
+            "message": (
+                f"Only {active_roster_coverage:.1%} of non-taxi FSFFL players "
+                "are present in the weekly source."
             ),
         })
 
