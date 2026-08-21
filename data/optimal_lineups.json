@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-21T03:25:14.617058+00:00",
-  "model_version": "GM-1.1",
+  "generated_at_utc": "2026-08-21T04:12:02.883170+00:00",
+  "model_version": "GM-1.1.3",
   "lineup_slots": [
     "QB",
     "RB",
@@ -17,85 +17,1981 @@
       "user_id": "845157822193872896",
       "manager": "Anthonyder",
       "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 45677.0,
+        "player_ids": [
+          "11564",
+          "4034",
+          "3198",
+          "9493",
+          "5859",
+          "8146",
+          "10859",
+          "12490",
+          "12508"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11564",
+            "name": "Drake Maye",
+            "position": "QB",
+            "value": 8312.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "4034",
+            "name": "Christian McCaffrey",
+            "position": "RB",
+            "value": 7866.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "3198",
+            "name": "Derrick Henry",
+            "position": "RB",
+            "value": 4586.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9493",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "value": 8812.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5859",
+            "name": "A.J. Brown",
+            "position": "WR",
+            "value": 5109.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8146",
+            "name": "Garrett Wilson",
+            "position": "WR",
+            "value": 2606.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "10859",
+            "name": "Sam LaPorta",
+            "position": "TE",
+            "value": 1928.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12490",
+            "name": "Bhayshul Tuten",
+            "position": "RB",
+            "value": 1729.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "12508",
+            "name": "Jaxson Dart",
+            "position": "QB",
+            "value": 4729.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 43277.0,
+        "player_ids": [
+          "11564",
+          "4034",
+          "3198",
+          "9493",
+          "8146",
+          "5859",
+          "10859",
+          "12490",
+          "12508"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11564",
+            "name": "Drake Maye",
+            "position": "QB",
+            "value": 8587.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "4034",
+            "name": "Christian McCaffrey",
+            "position": "RB",
+            "value": 4490.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "3198",
+            "name": "Derrick Henry",
+            "position": "RB",
+            "value": 2976.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9493",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "value": 8393.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8146",
+            "name": "Garrett Wilson",
+            "position": "WR",
+            "value": 4181.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5859",
+            "name": "A.J. Brown",
+            "position": "WR",
+            "value": 3770.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "10859",
+            "name": "Sam LaPorta",
+            "position": "TE",
+            "value": 3154.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12490",
+            "name": "Bhayshul Tuten",
+            "position": "RB",
+            "value": 2630.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "12508",
+            "name": "Jaxson Dart",
+            "position": "QB",
+            "value": 5096.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "709546576091090944",
       "manager": "nuckyniners",
       "team_name": "Chef Niners",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 41812.0,
+        "player_ids": [
+          "11560",
+          "8138",
+          "12481",
+          "9488",
+          "8144",
+          "12526",
+          "9484",
+          "12514",
+          "6797"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11560",
+            "name": "Caleb Williams",
+            "position": "QB",
+            "value": 7022.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8138",
+            "name": "James Cook",
+            "position": "RB",
+            "value": 6342.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12481",
+            "name": "Cam Skattebo",
+            "position": "RB",
+            "value": 2790.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9488",
+            "name": "Jaxon Smith-Njigba",
+            "position": "WR",
+            "value": 8362.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8144",
+            "name": "Chris Olave",
+            "position": "WR",
+            "value": 3853.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "12526",
+            "name": "Tetairoa McMillan",
+            "position": "WR",
+            "value": 3090.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "9484",
+            "name": "Tucker Kraft",
+            "position": "TE",
+            "value": 1981.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12514",
+            "name": "Emeka Egbuka",
+            "position": "WR",
+            "value": 2693.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "6797",
+            "name": "Justin Herbert",
+            "position": "QB",
+            "value": 5679.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 47475.0,
+        "player_ids": [
+          "11560",
+          "8138",
+          "12529",
+          "9488",
+          "12526",
+          "12514",
+          "9484",
+          "8144",
+          "6797"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11560",
+            "name": "Caleb Williams",
+            "position": "QB",
+            "value": 7151.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8138",
+            "name": "James Cook",
+            "position": "RB",
+            "value": 5489.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12529",
+            "name": "TreVeyon Henderson",
+            "position": "RB",
+            "value": 3406.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9488",
+            "name": "Jaxon Smith-Njigba",
+            "position": "WR",
+            "value": 8768.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "12526",
+            "name": "Tetairoa McMillan",
+            "position": "WR",
+            "value": 4610.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "12514",
+            "name": "Emeka Egbuka",
+            "position": "WR",
+            "value": 4533.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "9484",
+            "name": "Tucker Kraft",
+            "position": "TE",
+            "value": 3281.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "8144",
+            "name": "Chris Olave",
+            "position": "WR",
+            "value": 4356.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "6797",
+            "name": "Justin Herbert",
+            "position": "QB",
+            "value": 5881.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "853063390963277824",
       "manager": "Drigs24",
       "team_name": "BING BONG DRIGSY\ud83c\udf4e",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 41019.0,
+        "player_ids": [
+          "6804",
+          "9509",
+          "8150",
+          "7564",
+          "5927",
+          "9756",
+          "11604",
+          "7588",
+          "12522"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6804",
+            "name": "Jordan Love",
+            "position": "QB",
+            "value": 3103.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9509",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "value": 10140.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8150",
+            "name": "Kyren Williams",
+            "position": "RB",
+            "value": 3614.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7564",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "value": 9243.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5927",
+            "name": "Terry McLaurin",
+            "position": "WR",
+            "value": 1889.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9756",
+            "name": "Jordan Addison",
+            "position": "WR",
+            "value": 727.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "11604",
+            "name": "Brock Bowers",
+            "position": "TE",
+            "value": 6257.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "7588",
+            "name": "Javonte Williams",
+            "position": "RB",
+            "value": 3347.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "12522",
+            "name": "Cam Ward",
+            "position": "QB",
+            "value": 2699.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 45862.0,
+        "player_ids": [
+          "6804",
+          "9509",
+          "8150",
+          "7564",
+          "5927",
+          "9756",
+          "11604",
+          "13286",
+          "12522"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6804",
+            "name": "Jordan Love",
+            "position": "QB",
+            "value": 4134.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9509",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "value": 10190.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8150",
+            "name": "Kyren Williams",
+            "position": "RB",
+            "value": 3559.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7564",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "value": 9419.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5927",
+            "name": "Terry McLaurin",
+            "position": "WR",
+            "value": 2221.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9756",
+            "name": "Jordan Addison",
+            "position": "WR",
+            "value": 2112.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "11604",
+            "name": "Brock Bowers",
+            "position": "TE",
+            "value": 7534.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "13286",
+            "name": "Jadarian Price",
+            "position": "RB",
+            "value": 3222.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "12522",
+            "name": "Cam Ward",
+            "position": "QB",
+            "value": 3471.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "844785316274483200",
       "manager": "MochaSmev",
       "team_name": "MochaSmevs",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
-    },
-    {
-      "user_id": "858530218330144768",
-      "manager": "Ballard22",
-      "team_name": "King B",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 40564.0,
+        "player_ids": [
+          "6770",
+          "12527",
+          "9224",
+          "7547",
+          "11631",
+          "11628",
+          "12518",
+          "13281",
+          "11566"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6770",
+            "name": "Joe Burrow",
+            "position": "QB",
+            "value": 7817.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12527",
+            "name": "Ashton Jeanty",
+            "position": "RB",
+            "value": 5768.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9224",
+            "name": "Chase Brown",
+            "position": "RB",
+            "value": 5479.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7547",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "value": 7769.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11631",
+            "name": "Brian Thomas",
+            "position": "WR",
+            "value": 1243.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11628",
+            "name": "Marvin Harrison",
+            "position": "WR",
+            "value": 1138.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12518",
+            "name": "Tyler Warren",
+            "position": "TE",
+            "value": 3303.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "13281",
+            "name": "Jordyn Tyson",
+            "position": "WR",
+            "value": 1046.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "11566",
+            "name": "Jayden Daniels",
+            "position": "QB",
+            "value": 7001.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 46707.0,
+        "player_ids": [
+          "6770",
+          "12527",
+          "9224",
+          "7547",
+          "13281",
+          "11628",
+          "12518",
+          "11631",
+          "11566"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6770",
+            "name": "Joe Burrow",
+            "position": "QB",
+            "value": 7006.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12527",
+            "name": "Ashton Jeanty",
+            "position": "RB",
+            "value": 7011.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9224",
+            "name": "Chase Brown",
+            "position": "RB",
+            "value": 4383.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7547",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "value": 7453.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13281",
+            "name": "Jordyn Tyson",
+            "position": "WR",
+            "value": 3427.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11628",
+            "name": "Marvin Harrison",
+            "position": "WR",
+            "value": 3074.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12518",
+            "name": "Tyler Warren",
+            "position": "TE",
+            "value": 4556.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "11631",
+            "name": "Brian Thomas",
+            "position": "WR",
+            "value": 2991.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "11566",
+            "name": "Jayden Daniels",
+            "position": "QB",
+            "value": 6806.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "846634401482792960",
       "manager": "jimmygoodjob",
       "team_name": "Hurts So Good",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 37686.0,
+        "player_ids": [
+          "4881",
+          "12512",
+          "5967",
+          "6786",
+          "8112",
+          "6801",
+          "7553",
+          "7525",
+          "3294"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4881",
+            "name": "Lamar Jackson",
+            "position": "QB",
+            "value": 9367.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12512",
+            "name": "Quinshon Judkins",
+            "position": "RB",
+            "value": 2241.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "5967",
+            "name": "Tony Pollard",
+            "position": "RB",
+            "value": 910.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "6786",
+            "name": "CeeDee Lamb",
+            "position": "WR",
+            "value": 7101.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8112",
+            "name": "Drake London",
+            "position": "WR",
+            "value": 5109.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "6801",
+            "name": "Tee Higgins",
+            "position": "WR",
+            "value": 3529.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "7553",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "value": 1586.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "7525",
+            "name": "DeVonta Smith",
+            "position": "WR",
+            "value": 3386.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "3294",
+            "name": "Dak Prescott",
+            "position": "QB",
+            "value": 4457.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 39614.0,
+        "player_ids": [
+          "4881",
+          "12512",
+          "11583",
+          "6786",
+          "8112",
+          "9997",
+          "7553",
+          "7525",
+          "3294"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4881",
+            "name": "Lamar Jackson",
+            "position": "QB",
+            "value": 7504.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12512",
+            "name": "Quinshon Judkins",
+            "position": "RB",
+            "value": 3702.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "11583",
+            "name": "Jonathon Brooks",
+            "position": "RB",
+            "value": 1927.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "6786",
+            "name": "CeeDee Lamb",
+            "position": "WR",
+            "value": 6559.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8112",
+            "name": "Drake London",
+            "position": "WR",
+            "value": 5487.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9997",
+            "name": "Zay Flowers",
+            "position": "WR",
+            "value": 3812.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "7553",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "value": 2829.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "7525",
+            "name": "DeVonta Smith",
+            "position": "WR",
+            "value": 3684.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "3294",
+            "name": "Dak Prescott",
+            "position": "QB",
+            "value": 4110.0
+          }
+        ],
+        "complete": true
+      }
+    },
+    {
+      "user_id": "858530218330144768",
+      "manager": "Ballard22",
+      "team_name": "King B",
+      "optimal_redraft_lineup": {
+        "total": 38008.0,
+        "player_ids": [
+          "4892",
+          "6813",
+          "9226",
+          "7569",
+          "11632",
+          "10232",
+          "12517",
+          "4866",
+          "9228"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4892",
+            "name": "Baker Mayfield",
+            "position": "QB",
+            "value": 3835.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "6813",
+            "name": "Jonathan Taylor",
+            "position": "RB",
+            "value": 7233.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9226",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "value": 6296.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7569",
+            "name": "Nico Collins",
+            "position": "WR",
+            "value": 4707.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11632",
+            "name": "Malik Nabers",
+            "position": "WR",
+            "value": 4224.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "10232",
+            "name": "Michael Wilson",
+            "position": "WR",
+            "value": 1130.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12517",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "value": 3493.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "4866",
+            "name": "Saquon Barkley",
+            "position": "RB",
+            "value": 5246.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "9228",
+            "name": "Bryce Young",
+            "position": "QB",
+            "value": 1844.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 40431.0,
+        "player_ids": [
+          "4892",
+          "9226",
+          "6813",
+          "11632",
+          "7569",
+          "10232",
+          "12517",
+          "4866",
+          "9228"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4892",
+            "name": "Baker Mayfield",
+            "position": "QB",
+            "value": 3330.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9226",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "value": 6317.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "6813",
+            "name": "Jonathan Taylor",
+            "position": "RB",
+            "value": 5528.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11632",
+            "name": "Malik Nabers",
+            "position": "WR",
+            "value": 6712.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "7569",
+            "name": "Nico Collins",
+            "position": "WR",
+            "value": 4427.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "10232",
+            "name": "Michael Wilson",
+            "position": "WR",
+            "value": 2059.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12517",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "value": 5218.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "4866",
+            "name": "Saquon Barkley",
+            "position": "RB",
+            "value": 4147.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "9228",
+            "name": "Bryce Young",
+            "position": "QB",
+            "value": 2693.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "850548458887704576",
       "manager": "jder52",
       "team_name": "The Shish Kebab Boys",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 33882.0,
+        "player_ids": [
+          "6904",
+          "8151",
+          "5850",
+          "6794",
+          "10229",
+          "8148",
+          "5012",
+          "5846",
+          "4046"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6904",
+            "name": "Jalen Hurts",
+            "position": "QB",
+            "value": 6609.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8151",
+            "name": "Kenneth Walker",
+            "position": "RB",
+            "value": 4734.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "5850",
+            "name": "Josh Jacobs",
+            "position": "RB",
+            "value": 3561.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "6794",
+            "name": "Justin Jefferson",
+            "position": "WR",
+            "value": 6781.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "10229",
+            "name": "Rashee Rice",
+            "position": "WR",
+            "value": 3637.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8148",
+            "name": "Jameson Williams",
+            "position": "WR",
+            "value": 1621.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "5012",
+            "name": "Mark Andrews",
+            "position": "TE",
+            "value": 801.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "5846",
+            "name": "DK Metcalf",
+            "position": "WR",
+            "value": 1019.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "4046",
+            "name": "Patrick Mahomes",
+            "position": "QB",
+            "value": 5119.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 35696.0,
+        "player_ids": [
+          "6904",
+          "8151",
+          "5850",
+          "6794",
+          "10229",
+          "8148",
+          "5012",
+          "5846",
+          "4046"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "6904",
+            "name": "Jalen Hurts",
+            "position": "QB",
+            "value": 5763.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8151",
+            "name": "Kenneth Walker",
+            "position": "RB",
+            "value": 4598.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "5850",
+            "name": "Josh Jacobs",
+            "position": "RB",
+            "value": 2913.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "6794",
+            "name": "Justin Jefferson",
+            "position": "WR",
+            "value": 6680.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "10229",
+            "name": "Rashee Rice",
+            "position": "WR",
+            "value": 3638.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8148",
+            "name": "Jameson Williams",
+            "position": "WR",
+            "value": 2945.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "5012",
+            "name": "Mark Andrews",
+            "position": "TE",
+            "value": 1683.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "5846",
+            "name": "DK Metcalf",
+            "position": "WR",
+            "value": 1924.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "4046",
+            "name": "Patrick Mahomes",
+            "position": "QB",
+            "value": 5552.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "725401251478605824",
       "manager": "PVos",
       "team_name": "STINKS",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 30711.0,
+        "player_ids": [
+          "7523",
+          "9221",
+          "12507",
+          "9487",
+          "13294",
+          "9754",
+          "12506",
+          "13287",
+          "8161"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "7523",
+            "name": "Trevor Lawrence",
+            "position": "QB",
+            "value": 5484.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9221",
+            "name": "Jahmyr Gibbs",
+            "position": "RB",
+            "value": 10300.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12507",
+            "name": "Omarion Hampton",
+            "position": "RB",
+            "value": 5274.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9487",
+            "name": "Parker Washington",
+            "position": "WR",
+            "value": 1155.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13294",
+            "name": "Makai Lemon",
+            "position": "WR",
+            "value": 856.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9754",
+            "name": "Quentin Johnston",
+            "position": "WR",
+            "value": 638.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12506",
+            "name": "Harold Fannin",
+            "position": "TE",
+            "value": 1535.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "13287",
+            "name": "Jeremiyah Love",
+            "position": "RB",
+            "value": 3918.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "8161",
+            "name": "Malik Willis",
+            "position": "QB",
+            "value": 1551.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 41390.0,
+        "player_ids": [
+          "7523",
+          "9221",
+          "13287",
+          "13294",
+          "9487",
+          "13346",
+          "12506",
+          "12507",
+          "8161"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "7523",
+            "name": "Trevor Lawrence",
+            "position": "QB",
+            "value": 5120.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "9221",
+            "name": "Jahmyr Gibbs",
+            "position": "RB",
+            "value": 9950.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "13287",
+            "name": "Jeremiyah Love",
+            "position": "RB",
+            "value": 6719.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13294",
+            "name": "Makai Lemon",
+            "position": "WR",
+            "value": 2906.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9487",
+            "name": "Parker Washington",
+            "position": "WR",
+            "value": 2501.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13346",
+            "name": "Denzel Boston",
+            "position": "WR",
+            "value": 2358.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "12506",
+            "name": "Harold Fannin",
+            "position": "TE",
+            "value": 3227.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12507",
+            "name": "Omarion Hampton",
+            "position": "RB",
+            "value": 5950.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "8161",
+            "name": "Malik Willis",
+            "position": "QB",
+            "value": 2659.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "833709164739014656",
       "manager": "jaco057",
       "team_name": "HUNGRY DAWGS",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 27775.0,
+        "player_ids": [
+          "4984",
+          "8155",
+          "12467",
+          "8137",
+          "12519",
+          "13279",
+          "8130",
+          "12504",
+          "11565"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4984",
+            "name": "Josh Allen",
+            "position": "QB",
+            "value": 10716.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8155",
+            "name": "Breece Hall",
+            "position": "RB",
+            "value": 2827.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12467",
+            "name": "Jordan James",
+            "position": "RB",
+            "value": 0.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8137",
+            "name": "George Pickens",
+            "position": "WR",
+            "value": 4769.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "12519",
+            "name": "Luther Burden",
+            "position": "WR",
+            "value": 1967.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13279",
+            "name": "Carnell Tate",
+            "position": "WR",
+            "value": 1599.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "8130",
+            "name": "Trey McBride",
+            "position": "TE",
+            "value": 5897.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12504",
+            "name": "Kaleb Johnson",
+            "position": "RB",
+            "value": 0.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "11565",
+            "name": "J.J. McCarthy",
+            "position": "QB",
+            "value": 0.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 36823.0,
+        "player_ids": [
+          "4984",
+          "8155",
+          "12504",
+          "8137",
+          "13279",
+          "12519",
+          "8130",
+          "12492",
+          "11565"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "4984",
+            "name": "Josh Allen",
+            "position": "QB",
+            "value": 10499.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "8155",
+            "name": "Breece Hall",
+            "position": "RB",
+            "value": 3670.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12504",
+            "name": "Kaleb Johnson",
+            "position": "RB",
+            "value": 815.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8137",
+            "name": "George Pickens",
+            "position": "WR",
+            "value": 4975.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13279",
+            "name": "Carnell Tate",
+            "position": "WR",
+            "value": 4203.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "12519",
+            "name": "Luther Burden",
+            "position": "WR",
+            "value": 3481.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "8130",
+            "name": "Trey McBride",
+            "position": "TE",
+            "value": 6170.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "12492",
+            "name": "Pat Bryant",
+            "position": "WR",
+            "value": 1500.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "11565",
+            "name": "J.J. McCarthy",
+            "position": "QB",
+            "value": 1510.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "840356119955251200",
       "manager": "ddersimon",
       "team_name": "Ball Knower",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 18934.0,
+        "player_ids": [
+          "11563",
+          "5892",
+          "11584",
+          "11635",
+          "2133",
+          "2216",
+          "3214",
+          "8228",
+          "5870"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11563",
+            "name": "Bo Nix",
+            "position": "QB",
+            "value": 4385.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "5892",
+            "name": "David Montgomery",
+            "position": "RB",
+            "value": 2177.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "11584",
+            "name": "Bucky Irving",
+            "position": "RB",
+            "value": 2067.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11635",
+            "name": "Ladd McConkey",
+            "position": "WR",
+            "value": 2982.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "2133",
+            "name": "Davante Adams",
+            "position": "WR",
+            "value": 2243.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "2216",
+            "name": "Mike Evans",
+            "position": "WR",
+            "value": 1724.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "3214",
+            "name": "Hunter Henry",
+            "position": "TE",
+            "value": 268.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "8228",
+            "name": "Jaylen Warren",
+            "position": "RB",
+            "value": 1325.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "5870",
+            "name": "Daniel Jones",
+            "position": "QB",
+            "value": 1763.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 25699.0,
+        "player_ids": [
+          "11563",
+          "11584",
+          "5892",
+          "11635",
+          "2133",
+          "9500",
+          "13330",
+          "8228",
+          "5870"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "11563",
+            "name": "Bo Nix",
+            "position": "QB",
+            "value": 5037.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "11584",
+            "name": "Bucky Irving",
+            "position": "RB",
+            "value": 3277.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "5892",
+            "name": "David Montgomery",
+            "position": "RB",
+            "value": 2470.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11635",
+            "name": "Ladd McConkey",
+            "position": "WR",
+            "value": 3811.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "2133",
+            "name": "Davante Adams",
+            "position": "WR",
+            "value": 2310.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "9500",
+            "name": "Josh Downs",
+            "position": "WR",
+            "value": 1948.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "13330",
+            "name": "Kenyon Sadiq",
+            "position": "TE",
+            "value": 2465.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "8228",
+            "name": "Jaylen Warren",
+            "position": "RB",
+            "value": 1841.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "5870",
+            "name": "Daniel Jones",
+            "position": "QB",
+            "value": 2540.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "844772511156670464",
       "manager": "CoachKoko",
       "team_name": "Trash Incessant Talkers",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 15259.0,
+        "player_ids": [
+          "8183",
+          "6790",
+          "7021",
+          "5045",
+          "8126",
+          "5872",
+          "4217",
+          "8110",
+          "3163"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "8183",
+            "name": "Brock Purdy",
+            "position": "QB",
+            "value": 4129.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "6790",
+            "name": "D'Andre Swift",
+            "position": "RB",
+            "value": 1901.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "7021",
+            "name": "Rico Dowdle",
+            "position": "RB",
+            "value": 1078.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5045",
+            "name": "Courtland Sutton",
+            "position": "WR",
+            "value": 783.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8126",
+            "name": "Wan'Dale Robinson",
+            "position": "WR",
+            "value": 728.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5872",
+            "name": "Deebo Samuel",
+            "position": "WR",
+            "value": 437.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "4217",
+            "name": "George Kittle",
+            "position": "TE",
+            "value": 1453.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "8110",
+            "name": "Jake Ferguson",
+            "position": "TE",
+            "value": 951.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "3163",
+            "name": "Jared Goff",
+            "position": "QB",
+            "value": 3799.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 20984.0,
+        "player_ids": [
+          "8183",
+          "6790",
+          "12534",
+          "8126",
+          "11646",
+          "5045",
+          "4217",
+          "8110",
+          "3163"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "8183",
+            "name": "Brock Purdy",
+            "position": "QB",
+            "value": 4173.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "6790",
+            "name": "D'Andre Swift",
+            "position": "RB",
+            "value": 2421.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "12534",
+            "name": "Kyle Monangai",
+            "position": "RB",
+            "value": 1724.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8126",
+            "name": "Wan'Dale Robinson",
+            "position": "WR",
+            "value": 1760.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11646",
+            "name": "Jalen Coker",
+            "position": "WR",
+            "value": 1597.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "5045",
+            "name": "Courtland Sutton",
+            "position": "WR",
+            "value": 1576.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "4217",
+            "name": "George Kittle",
+            "position": "TE",
+            "value": 2255.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "8110",
+            "name": "Jake Ferguson",
+            "position": "TE",
+            "value": 1789.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "3163",
+            "name": "Jared Goff",
+            "position": "QB",
+            "value": 3689.0
+          }
+        ],
+        "complete": true
+      }
     },
     {
       "user_id": "676939933792964608",
       "manager": "chuckthegoat77",
       "team_name": "The Associate ",
-      "optimal_redraft_lineup": null,
-      "optimal_dynasty_lineup": null
+      "optimal_redraft_lineup": {
+        "total": 10391.0,
+        "player_ids": [
+          "9758",
+          "7543",
+          "7594",
+          "11620",
+          "8142",
+          "13417",
+          "8131",
+          "11624",
+          "9480"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "9758",
+            "name": "C.J. Stroud",
+            "position": "QB",
+            "value": 2865.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "7543",
+            "name": "Travis Etienne",
+            "position": "RB",
+            "value": 2212.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "7594",
+            "name": "Chuba Hubbard",
+            "position": "RB",
+            "value": 1021.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11620",
+            "name": "Rome Odunze",
+            "position": "WR",
+            "value": 1599.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8142",
+            "name": "Alec Pierce",
+            "position": "WR",
+            "value": 912.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13417",
+            "name": "De'Zhaun Stribling",
+            "position": "WR",
+            "value": 504.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "8131",
+            "name": "Isaiah Likely",
+            "position": "TE",
+            "value": 726.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "11624",
+            "name": "Xavier Worthy",
+            "position": "WR",
+            "value": 335.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "9480",
+            "name": "Brenton Strange",
+            "position": "TE",
+            "value": 217.0
+          }
+        ],
+        "complete": true
+      },
+      "optimal_dynasty_lineup": {
+        "total": 21265.0,
+        "player_ids": [
+          "9758",
+          "7543",
+          "7594",
+          "11620",
+          "13417",
+          "8142",
+          "8131",
+          "13276",
+          "11624"
+        ],
+        "lineup": [
+          {
+            "slot": "QB",
+            "player_id": "9758",
+            "name": "C.J. Stroud",
+            "position": "QB",
+            "value": 3371.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "7543",
+            "name": "Travis Etienne",
+            "position": "RB",
+            "value": 2936.0
+          },
+          {
+            "slot": "RB",
+            "player_id": "7594",
+            "name": "Chuba Hubbard",
+            "position": "RB",
+            "value": 1841.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "11620",
+            "name": "Rome Odunze",
+            "position": "WR",
+            "value": 3389.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "13417",
+            "name": "De'Zhaun Stribling",
+            "position": "WR",
+            "value": 2186.0
+          },
+          {
+            "slot": "WR",
+            "player_id": "8142",
+            "name": "Alec Pierce",
+            "position": "WR",
+            "value": 2013.0
+          },
+          {
+            "slot": "TE",
+            "player_id": "8131",
+            "name": "Isaiah Likely",
+            "position": "TE",
+            "value": 2028.0
+          },
+          {
+            "slot": "FLEX",
+            "player_id": "13276",
+            "name": "Omar Cooper",
+            "position": "WR",
+            "value": 1835.0
+          },
+          {
+            "slot": "SUPER_FLEX",
+            "player_id": "11624",
+            "name": "Xavier Worthy",
+            "position": "WR",
+            "value": 1666.0
+          }
+        ],
+        "complete": true
+      }
     }
   ]
 }

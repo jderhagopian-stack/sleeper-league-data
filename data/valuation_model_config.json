@@ -1,5 +1,5 @@
 {
-  "model_version": "GM-1.1",
+  "model_version": "GM-1.1.3",
   "market_source": "FantasyCalc current values",
   "market_settings": {
     "dynasty": true,
@@ -53,6 +53,7 @@
     "Owner behavior is inferred from completed transactions, drafts and waivers; rejected offers are not available.",
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
-    "GM-1.1 creates a sell-leverage board across every opponent valuation."
+    "GM-1.1 creates a sell-leverage board across every opponent valuation.",
+    "GM-1.1.1 fixes runtime dispatch so optimized-lineup and trade-ranking functions are actually used by base_main."
   ]
 }
