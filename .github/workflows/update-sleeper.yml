@@ -32,6 +32,9 @@ jobs:
       - name: Fetch Sleeper data
         run: python script/update_sleeper.py
 
+      - name: Build FSFFL GM Engine
+        run: python script/build_fsffl_gm_engine.py
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
