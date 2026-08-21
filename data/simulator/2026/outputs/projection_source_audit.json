@@ -1,0 +1,21 @@
+{
+  "detected_source_week": null,
+  "generated_at_utc": "2026-08-21T22:28:58.285946+00:00",
+  "mapped_rows": 740,
+  "mapping_coverage": 0.91471,
+  "mapping_methods": {
+    "ambiguous_name": 0,
+    "fantasypros_id": 740,
+    "normalized_name": 0,
+    "unmatched": 69
+  },
+  "quality_flags": [
+    {
+      "code": "NO_EXPLICIT_WEEK_COLUMN",
+      "message": "The current weekly source snapshot does not expose an explicit week column. No week number was invented.",
+      "severity": "info"
+    }
+  ],
+  "season": "2026",
+  "source_rows": 809
+}
