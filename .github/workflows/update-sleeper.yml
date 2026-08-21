@@ -32,6 +32,9 @@ jobs:
       - name: Fetch Sleeper data
         run: python script/update_sleeper.py
 
+      - name: Fetch full FSFFL schedule
+        run: python script/update_full_schedule.py
+        
       - name: Build FSFFL GM Engine
         run: python script/build_fsffl_gm_engine.py
 
