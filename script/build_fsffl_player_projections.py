@@ -13,10 +13,11 @@ It currently:
 2. Downloads the latest open weekly fantasy ranking/projection feed from
    DynastyProcess / ffverse.
 3. Downloads the latest preseason/draft FantasyPros consensus feed.
-4. Downloads cross-platform player ID mappings.
-5. Maps both ranking sources to Sleeper IDs, with conservative name fallback.
-6. Saves raw source snapshots for audit/history.
-7. Writes normalized weekly + draft source tables and source-quality audit.
+4. Recognizes the draft feed's native schema (player/id/pos/tm/ecr).
+5. Downloads cross-platform player ID mappings.
+6. Maps both ranking sources to Sleeper IDs, with conservative name fallback.
+7. Saves raw source snapshots for audit/history.
+8. Writes normalized weekly + draft source tables and source-quality audit.
 
 Later projection layers can blend this source with additional season
 projections, usage, expected points, injury availability, schedule, and
@@ -188,10 +189,20 @@ def normalize_rank_rows(
     unmatched = 0
 
     for row in rows:
-        fp_id = find_column(row, "fantasypros_id", "fp_id")
-        name = find_column(row, "player_name", "name")
+        fp_id = find_column(
+            row,
+            "fantasypros_id",
+            "fp_id",
+            "id",
+        )
+        name = find_column(
+            row,
+            "player_name",
+            "name",
+            "player",
+        )
         pos = find_column(row, "pos", "position")
-        team = find_column(row, "team")
+        team = find_column(row, "team", "tm")
         sleeper_id = None
         match_method = None
 
@@ -223,7 +234,7 @@ def normalize_rank_rows(
             "team": team,
             "source_week": detected_week,
             "ecr": to_float(find_column(row, "ecr", "avg", "average")),
-            "rank": to_float(find_column(row, "rank", "rk")),
+            "rank": to_float(find_column(row, "rank", "rk", "ecr")),
             "expert_rank_sd": to_float(find_column(row, "sd", "std.dev", "std_dev")),
             "best_rank": to_float(find_column(row, "best")),
             "worst_rank": to_float(find_column(row, "worst")),
@@ -232,6 +243,10 @@ def normalize_rank_rows(
             "opponent": find_column(row, "player_opponent", "opponent"),
             "start_sit_grade": find_column(row, "start_sit_grade"),
             "rank_to_points": to_float(find_column(row, "r2p_pts")),
+            "ecr_type": find_column(row, "ecr_type"),
+            "page_type": find_column(row, "page_type"),
+            "rank_delta": to_float(find_column(row, "rank_delta")),
+            "scrape_date": find_column(row, "scrape_date"),
             "match_method": match_method,
         })
 
