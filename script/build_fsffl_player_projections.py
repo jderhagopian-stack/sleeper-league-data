@@ -18,6 +18,8 @@ It currently:
 6. Maps both ranking sources to Sleeper IDs, with conservative name fallback.
 7. Saves raw source snapshots for audit/history.
 8. Writes normalized weekly + draft source tables and source-quality audit.
+9. Inventories draft page types and FSFFL roster coverage before selecting a
+   scoring-format projection source.
 
 Later projection layers can blend this source with additional season
 projections, usage, expected points, injury availability, schedule, and
@@ -258,6 +260,89 @@ def normalize_rank_rows(
     }
 
 
+def build_draft_page_inventory(
+    normalized_draft: List[Dict[str, Any]],
+    rostered_ids,
+    active_roster_ids,
+):
+    pages: Dict[str, Dict[str, Any]] = {}
+
+    for row in normalized_draft:
+        page_type = row.get("page_type") or "UNKNOWN"
+        bucket = pages.setdefault(page_type, {
+            "rows": 0,
+            "mapped_rows": 0,
+            "ecr_types": {},
+            "positions": {},
+            "rostered_ids": set(),
+            "active_rostered_ids": set(),
+            "top_examples": [],
+        })
+
+        bucket["rows"] += 1
+        if row.get("sleeper_id"):
+            bucket["mapped_rows"] += 1
+
+        ecr_type = row.get("ecr_type") or "UNKNOWN"
+        bucket["ecr_types"][ecr_type] = bucket["ecr_types"].get(ecr_type, 0) + 1
+
+        pos = row.get("position") or "UNKNOWN"
+        bucket["positions"][pos] = bucket["positions"].get(pos, 0) + 1
+
+        sid = str(row["sleeper_id"]) if row.get("sleeper_id") else None
+        if sid and sid in rostered_ids:
+            bucket["rostered_ids"].add(sid)
+        if sid and sid in active_roster_ids:
+            bucket["active_rostered_ids"].add(sid)
+
+        if len(bucket["top_examples"]) < 8:
+            bucket["top_examples"].append({
+                "name": row.get("player_name"),
+                "position": row.get("position"),
+                "team": row.get("team"),
+                "ecr": row.get("ecr"),
+                "rank": row.get("rank"),
+            })
+
+    output = []
+    for page_type, bucket in pages.items():
+        output.append({
+            "page_type": page_type,
+            "rows": bucket["rows"],
+            "mapped_rows": bucket["mapped_rows"],
+            "mapping_coverage": round(
+                bucket["mapped_rows"] / max(1, bucket["rows"]), 5
+            ),
+            "ecr_types": bucket["ecr_types"],
+            "positions": bucket["positions"],
+            "fsffl_rostered_coverage": {
+                "covered": len(bucket["rostered_ids"]),
+                "total": len(rostered_ids),
+                "coverage": round(
+                    len(bucket["rostered_ids"]) / max(1, len(rostered_ids)), 5
+                ),
+            },
+            "fsffl_active_coverage": {
+                "covered": len(bucket["active_rostered_ids"]),
+                "total": len(active_roster_ids),
+                "coverage": round(
+                    len(bucket["active_rostered_ids"]) / max(1, len(active_roster_ids)), 5
+                ),
+            },
+            "top_examples": bucket["top_examples"],
+        })
+
+    output.sort(
+        key=lambda x: (
+            x["fsffl_active_coverage"]["coverage"],
+            x["mapped_rows"],
+            x["rows"],
+        ),
+        reverse=True,
+    )
+    return output
+
+
 def main():
     league = load_json(DATA / "league.json")
     players = load_json(DATA / "players.json", {})
@@ -367,6 +452,12 @@ def main():
 
     roster_coverage = len(rostered_covered) / max(1, len(rostered_ids))
     active_roster_coverage = len(active_covered) / max(1, len(active_roster_ids))
+
+    draft_page_inventory = build_draft_page_inventory(
+        normalized_draft,
+        rostered_ids,
+        active_roster_ids,
+    )
 
     missing_details = []
     for pid in rostered_missing:
@@ -525,6 +616,20 @@ def main():
             "season": season,
             "source": "draft",
             "players": normalized_draft,
+        },
+    )
+    write_json(
+        outputs_dir / "draft_page_inventory.json",
+        {
+            "generated_at_utc": generated,
+            "season": season,
+            "purpose": (
+                "Inventory the preseason/draft feed by page_type so Simulator "
+                "1.0 can select the scoring format that best matches FSFFL "
+                "instead of mixing best-ball, standard, PPR, superflex, or "
+                "position-specific ranking sets."
+            ),
+            "pages": draft_page_inventory,
         },
     )
     write_json(
