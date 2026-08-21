@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v1.2 — STANDALONE
+FSFFL GM Engine v2.0 — ARCHITECTURE FREEZE
 
 Single-file full GM model. Includes the original GM-1.0 market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -1710,7 +1710,7 @@ def base_main():
 DATA = Path("data")
 
 # Explicit model bump for generated files.
-CONFIG["model_version"] = "GM-1.2"
+CONFIG["model_version"] = "GM-2.0"
 CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
@@ -2293,7 +2293,7 @@ def build_hsg_trade_opportunities_v11(
 
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.2",
+        "model_version": "GM-2.0",
         "user_id": user_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2380,7 +2380,7 @@ def build_sell_leverage_board():
     )
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.2",
+        "model_version": "GM-2.0",
         "user_id": hsg_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2819,7 +2819,7 @@ def build_league_arbitrage_matrix():
 
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.2",
+        "model_version": "GM-2.0",
         "user_id": hsg_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2844,12 +2844,766 @@ def build_league_arbitrage_matrix():
     }
 
 
+
+# ============================================================
+# GM-2.0 strategic decision layer
+# ============================================================
+
+def _v2_owner_context():
+    owner_payload = load_json(DATA / "owner_perceived_values.json", {}) or {}
+    owners = owner_payload.get("owners") or {}
+    team_payload = load_json(DATA / "team_contender_profiles.json", {}) or {}
+    teams = {str(x.get("user_id")): x for x in team_payload.get("teams") or []}
+    profiles = load_json(DATA / "owner_behavior_profiles.json", []) or []
+    profile_by_uid = {str(x.get("user_id")): x for x in profiles}
+    rosters = load_json(DATA / "rosters.json", []) or []
+    roster_to_uid = {
+        int(r.get("roster_id")): str(r.get("owner_id"))
+        for r in rosters if r.get("roster_id") is not None
+    }
+    uid_to_team = {}
+    for uid, block in owners.items():
+        uid_to_team[str(uid)] = (
+            block.get("team_name") or block.get("manager") or str(uid)
+        )
+    return owners, teams, profile_by_uid, roster_to_uid, uid_to_team
+
+
+def _v2_hsg_uid(owners):
+    for uid, block in owners.items():
+        if (
+            block.get("manager") == USER_MANAGER
+            or block.get("team_name") == USER_TEAM
+        ):
+            return str(uid)
+    return None
+
+
+def _v2_asset_maps(owners):
+    vals = {}
+    meta = {}
+    holdings = defaultdict(list)
+    for uid, block in owners.items():
+        uid = str(uid)
+        vals[uid] = {}
+        for row in block.get("assets") or []:
+            aid = row.get("asset_id")
+            if not aid:
+                continue
+            vals[uid][aid] = safe_float(row.get("owner_perceived_value"))
+            if aid not in meta:
+                meta[aid] = {
+                    "asset_id": aid,
+                    "asset_type": row.get("asset_type"),
+                    "name": row.get("name"),
+                    "current_owner_user_id": str(
+                        row.get("current_owner_user_id")
+                    ),
+                    "current_owner_team": row.get("current_owner_team"),
+                    "market_value": safe_float(row.get("market_value")),
+                }
+    for aid, m in meta.items():
+        uid = str(m.get("current_owner_user_id"))
+        if uid and uid != "None":
+            holdings[uid].append(aid)
+    return vals, meta, holdings
+
+
+def build_roster_fragility_index():
+    """
+    Measures how dependent each team is on its optimized starters.
+
+    This is a value-drop sensitivity model, not an injury forecast. For each
+    optimized redraft starter, remove that player and re-optimize the legal
+    lineup from the team's roster. The resulting drop is the starter's
+    replacement fragility.
+    """
+    rosters = load_json(DATA / "rosters.json", []) or []
+    assets = load_json(DATA / "fsffl_asset_values.json", {}) or {}
+    profiles = load_json(DATA / "owner_behavior_profiles.json", []) or []
+    profile_by_uid = {str(x.get("user_id")): x for x in profiles}
+
+    player_values = {
+        str(x.get("player_id")): x
+        for x in assets.get("players") or []
+        if x.get("player_id") is not None
+    }
+
+    teams = []
+    for r in rosters:
+        uid = str(r.get("owner_id"))
+        roster_ids = [
+            str(x) for x in (r.get("players") or [])
+            if str(x) in player_values
+        ]
+        if not roster_ids:
+            continue
+
+        base = optimize_lineup(
+            roster_ids, player_values, "market_redraft"
+        )
+        base_total = safe_float(base.get("total"))
+        starter_rows = []
+        for starter in base.get("lineup") or []:
+            pid = str(starter.get("player_id"))
+            reduced = [x for x in roster_ids if x != pid]
+            replacement = optimize_lineup(
+                reduced, player_values, "market_redraft"
+            )
+            repl_total = safe_float(replacement.get("total"))
+            drop = max(base_total - repl_total, 0.0)
+            starter_rows.append({
+                "player_id": pid,
+                "player": starter.get("name"),
+                "position": starter.get("position"),
+                "slot": starter.get("slot"),
+                "starter_value": safe_float(starter.get("value")),
+                "replacement_lineup_total": round(repl_total, 1),
+                "lineup_value_drop_if_unavailable": round(drop, 1),
+                "lineup_drop_pct": round(
+                    100 * drop / max(base_total, 1.0), 2
+                ),
+            })
+
+        starter_rows.sort(
+            key=lambda x: x["lineup_value_drop_if_unavailable"],
+            reverse=True,
+        )
+
+        top3 = sum(
+            x["lineup_value_drop_if_unavailable"]
+            for x in starter_rows[:3]
+        )
+        concentration = top3 / max(base_total, 1.0)
+        no_replacement_count = sum(
+            1 for x in starter_rows
+            if x["replacement_lineup_total"] <= 0
+            or not optimize_lineup(
+                [p for p in roster_ids if p != x["player_id"]],
+                player_values,
+                "market_redraft",
+            ).get("complete")
+        )
+
+        p = profile_by_uid.get(uid, {})
+        teams.append({
+            "user_id": uid,
+            "manager": p.get("manager") or p.get("username"),
+            "team_name": p.get("team_name"),
+            "base_optimal_redraft_value": round(base_total, 1),
+            "top_three_starter_dependency_value": round(top3, 1),
+            "top_three_dependency_pct": round(100 * concentration, 2),
+            "fragility_score": round(
+                clamp(concentration * 3.0, 0.0, 1.0), 3
+            ),
+            "lineup_incomplete_after_single_absence_count":
+                no_replacement_count,
+            "most_irreplaceable_starters": starter_rows[:6],
+        })
+
+    teams.sort(
+        key=lambda x: (
+            x["fragility_score"],
+            x["top_three_starter_dependency_value"],
+        ),
+        reverse=True,
+    )
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-2.0",
+        "methodology_note": (
+            "Fragility measures optimized-lineup value lost when each current "
+            "optimal starter is removed individually. It is a roster-depth "
+            "sensitivity metric, not a prediction of injury probability."
+        ),
+        "teams": teams,
+    }
+
+
+def build_pick_quality_model():
+    """
+    Estimates early/mid/late pick quality from the original franchise's
+    contender strength, dynasty strength and roster fragility.
+
+    Probabilities are heuristic scenario weights, not calibrated odds.
+    """
+    owners, teams, profile_by_uid, roster_to_uid, uid_to_team = _v2_owner_context()
+    frag = load_json(DATA / "roster_fragility_index.json", {}) or {}
+    frag_by_uid = {
+        str(x.get("user_id")): x
+        for x in frag.get("teams") or []
+    }
+
+    _, meta, _ = _v2_asset_maps(owners)
+    picks = []
+    seen = set()
+
+    for aid, m in meta.items():
+        if m.get("asset_type") != "pick" or not aid.startswith("pick:"):
+            continue
+        if aid in seen:
+            continue
+        seen.add(aid)
+
+        mt = re.match(r"pick:(\d{4}):R(\d+):orig(\d+)", aid)
+        if not mt:
+            continue
+        year, rnd, orig_rid = int(mt.group(1)), int(mt.group(2)), int(mt.group(3))
+        orig_uid = roster_to_uid.get(orig_rid)
+        t = teams.get(str(orig_uid), {}) if orig_uid else {}
+        contender = safe_float(t.get("contender_score"), 0.5)
+        dynasty = safe_float(t.get("dynasty_roster_score"), 0.5)
+        fragility = safe_float(
+            (frag_by_uid.get(str(orig_uid)) or {}).get("fragility_score"),
+            0.5,
+        )
+
+        years_out = max(year - 2026, 1)
+        dynasty_weight = clamp(0.48 + 0.08 * (years_out - 1), 0.48, 0.68)
+        current_weight = 1.0 - dynasty_weight
+
+        strength = current_weight * contender + dynasty_weight * dynasty
+        collapse_risk = clamp(
+            (1.0 - strength) * 0.72 + fragility * 0.28,
+            0.0, 1.0
+        )
+
+        # Convert structural weakness into broad early/mid/late scenario weights.
+        early = clamp(0.10 + 0.58 * collapse_risk, 0.08, 0.68)
+        late = clamp(0.10 + 0.58 * strength, 0.08, 0.68)
+        mid = max(1.0 - early - late, 0.08)
+        z = early + mid + late
+        early, mid, late = early/z, mid/z, late/z
+
+        tier = max(
+            (("early", early), ("mid", mid), ("late", late)),
+            key=lambda x: x[1]
+        )[0]
+
+        picks.append({
+            "asset_id": aid,
+            "pick": m.get("name"),
+            "season": year,
+            "round": rnd,
+            "original_roster_id": orig_rid,
+            "original_owner_user_id": orig_uid,
+            "original_team": uid_to_team.get(str(orig_uid)),
+            "current_contender_score": round(contender, 3),
+            "dynasty_roster_score": round(dynasty, 3),
+            "fragility_score": round(fragility, 3),
+            "structural_strength_score": round(strength, 3),
+            "early_scenario_weight": round(early, 3),
+            "mid_scenario_weight": round(mid, 3),
+            "late_scenario_weight": round(late, 3),
+            "most_likely_tier": tier,
+            "quality_signal": round(collapse_risk, 3),
+            "confidence": (
+                "medium"
+                if orig_uid and t
+                else "low"
+            ),
+        })
+
+    picks.sort(
+        key=lambda x: (
+            x["round"],
+            -x["quality_signal"],
+            x["season"],
+        )
+    )
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-2.0",
+        "methodology_note": (
+            "Pick-quality scenario weights use the original team's current "
+            "contender strength, dynasty strength and fragility. They are "
+            "decision-support heuristics, not literal probabilities."
+        ),
+        "picks": picks,
+    }
+
+
+def build_market_regime():
+    """
+    Encodes how the model should interpret asset liquidity by point in the
+    fantasy calendar. This does not alter base market values; it informs
+    urgency and recommendation ordering.
+    """
+    now = datetime.now(timezone.utc)
+    month = now.month
+
+    if month in (7, 8):
+        regime = "training_camp_preseason"
+        notes = [
+            "Rookie, depth-chart and role information can reprice quickly.",
+            "Contenders begin paying for lineup certainty.",
+            "Future picks retain strong liquidity before regular-season urgency peaks.",
+        ]
+        urgency = {"RB": 1.10, "QB": 1.03, "WR": 1.00, "TE": 1.00, "pick": 0.98}
+    elif month in (9, 10):
+        regime = "early_regular_season"
+        notes = [
+            "Usage and role data should outweigh offseason narratives.",
+            "Injury-created starter demand can create temporary seller leverage.",
+        ]
+        urgency = {"RB": 1.12, "QB": 1.05, "WR": 1.04, "TE": 1.02, "pick": 0.96}
+    elif month == 11:
+        regime = "trade_deadline"
+        notes = [
+            "Contenders receive maximum immediate-production urgency.",
+            "Rebuilders should demand premiums for reliable starters.",
+        ]
+        urgency = {"RB": 1.18, "QB": 1.08, "WR": 1.08, "TE": 1.05, "pick": 0.92}
+    elif month in (12, 1):
+        regime = "playoffs_postseason"
+        notes = [
+            "Trade liquidity is limited or closed in many leagues.",
+            "Dynasty age curves and future picks regain relative importance.",
+        ]
+        urgency = {"RB": 0.96, "QB": 1.00, "WR": 1.02, "TE": 1.00, "pick": 1.06}
+    elif month in (2, 3, 4):
+        regime = "rookie_hype_cycle"
+        notes = [
+            "Draft picks and incoming rookies typically gain liquidity.",
+            "Veteran RB values can be temporarily compressed before depth charts settle.",
+        ]
+        urgency = {"RB": 0.94, "QB": 1.00, "WR": 1.00, "TE": 0.99, "pick": 1.12}
+    else:
+        regime = "post_draft_otas"
+        notes = [
+            "Rookie landing spots are known; role certainty is still developing.",
+            "Veteran depth-chart value begins to normalize.",
+        ]
+        urgency = {"RB": 1.02, "QB": 1.00, "WR": 1.00, "TE": 1.00, "pick": 1.04}
+
+    return {
+        "generated_at_utc": now.isoformat(),
+        "model_version": "GM-2.0",
+        "regime": regime,
+        "position_liquidity_urgency_multiplier": urgency,
+        "notes": notes,
+    }
+
+
+def build_owner_calibration_report():
+    """
+    Produces confidence-aware owner behavior calibration from actual completed
+    league activity already captured by owner_behavior_profiles.json.
+
+    GM-2.0 intentionally does not auto-fit opaque coefficients from a small
+    sample. It exposes sample size, activity and stable behavioral tendencies
+    so owner adjustments can be tuned transparently.
+    """
+    profiles = load_json(DATA / "owner_behavior_profiles.json", []) or []
+    rows = []
+    for p in profiles:
+        tp = p.get("trade_profile") or {}
+        total = safe_float(tp.get("total_trades"))
+        recent = safe_float(tp.get("recent_trades_2025_2026"))
+        initiated = safe_float(tp.get("initiated_trades"))
+        multi = safe_float(tp.get("multi_asset_trades"))
+        confidence = (
+            "high" if total >= 20
+            else "medium" if total >= 8
+            else "low"
+        )
+        rows.append({
+            "user_id": str(p.get("user_id")),
+            "manager": p.get("manager") or p.get("username"),
+            "team_name": p.get("team_name"),
+            "completed_trade_sample": int(total),
+            "recent_trade_sample": int(recent),
+            "initiation_rate": round(initiated / total, 3) if total else None,
+            "multi_asset_rate": round(multi / total, 3) if total else None,
+            "behavior_confidence": confidence,
+            "calibration_policy": (
+                "full_owner_adjustments"
+                if confidence == "high"
+                else "moderated_owner_adjustments"
+                if confidence == "medium"
+                else "market_anchor_dominant"
+            ),
+        })
+    rows.sort(
+        key=lambda x: x["completed_trade_sample"], reverse=True
+    )
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-2.0",
+        "methodology_note": (
+            "Behavioral confidence is based on completed league transactions. "
+            "GM-2.0 keeps owner psychology transparent rather than fitting an "
+            "opaque model to a small sample."
+        ),
+        "owners": rows,
+    }
+
+
+def build_strategic_arbitrage_board():
+    """
+    Re-ranks the raw arbitrage matrix around outcomes HSG should actually care
+    about: starting-lineup gain, premium picks, young appreciating players and
+    identified roster need. Low-impact churn is intentionally suppressed.
+    """
+    matrix = load_json(DATA / "league_arbitrage_matrix.json", {}) or {}
+    assets = load_json(DATA / "fsffl_asset_values.json", {}) or {}
+    opps = load_json(DATA / "hsg_trade_opportunities.json", {}) or {}
+    regime = load_json(DATA / "market_regime.json", {}) or {}
+    pick_quality = load_json(DATA / "pick_quality_model.json", {}) or {}
+
+    player_by_aid = {
+        f"player:{x.get('player_id')}": x
+        for x in assets.get("players") or []
+    }
+    pickq = {
+        x.get("asset_id"): x
+        for x in pick_quality.get("picks") or []
+    }
+    target_impact = {}
+    for o in opps.get("opportunities") or []:
+        pid = o.get("target_player_id")
+        rows = o.get("best_candidate_packages") or []
+        gain = 0.0
+        if rows:
+            gain = max(
+                safe_float(
+                    (r.get("championship_utility") or {}).get(
+                        "optimal_lineup_value_gain"
+                    )
+                )
+                for r in rows
+            )
+        target_impact[f"player:{pid}"] = gain
+
+    urgency = regime.get("position_liquidity_urgency_multiplier") or {}
+
+    def strategic_asset_score(aid):
+        if aid.startswith("pick:"):
+            q = pickq.get(aid, {})
+            rnd = int(q.get("round") or 3)
+            premium = {1: 1.0, 2: 0.48, 3: 0.18}.get(rnd, 0.1)
+            quality = safe_float(q.get("quality_signal"), 0.5)
+            return 0.72 * premium + 0.28 * quality
+
+        p = player_by_aid.get(aid, {})
+        pos = p.get("position")
+        age = safe_float(p.get("age"), 30)
+        dyn = safe_float(p.get("market_dynasty"))
+        rd = safe_float(p.get("market_redraft"))
+        lineup_gain = safe_float(target_impact.get(aid))
+        age_score = clamp((29.0 - age) / 8.0, 0.0, 1.0)
+        appreciation = clamp(
+            (dyn - rd) / max(dyn, 1.0), -0.5, 0.5
+        )
+        impact = clamp(lineup_gain / 4500.0, 0.0, 1.0)
+        liq = safe_float(urgency.get(pos), 1.0)
+        return (
+            0.48 * impact
+            + 0.22 * age_score
+            + 0.18 * max(appreciation, 0.0)
+            + 0.12 * clamp((liq - 0.9) / 0.3, 0.0, 1.0)
+        )
+
+    direct = []
+    for row in matrix.get("top_direct_arbitrage_paths") or []:
+        target_aid = row.get("receive_asset_id")
+        strategic = strategic_asset_score(target_aid)
+        raw_surplus = safe_float(row.get("hsg_surplus"))
+        receive_value = safe_float(row.get("hsg_receive_value"), 1.0)
+        surplus_pct = raw_surplus / max(receive_value, 1.0)
+        opponent_ratio = safe_float(row.get("opponent_value_ratio"))
+        score = (
+            0.50 * strategic
+            + 0.30 * clamp(surplus_pct / 0.20, 0.0, 1.0)
+            + 0.20 * clamp((opponent_ratio - 0.84) / 0.20, 0.0, 1.0)
+        )
+        out = dict(row)
+        out["strategic_asset_score"] = round(strategic, 4)
+        out["strategic_score"] = round(score, 5)
+        out["strategic_class"] = (
+            "priority"
+            if strategic >= 0.55 and raw_surplus > 0
+            else "useful"
+            if strategic >= 0.30 and raw_surplus > 0
+            else "low_impact_churn"
+        )
+        direct.append(out)
+
+    direct.sort(
+        key=lambda x: (
+            x["strategic_class"] == "priority",
+            x["strategic_class"] == "useful",
+            x["strategic_score"],
+            x["hsg_surplus"],
+        ),
+        reverse=True,
+    )
+
+    two_step = []
+    for row in matrix.get("top_two_step_arbitrage_paths") or []:
+        target_aid = row.get("step2_target_asset_id")
+        strategic = strategic_asset_score(target_aid)
+        surplus = safe_float(
+            row.get("hsg_final_surplus_vs_original_asset")
+        )
+        final_value = safe_float(row.get("hsg_final_target_value"), 1.0)
+        route_floor = safe_float(row.get("route_floor_ratio"))
+        score = (
+            0.56 * strategic
+            + 0.26 * clamp(
+                (surplus / max(final_value, 1.0)) / 0.25,
+                0.0, 1.0
+            )
+            + 0.18 * clamp(
+                (route_floor - 0.86) / 0.20, 0.0, 1.0
+            )
+        )
+        out = dict(row)
+        out["strategic_asset_score"] = round(strategic, 4)
+        out["strategic_score"] = round(score, 5)
+        out["strategic_class"] = (
+            "priority"
+            if strategic >= 0.55
+            else "useful"
+            if strategic >= 0.30
+            else "low_impact_churn"
+        )
+        two_step.append(out)
+
+    two_step.sort(
+        key=lambda x: (
+            x["strategic_class"] == "priority",
+            x["strategic_class"] == "useful",
+            x["strategic_score"],
+            x["hsg_final_surplus_vs_original_asset"],
+        ),
+        reverse=True,
+    )
+
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-2.0",
+        "methodology_note": (
+            "Strategic ranking suppresses mathematically positive but low-impact "
+            "churn. It prioritizes lineup upgrades, first-round picks, young "
+            "appreciating players and assets aligned with current market regime."
+        ),
+        "priority_direct_paths": [
+            x for x in direct if x["strategic_class"] == "priority"
+        ][:60],
+        "useful_direct_paths": [
+            x for x in direct if x["strategic_class"] == "useful"
+        ][:60],
+        "priority_two_step_paths": [
+            x for x in two_step if x["strategic_class"] == "priority"
+        ][:60],
+        "useful_two_step_paths": [
+            x for x in two_step if x["strategic_class"] == "useful"
+        ][:60],
+        "suppressed_low_impact_direct_count": sum(
+            x["strategic_class"] == "low_impact_churn" for x in direct
+        ),
+        "suppressed_low_impact_two_step_count": sum(
+            x["strategic_class"] == "low_impact_churn" for x in two_step
+        ),
+    }
+
+
+def build_gm_command_center():
+    """
+    Single decision surface for day-to-day use.
+    """
+    teams = load_json(DATA / "team_contender_profiles.json", {}) or {}
+    sell = load_json(DATA / "sell_leverage_board.json", {}) or {}
+    opps = load_json(DATA / "hsg_trade_opportunities.json", {}) or {}
+    strategic = load_json(DATA / "strategic_arbitrage_board.json", {}) or {}
+    frag = load_json(DATA / "roster_fragility_index.json", {}) or {}
+    regime = load_json(DATA / "market_regime.json", {}) or {}
+
+    contender_board = []
+    for x in teams.get("teams") or []:
+        contender_board.append({
+            "user_id": str(x.get("user_id")),
+            "manager": x.get("manager"),
+            "team_name": x.get("team_name"),
+            "contender_score": x.get("contender_score"),
+            "dynasty_roster_score": x.get("dynasty_roster_score"),
+            "competitive_tier": x.get("competitive_tier"),
+            "starter_redraft_value": x.get("starter_redraft_value"),
+        })
+
+    frag_by_uid = {
+        str(x.get("user_id")): x
+        for x in frag.get("teams") or []
+    }
+    for row in contender_board:
+        f = frag_by_uid.get(row["user_id"], {})
+        row["fragility_score"] = f.get("fragility_score")
+        row["most_irreplaceable_starters"] = (
+            f.get("most_irreplaceable_starters") or []
+        )[:3]
+
+    # Best targets: use only strong/negotiation candidates and score by
+    # HSG surplus + lineup gain + seller fit.
+    targets = []
+    for o in opps.get("opportunities") or []:
+        packages = [
+            p for p in (o.get("best_candidate_packages") or [])
+            if p.get("recommendation_band")
+            in ("strong_candidate", "negotiation_candidate")
+        ]
+        if not packages:
+            continue
+        p = packages[0]
+        gain = safe_float(
+            (p.get("championship_utility") or {}).get(
+                "optimal_lineup_value_gain"
+            )
+        )
+        targets.append({
+            "target_player_id": o.get("target_player_id"),
+            "target_player": o.get("target_player"),
+            "position": o.get("position"),
+            "seller_manager": o.get("seller_manager"),
+            "seller_team": o.get("seller_team"),
+            "hsg_value": o.get("hsg_value"),
+            "seller_hold_value": o.get("seller_hold_value"),
+            "valuation_gap_hsg_minus_seller":
+                o.get("target_value_gap_hsg_minus_seller"),
+            "optimal_lineup_value_gain": round(gain, 1),
+            "best_opening_package": p.get("outgoing_assets"),
+            "hsg_modeled_surplus": p.get("hsg_modeled_surplus"),
+            "acceptance_fit_score": p.get("acceptance_fit_score"),
+            "recommendation_band": p.get("recommendation_band"),
+            "decision_score": p.get("decision_score"),
+        })
+
+    targets.sort(
+        key=lambda x: (
+            x["recommendation_band"] == "strong_candidate",
+            x["optimal_lineup_value_gain"],
+            safe_float(x["hsg_modeled_surplus"]),
+            safe_float(x["acceptance_fit_score"]),
+        ),
+        reverse=True,
+    )
+
+    # Sell board schema can be list or dict depending prior layer.
+    sell_rows = (
+        sell.get("assets")
+        or sell.get("sell_leverage_board")
+        or sell.get("players")
+        or []
+    )
+    if not sell_rows and isinstance(sell, list):
+        sell_rows = sell
+
+    # Normalize and favor non-protected positive buyer gaps.
+    shop = []
+    for x in sell_rows:
+        name = x.get("asset") or x.get("name")
+        if name in PROTECTED_HSG_PLAYERS:
+            continue
+        gap = safe_float(
+            x.get("best_buyer_premium_vs_hsg_hold")
+            or x.get("best_buyer_premium")
+            or x.get("premium_vs_hsg_hold")
+        )
+        shop.append(dict(x, _sort_gap=gap))
+    shop.sort(key=lambda x: x["_sort_gap"], reverse=True)
+    for x in shop:
+        x.pop("_sort_gap", None)
+
+    best_moves = []
+    for t in targets[:12]:
+        impact = t["optimal_lineup_value_gain"]
+        surplus = safe_float(t["hsg_modeled_surplus"])
+        urgency = (
+            "high"
+            if impact >= 2500 and surplus >= 0
+            else "medium"
+            if impact >= 1200
+            else "low"
+        )
+        best_moves.append({
+            "action": "buy",
+            "asset": t["target_player"],
+            "counterparty": t["seller_team"],
+            "why": {
+                "optimal_lineup_value_gain": impact,
+                "modeled_hsg_surplus": surplus,
+                "valuation_gap_hsg_minus_seller":
+                    t["valuation_gap_hsg_minus_seller"],
+            },
+            "best_opening_package": t["best_opening_package"],
+            "acceptance_fit_score": t["acceptance_fit_score"],
+            "urgency": urgency,
+        })
+
+    for s in shop[:8]:
+        gap = safe_float(
+            s.get("best_buyer_premium_vs_hsg_hold")
+            or s.get("best_buyer_premium")
+            or s.get("premium_vs_hsg_hold")
+        )
+        if gap <= 0:
+            continue
+        best_moves.append({
+            "action": "shop",
+            "asset": s.get("asset") or s.get("name"),
+            "counterparty": (
+                s.get("best_buyer_team")
+                or s.get("top_buyer_team")
+                or s.get("best_destination")
+            ),
+            "why": {
+                "best_buyer_premium_vs_hsg_hold": round(gap, 1)
+            },
+            "urgency": "medium",
+        })
+
+    best_moves.sort(
+        key=lambda x: (
+            x["urgency"] == "high",
+            x["action"] == "buy",
+            safe_float(
+                (x.get("why") or {}).get("optimal_lineup_value_gain")
+            ),
+            safe_float(
+                (x.get("why") or {}).get(
+                    "best_buyer_premium_vs_hsg_hold"
+                )
+            ),
+        ),
+        reverse=True,
+    )
+
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-2.0",
+        "architecture_status": "frozen_after_2.0",
+        "market_regime": regime.get("regime"),
+        "best_moves_now": best_moves[:15],
+        "best_players_to_shop": shop[:15],
+        "best_players_to_target": targets[:20],
+        "best_direct_arbitrage_routes":
+            (strategic.get("priority_direct_paths") or [])[:20],
+        "best_two_step_arbitrage_routes":
+            (strategic.get("priority_two_step_paths") or [])[:20],
+        "league_threat_board": contender_board,
+        "operating_note": (
+            "GM-2.0 is the architecture-freeze edition. Future changes should "
+            "prefer data refreshes, weight tuning and bug fixes over new model layers."
+        ),
+    }
+
+
 def write_optimal_lineup_index():
     payload = load_json(DATA / "team_contender_profiles.json", {}) or {}
     teams = payload.get("teams") or []
     out = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.2",
+        "model_version": "GM-2.0",
         "lineup_slots": LINEUP_SLOTS,
         "teams": [
             {
@@ -2880,10 +3634,25 @@ def main():
     write_json(DATA / "league_arbitrage_matrix.json", build_league_arbitrage_matrix())
     write_optimal_lineup_index()
 
-    print("FSFFL GM Engine v1.2 complete.")
+    # GM-2.0 strategic layer: order matters because later boards consume
+    # earlier outputs from this same run.
+    write_json(DATA / "roster_fragility_index.json", build_roster_fragility_index())
+    write_json(DATA / "pick_quality_model.json", build_pick_quality_model())
+    write_json(DATA / "market_regime.json", build_market_regime())
+    write_json(DATA / "owner_calibration_report.json", build_owner_calibration_report())
+    write_json(DATA / "strategic_arbitrage_board.json", build_strategic_arbitrage_board())
+    write_json(DATA / "gm_command_center.json", build_gm_command_center())
+
+    print("FSFFL GM Engine v2.0 complete — architecture freeze edition.")
     print("Wrote data/sell_leverage_board.json")
     print("Wrote data/league_arbitrage_matrix.json")
     print("Wrote data/optimal_lineups.json")
+    print("Wrote data/roster_fragility_index.json")
+    print("Wrote data/pick_quality_model.json")
+    print("Wrote data/market_regime.json")
+    print("Wrote data/owner_calibration_report.json")
+    print("Wrote data/strategic_arbitrage_board.json")
+    print("Wrote data/gm_command_center.json")
 
 
 if __name__ == "__main__":
