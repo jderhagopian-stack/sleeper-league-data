@@ -1,5 +1,5 @@
 {
-  "model_version": "GM-1.0",
+  "model_version": "GM-1.1",
   "market_source": "FantasyCalc current values",
   "market_settings": {
     "dynasty": true,
@@ -50,6 +50,9 @@
     "Values are estimates, not probabilities or guaranteed trade prices.",
     "FantasyCalc provides the market anchor; FSFFL and owner values are model adjustments.",
     "Current-owner hold value intentionally includes a modest endowment/replacement premium.",
-    "Owner behavior is inferred from completed transactions, drafts and waivers; rejected offers are not available."
+    "Owner behavior is inferred from completed transactions, drafts and waivers; rejected offers are not available.",
+    "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
+    "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
+    "GM-1.1 creates a sell-leverage board across every opponent valuation."
   ]
 }
