@@ -1,0 +1,39 @@
+name: Test FSFFL Simulator
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  simulator-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build FSFFL projection sources
+        run: python script/build_fsffl_player_projections.py
+
+      - name: Commit simulator test outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/simulator/
+
+          if git diff --cached --quiet; then
+            echo "No simulator changes to commit."
+          else
+            git commit -m "Update FSFFL simulator test data"
+            git push origin HEAD:main
+          fi
