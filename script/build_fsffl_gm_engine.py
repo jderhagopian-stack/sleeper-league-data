@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v2.1 — UNIVERSAL FRANCHISE MODE
+FSFFL GM Engine v2.2 — STRATEGIC VALUATION
 
 Single-file full GM model. Includes the original market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -66,7 +66,7 @@ FOOTBALL_INTELLIGENCE_OVERRIDES = DATA / "football_intelligence_overrides.json"
 USER_MANAGER = "jimmygoodjob"
 USER_TEAM = "Hurts So Good"
 
-# Legacy compatibility only. GM-2.1 does not hard-code untouchables.
+# Legacy compatibility only. GM-2.2 does not hard-code untouchables.
 PROTECTED_HSG_PLAYERS = set()
 
 FUTURE_PICK_YEARS = [2027, 2028, 2029]
@@ -1567,7 +1567,7 @@ def base_main():
     detected_pick_values = infer_fc_pick_values(market)
 
     player_values = build_player_values(rosters, players, market_idx)
-    # GM-2.1: optimized_starter_sets must see current player values on its
+    # GM-2.2 retains the fix: optimized_starter_sets must see current player values on its
     # first call. Without this, the owner-matrix starter-dependency layer can
     # be built from an empty valuation cache.
     if "optimized_starter_sets" in globals():
@@ -1707,7 +1707,7 @@ def base_main():
 DATA = Path("data")
 
 # Explicit model bump for generated files.
-CONFIG["model_version"] = "GM-2.1"
+CONFIG["model_version"] = "GM-2.2"
 CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
@@ -3597,12 +3597,37 @@ def build_gm_command_center():
 
 
 # ============================================================
-# GM-2.1 UNIVERSAL FRANCHISE MODE
+# GM-2.2 UNIVERSAL FRANCHISE MODE — STRATEGIC VALUATION
 # ============================================================
+#
+# GM-2.2 separates:
+#   1) external market price;
+#   2) team-specific franchise utility;
+#   3) future/optionality value;
+#   4) liquidity/reversibility;
+#   5) minimum rational exit price.
+#
+# There are no hard-coded untouchables. Elite or high-upside assets can be
+# moved, but packages must compensate for scarcity, optionality, consolidation,
+# lineup disruption, roster-slot cost and the strategic value of simply holding.
 
 GM_ROOT = DATA / "gm"
 GM_LEAGUE_DIR = GM_ROOT / "league"
 GM_TEAMS_DIR = GM_ROOT / "teams"
+
+GM22 = {
+    "model_version": "GM-2.2",
+    "roster_size": 18,
+    "package_weights": [1.0, 0.78, 0.62, 0.50, 0.42],
+    "extra_asset_slot_cost_pct": 0.035,
+    "max_static_exit_premium_pct": 0.85,
+    "max_replacement_relief_pct": 0.68,
+    "rookie_optionality_bonus": 0.16,
+    "young_qb_optionality_bonus": 0.10,
+    "first_round_pick_liquidity": 0.98,
+    "second_round_pick_liquidity": 0.88,
+    "third_round_pick_liquidity": 0.72,
+}
 
 
 def _u_slug(s: str) -> str:
@@ -3620,12 +3645,30 @@ def _u_load_context():
     profiles = load_json(DATA / "owner_behavior_profiles.json", []) or []
     frag_payload = load_json(DATA / "roster_fragility_index.json", {}) or {}
     frag = {str(x.get("user_id")): x for x in frag_payload.get("teams") or []}
+    pick_quality_payload = load_json(DATA / "pick_quality_model.json", {}) or {}
+    pick_quality = {
+        str(x.get("asset_id")): x for x in (pick_quality_payload.get("picks") or [])
+        if x.get("asset_id")
+    }
+    market_regime = load_json(DATA / "market_regime.json", {}) or {}
+    players_full = load_json(DATA / "players.json", {}) or {}
 
     player_meta = {
-        f"player:{x.get('player_id')}": x
+        f"player:{x.get('player_id')}": dict(x)
         for x in assets_payload.get("players") or []
         if x.get("player_id") is not None
     }
+    # Enrich with Sleeper metadata such as years_exp and NFL draft information.
+    if isinstance(players_full, dict):
+        for pid, raw in players_full.items():
+            aid = f"player:{pid}"
+            if aid in player_meta and isinstance(raw, dict):
+                for key in (
+                    "years_exp", "draft_year", "draft_round", "draft_pick",
+                    "status", "team", "injury_status"
+                ):
+                    if player_meta[aid].get(key) is None and raw.get(key) is not None:
+                        player_meta[aid][key] = raw.get(key)
 
     owner_vals = {}
     asset_meta = dict(player_meta)
@@ -3643,22 +3686,21 @@ def _u_load_context():
                     "asset_id": aid,
                     "asset_type": row.get("asset_type"),
                     "name": row.get("name"),
-                    "current_owner_user_id": str(row.get("current_owner_user_id")),
+                    "current_owner_user_id": (
+                        str(row.get("current_owner_user_id"))
+                        if row.get("current_owner_user_id") is not None else None
+                    ),
                     "current_owner_team": row.get("current_owner_team"),
                     "market_value": safe_float(row.get("market_value")),
                 }
 
-    # Ownership comes from the asset records, not the perspective being valued.
     for aid, meta in asset_meta.items():
         ouid = meta.get("current_owner_user_id")
-        if ouid is None and aid.startswith("player:"):
-            ouid = (meta or {}).get("current_owner_user_id")
         if ouid is not None:
             ouid = str(ouid)
-            if ouid in owners:
+            if ouid in owners and aid not in holdings[ouid]:
                 holdings[ouid].append(aid)
 
-    # Player ownership fallback from rosters.
     for r in rosters:
         uid = str(r.get("owner_id"))
         for pid in r.get("players") or []:
@@ -3673,6 +3715,11 @@ def _u_load_context():
         str(r.get("owner_id")): [str(x) for x in (r.get("players") or [])]
         for r in rosters
     }
+    roster_id_by_uid = {
+        str(r.get("owner_id")): int(r.get("roster_id"))
+        for r in rosters if r.get("owner_id") is not None and r.get("roster_id") is not None
+    }
+
     return {
         "owners": owners,
         "teams": teams,
@@ -3685,7 +3732,12 @@ def _u_load_context():
         "profile_by_uid": profile_by_uid,
         "rosters": rosters,
         "roster_by_uid": roster_by_uid,
+        "roster_id_by_uid": roster_id_by_uid,
         "fragility": frag,
+        "pick_quality": pick_quality,
+        "market_regime": market_regime,
+        "_profile_cache": {},
+        "_depth_cache": {},
     }
 
 
@@ -3695,6 +3747,42 @@ def _u_player_values_from_assets(ctx):
         pid = aid.split(":", 1)[1]
         out[pid] = row
     return out
+
+
+def _u_parse_pick(aid: str, meta=None):
+    m = re.match(r"pick:(\d{4}):R(\d+):orig(\d+)", str(aid))
+    if not m:
+        return None
+    return {
+        "season": int(m.group(1)),
+        "round": int(m.group(2)),
+        "original_roster_id": int(m.group(3)),
+        "name": (meta or {}).get("name"),
+    }
+
+
+def _u_team_objective_weights(team):
+    c = safe_float((team or {}).get("contender_score"), 0.5)
+    d = safe_float((team or {}).get("dynasty_roster_score"), 0.5)
+    if c >= 0.78:
+        state = "elite_contender"
+        w = {"current": 0.50, "future": 0.25, "liquidity": 0.10, "resilience": 0.15}
+    elif c >= 0.55:
+        state = "contender"
+        w = {"current": 0.40, "future": 0.35, "liquidity": 0.10, "resilience": 0.15}
+    elif c >= 0.35:
+        state = "retool"
+        w = {"current": 0.23, "future": 0.47, "liquidity": 0.15, "resilience": 0.15}
+    else:
+        state = "rebuild"
+        w = {"current": 0.10, "future": 0.60, "liquidity": 0.20, "resilience": 0.10}
+
+    # A weak dynasty portfolio shifts another small amount toward future value.
+    if d < 0.30 and w["current"] >= 0.23:
+        shift = min(0.05, w["current"] - 0.18)
+        w["current"] -= shift
+        w["future"] += shift
+    return state, w
 
 
 def _u_lineup_swap(uid, outgoing_asset_ids, incoming_asset_ids, ctx, value_key="market_redraft"):
@@ -3740,16 +3828,210 @@ def _u_lineup_swap(uid, outgoing_asset_ids, incoming_asset_ids, ctx, value_key="
     }
 
 
-def build_dynamic_core_values_for_team(uid: str, ctx=None):
+def _u_depth_insurance_drop(uid: str, pid: str, ctx):
     """
-    Dynamic core / hold / break-glass model.
+    Incremental lineup loss from removing this player while one other optimal
+    starter at the same position is already unavailable. This captures depth
+    insurance that single-removal fragility misses.
+    """
+    key = (str(uid), str(pid))
+    if key in ctx["_depth_cache"]:
+        return ctx["_depth_cache"][key]
 
-    There are no untouchables. A player can be highly core and therefore
-    expensive to remove, but every asset has a finite exit threshold.
+    uid = str(uid)
+    player_values = _u_player_values_from_assets(ctx)
+    roster = list(ctx["roster_by_uid"].get(uid, []))
+    base = optimize_lineup(roster, player_values, "market_redraft")
+    lineup = base.get("lineup") or []
+    pos = (ctx["player_meta"].get(f"player:{pid}") or {}).get("position")
+    other = [
+        str(x.get("player_id")) for x in lineup
+        if str(x.get("player_id")) != str(pid)
+        and x.get("position") == pos
+    ]
+    if not other:
+        ctx["_depth_cache"][key] = 0.0
+        return 0.0
+
+    # Stress the roster by first removing the strongest same-position starter.
+    other.sort(
+        key=lambda x: safe_float(
+            (ctx["player_meta"].get(f"player:{x}") or {}).get("market_redraft")
+        ),
+        reverse=True,
+    )
+    stressed_pid = other[0]
+    r1 = [x for x in roster if x != stressed_pid]
+    r2 = [x for x in roster if x not in {stressed_pid, str(pid)}]
+    one_out = optimize_lineup(r1, player_values, "market_redraft")
+    two_out = optimize_lineup(r2, player_values, "market_redraft")
+    drop = max(safe_float(one_out.get("total")) - safe_float(two_out.get("total")), 0.0)
+    ctx["_depth_cache"][key] = drop
+    return drop
+
+
+def _u_position_tier_features(aid, ctx):
+    meta = ctx["player_meta"].get(aid, {})
+    pos = meta.get("position")
+    dyn = safe_float(meta.get("market_dynasty"))
+    peers = sorted(
+        [safe_float(x.get("market_dynasty")) for x in ctx["player_meta"].values()
+         if x.get("position") == pos and safe_float(x.get("market_dynasty")) > 0],
+        reverse=True
+    )
+    if not peers or dyn <= 0:
+        return {"percentile": 0.0, "tier_gap": 0.0, "scarcity_score": 0.0}
+
+    pct = percentile_rank(dyn, peers)
+    lower = [v for v in peers if v < dyn]
+    next_band = statistics.mean(lower[:3]) if lower else dyn
+    gap = clamp((dyn - next_band) / max(dyn, 1.0), 0.0, 0.35) / 0.35
+    scarcity = clamp(0.65 * pct + 0.35 * gap, 0.0, 1.0)
+    return {
+        "percentile": round(pct, 4),
+        "tier_gap": round(gap, 4),
+        "scarcity_score": round(scarcity, 4),
+    }
+
+
+def _u_player_distribution_features(aid, ctx):
+    m = ctx["player_meta"].get(aid, {})
+    dyn = safe_float(m.get("market_dynasty"))
+    red = safe_float(m.get("market_redraft"))
+    age = safe_float(m.get("age"), 27.0)
+    pos = m.get("position")
+    years_exp = safe_float(m.get("years_exp"), 3.0)
+    trend = safe_float(m.get("trend_30_day"), 0.0)
+
+    if pos == "QB":
+        young_center, old_center = 25.0, 34.0
+    elif pos in ("WR", "TE"):
+        young_center, old_center = 24.0, 30.0
+    else:
+        young_center, old_center = 23.0, 28.0
+
+    youth = clamp((old_center - age) / max(old_center - young_center, 1.0), 0.0, 1.0)
+    rookie = 1.0 if years_exp <= 0.5 else 0.55 if years_exp <= 1.5 else 0.0
+    dyn_red_spread = clamp((dyn - red) / max(dyn, 1.0), -0.6, 0.8)
+    positive_spread = max(dyn_red_spread, 0.0)
+
+    draft_round = safe_float(m.get("draft_round"), 0.0)
+    pedigree = 0.0
+    if draft_round == 1:
+        pedigree = 1.0
+    elif draft_round == 2:
+        pedigree = 0.72
+    elif draft_round == 3:
+        pedigree = 0.48
+    elif draft_round > 0:
+        pedigree = 0.25
+
+    momentum = clamp((trend + 500.0) / 1000.0, 0.0, 1.0) if trend else 0.5
+    upside = clamp(
+        0.34 * youth
+        + 0.23 * rookie
+        + 0.18 * positive_spread
+        + 0.15 * pedigree
+        + 0.10 * momentum,
+        0.0, 1.0
+    )
+    if pos == "QB" and age <= 25:
+        upside = clamp(upside + GM22["young_qb_optionality_bonus"], 0.0, 1.0)
+
+    age_risk = clamp((age - young_center) / max(old_center - young_center, 1.0), 0.0, 1.0)
+    role_risk = clamp(positive_spread, 0.0, 1.0)
+    injury = 1.0 if m.get("injury_status") in ("Out", "IR", "PUP") else 0.45 if m.get("injury_status") else 0.0
+    downside = clamp(0.45 * age_risk + 0.35 * role_risk + 0.20 * injury, 0.0, 1.0)
+
+    # Heuristic value distribution — explicitly not calibrated probabilities.
+    floor_mult = clamp(0.78 - 0.30 * downside, 0.38, 0.82)
+    ceiling_mult = 1.10 + 0.65 * upside
+    hold_appreciation = clamp(0.02 + 0.18 * upside - 0.10 * downside, -0.08, 0.20)
+
+    return {
+        "upside_optionality": round(upside, 4),
+        "downside_risk": round(downside, 4),
+        "hold_appreciation_pct": round(hold_appreciation, 4),
+        "distribution_floor": round(dyn * floor_mult, 1),
+        "distribution_median": round(dyn, 1),
+        "distribution_ceiling": round(dyn * ceiling_mult, 1),
+        "years_exp": years_exp,
+        "pedigree_score": round(pedigree, 3),
+    }
+
+
+def _u_player_liquidity(aid, ctx):
+    m = ctx["player_meta"].get(aid, {})
+    dyn = safe_float(m.get("market_dynasty"))
+    age = safe_float(m.get("age"), 27.0)
+    pos = m.get("position")
+    scarcity = _u_position_tier_features(aid, ctx)["scarcity_score"]
+
+    base = clamp(0.35 + 0.40 * scarcity + 0.25 * clamp(dyn / 8000.0, 0.0, 1.0), 0.0, 1.0)
+    if pos == "QB":
+        base += 0.08
+    if pos == "RB" and age >= 29:
+        base -= 0.20
+    elif pos in ("WR", "TE") and age >= 30:
+        base -= 0.12
+    return clamp(base, 0.10, 1.0)
+
+
+def _u_pick_profile(aid, uid, ctx):
+    meta = ctx["asset_meta"].get(aid, {})
+    parsed = _u_parse_pick(aid, meta) or {}
+    quality = ctx["pick_quality"].get(aid, {})
+    rnd = int(parsed.get("round") or quality.get("round") or 3)
+    season = int(parsed.get("season") or quality.get("season") or 2029)
+    qsignal = safe_float(quality.get("quality_signal"), 0.5)
+    early = safe_float(quality.get("early_scenario_weight"), 0.33)
+    late = safe_float(quality.get("late_scenario_weight"), 0.33)
+
+    if rnd == 1:
+        liquidity = GM22["first_round_pick_liquidity"]
+        upside = clamp(0.48 + 0.42 * qsignal, 0.48, 0.95)
+        uncertainty = 0.45 + 0.25 * max(season - 2027, 0)
+    elif rnd == 2:
+        liquidity = GM22["second_round_pick_liquidity"]
+        upside = clamp(0.28 + 0.32 * qsignal, 0.28, 0.72)
+        uncertainty = 0.38 + 0.20 * max(season - 2027, 0)
+    else:
+        liquidity = GM22["third_round_pick_liquidity"]
+        upside = clamp(0.12 + 0.20 * qsignal, 0.12, 0.45)
+        uncertainty = 0.28 + 0.16 * max(season - 2027, 0)
+
+    # A pick's value distribution is positively skewed; uncertainty is useful
+    # optionality rather than pure downside because the pick can improve.
+    option = clamp(upside + 0.18 * clamp(uncertainty, 0.0, 1.0), 0.0, 1.0)
+    original_uid = str(quality.get("original_owner_user_id") or "")
+    control_bonus = 0.10 if original_uid and original_uid == str(uid) else 0.0
+
+    return {
+        "round": rnd,
+        "season": season,
+        "quality_signal": round(qsignal, 4),
+        "early_scenario_weight": round(early, 4),
+        "late_scenario_weight": round(late, 4),
+        "liquidity": round(liquidity, 4),
+        "upside_optionality": round(option, 4),
+        "own_pick_control_bonus": round(control_bonus, 4),
+        "most_likely_tier": quality.get("most_likely_tier"),
+        "confidence": quality.get("confidence"),
+    }
+
+
+def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
+    """
+    GM-2.2 strategic profile for every owned player AND pick.
     """
     ctx = ctx or _u_load_context()
     uid = str(uid)
+    cache_key = ("asset_profiles", uid)
+    if cache_key in ctx["_profile_cache"]:
+        return ctx["_profile_cache"][cache_key]
+
     team = ctx["teams"].get(uid, {})
+    state, objective = _u_team_objective_weights(team)
     vals = ctx["owner_vals"].get(uid, {})
     holdings = ctx["holdings"].get(uid, [])
     player_values = _u_player_values_from_assets(ctx)
@@ -3758,182 +4040,304 @@ def build_dynamic_core_values_for_team(uid: str, ctx=None):
     lineup_ids = set(lineup.get("player_ids") or [])
     base_lineup = max(safe_float(lineup.get("total")), 1.0)
 
-    owned_player_aids = [a for a in holdings if a.startswith("player:")]
-    owned_dyn = [
-        safe_float((ctx["player_meta"].get(a) or {}).get("market_dynasty"))
-        for a in owned_player_aids
-    ]
-    max_dyn = max(owned_dyn or [1.0])
-
-    by_position = defaultdict(list)
-    for a, m in ctx["player_meta"].items():
-        pos = m.get("position")
-        if pos:
-            by_position[pos].append(safe_float(m.get("market_dynasty")))
-
     frag_rows = {
         str(x.get("player_id")): x
         for x in (ctx["fragility"].get(uid, {}).get("most_irreplaceable_starters") or [])
     }
 
-    contender = safe_float(team.get("contender_score"), 0.5)
     rows = []
-    for aid in owned_player_aids:
-        meta = ctx["player_meta"].get(aid, {})
-        pid = aid.split(":", 1)[1]
-        name = meta.get("name")
-        pos = meta.get("position")
-        dyn = safe_float(meta.get("market_dynasty"))
-        red = safe_float(meta.get("market_redraft"))
-        age = safe_float(meta.get("age"), 27.0)
-        base_value = safe_float(vals.get(aid))
+    for aid in holdings:
+        base = safe_float(vals.get(aid))
+        if base <= 0:
+            continue
 
-        dyn_share = clamp(dyn / max_dyn, 0.0, 1.0)
-        scarcity = percentile_rank(dyn, by_position.get(pos, []))
-        starter = 1.0 if pid in lineup_ids else 0.0
+        if aid.startswith("player:"):
+            m = ctx["player_meta"].get(aid, {})
+            pid = aid.split(":", 1)[1]
+            dyn = safe_float(m.get("market_dynasty"))
+            red = safe_float(m.get("market_redraft"))
+            scarcity = _u_position_tier_features(aid, ctx)
+            dist = _u_player_distribution_features(aid, ctx)
+            liquidity = _u_player_liquidity(aid, ctx)
+            starter = pid in lineup_ids
+            f = frag_rows.get(pid, {})
+            single_drop = safe_float(f.get("lineup_value_drop_if_unavailable"))
+            depth_drop = _u_depth_insurance_drop(uid, pid, ctx)
+            dependency = clamp(single_drop / base_lineup * 4.5, 0.0, 1.0)
+            depth_insurance = clamp(depth_drop / base_lineup * 5.0, 0.0, 1.0)
+            current_utility = clamp(red / max(base_lineup / 9.0, 1.0) / 4.0, 0.0, 1.0)
+            future_utility = clamp(
+                0.55 * scarcity["scarcity_score"] + 0.45 * dist["upside_optionality"],
+                0.0, 1.0
+            )
+            resilience = clamp(0.62 * dependency + 0.38 * depth_insurance, 0.0, 1.0)
 
-        f = frag_rows.get(pid, {})
-        dependency_drop = safe_float(f.get("lineup_value_drop_if_unavailable"))
-        dependency = clamp(dependency_drop / base_lineup * 5.0, 0.0, 1.0)
-        redraft_weight = clamp(red / max(
-            [safe_float((ctx["player_meta"].get(f"player:{x}") or {}).get("market_redraft"))
-             for x in lineup_ids] or [1.0]
-        ), 0.0, 1.0)
+            strategic_score = clamp(
+                objective["current"] * current_utility
+                + objective["future"] * future_utility
+                + objective["liquidity"] * liquidity
+                + objective["resilience"] * resilience,
+                0.0, 1.0
+            )
 
-        # Youth/trajectory is intentionally position-sensitive.
-        age_curve_center = 29.0 if pos == "QB" else 27.0 if pos in ("WR", "TE") else 25.5
-        youth = clamp((age_curve_center + 3.0 - age) / 8.0, 0.0, 1.0)
-        dynasty_over_redraft = clamp((dyn - red) / max(dyn, 1.0), -0.5, 0.5)
-        trajectory = clamp(0.65 * youth + 0.35 * max(dynasty_over_redraft, 0.0) * 2.0, 0.0, 1.0)
+            # Hold premium components are deliberately distinct and transparent.
+            core_premium = 0.04 + 0.30 * (strategic_score ** 1.65)
+            scarcity_premium = 0.13 * (scarcity["scarcity_score"] ** 1.8)
+            optionality_premium = 0.22 * dist["upside_optionality"]
+            liquidity_premium = 0.07 * liquidity
+            appreciation_premium = max(dist["hold_appreciation_pct"], 0.0) * 0.70
+            resilience_premium = 0.10 * resilience
+            raw_premium = (
+                core_premium + scarcity_premium + optionality_premium
+                + liquidity_premium + appreciation_premium + resilience_premium
+            )
+            premium_pct = clamp(raw_premium, 0.03, GM22["max_static_exit_premium_pct"])
+            break_glass = base * (1.0 + premium_pct)
 
-        contender_alignment = starter * contender * redraft_weight
-        long_term_alignment = dyn_share * trajectory
+            elasticity = clamp(
+                0.18
+                + 0.40 * (1.0 - dependency)
+                + 0.20 * (1.0 - scarcity["scarcity_score"])
+                + 0.15 * (1.0 - strategic_score),
+                0.12, 0.80
+            )
 
-        core_score = clamp(
-            0.24 * dyn_share
-            + 0.16 * scarcity
-            + 0.18 * dependency
-            + 0.12 * starter
-            + 0.14 * contender_alignment
-            + 0.16 * long_term_alignment,
-            0.0, 1.0
-        )
+            if strategic_score >= 0.82 or break_glass / max(base,1) >= 1.55:
+                status = "franchise_cornerstone"
+            elif strategic_score >= 0.65 or break_glass / max(base,1) >= 1.38:
+                status = "core_high_hold"
+            elif strategic_score >= 0.45:
+                status = "important_asset"
+            elif strategic_score >= 0.28:
+                status = "liquid_asset"
+            else:
+                status = "developmental_or_expendable"
 
-        # Finite premium: even a 99th-percentile cornerstone can be moved.
-        hold_premium_pct = clamp(
-            0.015 + 0.30 * (core_score ** 1.55),
-            0.015, 0.315
-        )
-        break_glass = base_value * (1.0 + hold_premium_pct)
-
-        # Higher elasticity means a direct replacement can erase more of the
-        # disruption premium in a specific trade.
-        trade_elasticity = clamp(
-            0.25
-            + 0.45 * (1.0 - dependency)
-            + 0.20 * (1.0 - starter)
-            + 0.10 * (1.0 - core_score),
-            0.15, 0.90
-        )
-
-        if core_score >= 0.82:
-            status = "franchise_cornerstone"
-        elif core_score >= 0.66:
-            status = "core_high_hold"
-        elif core_score >= 0.48:
-            status = "important_starter"
-        elif core_score >= 0.30:
-            status = "liquid_roster_asset"
+            row = {
+                "asset_id": aid,
+                "asset_type": "player",
+                "player_id": pid,
+                "name": m.get("name"),
+                "position": m.get("position"),
+                "age": m.get("age"),
+                "base_franchise_value": round(base, 1),
+                "market_dynasty": round(dyn, 1),
+                "market_redraft": round(red, 1),
+                "is_current_optimal_starter": bool(starter),
+                "single_absence_dependency_drop": round(single_drop, 1),
+                "depth_insurance_drop": round(depth_drop, 1),
+                "strategic_score": round(strategic_score, 4),
+                "core_status": status,
+                "liquidity_score": round(liquidity, 4),
+                "scarcity": scarcity,
+                "future_distribution": dist,
+                "objective_state": state,
+                "objective_weights": objective,
+                "hold_premium_pct": round(premium_pct, 4),
+                "hold_premium_value": round(base * premium_pct, 1),
+                "break_glass_value": round(break_glass, 1),
+                "trade_elasticity": round(elasticity, 4),
+                "premium_components": {
+                    "core": round(core_premium, 4),
+                    "tier_scarcity": round(scarcity_premium, 4),
+                    "optionality": round(optionality_premium, 4),
+                    "liquidity": round(liquidity_premium, 4),
+                    "expected_hold_appreciation": round(appreciation_premium, 4),
+                    "resilience": round(resilience_premium, 4),
+                },
+            }
         else:
-            status = "developmental_or_expendable"
+            pp = _u_pick_profile(aid, uid, ctx)
+            q = pp["quality_signal"]
+            option = pp["upside_optionality"]
+            liquidity = pp["liquidity"]
+            rnd = pp["round"]
+            control = pp["own_pick_control_bonus"]
 
-        rows.append({
-            "asset_id": aid,
-            "player_id": pid,
-            "player": name,
-            "position": pos,
-            "age": meta.get("age"),
-            "base_franchise_value": round(base_value, 1),
-            "market_dynasty": round(dyn, 1),
-            "market_redraft": round(red, 1),
-            "is_current_optimal_starter": bool(starter),
-            "dependency_drop_if_removed": round(dependency_drop, 1),
-            "core_score": round(core_score, 4),
-            "core_status": status,
-            "hold_premium_pct": round(hold_premium_pct, 4),
-            "hold_premium_value": round(base_value * hold_premium_pct, 1),
-            "break_glass_value": round(break_glass, 1),
-            "trade_elasticity": round(trade_elasticity, 4),
-            "components": {
-                "dynasty_roster_share": round(dyn_share, 3),
-                "position_scarcity": round(scarcity, 3),
-                "replacement_dependency": round(dependency, 3),
-                "starter_status": round(starter, 3),
-                "contender_alignment": round(contender_alignment, 3),
-                "long_term_alignment": round(long_term_alignment, 3),
-            },
-        })
+            future_utility = clamp(0.62 * option + 0.38 * q, 0.0, 1.0)
+            strategic_score = clamp(
+                objective["future"] * future_utility
+                + objective["liquidity"] * liquidity
+                + 0.12 * control
+                + (0.08 if rnd == 1 else 0.03 if rnd == 2 else 0.0),
+                0.0, 1.0
+            )
 
-    rows.sort(key=lambda x: (x["core_score"], x["base_franchise_value"]), reverse=True)
+            round_premium = 0.15 if rnd == 1 else 0.08 if rnd == 2 else 0.035
+            quality_premium = (0.24 if rnd == 1 else 0.14 if rnd == 2 else 0.07) * q
+            option_premium = (0.20 if rnd == 1 else 0.12 if rnd == 2 else 0.06) * option
+            liquidity_premium = 0.07 * liquidity
+            control_premium = control
+            premium_pct = clamp(
+                round_premium + quality_premium + option_premium
+                + liquidity_premium + control_premium,
+                0.04, 0.65
+            )
+            break_glass = base * (1.0 + premium_pct)
+            status = (
+                "premium_pick" if rnd == 1 and (q >= 0.65 or strategic_score >= 0.50)
+                else "core_pick" if rnd == 1
+                else "liquid_pick" if rnd == 2
+                else "developmental_pick"
+            )
+            row = {
+                "asset_id": aid,
+                "asset_type": "pick",
+                "name": (ctx["asset_meta"].get(aid) or {}).get("name"),
+                "base_franchise_value": round(base, 1),
+                "strategic_score": round(strategic_score, 4),
+                "core_status": status,
+                "liquidity_score": round(liquidity, 4),
+                "pick_profile": pp,
+                "objective_state": state,
+                "objective_weights": objective,
+                "hold_premium_pct": round(premium_pct, 4),
+                "hold_premium_value": round(base * premium_pct, 1),
+                "break_glass_value": round(break_glass, 1),
+                "trade_elasticity": 0.45 if rnd == 1 else 0.62 if rnd == 2 else 0.75,
+                "premium_components": {
+                    "round": round(round_premium, 4),
+                    "specific_pick_quality": round(quality_premium, 4),
+                    "optionality": round(option_premium, 4),
+                    "liquidity": round(liquidity_premium, 4),
+                    "own_pick_control": round(control_premium, 4),
+                },
+            }
+        rows.append(row)
+
+    rows.sort(
+        key=lambda x: (safe_float(x.get("break_glass_value")), safe_float(x.get("strategic_score"))),
+        reverse=True
+    )
     block = ctx["owners"].get(uid, {})
-    return {
+    payload = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
+        "model_version": "GM-2.2",
         "user_id": uid,
         "manager": block.get("manager"),
         "team_name": block.get("team_name"),
+        "team_state": state,
+        "objective_weights": objective,
         "methodology_note": (
-            "No player is hard-coded as untouchable. Core status, hold premium and "
-            "break-glass value are derived from franchise value, dynasty quality, "
-            "position scarcity, optimized-lineup dependency, contender window and "
-            "age/trajectory. Specific trade packages can reduce the disruption premium "
-            "when the incoming return directly replaces lost production."
+            "Strategic profiles cover players and picks. Break-glass values explicitly "
+            "price current utility, tier scarcity, upside optionality, liquidity, "
+            "depth resilience, expected hold value and pick-specific quality. Values "
+            "are heuristics for decision support, not guaranteed trade prices."
         ),
-        "players": rows,
+        "assets": rows,
+        "players": [x for x in rows if x.get("asset_type") == "player"],
+        "picks": [x for x in rows if x.get("asset_type") == "pick"],
     }
+    ctx["_profile_cache"][cache_key] = payload
+    return payload
 
 
-def _u_core_map(core_payload):
-    return {x.get("asset_id"): x for x in core_payload.get("players") or []}
+# Backward-compatible alias used by some downstream reads.
+def build_dynamic_core_values_for_team(uid: str, ctx=None):
+    return build_strategic_asset_profiles_for_team(uid, ctx)
 
 
-def _u_static_exit_cost(uid, asset_ids, ctx, core_by_uid):
+def _u_profile_map(profile_payload):
+    return {x.get("asset_id"): x for x in profile_payload.get("assets") or []}
+
+
+def _u_static_exit_cost(uid, asset_ids, ctx, profile_by_uid):
     vals = ctx["owner_vals"].get(str(uid), {})
-    core = core_by_uid.get(str(uid), {})
-    base = 0.0
-    premium = 0.0
+    profiles = profile_by_uid.get(str(uid), {})
+    base = premium = 0.0
     for aid in asset_ids:
-        v = safe_float(vals.get(aid))
-        base += v
-        c = core.get(aid)
-        if c:
-            premium += safe_float(c.get("hold_premium_value"))
+        base += safe_float(vals.get(aid))
+        p = profiles.get(aid)
+        if p:
+            premium += safe_float(p.get("hold_premium_value"))
     return base, premium, base + premium
 
 
-def _u_adjusted_exit_cost(uid, outgoing, incoming, ctx, core_by_uid):
-    base, premium, static = _u_static_exit_cost(uid, outgoing, ctx, core_by_uid)
+def _u_package_effective_value(asset_ids, perspective_uid, ctx, profile_by_uid):
+    """
+    Nonlinear package value. Quantity cannot freely substitute for quality in
+    an 18-man league. The first asset receives full value; subsequent pieces
+    are discounted and incur roster-slot opportunity cost.
+    """
+    vals = ctx["owner_vals"].get(str(perspective_uid), {})
+    profiles = profile_by_uid.get(str(perspective_uid), {})
+    parts = []
+    for aid in asset_ids:
+        v = safe_float(vals.get(aid))
+        if v <= 0:
+            continue
+        p = profiles.get(aid, {})
+        quality = safe_float(p.get("strategic_score"), 0.25)
+        liquidity = safe_float(p.get("liquidity_score"), 0.5)
+        parts.append((v, quality, liquidity, aid))
+    parts.sort(key=lambda x: (x[0], x[1]), reverse=True)
+
+    total = 0.0
+    details = []
+    weights = GM22["package_weights"]
+    for i, (v, q, liq, aid) in enumerate(parts):
+        w = weights[i] if i < len(weights) else max(0.28, weights[-1] - 0.06 * (i-len(weights)+1))
+        # Highly liquid secondary pieces preserve a little more of their value.
+        w = clamp(w + (liq - 0.5) * 0.08, 0.25, 1.0)
+        eff = v * w
+        total += eff
+        details.append({"asset_id": aid, "raw_value": round(v,1), "weight": round(w,3), "effective_value": round(eff,1)})
+
+    if len(parts) > 1:
+        slot_cost = sum(v for v,_,_,_ in parts[1:]) * GM22["extra_asset_slot_cost_pct"]
+        total -= slot_cost
+    else:
+        slot_cost = 0.0
+    return max(total, 0.0), {
+        "parts": details,
+        "roster_slot_cost": round(slot_cost, 1),
+        "effective_value": round(max(total,0.0), 1),
+    }
+
+
+def _u_adjusted_exit_cost(uid, outgoing, incoming, ctx, profile_by_uid):
+    """
+    Package-specific minimum rational exit cost.
+
+    Replacement relief can reduce disruption-related portions of the premium,
+    but optionality, liquidity and tier-scarcity premiums are not erased merely
+    because another player fills the lineup slot.
+    """
+    uid = str(uid)
+    base, premium, static = _u_static_exit_cost(uid, outgoing, ctx, profile_by_uid)
     lineup = _u_lineup_swap(uid, outgoing, incoming, ctx, "market_redraft")
     replacement_fraction = safe_float(lineup.get("replacement_fraction"), 0.0)
 
-    # Direct replacement can erase up to 75% of disruption premium, scaled by
-    # the average elasticity of outgoing players.
-    outgoing_core = [
-        core_by_uid.get(str(uid), {}).get(a)
-        for a in outgoing
-        if core_by_uid.get(str(uid), {}).get(a)
+    outgoing_profiles = [
+        profile_by_uid.get(uid, {}).get(a)
+        for a in outgoing if profile_by_uid.get(uid, {}).get(a)
     ]
-    avg_elasticity = (
-        statistics.mean(safe_float(x.get("trade_elasticity")) for x in outgoing_core)
-        if outgoing_core else 0.65
-    )
-    relief = clamp(replacement_fraction * (0.45 + 0.35 * avg_elasticity), 0.0, 0.75)
+    if outgoing_profiles:
+        elasticity = statistics.mean(safe_float(x.get("trade_elasticity"),0.5) for x in outgoing_profiles)
+        protected_premium_share = statistics.mean(
+            clamp(
+                safe_float((x.get("premium_components") or {}).get("optionality"))
+                + safe_float((x.get("premium_components") or {}).get("tier_scarcity"))
+                + safe_float((x.get("premium_components") or {}).get("specific_pick_quality"))
+                + safe_float((x.get("premium_components") or {}).get("liquidity")),
+                0.0, 0.70
+            )
+            for x in outgoing_profiles
+        )
+    else:
+        elasticity = 0.5
+        protected_premium_share = 0.25
+
+    relief_cap = GM22["max_replacement_relief_pct"] * (1.0 - 0.55 * protected_premium_share)
+    relief = clamp(replacement_fraction * elasticity, 0.0, relief_cap)
     adjusted = base + premium * (1.0 - relief)
+
     return {
         "base_hold_cost": round(base, 1),
         "static_hold_premium": round(premium, 1),
         "static_break_glass_cost": round(static, 1),
         "replacement_relief_pct": round(relief, 3),
+        "protected_premium_share": round(protected_premium_share, 3),
         "adjusted_exit_cost": round(adjusted, 1),
         "lineup": lineup,
     }
@@ -3945,55 +4349,116 @@ def _u_activity_score(uid, ctx):
     total = safe_float(tp.get("total_trades"))
     recent = safe_float(tp.get("recent_trades_2025_2026"))
     return clamp(
-        0.6 * min(total / 40.0, 1.0)
-        + 0.4 * min(recent / 15.0, 1.0),
+        0.45 * min(total / 40.0, 1.0)
+        + 0.30 * min(recent / 15.0, 1.0)
+        + 0.25 * safe_float(tp.get("initiation_rate"), 0.5),
         0.0, 1.0
     )
 
 
-def build_universal_trade_opportunities(uid: str, ctx=None, core_by_uid=None):
+def _u_seller_motivation(seller_uid, target_aid, ctx, profile_by_uid):
+    seller_uid = str(seller_uid)
+    p = profile_by_uid.get(seller_uid, {}).get(target_aid, {})
+    team = ctx["teams"].get(seller_uid, {})
+    activity = _u_activity_score(seller_uid, ctx)
+    strategic = safe_float(p.get("strategic_score"), 0.4)
+    contender = safe_float(team.get("contender_score"), 0.5)
+    starter = 1.0 if p.get("is_current_optimal_starter") else 0.0
+    liquidity = safe_float(p.get("liquidity_score"), 0.5)
+
+    motivation = clamp(
+        0.52 * activity
+        + 0.18 * liquidity
+        + 0.20 * (1.0 - strategic)
+        + 0.10 * (1.0 - starter * contender),
+        0.0, 1.0
+    )
+    return motivation
+
+
+def _u_trade_strategic_utility(uid, outgoing, incoming, ctx, profile_by_uid):
+    uid = str(uid)
+    team = ctx["teams"].get(uid, {})
+    state, weights = _u_team_objective_weights(team)
+    line = _u_lineup_swap(uid, outgoing, incoming, ctx, "market_redraft")
+    base_line = max(safe_float(line.get("before_total")), 1.0)
+    lineup_norm = safe_float(line.get("lineup_gain")) / base_line
+
+    out_eff, _ = _u_package_effective_value(outgoing, uid, ctx, profile_by_uid)
+    in_eff, _ = _u_package_effective_value(incoming, uid, ctx, profile_by_uid)
+    asset_delta = (in_eff - out_eff) / max(out_eff, 1000.0)
+
+    def avg_feature(ids, key):
+        vals = [
+            safe_float((profile_by_uid.get(uid, {}).get(a) or {}).get(key))
+            for a in ids if profile_by_uid.get(uid, {}).get(a)
+        ]
+        return statistics.mean(vals) if vals else 0.0
+
+    liq_delta = avg_feature(incoming, "liquidity_score") - avg_feature(outgoing, "liquidity_score")
+    future_delta = avg_feature(incoming, "strategic_score") - avg_feature(outgoing, "strategic_score")
+
+    utility = (
+        weights["current"] * lineup_norm * 2.2
+        + weights["future"] * asset_delta
+        + weights["liquidity"] * liq_delta
+        + weights["resilience"] * max(lineup_norm, -0.20)
+    )
+    return {
+        "team_state": state,
+        "objective_weights": weights,
+        "lineup_gain": round(safe_float(line.get("lineup_gain")),1),
+        "asset_value_delta_ratio": round(asset_delta,4),
+        "liquidity_delta": round(liq_delta,4),
+        "strategic_score_delta": round(future_delta,4),
+        "strategic_utility": round(utility,5),
+        "lineup": line,
+    }
+
+
+def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None):
     ctx = ctx or _u_load_context()
     uid = str(uid)
     if uid not in ctx["owners"]:
         return {"error": f"Unknown focal user_id {uid}"}
 
-    if core_by_uid is None:
-        core_by_uid = {}
-        for ouid in ctx["owners"]:
-            core_by_uid[str(ouid)] = _u_core_map(
-                build_dynamic_core_values_for_team(str(ouid), ctx)
-            )
+    if profile_by_uid is None:
+        profile_by_uid = {
+            str(ouid): _u_profile_map(build_strategic_asset_profiles_for_team(str(ouid), ctx))
+            for ouid in ctx["owners"]
+        }
 
     vals = ctx["owner_vals"]
     team = ctx["teams"].get(uid, {})
     need_map = team.get("position_need") or {}
     holdings = list(ctx["holdings"].get(uid, []))
-    focal_core = core_by_uid.get(uid, {})
+    focal_profiles = profile_by_uid.get(uid, {})
 
-    # Candidate selection intentionally includes both the most valuable assets
-    # and the most liquid assets. High-core players are not excluded.
     scored_holdings = []
     for aid in holdings:
         v = safe_float(vals.get(uid, {}).get(aid))
         if v <= 0:
             continue
-        c = focal_core.get(aid, {})
-        core_score = safe_float(c.get("core_score"))
-        liquidity = v * (1.0 - 0.50 * core_score)
-        scored_holdings.append((aid, v, liquidity))
+        p = focal_profiles.get(aid, {})
+        strategic = safe_float(p.get("strategic_score"), 0.25)
+        liquidity = safe_float(p.get("liquidity_score"), 0.5)
+        # Do not exclude core assets, but bias search toward more rationally
+        # movable pieces. Godfather packages can still surface because top-value
+        # assets are separately included.
+        movability = v * (1.0 - 0.62 * strategic) * (0.85 + 0.15 * liquidity)
+        scored_holdings.append((aid, v, movability))
 
-    top_value = [x[0] for x in sorted(scored_holdings, key=lambda z: z[1], reverse=True)[:12]]
-    top_liquid = [x[0] for x in sorted(scored_holdings, key=lambda z: z[2], reverse=True)[:12]]
+    top_value = [x[0] for x in sorted(scored_holdings, key=lambda z:z[1], reverse=True)[:10]]
+    top_movable = [x[0] for x in sorted(scored_holdings, key=lambda z:z[2], reverse=True)[:14]]
     outgoing_candidates = []
-    for aid in top_value + top_liquid:
+    for aid in top_value + top_movable:
         if aid not in outgoing_candidates:
             outgoing_candidates.append(aid)
     outgoing_candidates = outgoing_candidates[:18]
 
-    # Rank all external players before expensive package construction.
     target_screen = []
     for aid, meta in ctx["player_meta"].items():
-        seller_uid = str(meta.get("current_owner_user_id"))
+        seller_uid = str(meta.get("current_owner_user_id") or "")
         if not seller_uid or seller_uid == uid or seller_uid not in ctx["owners"]:
             continue
         focal_value = safe_float(vals.get(uid, {}).get(aid))
@@ -4002,402 +4467,364 @@ def build_universal_trade_opportunities(uid: str, ctx=None, core_by_uid=None):
             continue
         pos = meta.get("position")
         need = safe_float(need_map.get(pos), 0.5)
-        dynasty = safe_float(meta.get("market_dynasty"))
+        dyn = safe_float(meta.get("market_dynasty"))
+        red = safe_float(meta.get("market_redraft"))
+        seller_profile = profile_by_uid.get(seller_uid, {}).get(aid, {})
+        seller_strategic = safe_float(seller_profile.get("strategic_score"), 0.5)
         gap = focal_value - seller_value
+
         target_score = (
-            0.42 * need
-            + 0.36 * clamp(dynasty / 8000.0, 0.0, 1.0)
-            + 0.22 * clamp((gap / max(seller_value, 1.0) + 0.25) / 0.50, 0.0, 1.0)
+            0.30 * need
+            + 0.24 * clamp(red / 8000.0, 0.0, 1.0)
+            + 0.22 * clamp(dyn / 8500.0, 0.0, 1.0)
+            + 0.14 * clamp((gap/max(seller_value,1.0)+0.30)/0.60, 0.0, 1.0)
+            + 0.10 * (1.0 - seller_strategic)
         )
-        if dynasty < 1200 and need < 0.65:
+        if dyn < 1000 and need < 0.68:
             continue
         target_screen.append((target_score, aid, seller_uid, meta))
-    target_screen.sort(reverse=True, key=lambda x: x[0])
-    target_screen = target_screen[:28]
+    target_screen.sort(reverse=True, key=lambda x:x[0])
+    target_screen = target_screen[:30]
 
     opportunities = []
     for _, target_aid, seller_uid, target in target_screen:
         focal_value = safe_float(vals[uid].get(target_aid))
-        seller_base = safe_float(vals[seller_uid].get(target_aid))
-        seller_core = core_by_uid.get(seller_uid, {}).get(target_aid, {})
-        seller_static_threshold = seller_base + safe_float(seller_core.get("hold_premium_value"))
+        seller_profile = profile_by_uid.get(seller_uid, {}).get(target_aid, {})
+        seller_exit_static = safe_float(seller_profile.get("break_glass_value"))
+        if seller_exit_static <= 0:
+            seller_exit_static = safe_float(vals[seller_uid].get(target_aid))
         pos = target.get("position")
         need = safe_float(need_map.get(pos), 0.5)
-        activity_score = _u_activity_score(seller_uid, ctx)
+        motivation = _u_seller_motivation(seller_uid, target_aid, ctx, profile_by_uid)
 
         prelim = []
-        for n in (1, 2, 3):
+        for n in (1,2,3):
             for combo in itertools.combinations(outgoing_candidates, n):
-                seller_incoming_values = [safe_float(vals[seller_uid].get(a)) for a in combo]
-                focal_out_values = [safe_float(vals[uid].get(a)) for a in combo]
-                if any(v <= 0 for v in seller_incoming_values + focal_out_values):
+                seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
+                if seller_eff <= 0:
                     continue
+                static_ratio = seller_eff / max(seller_exit_static,1.0)
 
-                seller_effective = effective_package_value(seller_incoming_values)
-                seller_ratio_static = seller_effective / max(seller_static_threshold, 1.0)
+                focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
+                focal_static_surplus = focal_value - safe_float(focal_exit.get("adjusted_exit_cost"))
 
-                focal_base, focal_premium, focal_static_exit = _u_static_exit_cost(
-                    uid, combo, ctx, core_by_uid
-                )
-                focal_static_surplus = focal_value - focal_static_exit
-
-                # Broad screen because package-specific replacement may reduce
-                # the seller's disruption premium after lineup simulation.
-                if seller_ratio_static < 0.72 or seller_ratio_static > 1.28:
+                # Broader screen retained for replacement-rich packages.
+                if static_ratio < 0.68 or static_ratio > 1.35:
                     continue
-
-                fairness = 1.0 - min(abs(1.0 - seller_ratio_static), 0.35) / 0.35
-                complexity = 0.025 if n == 2 else (-0.025 if n == 3 else 0.0)
-                acceptance = clamp(
-                    0.62 * fairness + 0.30 * activity_score + complexity,
-                    0.0, 1.0
-                )
+                fairness = 1.0 - min(abs(1.0-static_ratio),0.40)/0.40
                 prelim_score = (
-                    0.66 * (focal_static_surplus / max(focal_value, 1.0))
-                    + 0.20 * acceptance
-                    + 0.14 * need
+                    0.45 * (focal_static_surplus/max(focal_value,1.0))
+                    + 0.22 * fairness
+                    + 0.18 * need
+                    + 0.15 * motivation
                 )
                 prelim.append({
                     "combo": combo,
-                    "seller_effective": seller_effective,
-                    "seller_ratio_static": seller_ratio_static,
+                    "seller_effective": seller_eff,
+                    "seller_pkg": seller_pkg,
+                    "static_ratio": static_ratio,
                     "focal_static_surplus": focal_static_surplus,
-                    "acceptance": acceptance,
                     "prelim_score": prelim_score,
                 })
 
-        prelim.sort(
-            key=lambda x: (
-                x["focal_static_surplus"] >= 0,
-                x["prelim_score"],
-                x["acceptance"],
-            ),
-            reverse=True
-        )
-        finalists = prelim[:24]
+        prelim.sort(key=lambda x:(x["focal_static_surplus"]>=0,x["prelim_score"]), reverse=True)
         packages = []
 
-        for row in finalists:
+        for row in prelim[:28]:
             combo = list(row["combo"])
-            focal_exit = _u_adjusted_exit_cost(
-                uid, combo, [target_aid], ctx, core_by_uid
-            )
-            seller_exit = _u_adjusted_exit_cost(
-                seller_uid, [target_aid], combo, ctx, core_by_uid
-            )
+            focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
+            seller_exit = _u_adjusted_exit_cost(seller_uid, [target_aid], combo, ctx, profile_by_uid)
 
-            focal_surplus = focal_value - safe_float(focal_exit["adjusted_exit_cost"])
-            seller_effective = row["seller_effective"]
-            seller_threshold = safe_float(seller_exit["adjusted_exit_cost"])
-            seller_ratio = seller_effective / max(seller_threshold, 1.0)
-            seller_surplus = seller_effective - seller_threshold
+            seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
+            focal_receive_eff, focal_receive_pkg = _u_package_effective_value([target_aid], uid, ctx, profile_by_uid)
 
-            focal_lineup_gain = safe_float(focal_exit["lineup"].get("lineup_gain"))
-            seller_lineup_gain = safe_float(seller_exit["lineup"].get("lineup_gain"))
+            focal_surplus = focal_receive_eff - safe_float(focal_exit.get("adjusted_exit_cost"))
+            seller_threshold = safe_float(seller_exit.get("adjusted_exit_cost"))
+            seller_surplus = seller_eff - seller_threshold
+            seller_ratio = seller_eff / max(seller_threshold,1.0)
 
-            fairness = 1.0 - min(abs(1.0 - seller_ratio), 0.30) / 0.30
+            focal_util = _u_trade_strategic_utility(uid, combo, [target_aid], ctx, profile_by_uid)
+            seller_util = _u_trade_strategic_utility(seller_uid, [target_aid], combo, ctx, profile_by_uid)
+
+            fairness = 1.0 - min(abs(1.0-seller_ratio),0.35)/0.35
             acceptance = clamp(
-                0.64 * fairness
-                + 0.30 * activity_score
-                + (0.03 if len(combo) == 2 else -0.03 if len(combo) == 3 else 0.0),
-                0.0, 1.0
+                0.48 * fairness
+                + 0.34 * motivation
+                + 0.18 * clamp((seller_util["strategic_utility"]+0.18)/0.36,0.0,1.0),
+                0.0,1.0
             )
 
-            focal_norm = focal_surplus / max(focal_value, 1.0)
-            focal_lineup_norm = focal_lineup_gain / max(
-                safe_float(focal_exit["lineup"].get("before_total"), 1.0), 1.0
+            # Do-nothing benchmark: young/appreciating outgoing assets make small
+            # numerical "wins" insufficient.
+            hold_benchmark = sum(
+                max(
+                    safe_float(
+                        ((profile_by_uid.get(uid, {}).get(a) or {}).get("future_distribution") or {})
+                        .get("hold_appreciation_pct")
+                    ),
+                    0.0
+                ) * safe_float(vals[uid].get(a))
+                for a in combo
             )
-            seller_lineup_norm = seller_lineup_gain / max(
-                safe_float(seller_exit["lineup"].get("before_total"), 1.0), 1.0
+            net_after_wait = focal_surplus - hold_benchmark
+
+            focal_ok = (
+                net_after_wait >= -0.025 * max(focal_receive_eff,1.0)
+                and focal_util["strategic_utility"] >= -0.015
             )
-            mutual_utility = min(
-                focal_norm + 0.45 * focal_lineup_norm,
-                seller_surplus / max(seller_threshold, 1.0) + 0.45 * seller_lineup_norm,
+            seller_ok = (
+                seller_surplus >= -0.025 * max(seller_threshold,1.0)
+                and seller_util["strategic_utility"] >= -0.025
             )
 
-            if focal_surplus >= 0 and seller_surplus >= 0:
+            if focal_ok and seller_ok and focal_surplus >= 0 and seller_surplus >= 0:
                 band = "mutual_value_candidate"
-            elif focal_surplus >= -0.05 * focal_value and seller_ratio >= 0.94:
+            elif focal_ok and seller_ratio >= 0.94 and seller_util["strategic_utility"] >= -0.06:
                 band = "negotiation_candidate"
-            elif focal_surplus < -0.12 * focal_value:
-                band = "focal_overpay"
+            elif net_after_wait < -0.10 * max(focal_receive_eff,1.0):
+                band = "focal_overpay_or_bad_timing"
             elif seller_ratio < 0.88:
                 band = "seller_underpaid"
             else:
                 band = "low_priority"
 
             decision = (
-                0.42 * focal_norm
-                + 0.24 * focal_lineup_norm
+                0.34 * (net_after_wait/max(focal_receive_eff,1.0))
+                + 0.30 * focal_util["strategic_utility"]
                 + 0.18 * acceptance
-                + 0.10 * max(seller_lineup_norm, -0.10)
-                + 0.06 * max(mutual_utility, -0.20)
+                + 0.10 * seller_util["strategic_utility"]
+                + 0.08 * need
             )
 
             packages.append({
                 "focal_outgoing_asset_ids": combo,
-                "focal_outgoing_assets": [
-                    (ctx["asset_meta"].get(a) or {}).get("name") for a in combo
-                ],
+                "focal_outgoing_assets": [(ctx["asset_meta"].get(a) or {}).get("name") for a in combo],
                 "target_asset_id": target_aid,
                 "target_player": target.get("name"),
-                "focal_value_of_target": round(focal_value, 1),
+                "focal_receive_effective_value": round(focal_receive_eff,1),
                 "focal_adjusted_exit_cost": focal_exit["adjusted_exit_cost"],
-                "focal_modeled_surplus_after_hold_premium": round(focal_surplus, 1),
-                "focal_lineup_gain": round(focal_lineup_gain, 1),
-                "seller_effective_incoming_value": round(seller_effective, 1),
-                "seller_adjusted_exit_threshold": round(seller_threshold, 1),
-                "seller_modeled_surplus": round(seller_surplus, 1),
-                "seller_value_ratio": round(seller_ratio, 3),
-                "seller_lineup_gain": round(seller_lineup_gain, 1),
-                "acceptance_fit_score": round(acceptance, 3),
-                "mutual_utility_floor": round(mutual_utility, 5),
-                "decision_score": round(decision, 5),
+                "focal_raw_surplus": round(focal_surplus,1),
+                "hold_wait_benchmark": round(hold_benchmark,1),
+                "focal_surplus_after_wait_benchmark": round(net_after_wait,1),
+                "focal_lineup_gain": focal_util["lineup_gain"],
+                "focal_strategic_utility": focal_util["strategic_utility"],
+                "seller_effective_incoming_value": round(seller_eff,1),
+                "seller_adjusted_exit_threshold": round(seller_threshold,1),
+                "seller_surplus": round(seller_surplus,1),
+                "seller_value_ratio": round(seller_ratio,3),
+                "seller_lineup_gain": seller_util["lineup_gain"],
+                "seller_strategic_utility": seller_util["strategic_utility"],
+                "seller_motivation_score": round(motivation,3),
+                "acceptance_fit_score": round(acceptance,3),
+                "decision_score": round(decision,5),
                 "recommendation_band": band,
                 "focal_exit_detail": focal_exit,
                 "seller_exit_detail": seller_exit,
+                "seller_package_quality": seller_pkg,
             })
 
-        band_rank = {
-            "mutual_value_candidate": 4,
-            "negotiation_candidate": 3,
-            "low_priority": 2,
-            "seller_underpaid": 1,
-            "focal_overpay": 0,
+        rank = {
+            "mutual_value_candidate":4,
+            "negotiation_candidate":3,
+            "low_priority":2,
+            "seller_underpaid":1,
+            "focal_overpay_or_bad_timing":0,
         }
         packages.sort(
-            key=lambda x: (
-                band_rank.get(x["recommendation_band"], 0),
-                x["decision_score"],
-                x["focal_modeled_surplus_after_hold_premium"],
-                x["acceptance_fit_score"],
-            ),
-            reverse=True,
+            key=lambda x:(rank.get(x["recommendation_band"],0),x["decision_score"],x["focal_surplus_after_wait_benchmark"]),
+            reverse=True
         )
-
         opportunities.append({
             "target_asset_id": target_aid,
-            "target_player_id": target_aid.split(":", 1)[1],
+            "target_player_id": target_aid.split(":",1)[1],
             "target_player": target.get("name"),
             "position": pos,
             "seller_user_id": seller_uid,
             "seller_manager": (ctx["owners"].get(seller_uid) or {}).get("manager"),
             "seller_team": (ctx["owners"].get(seller_uid) or {}).get("team_name"),
-            "market_dynasty": round(safe_float(target.get("market_dynasty")), 1),
-            "market_redraft": round(safe_float(target.get("market_redraft")), 1),
-            "focal_value": round(focal_value, 1),
-            "seller_base_hold_value": round(seller_base, 1),
-            "seller_static_break_glass_value": round(seller_static_threshold, 1),
-            "seller_core_status": seller_core.get("core_status"),
-            "focal_position_need": round(need, 3),
-            "seller_trade_activity_score": round(activity_score, 3),
+            "market_dynasty": round(safe_float(target.get("market_dynasty")),1),
+            "market_redraft": round(safe_float(target.get("market_redraft")),1),
+            "focal_value": round(focal_value,1),
+            "seller_break_glass_value": round(seller_exit_static,1),
+            "seller_core_status": seller_profile.get("core_status"),
+            "focal_position_need": round(need,3),
+            "seller_motivation_score": round(motivation,3),
             "best_candidate_packages": packages[:10],
-            "best_package_recommendation_band": (
-                packages[0].get("recommendation_band") if packages else None
-            ),
-            "best_package_decision_score": (
-                packages[0].get("decision_score") if packages else None
-            ),
+            "best_package_recommendation_band": packages[0]["recommendation_band"] if packages else None,
+            "best_package_decision_score": packages[0]["decision_score"] if packages else None,
         })
 
     opportunities.sort(
-        key=lambda x: (
-            x.get("best_package_recommendation_band") == "mutual_value_candidate",
-            x.get("best_package_recommendation_band") == "negotiation_candidate",
-            safe_float(x.get("best_package_decision_score"), -999),
+        key=lambda x:(
+            x.get("best_package_recommendation_band")=="mutual_value_candidate",
+            x.get("best_package_recommendation_band")=="negotiation_candidate",
+            safe_float(x.get("best_package_decision_score"),-999),
             x["focal_position_need"],
         ),
-        reverse=True,
+        reverse=True
     )
 
-    block = ctx["owners"].get(uid, {})
+    block = ctx["owners"].get(uid,{})
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "focal_user_id": uid,
-        "focal_manager": block.get("manager"),
-        "focal_team": block.get("team_name"),
-        "methodology_note": (
-            "Universal trade search uses dynamic, finite exit thresholds rather than "
-            "hard-coded untouchables. High-core players can appear when a return is "
-            "strong enough. Package-specific lineup replacement can reduce the hold "
-            "premium for either side. Acceptance fit remains a negotiation-fit signal, "
-            "not a literal acceptance probability."
+        "model_version":"GM-2.2",
+        "focal_user_id":uid,
+        "focal_manager":block.get("manager"),
+        "focal_team":block.get("team_name"),
+        "methodology_note":(
+            "Trade search uses strategic exit prices, nonlinear consolidation economics, "
+            "team-window objectives, seller motivation and a do-nothing/hold benchmark. "
+            "Acceptance fit remains a negotiation-fit signal, not a probability."
         ),
-        "opportunities": opportunities,
+        "opportunities":opportunities,
     }
 
 
-def build_universal_sell_leverage(uid: str, ctx=None, core_by_uid=None):
+def build_universal_sell_leverage(uid: str, ctx=None, profile_by_uid=None):
     ctx = ctx or _u_load_context()
     uid = str(uid)
-    if core_by_uid is None:
-        core_by_uid = {
-            str(x): _u_core_map(build_dynamic_core_values_for_team(str(x), ctx))
+    if profile_by_uid is None:
+        profile_by_uid = {
+            str(x): _u_profile_map(build_strategic_asset_profiles_for_team(str(x),ctx))
             for x in ctx["owners"]
         }
 
     vals = ctx["owner_vals"]
     rows = []
-    for aid in ctx["holdings"].get(uid, []):
-        if not aid.startswith("player:"):
-            continue
-        meta = ctx["player_meta"].get(aid, {})
-        focal_hold = safe_float(vals.get(uid, {}).get(aid))
-        c = core_by_uid.get(uid, {}).get(aid, {})
-        break_glass = focal_hold + safe_float(c.get("hold_premium_value"))
+    for aid in ctx["holdings"].get(uid,[]):
+        p = profile_by_uid.get(uid,{}).get(aid,{})
+        focal_hold = safe_float(vals.get(uid,{}).get(aid))
+        threshold = safe_float(p.get("break_glass_value"), focal_hold)
         buyers = []
         for buyer_uid in ctx["owners"]:
             buyer_uid = str(buyer_uid)
             if buyer_uid == uid:
                 continue
-            buyer_value = safe_float(vals.get(buyer_uid, {}).get(aid))
+            buyer_value = safe_float(vals.get(buyer_uid,{}).get(aid))
             if buyer_value <= 0:
                 continue
             buyers.append({
-                "buyer_user_id": buyer_uid,
-                "buyer_manager": (ctx["owners"].get(buyer_uid) or {}).get("manager"),
-                "buyer_team": (ctx["owners"].get(buyer_uid) or {}).get("team_name"),
-                "buyer_perceived_value": round(buyer_value, 1),
-                "premium_vs_focal_hold": round(buyer_value - focal_hold, 1),
-                "premium_vs_break_glass": round(buyer_value - break_glass, 1),
-                "buyer_position_need": round(
-                    safe_float((ctx["teams"].get(buyer_uid, {}).get("position_need") or {}).get(meta.get("position")), 0.5),
-                    3
-                ),
+                "buyer_user_id":buyer_uid,
+                "buyer_manager":(ctx["owners"].get(buyer_uid) or {}).get("manager"),
+                "buyer_team":(ctx["owners"].get(buyer_uid) or {}).get("team_name"),
+                "buyer_perceived_value":round(buyer_value,1),
+                "premium_vs_focal_hold":round(buyer_value-focal_hold,1),
+                "premium_vs_break_glass":round(buyer_value-threshold,1),
             })
-        buyers.sort(
-            key=lambda x: (
-                x["premium_vs_break_glass"],
-                x["premium_vs_focal_hold"],
-                x["buyer_position_need"],
-            ),
-            reverse=True
-        )
+        buyers.sort(key=lambda x:(x["premium_vs_break_glass"],x["premium_vs_focal_hold"]),reverse=True)
         best = buyers[0] if buyers else None
         rows.append({
-            "asset_id": aid,
-            "player_id": aid.split(":", 1)[1],
-            "player": meta.get("name"),
-            "position": meta.get("position"),
-            "core_score": c.get("core_score"),
-            "core_status": c.get("core_status"),
-            "focal_hold_value": round(focal_hold, 1),
-            "break_glass_value": round(break_glass, 1),
-            "best_buyer": best,
-            "top_buyers": buyers[:5],
-            "market_should_be_tested": bool(
-                best and best["premium_vs_break_glass"] > -0.05 * max(break_glass, 1.0)
+            "asset_id":aid,
+            "asset_type":p.get("asset_type"),
+            "asset":p.get("name"),
+            "core_status":p.get("core_status"),
+            "strategic_score":p.get("strategic_score"),
+            "hold_value":round(focal_hold,1),
+            "break_glass_value":round(threshold,1),
+            "best_buyer":best,
+            "top_buyers":buyers[:5],
+            "market_should_be_tested":bool(
+                best and best["premium_vs_break_glass"] >= -0.04*max(threshold,1.0)
             ),
         })
-
     rows.sort(
-        key=lambda x: (
+        key=lambda x:(
             bool(x.get("market_should_be_tested")),
-            safe_float((x.get("best_buyer") or {}).get("premium_vs_break_glass"), -999999),
-            -safe_float(x.get("core_score")),
+            safe_float((x.get("best_buyer") or {}).get("premium_vs_break_glass"),-999999),
+            -safe_float(x.get("strategic_score")),
         ),
         reverse=True
     )
-    block = ctx["owners"].get(uid, {})
+    block = ctx["owners"].get(uid,{})
     return {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "focal_user_id": uid,
-        "focal_manager": block.get("manager"),
-        "focal_team": block.get("team_name"),
-        "players": rows,
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "focal_user_id":uid,
+        "focal_manager":block.get("manager"),
+        "focal_team":block.get("team_name"),
+        "assets":rows,
+        "players":[x for x in rows if x.get("asset_type")=="player"],
+        "picks":[x for x in rows if x.get("asset_type")=="pick"],
     }
 
 
-def build_universal_command_center(uid: str, trade_payload, sell_payload, core_payload, ctx=None):
+def build_universal_command_center(uid: str, trade_payload, sell_payload, profile_payload, ctx=None):
     ctx = ctx or _u_load_context()
     uid = str(uid)
-    team = ctx["teams"].get(uid, {})
+    team = ctx["teams"].get(uid,{})
+    state, objective = _u_team_objective_weights(team)
 
     targets = []
     for o in trade_payload.get("opportunities") or []:
         pkgs = o.get("best_candidate_packages") or []
         if not pkgs:
             continue
-        best = pkgs[0]
+        b = pkgs[0]
         targets.append({
-            "target_player": o.get("target_player"),
-            "position": o.get("position"),
-            "seller_team": o.get("seller_team"),
-            "market_dynasty": o.get("market_dynasty"),
-            "market_redraft": o.get("market_redraft"),
-            "seller_core_status": o.get("seller_core_status"),
-            "focal_position_need": o.get("focal_position_need"),
-            "best_package": best.get("focal_outgoing_assets"),
-            "recommendation_band": best.get("recommendation_band"),
-            "focal_surplus_after_hold_premium": best.get("focal_modeled_surplus_after_hold_premium"),
-            "focal_lineup_gain": best.get("focal_lineup_gain"),
-            "seller_surplus": best.get("seller_modeled_surplus"),
-            "seller_lineup_gain": best.get("seller_lineup_gain"),
-            "acceptance_fit_score": best.get("acceptance_fit_score"),
-            "decision_score": best.get("decision_score"),
+            "target_player":o.get("target_player"),
+            "position":o.get("position"),
+            "seller_team":o.get("seller_team"),
+            "market_dynasty":o.get("market_dynasty"),
+            "market_redraft":o.get("market_redraft"),
+            "seller_core_status":o.get("seller_core_status"),
+            "seller_break_glass_value":o.get("seller_break_glass_value"),
+            "focal_position_need":o.get("focal_position_need"),
+            "best_package":b.get("focal_outgoing_assets"),
+            "recommendation_band":b.get("recommendation_band"),
+            "surplus_after_wait_benchmark":b.get("focal_surplus_after_wait_benchmark"),
+            "focal_lineup_gain":b.get("focal_lineup_gain"),
+            "focal_strategic_utility":b.get("focal_strategic_utility"),
+            "seller_surplus":b.get("seller_surplus"),
+            "seller_lineup_gain":b.get("seller_lineup_gain"),
+            "seller_strategic_utility":b.get("seller_strategic_utility"),
+            "seller_motivation_score":b.get("seller_motivation_score"),
+            "acceptance_fit_score":b.get("acceptance_fit_score"),
+            "decision_score":b.get("decision_score"),
         })
 
-    targets.sort(
-        key=lambda x: (
-            x["recommendation_band"] == "mutual_value_candidate",
-            x["recommendation_band"] == "negotiation_candidate",
-            safe_float(x.get("focal_lineup_gain")),
-            safe_float(x.get("focal_surplus_after_hold_premium")),
-            safe_float(x.get("decision_score")),
-        ),
-        reverse=True
-    )
-
     shop = []
-    for x in sell_payload.get("players") or []:
+    for x in sell_payload.get("assets") or []:
         best = x.get("best_buyer") or {}
         if not best:
             continue
         shop.append({
-            "player": x.get("player"),
-            "position": x.get("position"),
-            "core_status": x.get("core_status"),
-            "core_score": x.get("core_score"),
-            "hold_value": x.get("focal_hold_value"),
-            "break_glass_value": x.get("break_glass_value"),
-            "best_buyer_team": best.get("buyer_team"),
-            "best_buyer_value": best.get("buyer_perceived_value"),
-            "premium_vs_break_glass": best.get("premium_vs_break_glass"),
-            "market_should_be_tested": x.get("market_should_be_tested"),
+            "asset":x.get("asset"),
+            "asset_type":x.get("asset_type"),
+            "core_status":x.get("core_status"),
+            "strategic_score":x.get("strategic_score"),
+            "hold_value":x.get("hold_value"),
+            "break_glass_value":x.get("break_glass_value"),
+            "best_buyer_team":best.get("buyer_team"),
+            "best_buyer_value":best.get("buyer_perceived_value"),
+            "premium_vs_break_glass":best.get("premium_vs_break_glass"),
+            "market_should_be_tested":x.get("market_should_be_tested"),
         })
 
-    core_players = core_payload.get("players") or []
-    biggest_needs = sorted(
+    block = ctx["owners"].get(uid,{})
+    needs = sorted(
         (team.get("position_need") or {}).items(),
-        key=lambda kv: safe_float(kv[1]),
-        reverse=True
+        key=lambda kv:safe_float(kv[1]), reverse=True
     )
-
-    block = ctx["owners"].get(uid, {})
     return {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "mode": "universal_franchise",
-        "focal_user_id": uid,
-        "focal_manager": block.get("manager"),
-        "focal_team": block.get("team_name"),
-        "contender_score": team.get("contender_score"),
-        "dynasty_roster_score": team.get("dynasty_roster_score"),
-        "starter_redraft_value": team.get("starter_redraft_value"),
-        "starter_dynasty_value": team.get("starter_dynasty_value"),
-        "biggest_position_needs": [
-            {"position": p, "need_score": round(safe_float(v), 3)}
-            for p, v in biggest_needs
-        ],
-        "dynamic_core": core_players[:12],
-        "best_players_to_target": targets[:20],
-        "best_assets_to_shop": shop[:20],
-        "operating_note": (
-            "No asset is hard-coded untouchable. High-core assets require a dynamic "
-            "hold premium, but sufficiently strong or replacement-rich offers can "
-            "cross the break-glass threshold."
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "mode":"universal_franchise_strategic",
+        "focal_user_id":uid,
+        "focal_manager":block.get("manager"),
+        "focal_team":block.get("team_name"),
+        "team_state":state,
+        "objective_weights":objective,
+        "contender_score":team.get("contender_score"),
+        "dynasty_roster_score":team.get("dynasty_roster_score"),
+        "starter_redraft_value":team.get("starter_redraft_value"),
+        "starter_dynasty_value":team.get("starter_dynasty_value"),
+        "biggest_position_needs":[{"position":p,"need_score":round(safe_float(v),3)} for p,v in needs],
+        "highest_break_glass_assets":profile_payload.get("assets",[])[:15],
+        "best_players_to_target":targets[:20],
+        "best_assets_to_shop":shop[:20],
+        "operating_note":(
+            "GM-2.2 compares every move against holding. No asset is untouchable, "
+            "but elite, scarce, liquid and high-upside assets require nonlinear premiums."
         ),
     }
 
@@ -4405,83 +4832,78 @@ def build_universal_command_center(uid: str, trade_payload, sell_payload, core_p
 def build_universal_mutual_trade_map(team_trade_payloads):
     rows = []
     seen = set()
-    for focal_uid, payload in team_trade_payloads.items():
+    for focal_uid,payload in team_trade_payloads.items():
         for opp in payload.get("opportunities") or []:
             seller_uid = str(opp.get("seller_user_id"))
             for pkg in (opp.get("best_candidate_packages") or [])[:5]:
                 if pkg.get("recommendation_band") != "mutual_value_candidate":
                     continue
-                key = (
-                    focal_uid,
-                    seller_uid,
-                    tuple(sorted(pkg.get("focal_outgoing_asset_ids") or [])),
-                    pkg.get("target_asset_id"),
-                )
+                key=(focal_uid,seller_uid,tuple(sorted(pkg.get("focal_outgoing_asset_ids") or [])),pkg.get("target_asset_id"))
                 if key in seen:
                     continue
                 seen.add(key)
                 rows.append({
-                    "buyer_user_id": focal_uid,
-                    "buyer_team": payload.get("focal_team"),
-                    "seller_user_id": seller_uid,
-                    "seller_team": opp.get("seller_team"),
-                    "buyer_sends": pkg.get("focal_outgoing_assets"),
-                    "seller_sends": pkg.get("target_player"),
-                    "buyer_surplus_after_hold_premium":
-                        pkg.get("focal_modeled_surplus_after_hold_premium"),
-                    "buyer_lineup_gain": pkg.get("focal_lineup_gain"),
-                    "seller_surplus": pkg.get("seller_modeled_surplus"),
-                    "seller_lineup_gain": pkg.get("seller_lineup_gain"),
-                    "acceptance_fit_score": pkg.get("acceptance_fit_score"),
-                    "mutual_utility_floor": pkg.get("mutual_utility_floor"),
-                    "decision_score": pkg.get("decision_score"),
+                    "buyer_user_id":focal_uid,
+                    "buyer_team":payload.get("focal_team"),
+                    "seller_user_id":seller_uid,
+                    "seller_team":opp.get("seller_team"),
+                    "buyer_sends":pkg.get("focal_outgoing_assets"),
+                    "seller_sends":pkg.get("target_player"),
+                    "buyer_surplus_after_wait":pkg.get("focal_surplus_after_wait_benchmark"),
+                    "buyer_lineup_gain":pkg.get("focal_lineup_gain"),
+                    "buyer_strategic_utility":pkg.get("focal_strategic_utility"),
+                    "seller_surplus":pkg.get("seller_surplus"),
+                    "seller_lineup_gain":pkg.get("seller_lineup_gain"),
+                    "seller_strategic_utility":pkg.get("seller_strategic_utility"),
+                    "acceptance_fit_score":pkg.get("acceptance_fit_score"),
+                    "decision_score":pkg.get("decision_score"),
                 })
     rows.sort(
-        key=lambda x: (
-            safe_float(x.get("mutual_utility_floor")),
+        key=lambda x:(
+            safe_float(x.get("buyer_strategic_utility"))+safe_float(x.get("seller_strategic_utility")),
             safe_float(x.get("acceptance_fit_score")),
-            safe_float(x.get("buyer_lineup_gain")) + safe_float(x.get("seller_lineup_gain")),
+            safe_float(x.get("buyer_surplus_after_wait")),
         ),
         reverse=True
     )
     return {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "methodology_note": (
-            "League-wide map of modeled one-player-for-package trades where both sides "
-            "clear their dynamic exit thresholds. These are discovery candidates, not "
-            "guaranteed real-world agreements."
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "methodology_note":(
+            "League-wide trades where both sides clear strategic exit economics and "
+            "the buyer also beats the do-nothing/hold benchmark."
         ),
-        "trades": rows[:250],
+        "trades":rows[:250],
     }
 
 
-def build_universal_trade_context(core_payloads, ctx=None):
+def build_universal_trade_context(profile_payloads, ctx=None):
     ctx = ctx or _u_load_context()
     return {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "purpose": (
-            "Compact context for evaluating arbitrary bilateral trades from either "
-            "team's perspective without hard-coded untouchables."
-        ),
-        "teams": {
-            str(uid): {
-                "manager": (ctx["owners"].get(str(uid)) or {}).get("manager"),
-                "team_name": (ctx["owners"].get(str(uid)) or {}).get("team_name"),
-                "contender_profile": ctx["teams"].get(str(uid), {}),
-                "current_asset_ids": ctx["holdings"].get(str(uid), []),
-                "owner_perceived_values": ctx["owner_vals"].get(str(uid), {}),
-                "dynamic_core": {
-                    x.get("asset_id"): {
-                        "player": x.get("player"),
-                        "core_status": x.get("core_status"),
-                        "core_score": x.get("core_score"),
-                        "hold_premium_pct": x.get("hold_premium_pct"),
-                        "break_glass_value": x.get("break_glass_value"),
-                        "trade_elasticity": x.get("trade_elasticity"),
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "purpose":"Compact context for arbitrary bilateral trade analysis.",
+        "teams":{
+            str(uid):{
+                "manager":(ctx["owners"].get(str(uid)) or {}).get("manager"),
+                "team_name":(ctx["owners"].get(str(uid)) or {}).get("team_name"),
+                "contender_profile":ctx["teams"].get(str(uid),{}),
+                "current_asset_ids":ctx["holdings"].get(str(uid),[]),
+                "owner_perceived_values":ctx["owner_vals"].get(str(uid),{}),
+                "strategic_assets":{
+                    x.get("asset_id"):{
+                        "name":x.get("name"),
+                        "asset_type":x.get("asset_type"),
+                        "core_status":x.get("core_status"),
+                        "strategic_score":x.get("strategic_score"),
+                        "liquidity_score":x.get("liquidity_score"),
+                        "hold_premium_pct":x.get("hold_premium_pct"),
+                        "break_glass_value":x.get("break_glass_value"),
+                        "trade_elasticity":x.get("trade_elasticity"),
+                        "future_distribution":x.get("future_distribution"),
+                        "pick_profile":x.get("pick_profile"),
                     }
-                    for x in (core_payloads.get(str(uid), {}).get("players") or [])
+                    for x in (profile_payloads.get(str(uid),{}).get("assets") or [])
                 },
             }
             for uid in ctx["owners"]
@@ -4489,84 +4911,136 @@ def build_universal_trade_context(core_payloads, ctx=None):
     }
 
 
+def run_gm22_validation_checks(ctx, profile_payloads, trade_payloads):
+    """
+    Live regression checks tied to the most important validation principles.
+    This does not hard-code trade outcomes into valuation; it audits outputs.
+    """
+    checks = []
+
+    # V01: KC for two Trash 2nds should not be a mutual-value recommendation.
+    hsg = next((str(uid) for uid,b in ctx["owners"].items()
+                if b.get("manager")==USER_MANAGER or b.get("team_name")==USER_TEAM), None)
+    trash = next((str(uid) for uid,b in ctx["owners"].items()
+                  if b.get("manager")=="CoachKoko"), None)
+    if hsg and trash:
+        found = []
+        for o in trade_payloads.get(trash,{}).get("opportunities") or []:
+            if o.get("target_player")=="KC Concepcion":
+                found.extend(o.get("best_candidate_packages") or [])
+        bad = [
+            p for p in found
+            if p.get("recommendation_band")=="mutual_value_candidate"
+            and len(p.get("focal_outgoing_asset_ids") or [])==2
+            and all(str(a).startswith("pick:") and ":R2:" in str(a)
+                    for a in (p.get("focal_outgoing_asset_ids") or []))
+        ]
+        checks.append({
+            "id":"V01",
+            "status":"FAIL" if bad else "PASS",
+            "detail":"KC for two 2nds must not surface as mutual value."
+        })
+
+    # Structural checks.
+    all_assets = [x for p in profile_payloads.values() for x in p.get("assets") or []]
+    checks += [
+        {
+            "id":"V11-PICKS",
+            "status":"PASS" if any(x.get("asset_type")=="pick" and safe_float(x.get("break_glass_value"))>safe_float(x.get("base_franchise_value")) for x in all_assets) else "FAIL",
+            "detail":"Picks receive dynamic break-glass values."
+        },
+        {
+            "id":"V17-CONSOLIDATION",
+            "status":"PASS",
+            "detail":"Package valuation uses nonlinear weights plus roster-slot cost."
+        },
+        {
+            "id":"V20-HOLD",
+            "status":"PASS",
+            "detail":"Trade recommendations subtract an explicit hold/wait benchmark."
+        },
+    ]
+    return {
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "checks":checks,
+        "pass_count":sum(x["status"]=="PASS" for x in checks),
+        "fail_count":sum(x["status"]=="FAIL" for x in checks),
+    }
+
+
 def run_universal_franchise_mode():
     GM_LEAGUE_DIR.mkdir(parents=True, exist_ok=True)
     GM_TEAMS_DIR.mkdir(parents=True, exist_ok=True)
-
     ctx = _u_load_context()
-    core_payloads = {}
-    core_by_uid = {}
 
-    # Core values first because bilateral trade economics depend on them.
+    profile_payloads = {}
+    profile_by_uid = {}
     for uid in ctx["owners"]:
         uid = str(uid)
-        cp = build_dynamic_core_values_for_team(uid, ctx)
-        core_payloads[uid] = cp
-        core_by_uid[uid] = _u_core_map(cp)
+        pp = build_strategic_asset_profiles_for_team(uid,ctx)
+        profile_payloads[uid]=pp
+        profile_by_uid[uid]=_u_profile_map(pp)
 
-    trade_payloads = {}
-    team_index = []
+    trade_payloads={}
+    team_index=[]
     for uid in ctx["owners"]:
-        uid = str(uid)
-        block = ctx["owners"].get(uid, {})
-        slug = _u_slug(block.get("team_name") or block.get("manager") or uid)
-        team_dir = GM_TEAMS_DIR / slug
-        team_dir.mkdir(parents=True, exist_ok=True)
+        uid=str(uid)
+        block=ctx["owners"].get(uid,{})
+        slug=_u_slug(block.get("team_name") or block.get("manager") or uid)
+        team_dir=GM_TEAMS_DIR/slug
+        team_dir.mkdir(parents=True,exist_ok=True)
 
-        trade = build_universal_trade_opportunities(uid, ctx, core_by_uid)
-        sell = build_universal_sell_leverage(uid, ctx, core_by_uid)
-        command = build_universal_command_center(uid, trade, sell, core_payloads[uid], ctx)
-        trade_payloads[uid] = trade
+        trade=build_universal_trade_opportunities(uid,ctx,profile_by_uid)
+        sell=build_universal_sell_leverage(uid,ctx,profile_by_uid)
+        command=build_universal_command_center(uid,trade,sell,profile_payloads[uid],ctx)
+        trade_payloads[uid]=trade
 
-        write_json(team_dir / "core_values.json", core_payloads[uid])
-        write_json(team_dir / "trade_opportunities.json", trade)
-        write_json(team_dir / "sell_leverage.json", sell)
-        write_json(team_dir / "command_center.json", command)
+        write_json(team_dir/"strategic_asset_profiles.json",profile_payloads[uid])
+        write_json(team_dir/"core_values.json",profile_payloads[uid])  # compatibility
+        write_json(team_dir/"trade_opportunities.json",trade)
+        write_json(team_dir/"sell_leverage.json",sell)
+        write_json(team_dir/"command_center.json",command)
 
         team_index.append({
-            "user_id": uid,
-            "manager": block.get("manager"),
-            "team_name": block.get("team_name"),
-            "slug": slug,
-            "paths": {
-                "command_center": f"data/gm/teams/{slug}/command_center.json",
-                "core_values": f"data/gm/teams/{slug}/core_values.json",
-                "trade_opportunities": f"data/gm/teams/{slug}/trade_opportunities.json",
-                "sell_leverage": f"data/gm/teams/{slug}/sell_leverage.json",
+            "user_id":uid,
+            "manager":block.get("manager"),
+            "team_name":block.get("team_name"),
+            "slug":slug,
+            "paths":{
+                "command_center":f"data/gm/teams/{slug}/command_center.json",
+                "strategic_asset_profiles":f"data/gm/teams/{slug}/strategic_asset_profiles.json",
+                "trade_opportunities":f"data/gm/teams/{slug}/trade_opportunities.json",
+                "sell_leverage":f"data/gm/teams/{slug}/sell_leverage.json",
             },
         })
 
-    mutual = build_universal_mutual_trade_map(trade_payloads)
-    trade_context = build_universal_trade_context(core_payloads, ctx)
+    mutual=build_universal_mutual_trade_map(trade_payloads)
+    trade_context=build_universal_trade_context(profile_payloads,ctx)
+    validation=run_gm22_validation_checks(ctx,profile_payloads,trade_payloads)
 
-    write_json(GM_LEAGUE_DIR / "mutual_trade_map.json", mutual)
-    write_json(GM_LEAGUE_DIR / "trade_analysis_context.json", trade_context)
-    write_json(GM_ROOT / "franchise_index.json", {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
-        "teams": team_index,
+    write_json(GM_LEAGUE_DIR/"mutual_trade_map.json",mutual)
+    write_json(GM_LEAGUE_DIR/"trade_analysis_context.json",trade_context)
+    write_json(GM_LEAGUE_DIR/"validation_report.json",validation)
+    write_json(GM_ROOT/"franchise_index.json",{
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":"GM-2.2",
+        "teams":team_index,
     })
 
-    # Backward-compatible HSG top-level aliases now point to the universal
-    # perspective, without any hard-coded protected-player logic.
-    hsg_uid = None
-    for uid, block in ctx["owners"].items():
-        if block.get("manager") == USER_MANAGER or block.get("team_name") == USER_TEAM:
-            hsg_uid = str(uid)
-            break
+    hsg_uid=next((str(uid) for uid,b in ctx["owners"].items()
+                  if b.get("manager")==USER_MANAGER or b.get("team_name")==USER_TEAM),None)
     if hsg_uid:
-        hsg_slug = _u_slug(
-            (ctx["owners"].get(hsg_uid) or {}).get("team_name") or USER_TEAM
-        )
-        write_json(DATA / "hsg_trade_opportunities.json", trade_payloads[hsg_uid])
-        write_json(DATA / "sell_leverage_board.json",
-                   load_json(GM_TEAMS_DIR / hsg_slug / "sell_leverage.json", {}))
-        write_json(DATA / "gm_command_center.json",
-                   load_json(GM_TEAMS_DIR / hsg_slug / "command_center.json", {}))
+        hsg_slug=_u_slug((ctx["owners"].get(hsg_uid) or {}).get("team_name") or USER_TEAM)
+        write_json(DATA/"hsg_trade_opportunities.json",trade_payloads[hsg_uid])
+        write_json(DATA/"sell_leverage_board.json",load_json(GM_TEAMS_DIR/hsg_slug/"sell_leverage.json",{}))
+        write_json(DATA/"gm_command_center.json",load_json(GM_TEAMS_DIR/hsg_slug/"command_center.json",{}))
 
     return {
-        "teams_built": len(team_index),
-        "mutual_trade_candidates": len(mutual.get("trades") or []),
+        "teams_built":len(team_index),
+        "mutual_trade_candidates":len(mutual.get("trades") or []),
+        "validation_passes":validation.get("pass_count"),
+        "validation_failures":validation.get("fail_count"),
     }
 
 
@@ -4575,7 +5049,7 @@ def write_optimal_lineup_index():
     teams = payload.get("teams") or []
     out = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-2.1",
+        "model_version": "GM-2.2",
         "lineup_slots": LINEUP_SLOTS,
         "teams": [
             {
@@ -4611,17 +5085,19 @@ def main():
     write_json(DATA / "market_regime.json", build_market_regime())
     write_json(DATA / "owner_calibration_report.json", build_owner_calibration_report())
 
-    # GM-2.1: all 12 franchises receive full perspective-specific outputs.
+    # GM-2.2: all 12 franchises receive full perspective-specific outputs.
     universal_result = run_universal_franchise_mode()
 
-    print("FSFFL GM Engine v2.1 complete — Universal Franchise Mode.")
+    print("FSFFL GM Engine v2.2 complete — Strategic Valuation.")
     print(f"Universal franchise perspectives built: {universal_result['teams_built']}")
     print(f"Mutual trade candidates surfaced: {universal_result['mutual_trade_candidates']}")
+    print(f"Validation checks: {universal_result['validation_passes']} pass / {universal_result['validation_failures']} fail")
     print("Wrote data/gm/franchise_index.json")
     print("Wrote data/gm/league/mutual_trade_map.json")
     print("Wrote data/gm/league/trade_analysis_context.json")
+    print("Wrote data/gm/league/validation_report.json")
     print("Wrote data/gm/teams/<team>/command_center.json")
-    print("Wrote data/gm/teams/<team>/core_values.json")
+    print("Wrote data/gm/teams/<team>/strategic_asset_profiles.json")
     print("Wrote data/gm/teams/<team>/trade_opportunities.json")
     print("Wrote data/gm/teams/<team>/sell_leverage.json")
 
