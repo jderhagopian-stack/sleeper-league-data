@@ -1,0 +1,34 @@
+{
+  "name": "FSFFL Season Simulator",
+  "version": "1.0",
+  "purpose": "Reusable annual league forecasting engine",
+  "season_agnostic": true,
+  "hard_rules": [
+    "Never hard-code the active league season in simulator logic.",
+    "Never use dynasty/redraft market value as a silent substitute for projected fantasy points.",
+    "Use exact league scoring and lineup configuration from data/league.json.",
+    "Use actual FSFFL schedule from the current season.",
+    "Preserve every season under data/simulator/<season>/.",
+    "Fail validation when critical inputs are incomplete."
+  ],
+  "current_1_0_scope": [
+    "player-level weekly fantasy-point distributions",
+    "weekly legal lineup optimization",
+    "actual 14-week FSFFL schedule",
+    "Monte Carlo regular season",
+    "division probabilities",
+    "seed probabilities",
+    "playoff and bye probabilities",
+    "Weeks 15-17 playoff simulation when projections exist",
+    "validation and historical preservation"
+  ],
+  "future_layers": [
+    "empirical/non-Gaussian player distributions",
+    "NFL game-environment correlations",
+    "injury-duration state transitions and bench substitution",
+    "waiver and trade agent behavior",
+    "historical FSFFL calibration",
+    "management-quality effects",
+    "automatic weekly updating and snapshot archive"
+  ]
+}
