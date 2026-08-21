@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v1.1.3 — STANDALONE
+FSFFL GM Engine v1.2 — STANDALONE
 
 Single-file full GM model. Includes the original GM-1.0 market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -1710,7 +1710,7 @@ def base_main():
 DATA = Path("data")
 
 # Explicit model bump for generated files.
-CONFIG["model_version"] = "GM-1.1.3"
+CONFIG["model_version"] = "GM-1.2"
 CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
@@ -2293,7 +2293,7 @@ def build_hsg_trade_opportunities_v11(
 
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1.3",
+        "model_version": "GM-1.2",
         "user_id": user_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2380,7 +2380,7 @@ def build_sell_leverage_board():
     )
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1.3",
+        "model_version": "GM-1.2",
         "user_id": hsg_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2393,12 +2393,463 @@ def build_sell_leverage_board():
     }
 
 
+
+def build_league_arbitrage_matrix():
+    """
+    Build an HSG-centric league trade-market map.
+
+    Outputs:
+      1) owner seams: who overvalues each HSG asset and which of their assets
+         HSG values more than they do;
+      2) direct one-for-one arbitrage paths;
+      3) two-step routes where HSG asset A is converted to owner-X asset B,
+         then B is rerouted to owner Y for target C.
+
+    This is a valuation/negotiation discovery layer, not a claim that any
+    specific owner would accept the modeled exchange.
+    """
+    owner_payload = load_json(DATA / "owner_perceived_values.json", {}) or {}
+    owners = owner_payload.get("owners") or {}
+    team_payload = load_json(DATA / "team_contender_profiles.json", {}) or {}
+    teams = {str(x.get("user_id")): x for x in team_payload.get("teams") or []}
+
+    hsg_uid = None
+    for uid, block in owners.items():
+        if block.get("manager") == USER_MANAGER or block.get("team_name") == USER_TEAM:
+            hsg_uid = str(uid)
+            break
+    if not hsg_uid:
+        return {"error": "Could not locate Hurts So Good"}
+
+    # Every owner's valuation of every asset.
+    vals = {}
+    asset_meta = {}
+    for uid, block in owners.items():
+        uid = str(uid)
+        vals[uid] = {}
+        for row in block.get("assets") or []:
+            aid = row.get("asset_id")
+            if not aid:
+                continue
+            vals[uid][aid] = safe_float(row.get("owner_perceived_value"))
+            if aid not in asset_meta:
+                asset_meta[aid] = {
+                    "asset_id": aid,
+                    "asset_type": row.get("asset_type"),
+                    "name": row.get("name"),
+                    "current_owner_user_id": str(row.get("current_owner_user_id")),
+                    "current_owner_team": row.get("current_owner_team"),
+                    "market_value": safe_float(row.get("market_value")),
+                }
+
+    def meta(aid):
+        return asset_meta.get(aid, {"asset_id": aid, "name": aid})
+
+    def owner_name(uid):
+        b = owners.get(str(uid)) or {}
+        return b.get("team_name") or b.get("manager") or str(uid)
+
+    def owner_manager(uid):
+        b = owners.get(str(uid)) or {}
+        return b.get("manager") or b.get("team_name") or str(uid)
+
+    def is_protected(aid):
+        m = meta(aid)
+        return (
+            m.get("asset_type") == "player"
+            and m.get("name") in PROTECTED_HSG_PLAYERS
+        )
+
+    # Current holdings by owner.
+    holdings = defaultdict(list)
+    for aid, m in asset_meta.items():
+        uid = str(m.get("current_owner_user_id"))
+        if uid:
+            holdings[uid].append(aid)
+
+    hsg_holdings = holdings.get(hsg_uid, [])
+    movable_hsg = [
+        aid for aid in hsg_holdings
+        if not is_protected(aid) and vals.get(hsg_uid, {}).get(aid, 0) > 0
+    ]
+
+    # -----------------------------
+    # Owner-by-owner market seams
+    # -----------------------------
+    owner_seams = []
+    for opp_uid in owners:
+        opp_uid = str(opp_uid)
+        if opp_uid == hsg_uid:
+            continue
+
+        sell_edges = []
+        for aid in movable_hsg:
+            hsg_hold = vals[hsg_uid].get(aid, 0.0)
+            opp_buy = vals.get(opp_uid, {}).get(aid, 0.0)
+            if hsg_hold <= 0 or opp_buy <= 0:
+                continue
+            sell_edges.append({
+                "asset_id": aid,
+                "asset": meta(aid).get("name"),
+                "asset_type": meta(aid).get("asset_type"),
+                "hsg_hold_value": round(hsg_hold, 1),
+                "opponent_acquire_value": round(opp_buy, 1),
+                "opponent_premium_vs_hsg_hold": round(opp_buy - hsg_hold, 1),
+                "opponent_premium_pct": round((opp_buy / hsg_hold - 1.0) * 100, 1),
+            })
+        sell_edges.sort(
+            key=lambda x: (
+                x["opponent_premium_vs_hsg_hold"],
+                x["opponent_premium_pct"],
+            ),
+            reverse=True,
+        )
+
+        buy_edges = []
+        for aid in holdings.get(opp_uid, []):
+            hsg_buy = vals.get(hsg_uid, {}).get(aid, 0.0)
+            opp_hold = vals.get(opp_uid, {}).get(aid, 0.0)
+            if hsg_buy <= 0 or opp_hold <= 0:
+                continue
+            buy_edges.append({
+                "asset_id": aid,
+                "asset": meta(aid).get("name"),
+                "asset_type": meta(aid).get("asset_type"),
+                "hsg_acquire_value": round(hsg_buy, 1),
+                "opponent_hold_value": round(opp_hold, 1),
+                "hsg_premium_vs_opponent_hold": round(hsg_buy - opp_hold, 1),
+                "hsg_premium_pct": round((hsg_buy / opp_hold - 1.0) * 100, 1),
+            })
+        buy_edges.sort(
+            key=lambda x: (
+                x["hsg_premium_vs_opponent_hold"],
+                x["hsg_premium_pct"],
+            ),
+            reverse=True,
+        )
+
+        owner_seams.append({
+            "opponent_user_id": opp_uid,
+            "opponent_manager": owner_manager(opp_uid),
+            "opponent_team": owner_name(opp_uid),
+            "opponent_competitive_tier": (teams.get(opp_uid) or {}).get("competitive_tier"),
+            "best_assets_to_sell_them": sell_edges[:8],
+            "best_assets_to_buy_from_them": buy_edges[:12],
+        })
+
+    # -----------------------------
+    # Direct one-for-one paths
+    # -----------------------------
+    direct = []
+    for opp_uid in owners:
+        opp_uid = str(opp_uid)
+        if opp_uid == hsg_uid:
+            continue
+
+        for out_aid in movable_hsg:
+            hsg_cost = vals[hsg_uid].get(out_aid, 0.0)
+            opp_receive = vals.get(opp_uid, {}).get(out_aid, 0.0)
+            if hsg_cost <= 0 or opp_receive <= 0:
+                continue
+
+            for in_aid in holdings.get(opp_uid, []):
+                hsg_receive = vals[hsg_uid].get(in_aid, 0.0)
+                opp_cost = vals.get(opp_uid, {}).get(in_aid, 0.0)
+                if hsg_receive <= 0 or opp_cost <= 0:
+                    continue
+
+                hsg_surplus = hsg_receive - hsg_cost
+                opp_surplus = opp_receive - opp_cost
+                hsg_ratio = hsg_receive / hsg_cost
+                opp_ratio = opp_receive / opp_cost
+
+                # Keep genuinely interesting HSG-positive seams; opponent can
+                # be modestly short because a small balancing piece may bridge it.
+                if hsg_surplus <= 0:
+                    continue
+                if opp_ratio < 0.84:
+                    continue
+
+                if opp_surplus >= 0:
+                    deal_class = "mutual_arbitrage"
+                elif opp_ratio >= 0.94:
+                    deal_class = "near_direct_match"
+                else:
+                    deal_class = "needs_small_bridge"
+
+                score = (
+                    0.48 * min(hsg_surplus / max(hsg_receive, 1.0), 0.50)
+                    + 0.32 * min(max(opp_ratio - 0.84, 0.0) / 0.16, 1.0)
+                    + 0.20 * min(
+                        max(
+                            (
+                                vals.get(opp_uid, {}).get(out_aid, 0.0)
+                                - vals[hsg_uid].get(out_aid, 0.0)
+                            )
+                            / max(hsg_cost, 1.0),
+                            0.0,
+                        ),
+                        0.50,
+                    )
+                )
+
+                direct.append({
+                    "opponent_user_id": opp_uid,
+                    "opponent_manager": owner_manager(opp_uid),
+                    "opponent_team": owner_name(opp_uid),
+                    "send_asset_id": out_aid,
+                    "send_asset": meta(out_aid).get("name"),
+                    "receive_asset_id": in_aid,
+                    "receive_asset": meta(in_aid).get("name"),
+                    "hsg_hold_cost": round(hsg_cost, 1),
+                    "hsg_receive_value": round(hsg_receive, 1),
+                    "hsg_surplus": round(hsg_surplus, 1),
+                    "hsg_value_ratio": round(hsg_ratio, 3),
+                    "opponent_receive_value": round(opp_receive, 1),
+                    "opponent_hold_cost": round(opp_cost, 1),
+                    "opponent_surplus": round(opp_surplus, 1),
+                    "opponent_value_ratio": round(opp_ratio, 3),
+                    "deal_class": deal_class,
+                    "arbitrage_score": round(score, 5),
+                })
+
+    class_rank = {
+        "mutual_arbitrage": 3,
+        "near_direct_match": 2,
+        "needs_small_bridge": 1,
+    }
+    direct.sort(
+        key=lambda x: (
+            class_rank.get(x["deal_class"], 0),
+            x["arbitrage_score"],
+            x["hsg_surplus"],
+            x["opponent_value_ratio"],
+        ),
+        reverse=True,
+    )
+
+    # -----------------------------
+    # Two-step arbitrage routes
+    # -----------------------------
+    # Stage 1: HSG asset A -> currency asset B from owner X.
+    stage1 = []
+    for buyer_uid in owners:
+        buyer_uid = str(buyer_uid)
+        if buyer_uid == hsg_uid:
+            continue
+        for out_aid in movable_hsg:
+            hsg_cost = vals[hsg_uid].get(out_aid, 0.0)
+            buyer_receive = vals.get(buyer_uid, {}).get(out_aid, 0.0)
+            if hsg_cost <= 0 or buyer_receive <= 0:
+                continue
+            for currency_aid in holdings.get(buyer_uid, []):
+                buyer_cost = vals.get(buyer_uid, {}).get(currency_aid, 0.0)
+                if buyer_cost <= 0:
+                    continue
+                ratio = buyer_receive / buyer_cost
+                if ratio < 0.88 or ratio > 1.25:
+                    continue
+                # Prefer assets the HSG model regards as liquid/useful currency.
+                hsg_currency_value = vals[hsg_uid].get(currency_aid, 0.0)
+                if hsg_currency_value <= 0:
+                    continue
+                stage1.append({
+                    "source_asset_id": out_aid,
+                    "buyer_user_id": buyer_uid,
+                    "currency_asset_id": currency_aid,
+                    "hsg_original_cost": hsg_cost,
+                    "buyer_value_ratio": ratio,
+                    "buyer_receive_value": buyer_receive,
+                    "buyer_currency_hold": buyer_cost,
+                    "hsg_currency_value": hsg_currency_value,
+                })
+
+    # Cap stage-1 candidates per original HSG asset so runtime stays tiny.
+    grouped_stage1 = defaultdict(list)
+    for x in stage1:
+        grouped_stage1[x["source_asset_id"]].append(x)
+
+    stage1_capped = []
+    for aid, rows in grouped_stage1.items():
+        rows.sort(
+            key=lambda x: (
+                x["buyer_value_ratio"],
+                x["hsg_currency_value"],
+            ),
+            reverse=True,
+        )
+        # Keep diverse buyers, no more than two candidate currencies per buyer.
+        per_buyer = Counter()
+        kept = 0
+        for row in rows:
+            buid = row["buyer_user_id"]
+            if per_buyer[buid] >= 2:
+                continue
+            stage1_capped.append(row)
+            per_buyer[buid] += 1
+            kept += 1
+            if kept >= 18:
+                break
+
+    two_step = []
+    for s1 in stage1_capped:
+        source_aid = s1["source_asset_id"]
+        buyer_uid = s1["buyer_user_id"]
+        currency_aid = s1["currency_asset_id"]
+        hsg_original_cost = s1["hsg_original_cost"]
+
+        for seller_uid in owners:
+            seller_uid = str(seller_uid)
+            if seller_uid in (hsg_uid, buyer_uid):
+                continue
+
+            seller_currency_value = vals.get(seller_uid, {}).get(currency_aid, 0.0)
+            if seller_currency_value <= 0:
+                continue
+
+            for target_aid in holdings.get(seller_uid, []):
+                hsg_target_value = vals[hsg_uid].get(target_aid, 0.0)
+                seller_target_hold = vals.get(seller_uid, {}).get(target_aid, 0.0)
+                if hsg_target_value <= 0 or seller_target_hold <= 0:
+                    continue
+
+                final_surplus = hsg_target_value - hsg_original_cost
+                if final_surplus <= 0:
+                    continue
+
+                stage2_ratio = seller_currency_value / seller_target_hold
+                if stage2_ratio < 0.86:
+                    continue
+
+                route_floor = min(s1["buyer_value_ratio"], stage2_ratio)
+                score = (
+                    0.55 * min(final_surplus / max(hsg_target_value, 1.0), 0.60)
+                    + 0.25 * min(max(route_floor - 0.86, 0.0) / 0.14, 1.0)
+                    + 0.20 * min(
+                        max(
+                            (
+                                s1["buyer_receive_value"] - hsg_original_cost
+                            )
+                            / max(hsg_original_cost, 1.0),
+                            0.0,
+                        ),
+                        0.50,
+                    )
+                )
+
+                two_step.append({
+                    "source_asset_id": source_aid,
+                    "source_asset": meta(source_aid).get("name"),
+                    "source_hsg_hold_value": round(hsg_original_cost, 1),
+                    "step1_buyer_user_id": buyer_uid,
+                    "step1_buyer_manager": owner_manager(buyer_uid),
+                    "step1_buyer_team": owner_name(buyer_uid),
+                    "step1_receive_currency_asset_id": currency_aid,
+                    "step1_receive_currency_asset": meta(currency_aid).get("name"),
+                    "step1_buyer_value_ratio": round(s1["buyer_value_ratio"], 3),
+                    "step2_seller_user_id": seller_uid,
+                    "step2_seller_manager": owner_manager(seller_uid),
+                    "step2_seller_team": owner_name(seller_uid),
+                    "step2_target_asset_id": target_aid,
+                    "step2_target_asset": meta(target_aid).get("name"),
+                    "step2_seller_currency_value": round(seller_currency_value, 1),
+                    "step2_target_hold_value": round(seller_target_hold, 1),
+                    "step2_value_ratio": round(stage2_ratio, 3),
+                    "hsg_final_target_value": round(hsg_target_value, 1),
+                    "hsg_final_surplus_vs_original_asset": round(final_surplus, 1),
+                    "route_floor_ratio": round(route_floor, 3),
+                    "arbitrage_score": round(score, 5),
+                })
+
+    # Deduplicate equivalent source -> currency -> target routes and retain best.
+    best_routes = {}
+    for row in two_step:
+        key = (
+            row["source_asset_id"],
+            row["step1_receive_currency_asset_id"],
+            row["step2_target_asset_id"],
+        )
+        prev = best_routes.get(key)
+        if not prev or row["arbitrage_score"] > prev["arbitrage_score"]:
+            best_routes[key] = row
+
+    two_step = list(best_routes.values())
+    two_step.sort(
+        key=lambda x: (
+            x["arbitrage_score"],
+            x["hsg_final_surplus_vs_original_asset"],
+            x["route_floor_ratio"],
+        ),
+        reverse=True,
+    )
+
+    # Best source assets by maximum observed buyer premium.
+    source_summary = []
+    for aid in movable_hsg:
+        hsg_hold = vals[hsg_uid].get(aid, 0.0)
+        buyer_rows = []
+        for uid in owners:
+            uid = str(uid)
+            if uid == hsg_uid:
+                continue
+            v = vals.get(uid, {}).get(aid, 0.0)
+            if v <= 0:
+                continue
+            buyer_rows.append((v - hsg_hold, uid, v))
+        buyer_rows.sort(reverse=True)
+        if buyer_rows:
+            premium, uid, v = buyer_rows[0]
+            source_summary.append({
+                "asset_id": aid,
+                "asset": meta(aid).get("name"),
+                "asset_type": meta(aid).get("asset_type"),
+                "hsg_hold_value": round(hsg_hold, 1),
+                "best_buyer_user_id": uid,
+                "best_buyer_manager": owner_manager(uid),
+                "best_buyer_team": owner_name(uid),
+                "best_buyer_value": round(v, 1),
+                "best_buyer_premium": round(premium, 1),
+                "best_buyer_premium_pct": round((v / hsg_hold - 1.0) * 100, 1)
+                    if hsg_hold else None,
+            })
+    source_summary.sort(
+        key=lambda x: (x["best_buyer_premium"], x["best_buyer_premium_pct"]),
+        reverse=True,
+    )
+
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_version": "GM-1.2",
+        "user_id": hsg_uid,
+        "manager": USER_MANAGER,
+        "team_name": USER_TEAM,
+        "methodology_note": (
+            "League Arbitrage Matrix compares HSG hold/acquire values with each "
+            "opponent's acquire/hold values. Direct paths require positive HSG "
+            "surplus and at least 84% opponent-side value coverage. Two-step paths "
+            "model HSG asset -> intermediary currency asset -> final target and "
+            "require at least 88% value coverage on step 1 and 86% on step 2. "
+            "These are negotiation-discovery signals, not literal acceptance probabilities."
+        ),
+        "protected_core_excluded_from_outgoing_routes": sorted(PROTECTED_HSG_PLAYERS),
+        "best_hsg_assets_to_shop": source_summary,
+        "owner_seams": owner_seams,
+        "top_direct_arbitrage_paths": direct[:150],
+        "top_two_step_arbitrage_paths": two_step[:150],
+        "counts": {
+            "movable_hsg_assets": len(movable_hsg),
+            "direct_paths_retained": len(direct),
+            "two_step_paths_retained": len(two_step),
+        },
+    }
+
+
 def write_optimal_lineup_index():
     payload = load_json(DATA / "team_contender_profiles.json", {}) or {}
     teams = payload.get("teams") or []
     out = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1.3",
+        "model_version": "GM-1.2",
         "lineup_slots": LINEUP_SLOTS,
         "teams": [
             {
@@ -2426,10 +2877,12 @@ def main():
     base_main()
 
     write_json(DATA / "sell_leverage_board.json", build_sell_leverage_board())
+    write_json(DATA / "league_arbitrage_matrix.json", build_league_arbitrage_matrix())
     write_optimal_lineup_index()
 
-    print("FSFFL GM Engine v1.1 overlay complete.")
+    print("FSFFL GM Engine v1.2 complete.")
     print("Wrote data/sell_leverage_board.json")
+    print("Wrote data/league_arbitrage_matrix.json")
     print("Wrote data/optimal_lineups.json")
 
 
