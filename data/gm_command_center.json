@@ -1,39 +1,23 @@
 {
-  "generated_at_utc": "2026-08-21T05:08:29.059223+00:00",
+  "generated_at_utc": "2026-08-21T11:14:52.019658+00:00",
   "model_version": "GM-2.0",
   "architecture_status": "frozen_after_2.0",
   "market_regime": "training_camp_preseason",
   "best_moves_now": [
     {
       "action": "buy",
-      "asset": "Christian McCaffrey",
-      "counterparty": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "why": {
-        "optimal_lineup_value_gain": 6956.0,
-        "modeled_hsg_surplus": 41.2,
-        "valuation_gap_hsg_minus_seller": -270.0
-      },
-      "best_opening_package": [
-        "Sam Darnold",
-        "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
-      ],
-      "acceptance_fit_score": 0.647,
-      "urgency": "high"
-    },
-    {
-      "action": "buy",
       "asset": "Jonathan Taylor",
       "counterparty": "King B",
       "why": {
         "optimal_lineup_value_gain": 6323.0,
-        "modeled_hsg_surplus": 736.4,
-        "valuation_gap_hsg_minus_seller": 223.1
+        "modeled_hsg_surplus": 926.4,
+        "valuation_gap_hsg_minus_seller": 181.1
       },
       "best_opening_package": [
         "Sam Darnold",
         "2029 Mid 1st \u2014 original Hurts So Good"
       ],
-      "acceptance_fit_score": 0.445,
+      "acceptance_fit_score": 0.374,
       "urgency": "high"
     },
     {
@@ -41,32 +25,15 @@
       "asset": "De'Von Achane",
       "counterparty": "King B",
       "why": {
-        "optimal_lineup_value_gain": 5386.0,
-        "modeled_hsg_surplus": 1148.7,
-        "valuation_gap_hsg_minus_seller": 233.0
+        "optimal_lineup_value_gain": 5396.0,
+        "modeled_hsg_surplus": 1162.5,
+        "valuation_gap_hsg_minus_seller": 177.8
       },
       "best_opening_package": [
         "Sam Darnold",
         "KC Concepcion"
       ],
-      "acceptance_fit_score": 0.407,
-      "urgency": "high"
-    },
-    {
-      "action": "buy",
-      "asset": "Ashton Jeanty",
-      "counterparty": "MochaSmevs",
-      "why": {
-        "optimal_lineup_value_gain": 4858.0,
-        "modeled_hsg_surplus": 328.1,
-        "valuation_gap_hsg_minus_seller": -151.8
-      },
-      "best_opening_package": [
-        "Sam Darnold",
-        "KC Concepcion",
-        "2028 Mid 2nd \u2014 original Hurts So Good"
-      ],
-      "acceptance_fit_score": 0.411,
+      "acceptance_fit_score": 0.387,
       "urgency": "high"
     },
     {
@@ -74,16 +41,33 @@
       "asset": "Brock Bowers",
       "counterparty": "BING BONG DRIGSY\ud83c\udf4e",
       "why": {
-        "optimal_lineup_value_gain": 4671.0,
-        "modeled_hsg_surplus": 910.7,
-        "valuation_gap_hsg_minus_seller": 169.8
+        "optimal_lineup_value_gain": 4841.0,
+        "modeled_hsg_surplus": 933.9,
+        "valuation_gap_hsg_minus_seller": 168.5
       },
       "best_opening_package": [
         "Sam Darnold",
         "KC Concepcion",
         "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
       ],
-      "acceptance_fit_score": 0.353,
+      "acceptance_fit_score": 0.348,
+      "urgency": "high"
+    },
+    {
+      "action": "buy",
+      "asset": "Ashton Jeanty",
+      "counterparty": "MochaSmevs",
+      "why": {
+        "optimal_lineup_value_gain": 4798.0,
+        "modeled_hsg_surplus": 246.0,
+        "valuation_gap_hsg_minus_seller": -215.4
+      },
+      "best_opening_package": [
+        "Sam Darnold",
+        "KC Concepcion",
+        "2028 Mid 2nd \u2014 original Hurts So Good"
+      ],
+      "acceptance_fit_score": 0.419,
       "urgency": "high"
     },
     {
@@ -91,31 +75,15 @@
       "asset": "Chase Brown",
       "counterparty": "MochaSmevs",
       "why": {
-        "optimal_lineup_value_gain": 4569.0,
-        "modeled_hsg_surplus": 538.9,
-        "valuation_gap_hsg_minus_seller": -129.6
+        "optimal_lineup_value_gain": 4649.0,
+        "modeled_hsg_surplus": 539.1,
+        "valuation_gap_hsg_minus_seller": -172.3
       },
       "best_opening_package": [
         "KC Concepcion",
         "2027 Mid 2nd \u2014 original Hurts So Good"
       ],
-      "acceptance_fit_score": 0.485,
-      "urgency": "high"
-    },
-    {
-      "action": "buy",
-      "asset": "Omarion Hampton",
-      "counterparty": "STINKS",
-      "why": {
-        "optimal_lineup_value_gain": 4364.0,
-        "modeled_hsg_surplus": 1256.7,
-        "valuation_gap_hsg_minus_seller": 436.4
-      },
-      "best_opening_package": [
-        "Sam Darnold",
-        "2029 Mid 1st \u2014 original Hurts So Good"
-      ],
-      "acceptance_fit_score": 0.522,
+      "acceptance_fit_score": 0.478,
       "urgency": "high"
     },
     {
@@ -123,15 +91,31 @@
       "asset": "Saquon Barkley",
       "counterparty": "King B",
       "why": {
-        "optimal_lineup_value_gain": 4336.0,
-        "modeled_hsg_surplus": 506.9,
-        "valuation_gap_hsg_minus_seller": 177.8
+        "optimal_lineup_value_gain": 4361.0,
+        "modeled_hsg_surplus": 467.8,
+        "valuation_gap_hsg_minus_seller": 140.9
       },
       "best_opening_package": [
         "2029 Mid 1st \u2014 original Hurts So Good",
         "2029 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "acceptance_fit_score": 0.373,
+      "acceptance_fit_score": 0.374,
+      "urgency": "high"
+    },
+    {
+      "action": "buy",
+      "asset": "Omarion Hampton",
+      "counterparty": "STINKS",
+      "why": {
+        "optimal_lineup_value_gain": 4358.0,
+        "modeled_hsg_surplus": 1206.3,
+        "valuation_gap_hsg_minus_seller": 384.8
+      },
+      "best_opening_package": [
+        "Sam Darnold",
+        "2029 Mid 1st \u2014 original Hurts So Good"
+      ],
+      "acceptance_fit_score": 0.523,
       "urgency": "high"
     },
     {
@@ -140,15 +124,15 @@
       "counterparty": "HUNGRY DAWGS",
       "why": {
         "optimal_lineup_value_gain": 4311.0,
-        "modeled_hsg_surplus": 1162.1,
-        "valuation_gap_hsg_minus_seller": 313.7
+        "modeled_hsg_surplus": 1201.6,
+        "valuation_gap_hsg_minus_seller": 311.6
       },
       "best_opening_package": [
         "KC Concepcion",
-        "Tyler Allgeier",
+        "2028 Mid 2nd \u2014 original Hurts So Good",
         "Antonio Williams"
       ],
-      "acceptance_fit_score": 0.457,
+      "acceptance_fit_score": 0.435,
       "urgency": "high"
     },
     {
@@ -156,15 +140,15 @@
       "asset": "Kenneth Walker",
       "counterparty": "The Shish Kebab Boys",
       "why": {
-        "optimal_lineup_value_gain": 3824.0,
-        "modeled_hsg_surplus": 266.5,
-        "valuation_gap_hsg_minus_seller": -270.5
+        "optimal_lineup_value_gain": 3809.0,
+        "modeled_hsg_surplus": 124.7,
+        "valuation_gap_hsg_minus_seller": -314.4
       },
       "best_opening_package": [
         "KC Concepcion",
-        "Jonathon Brooks"
+        "2028 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "acceptance_fit_score": 0.635,
+      "acceptance_fit_score": 0.665,
       "urgency": "high"
     },
     {
@@ -172,16 +156,16 @@
       "asset": "Joe Burrow",
       "counterparty": "MochaSmevs",
       "why": {
-        "optimal_lineup_value_gain": 3360.0,
-        "modeled_hsg_surplus": 678.9,
-        "valuation_gap_hsg_minus_seller": 56.8
+        "optimal_lineup_value_gain": 3282.0,
+        "modeled_hsg_surplus": 859.5,
+        "valuation_gap_hsg_minus_seller": 57.0
       },
       "best_opening_package": [
         "KC Concepcion",
-        "2028 Mid 1st \u2014 original The Shish Kebab Boys",
-        "2029 Mid 1st \u2014 original Hurts So Good"
+        "2029 Mid 1st \u2014 original Hurts So Good",
+        "2029 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "acceptance_fit_score": 0.468,
+      "acceptance_fit_score": 0.423,
       "urgency": "high"
     },
     {
@@ -189,16 +173,31 @@
       "asset": "Jeremiyah Love",
       "counterparty": "STINKS",
       "why": {
-        "optimal_lineup_value_gain": 3008.0,
-        "modeled_hsg_surplus": 1400.2,
-        "valuation_gap_hsg_minus_seller": 372.9
+        "optimal_lineup_value_gain": 2989.0,
+        "modeled_hsg_surplus": 1345.6,
+        "valuation_gap_hsg_minus_seller": 317.0
       },
       "best_opening_package": [
         "KC Concepcion",
         "2027 Mid 2nd \u2014 original Hurts So Good",
         "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
       ],
-      "acceptance_fit_score": 0.433,
+      "acceptance_fit_score": 0.437,
+      "urgency": "high"
+    },
+    {
+      "action": "buy",
+      "asset": "Kyren Williams",
+      "counterparty": "BING BONG DRIGSY\ud83c\udf4e",
+      "why": {
+        "optimal_lineup_value_gain": 2778.0,
+        "modeled_hsg_surplus": 468.8,
+        "valuation_gap_hsg_minus_seller": 26.1
+      },
+      "best_opening_package": [
+        "Sam Darnold"
+      ],
+      "acceptance_fit_score": 0.462,
       "urgency": "high"
     }
   ],
@@ -208,15 +207,15 @@
       "player": "KC Concepcion",
       "position": "WR",
       "protected_core": false,
-      "market_value": 2705.0,
-      "hsg_hold_value": 2692.3,
+      "market_value": 2746.0,
+      "hsg_hold_value": 2738.1,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 3157.9,
-        "premium_vs_market": 452.9,
-        "premium_vs_hsg_hold": 465.6,
+        "buyer_perceived_value": 3212.1,
+        "premium_vs_market": 466.1,
+        "premium_vs_hsg_hold": 474.0,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -224,45 +223,45 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 3157.9,
-          "premium_vs_market": 452.9,
-          "premium_vs_hsg_hold": 465.6,
+          "buyer_perceived_value": 3212.1,
+          "premium_vs_market": 466.1,
+          "premium_vs_hsg_hold": 474.0,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 3043.8,
-          "premium_vs_market": 338.8,
-          "premium_vs_hsg_hold": 351.5,
+          "buyer_perceived_value": 3096.1,
+          "premium_vs_market": 350.1,
+          "premium_vs_hsg_hold": 358.0,
           "buyer_position_need": 0.792
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2959.4,
-          "premium_vs_market": 254.4,
-          "premium_vs_hsg_hold": 267.1,
+          "buyer_perceived_value": 3010.0,
+          "premium_vs_market": 264.0,
+          "premium_vs_hsg_hold": 271.9,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2883.0,
-          "premium_vs_market": 178.0,
-          "premium_vs_hsg_hold": 190.7,
+          "buyer_perceived_value": 2932.4,
+          "premium_vs_market": 186.4,
+          "premium_vs_hsg_hold": 194.3,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 2879.4,
-          "premium_vs_market": 174.4,
-          "premium_vs_hsg_hold": 187.1,
+          "buyer_perceived_value": 2928.8,
+          "premium_vs_market": 182.8,
+          "premium_vs_hsg_hold": 190.7,
           "buyer_position_need": 0.708
         }
       ],
@@ -273,15 +272,15 @@
       "player": "Antonio Williams",
       "position": "WR",
       "protected_core": false,
-      "market_value": 1473.0,
-      "hsg_hold_value": 1349.8,
+      "market_value": 1484.0,
+      "hsg_hold_value": 1360.5,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1604.3,
-        "premium_vs_market": 131.3,
-        "premium_vs_hsg_hold": 254.5,
+        "buyer_perceived_value": 1617.0,
+        "premium_vs_market": 133.0,
+        "premium_vs_hsg_hold": 256.5,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -289,45 +288,45 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1604.3,
-          "premium_vs_market": 131.3,
-          "premium_vs_hsg_hold": 254.5,
+          "buyer_perceived_value": 1617.0,
+          "premium_vs_market": 133.0,
+          "premium_vs_hsg_hold": 256.5,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1548.9,
-          "premium_vs_market": 75.9,
-          "premium_vs_hsg_hold": 199.1,
+          "buyer_perceived_value": 1561.1,
+          "premium_vs_market": 77.1,
+          "premium_vs_hsg_hold": 200.6,
           "buyer_position_need": 0.792
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1495.1,
-          "premium_vs_market": 22.1,
-          "premium_vs_hsg_hold": 145.3,
+          "buyer_perceived_value": 1506.9,
+          "premium_vs_market": 22.9,
+          "premium_vs_hsg_hold": 146.4,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1459.8,
-          "premium_vs_market": -13.2,
-          "premium_vs_hsg_hold": 110.0,
+          "buyer_perceived_value": 1471.3,
+          "premium_vs_market": -12.7,
+          "premium_vs_hsg_hold": 110.8,
           "buyer_position_need": 0.708
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1458.9,
-          "premium_vs_market": -14.1,
-          "premium_vs_hsg_hold": 109.1,
+          "buyer_perceived_value": 1470.4,
+          "premium_vs_market": -13.6,
+          "premium_vs_hsg_hold": 109.9,
           "buyer_position_need": 0.625
         }
       ],
@@ -338,15 +337,15 @@
       "player": "Sam Darnold",
       "position": "QB",
       "protected_core": false,
-      "market_value": 3110.0,
-      "hsg_hold_value": 3312.7,
+      "market_value": 3113.0,
+      "hsg_hold_value": 3321.6,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 3452.2,
-        "premium_vs_market": 342.2,
-        "premium_vs_hsg_hold": 139.5,
+        "buyer_perceived_value": 3463.9,
+        "premium_vs_market": 350.9,
+        "premium_vs_hsg_hold": 142.3,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -354,45 +353,45 @@
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 3452.2,
-          "premium_vs_market": 342.2,
-          "premium_vs_hsg_hold": 139.5,
+          "buyer_perceived_value": 3463.9,
+          "premium_vs_market": 350.9,
+          "premium_vs_hsg_hold": 142.3,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 3375.6,
-          "premium_vs_market": 265.6,
-          "premium_vs_hsg_hold": 62.9,
+          "buyer_perceived_value": 3385.8,
+          "premium_vs_market": 272.8,
+          "premium_vs_hsg_hold": 64.2,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 3358.1,
-          "premium_vs_market": 248.1,
-          "premium_vs_hsg_hold": 45.4,
+          "buyer_perceived_value": 3367.5,
+          "premium_vs_market": 254.5,
+          "premium_vs_hsg_hold": 45.9,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 3327.8,
-          "premium_vs_market": 217.8,
-          "premium_vs_hsg_hold": 15.1,
+          "buyer_perceived_value": 3336.1,
+          "premium_vs_market": 223.1,
+          "premium_vs_hsg_hold": 14.5,
           "buyer_position_need": 0.792
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 3306.8,
-          "premium_vs_market": 196.8,
-          "premium_vs_hsg_hold": -5.9,
+          "buyer_perceived_value": 3317.4,
+          "premium_vs_market": 204.4,
+          "premium_vs_hsg_hold": -4.2,
           "buyer_position_need": 0.708
         }
       ],
@@ -403,15 +402,15 @@
       "player": "Elijah Arroyo",
       "position": "TE",
       "protected_core": false,
-      "market_value": 728.0,
-      "hsg_hold_value": 694.4,
+      "market_value": 670.0,
+      "hsg_hold_value": 640.2,
       "best_buyer": {
         "buyer_user_id": "840356119955251200",
         "buyer_manager": "ddersimon",
         "buyer_team": "Ball Knower",
-        "buyer_perceived_value": 740.0,
-        "premium_vs_market": 12.0,
-        "premium_vs_hsg_hold": 45.6,
+        "buyer_perceived_value": 682.3,
+        "premium_vs_market": 12.3,
+        "premium_vs_hsg_hold": 42.1,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -419,45 +418,45 @@
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 740.0,
-          "premium_vs_market": 12.0,
-          "premium_vs_hsg_hold": 45.6,
+          "buyer_perceived_value": 682.3,
+          "premium_vs_market": 12.3,
+          "premium_vs_hsg_hold": 42.1,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 728.4,
-          "premium_vs_market": 0.4,
-          "premium_vs_hsg_hold": 34.0,
+          "buyer_perceived_value": 671.5,
+          "premium_vs_market": 1.5,
+          "premium_vs_hsg_hold": 31.3,
           "buyer_position_need": 0.821
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 704.2,
-          "premium_vs_market": -23.8,
-          "premium_vs_hsg_hold": 9.8,
+          "buyer_perceived_value": 649.2,
+          "premium_vs_market": -20.8,
+          "premium_vs_hsg_hold": 9.0,
           "buyer_position_need": 0.708
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 691.8,
-          "premium_vs_market": -36.2,
-          "premium_vs_hsg_hold": -2.6,
+          "buyer_perceived_value": 637.8,
+          "premium_vs_market": -32.2,
+          "premium_vs_hsg_hold": -2.4,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 672.9,
-          "premium_vs_market": -55.1,
-          "premium_vs_hsg_hold": -21.5,
+          "buyer_perceived_value": 620.4,
+          "premium_vs_market": -49.6,
+          "premium_vs_hsg_hold": -19.8,
           "buyer_position_need": 0.433
         }
       ],
@@ -468,15 +467,15 @@
       "player": "Dallas Goedert",
       "position": "TE",
       "protected_core": false,
-      "market_value": 1478.0,
-      "hsg_hold_value": 1474.0,
+      "market_value": 1474.0,
+      "hsg_hold_value": 1463.5,
       "best_buyer": {
         "buyer_user_id": "840356119955251200",
         "buyer_manager": "ddersimon",
         "buyer_team": "Ball Knower",
-        "buyer_perceived_value": 1499.2,
-        "premium_vs_market": 21.2,
-        "premium_vs_hsg_hold": 25.2,
+        "buyer_perceived_value": 1490.8,
+        "premium_vs_market": 16.8,
+        "premium_vs_hsg_hold": 27.3,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -484,45 +483,45 @@
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1499.2,
-          "premium_vs_market": 21.2,
-          "premium_vs_hsg_hold": 25.2,
+          "buyer_perceived_value": 1490.8,
+          "premium_vs_market": 16.8,
+          "premium_vs_hsg_hold": 27.3,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1451.9,
-          "premium_vs_market": -26.1,
-          "premium_vs_hsg_hold": -22.1,
+          "buyer_perceived_value": 1442.9,
+          "premium_vs_market": -31.1,
+          "premium_vs_hsg_hold": -20.6,
           "buyer_position_need": 0.708
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1444.4,
-          "premium_vs_market": -33.6,
-          "premium_vs_hsg_hold": -29.6,
+          "buyer_perceived_value": 1437.0,
+          "premium_vs_market": -37.0,
+          "premium_vs_hsg_hold": -26.5,
           "buyer_position_need": 0.821
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1440.2,
-          "premium_vs_market": -37.8,
-          "premium_vs_hsg_hold": -33.8,
+          "buyer_perceived_value": 1430.8,
+          "premium_vs_market": -43.2,
+          "premium_vs_hsg_hold": -32.7,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1387.7,
-          "premium_vs_market": -90.3,
-          "premium_vs_hsg_hold": -86.3,
+          "buyer_perceived_value": 1377.5,
+          "premium_vs_market": -96.5,
+          "premium_vs_hsg_hold": -86.0,
           "buyer_position_need": 0.292
         }
       ],
@@ -533,61 +532,126 @@
       "player": "Tyjae Spears",
       "position": "RB",
       "protected_core": false,
-      "market_value": 1258.0,
-      "hsg_hold_value": 1213.6,
+      "market_value": 1236.0,
+      "hsg_hold_value": 1178.3,
       "best_buyer": {
-        "buyer_user_id": "844772511156670464",
-        "buyer_manager": "CoachKoko",
-        "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1205.9,
-        "premium_vs_market": -52.1,
-        "premium_vs_hsg_hold": -7.7,
-        "buyer_position_need": 0.846
+        "buyer_user_id": "676939933792964608",
+        "buyer_manager": "chuckthegoat77",
+        "buyer_team": "The Associate ",
+        "buyer_perceived_value": 1184.1,
+        "premium_vs_market": -51.9,
+        "premium_vs_hsg_hold": 5.8,
+        "buyer_position_need": 0.821
       },
       "top_buyers": [
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1184.1,
+          "premium_vs_market": -51.9,
+          "premium_vs_hsg_hold": 5.8,
+          "buyer_position_need": 0.821
+        },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1205.9,
-          "premium_vs_market": -52.1,
-          "premium_vs_hsg_hold": -7.7,
+          "buyer_perceived_value": 1183.6,
+          "premium_vs_market": -52.4,
+          "premium_vs_hsg_hold": 5.3,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1205.3,
-          "premium_vs_market": -52.7,
-          "premium_vs_hsg_hold": -8.3,
+          "buyer_perceived_value": 1182.9,
+          "premium_vs_market": -53.1,
+          "premium_vs_hsg_hold": 4.6,
           "buyer_position_need": 0.958
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1196.6,
-          "premium_vs_market": -61.4,
-          "premium_vs_hsg_hold": -17.0,
-          "buyer_position_need": 0.767
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1189.5,
-          "premium_vs_market": -68.5,
-          "premium_vs_hsg_hold": -24.1,
+          "buyer_perceived_value": 1167.4,
+          "premium_vs_market": -68.6,
+          "premium_vs_hsg_hold": -10.9,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1125.3,
-          "premium_vs_market": -132.7,
-          "premium_vs_hsg_hold": -88.3,
+          "buyer_perceived_value": 1104.4,
+          "premium_vs_market": -131.6,
+          "premium_vs_hsg_hold": -73.9,
+          "buyer_position_need": 0.542
+        }
+      ],
+      "positive_arbitrage_vs_hsg_hold": true
+    },
+    {
+      "player_id": "8132",
+      "player": "Tyler Allgeier",
+      "position": "RB",
+      "protected_core": false,
+      "market_value": 1471.0,
+      "hsg_hold_value": 1485.1,
+      "best_buyer": {
+        "buyer_user_id": "833709164739014656",
+        "buyer_manager": "jaco057",
+        "buyer_team": "HUNGRY DAWGS",
+        "buyer_perceived_value": 1483.4,
+        "premium_vs_market": 12.4,
+        "premium_vs_hsg_hold": -1.7,
+        "buyer_position_need": 0.958
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1483.4,
+          "premium_vs_market": 12.4,
+          "premium_vs_hsg_hold": -1.7,
+          "buyer_position_need": 0.958
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1480.4,
+          "premium_vs_market": 9.4,
+          "premium_vs_hsg_hold": -4.7,
+          "buyer_position_need": 0.846
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1479.1,
+          "premium_vs_market": 8.1,
+          "premium_vs_hsg_hold": -6.0,
+          "buyer_position_need": 0.821
+        },
+        {
+          "buyer_user_id": "840356119955251200",
+          "buyer_manager": "ddersimon",
+          "buyer_team": "Ball Knower",
+          "buyer_perceived_value": 1461.9,
+          "premium_vs_market": -9.1,
+          "premium_vs_hsg_hold": -23.2,
+          "buyer_position_need": 0.625
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1388.2,
+          "premium_vs_market": -82.8,
+          "premium_vs_hsg_hold": -96.9,
           "buyer_position_need": 0.542
         }
       ],
@@ -598,15 +662,15 @@
       "player": "Tyrone Tracy",
       "position": "RB",
       "protected_core": false,
-      "market_value": 1170.0,
-      "hsg_hold_value": 1121.0,
+      "market_value": 1151.0,
+      "hsg_hold_value": 1089.2,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1106.3,
-        "premium_vs_market": -63.7,
-        "premium_vs_hsg_hold": -14.7,
+        "buyer_perceived_value": 1087.2,
+        "premium_vs_market": -63.8,
+        "premium_vs_hsg_hold": -2.0,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -614,110 +678,45 @@
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1106.3,
-          "premium_vs_market": -63.7,
-          "premium_vs_hsg_hold": -14.7,
+          "buyer_perceived_value": 1087.2,
+          "premium_vs_market": -63.8,
+          "premium_vs_hsg_hold": -2.0,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1103.4,
-          "premium_vs_market": -66.6,
-          "premium_vs_hsg_hold": -17.6,
+          "buyer_perceived_value": 1084.7,
+          "premium_vs_market": -66.3,
+          "premium_vs_hsg_hold": -4.5,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1093.0,
-          "premium_vs_market": -77.0,
-          "premium_vs_hsg_hold": -28.0,
-          "buyer_position_need": 0.767
+          "buyer_perceived_value": 1083.5,
+          "premium_vs_market": -67.5,
+          "premium_vs_hsg_hold": -5.7,
+          "buyer_position_need": 0.821
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1089.9,
-          "premium_vs_market": -80.1,
-          "premium_vs_hsg_hold": -31.1,
+          "buyer_perceived_value": 1071.3,
+          "premium_vs_market": -79.7,
+          "premium_vs_hsg_hold": -17.9,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1036.0,
-          "premium_vs_market": -134.0,
-          "premium_vs_hsg_hold": -85.0,
-          "buyer_position_need": 0.542
-        }
-      ],
-      "positive_arbitrage_vs_hsg_hold": false
-    },
-    {
-      "player_id": "8132",
-      "player": "Tyler Allgeier",
-      "position": "RB",
-      "protected_core": false,
-      "market_value": 1478.0,
-      "hsg_hold_value": 1506.7,
-      "best_buyer": {
-        "buyer_user_id": "833709164739014656",
-        "buyer_manager": "jaco057",
-        "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1488.6,
-        "premium_vs_market": 10.6,
-        "premium_vs_hsg_hold": -18.1,
-        "buyer_position_need": 0.958
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1488.6,
-          "premium_vs_market": 10.6,
-          "premium_vs_hsg_hold": -18.1,
-          "buyer_position_need": 0.958
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1485.5,
-          "premium_vs_market": 7.5,
-          "premium_vs_hsg_hold": -21.2,
-          "buyer_position_need": 0.846
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1471.9,
-          "premium_vs_market": -6.1,
-          "premium_vs_hsg_hold": -34.8,
-          "buyer_position_need": 0.767
-        },
-        {
-          "buyer_user_id": "840356119955251200",
-          "buyer_manager": "ddersimon",
-          "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1467.0,
-          "premium_vs_market": -11.0,
-          "premium_vs_hsg_hold": -39.7,
-          "buyer_position_need": 0.625
-        },
-        {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1393.2,
-          "premium_vs_market": -84.8,
-          "premium_vs_hsg_hold": -113.5,
+          "buyer_perceived_value": 1017.8,
+          "premium_vs_market": -133.2,
+          "premium_vs_hsg_hold": -71.4,
           "buyer_position_need": 0.542
         }
       ],
@@ -728,15 +727,15 @@
       "player": "Jonathon Brooks",
       "position": "RB",
       "protected_core": false,
-      "market_value": 1927.0,
-      "hsg_hold_value": 2130.9,
+      "market_value": 1873.0,
+      "hsg_hold_value": 2043.8,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 2105.5,
-        "premium_vs_market": 178.5,
-        "premium_vs_hsg_hold": -25.4,
+        "buyer_perceived_value": 2040.0,
+        "premium_vs_market": 167.0,
+        "premium_vs_hsg_hold": -3.8,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -744,45 +743,45 @@
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2105.5,
-          "premium_vs_market": 178.5,
-          "premium_vs_hsg_hold": -25.4,
+          "buyer_perceived_value": 2040.0,
+          "premium_vs_market": 167.0,
+          "premium_vs_hsg_hold": -3.8,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2103.3,
-          "premium_vs_market": 176.3,
-          "premium_vs_hsg_hold": -27.6,
+          "buyer_perceived_value": 2037.6,
+          "premium_vs_market": 164.6,
+          "premium_vs_hsg_hold": -6.2,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2085.7,
-          "premium_vs_market": 158.7,
-          "premium_vs_hsg_hold": -45.2,
-          "buyer_position_need": 0.767
+          "buyer_perceived_value": 2036.6,
+          "premium_vs_market": 163.6,
+          "premium_vs_hsg_hold": -7.2,
+          "buyer_position_need": 0.821
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 2076.9,
-          "premium_vs_market": 149.9,
-          "premium_vs_hsg_hold": -54.0,
+          "buyer_perceived_value": 2012.2,
+          "premium_vs_market": 139.2,
+          "premium_vs_hsg_hold": -31.6,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1972.5,
-          "premium_vs_market": 45.5,
-          "premium_vs_hsg_hold": -158.4,
+          "buyer_perceived_value": 1911.5,
+          "premium_vs_market": 38.5,
+          "premium_vs_hsg_hold": -132.3,
           "buyer_position_need": 0.542
         }
       ],
@@ -793,15 +792,15 @@
       "player": "Rhamondre Stevenson",
       "position": "RB",
       "protected_core": false,
-      "market_value": 1649.0,
-      "hsg_hold_value": 1716.2,
+      "market_value": 1700.0,
+      "hsg_hold_value": 1757.3,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1653.2,
-        "premium_vs_market": 4.2,
-        "premium_vs_hsg_hold": -63.0,
+        "buyer_perceived_value": 1711.1,
+        "premium_vs_market": 11.1,
+        "premium_vs_hsg_hold": -46.2,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -809,45 +808,45 @@
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1653.2,
-          "premium_vs_market": 4.2,
-          "premium_vs_hsg_hold": -63.0,
+          "buyer_perceived_value": 1711.1,
+          "premium_vs_market": 11.1,
+          "premium_vs_hsg_hold": -46.2,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1629.8,
-          "premium_vs_market": -19.2,
-          "premium_vs_hsg_hold": -86.4,
+          "buyer_perceived_value": 1686.9,
+          "premium_vs_market": -13.1,
+          "premium_vs_hsg_hold": -70.4,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1619.1,
-          "premium_vs_market": -29.9,
-          "premium_vs_hsg_hold": -97.1,
+          "buyer_perceived_value": 1675.9,
+          "premium_vs_market": -24.1,
+          "premium_vs_hsg_hold": -81.4,
           "buyer_position_need": 0.625
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1604.7,
-          "premium_vs_market": -44.3,
-          "premium_vs_hsg_hold": -111.5,
-          "buyer_position_need": 0.767
+          "buyer_perceived_value": 1675.1,
+          "premium_vs_market": -24.9,
+          "premium_vs_hsg_hold": -82.2,
+          "buyer_position_need": 0.821
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 1581.9,
-          "premium_vs_market": -67.1,
-          "premium_vs_hsg_hold": -134.3,
+          "buyer_perceived_value": 1636.8,
+          "premium_vs_market": -63.2,
+          "premium_vs_hsg_hold": -120.5,
           "buyer_position_need": 0.458
         }
       ],
@@ -858,15 +857,15 @@
       "player": "Tony Pollard",
       "position": "RB",
       "protected_core": false,
-      "market_value": 1554.0,
-      "hsg_hold_value": 1607.5,
+      "market_value": 1558.0,
+      "hsg_hold_value": 1594.0,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1539.4,
-        "premium_vs_market": -14.6,
-        "premium_vs_hsg_hold": -68.1,
+        "buyer_perceived_value": 1541.4,
+        "premium_vs_market": -16.6,
+        "premium_vs_hsg_hold": -52.6,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -874,46 +873,46 @@
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1539.4,
-          "premium_vs_market": -14.6,
-          "premium_vs_hsg_hold": -68.1,
+          "buyer_perceived_value": 1541.4,
+          "premium_vs_market": -16.6,
+          "premium_vs_hsg_hold": -52.6,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1512.9,
-          "premium_vs_market": -41.1,
-          "premium_vs_hsg_hold": -94.6,
+          "buyer_perceived_value": 1514.2,
+          "premium_vs_market": -43.8,
+          "premium_vs_hsg_hold": -79.8,
           "buyer_position_need": 0.846
         },
         {
           "buyer_user_id": "840356119955251200",
           "buyer_manager": "ddersimon",
           "buyer_team": "Ball Knower",
-          "buyer_perceived_value": 1505.2,
-          "premium_vs_market": -48.8,
-          "premium_vs_hsg_hold": -102.3,
+          "buyer_perceived_value": 1506.8,
+          "premium_vs_market": -51.2,
+          "premium_vs_hsg_hold": -87.2,
           "buyer_position_need": 0.625
-        },
-        {
-          "buyer_user_id": "709546576091090944",
-          "buyer_manager": "nuckyniners",
-          "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 1488.6,
-          "premium_vs_market": -65.4,
-          "premium_vs_hsg_hold": -118.9,
-          "buyer_position_need": 0.458
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1487.2,
-          "premium_vs_market": -66.8,
-          "premium_vs_hsg_hold": -120.3,
-          "buyer_position_need": 0.767
+          "buyer_perceived_value": 1500.9,
+          "premium_vs_market": -57.1,
+          "premium_vs_hsg_hold": -93.1,
+          "buyer_position_need": 0.821
+        },
+        {
+          "buyer_user_id": "709546576091090944",
+          "buyer_manager": "nuckyniners",
+          "buyer_team": "Chef Niners",
+          "buyer_perceived_value": 1492.7,
+          "premium_vs_market": -65.3,
+          "premium_vs_hsg_hold": -101.3,
+          "buyer_position_need": 0.458
         }
       ],
       "positive_arbitrage_vs_hsg_hold": false
@@ -923,15 +922,15 @@
       "player": "Drake London",
       "position": "WR",
       "protected_core": true,
-      "market_value": 5487.0,
-      "hsg_hold_value": 5723.4,
+      "market_value": 5611.0,
+      "hsg_hold_value": 5868.0,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 6290.7,
-        "premium_vs_market": 803.7,
-        "premium_vs_hsg_hold": 567.3,
+        "buyer_perceived_value": 6458.6,
+        "premium_vs_market": 847.6,
+        "premium_vs_hsg_hold": 590.6,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -939,45 +938,45 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 6290.7,
-          "premium_vs_market": 803.7,
-          "premium_vs_hsg_hold": 567.3,
+          "buyer_perceived_value": 6458.6,
+          "premium_vs_market": 847.6,
+          "premium_vs_hsg_hold": 590.6,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 6069.7,
-          "premium_vs_market": 582.7,
-          "premium_vs_hsg_hold": 346.3,
+          "buyer_perceived_value": 6227.9,
+          "premium_vs_market": 616.9,
+          "premium_vs_hsg_hold": 359.9,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 5999.5,
-          "premium_vs_market": 512.5,
-          "premium_vs_hsg_hold": 276.1,
+          "buyer_perceived_value": 6160.8,
+          "premium_vs_market": 549.8,
+          "premium_vs_hsg_hold": 292.8,
           "buyer_position_need": 0.792
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 5890.9,
-          "premium_vs_market": 403.9,
-          "premium_vs_hsg_hold": 167.5,
-          "buyer_position_need": 0.542
+          "buyer_perceived_value": 6015.2,
+          "premium_vs_market": 404.2,
+          "premium_vs_hsg_hold": 147.2,
+          "buyer_position_need": 0.513
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 5855.0,
-          "premium_vs_market": 368.0,
-          "premium_vs_hsg_hold": 131.6,
+          "buyer_perceived_value": 6008.6,
+          "premium_vs_market": 397.6,
+          "premium_vs_hsg_hold": 140.6,
           "buyer_position_need": 0.625
         }
       ],
@@ -988,15 +987,15 @@
       "player": "CeeDee Lamb",
       "position": "WR",
       "protected_core": true,
-      "market_value": 6559.0,
-      "hsg_hold_value": 7145.0,
+      "market_value": 6494.0,
+      "hsg_hold_value": 7031.4,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 7702.3,
-        "premium_vs_market": 1143.3,
-        "premium_vs_hsg_hold": 557.3,
+        "buyer_perceived_value": 7571.3,
+        "premium_vs_market": 1077.3,
+        "premium_vs_hsg_hold": 539.9,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -1004,45 +1003,45 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 7702.3,
-          "premium_vs_market": 1143.3,
-          "premium_vs_hsg_hold": 557.3,
+          "buyer_perceived_value": 7571.3,
+          "premium_vs_market": 1077.3,
+          "premium_vs_hsg_hold": 539.9,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 7501.0,
-          "premium_vs_market": 942.0,
-          "premium_vs_hsg_hold": 356.0,
+          "buyer_perceived_value": 7377.1,
+          "premium_vs_market": 883.1,
+          "premium_vs_hsg_hold": 345.7,
           "buyer_position_need": 0.875
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 7327.7,
-          "premium_vs_market": 768.7,
-          "premium_vs_hsg_hold": 182.7,
-          "buyer_position_need": 0.542
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 7315.5,
-          "premium_vs_market": 756.5,
-          "premium_vs_hsg_hold": 170.5,
+          "buyer_perceived_value": 7190.0,
+          "premium_vs_market": 696.0,
+          "premium_vs_hsg_hold": 158.6,
           "buyer_position_need": 0.792
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 7177.7,
+          "premium_vs_market": 683.7,
+          "premium_vs_hsg_hold": 146.3,
+          "buyer_position_need": 0.513
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 7290.8,
-          "premium_vs_market": 731.8,
-          "premium_vs_hsg_hold": 145.8,
+          "buyer_perceived_value": 7176.6,
+          "premium_vs_market": 682.6,
+          "premium_vs_hsg_hold": 145.2,
           "buyer_position_need": 0.375
         }
       ],
@@ -1053,15 +1052,15 @@
       "player": "Zay Flowers",
       "position": "WR",
       "protected_core": true,
-      "market_value": 3812.0,
-      "hsg_hold_value": 4006.5,
+      "market_value": 3846.0,
+      "hsg_hold_value": 4038.6,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 4459.4,
-        "premium_vs_market": 647.4,
-        "premium_vs_hsg_hold": 452.9,
+        "buyer_perceived_value": 4495.5,
+        "premium_vs_market": 649.5,
+        "premium_vs_hsg_hold": 456.9,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -1069,46 +1068,46 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 4459.4,
-          "premium_vs_market": 647.4,
-          "premium_vs_hsg_hold": 452.9,
+          "buyer_perceived_value": 4495.5,
+          "premium_vs_market": 649.5,
+          "premium_vs_hsg_hold": 456.9,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 4279.0,
-          "premium_vs_market": 467.0,
-          "premium_vs_hsg_hold": 272.5,
+          "buyer_perceived_value": 4313.5,
+          "premium_vs_market": 467.5,
+          "premium_vs_hsg_hold": 274.9,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 4260.2,
-          "premium_vs_market": 448.2,
-          "premium_vs_hsg_hold": 253.7,
+          "buyer_perceived_value": 4294.8,
+          "premium_vs_market": 448.8,
+          "premium_vs_hsg_hold": 256.2,
           "buyer_position_need": 0.792
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 4136.3,
-          "premium_vs_market": 324.3,
-          "premium_vs_hsg_hold": 129.8,
-          "buyer_position_need": 0.542
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 4134.2,
-          "premium_vs_market": 322.2,
-          "premium_vs_hsg_hold": 127.7,
+          "buyer_perceived_value": 4167.5,
+          "premium_vs_market": 321.5,
+          "premium_vs_hsg_hold": 128.9,
           "buyer_position_need": 0.625
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 4151.0,
+          "premium_vs_market": 305.0,
+          "premium_vs_hsg_hold": 112.4,
+          "buyer_position_need": 0.513
         }
       ],
       "positive_arbitrage_vs_hsg_hold": true
@@ -1118,15 +1117,15 @@
       "player": "DeVonta Smith",
       "position": "WR",
       "protected_core": true,
-      "market_value": 3684.0,
-      "hsg_hold_value": 3755.3,
+      "market_value": 3612.0,
+      "hsg_hold_value": 3678.8,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 4093.0,
-        "premium_vs_market": 409.0,
-        "premium_vs_hsg_hold": 337.7,
+        "buyer_perceived_value": 4002.6,
+        "premium_vs_market": 390.6,
+        "premium_vs_hsg_hold": 323.8,
         "buyer_position_need": 0.958
       },
       "top_buyers": [
@@ -1134,44 +1133,44 @@
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 4093.0,
-          "premium_vs_market": 409.0,
-          "premium_vs_hsg_hold": 337.7,
+          "buyer_perceived_value": 4002.6,
+          "premium_vs_market": 390.6,
+          "premium_vs_hsg_hold": 323.8,
           "buyer_position_need": 0.958
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 3966.6,
-          "premium_vs_market": 282.6,
-          "premium_vs_hsg_hold": 211.3,
+          "buyer_perceived_value": 3882.0,
+          "premium_vs_market": 270.0,
+          "premium_vs_hsg_hold": 203.2,
           "buyer_position_need": 0.875
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 3893.4,
-          "premium_vs_market": 209.4,
-          "premium_vs_hsg_hold": 138.1,
+          "buyer_perceived_value": 3806.5,
+          "premium_vs_market": 194.5,
+          "premium_vs_hsg_hold": 127.7,
           "buyer_position_need": 0.792
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 3861.5,
-          "premium_vs_market": 177.5,
-          "premium_vs_hsg_hold": 106.2,
-          "buyer_position_need": 0.542
+          "buyer_perceived_value": 3764.5,
+          "premium_vs_market": 152.5,
+          "premium_vs_hsg_hold": 85.7,
+          "buyer_position_need": 0.513
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 3822.7,
-          "premium_vs_market": 138.7,
+          "buyer_perceived_value": 3746.2,
+          "premium_vs_market": 134.2,
           "premium_vs_hsg_hold": 67.4,
           "buyer_position_need": 0.375
         }
@@ -1181,42 +1180,23 @@
   ],
   "best_players_to_target": [
     {
-      "target_player_id": "4034",
-      "target_player": "Christian McCaffrey",
-      "position": "RB",
-      "seller_manager": "Anthonyder",
-      "seller_team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "hsg_value": 4693.8,
-      "seller_hold_value": 4963.8,
-      "valuation_gap_hsg_minus_seller": -270.0,
-      "optimal_lineup_value_gain": 6956.0,
-      "best_opening_package": [
-        "Sam Darnold",
-        "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
-      ],
-      "hsg_modeled_surplus": 41.2,
-      "acceptance_fit_score": 0.647,
-      "recommendation_band": "strong_candidate",
-      "decision_score": 0.15194
-    },
-    {
       "target_player_id": "6813",
       "target_player": "Jonathan Taylor",
       "position": "RB",
       "seller_manager": "Ballard22",
       "seller_team": "King B",
-      "hsg_value": 6037.7,
-      "seller_hold_value": 5814.6,
-      "valuation_gap_hsg_minus_seller": 223.1,
+      "hsg_value": 6237.6,
+      "seller_hold_value": 6056.5,
+      "valuation_gap_hsg_minus_seller": 181.1,
       "optimal_lineup_value_gain": 6323.0,
       "best_opening_package": [
         "Sam Darnold",
         "2029 Mid 1st \u2014 original Hurts So Good"
       ],
-      "hsg_modeled_surplus": 736.4,
-      "acceptance_fit_score": 0.445,
+      "hsg_modeled_surplus": 926.4,
+      "acceptance_fit_score": 0.374,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.18273
+      "decision_score": 0.18685
     },
     {
       "target_player_id": "9226",
@@ -1224,38 +1204,18 @@
       "position": "RB",
       "seller_manager": "Ballard22",
       "seller_team": "King B",
-      "hsg_value": 7153.7,
-      "seller_hold_value": 6920.7,
-      "valuation_gap_hsg_minus_seller": 233.0,
-      "optimal_lineup_value_gain": 5386.0,
+      "hsg_value": 7222.2,
+      "seller_hold_value": 7044.4,
+      "valuation_gap_hsg_minus_seller": 177.8,
+      "optimal_lineup_value_gain": 5396.0,
       "best_opening_package": [
         "Sam Darnold",
         "KC Concepcion"
       ],
-      "hsg_modeled_surplus": 1148.7,
-      "acceptance_fit_score": 0.407,
+      "hsg_modeled_surplus": 1162.5,
+      "acceptance_fit_score": 0.387,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.19271
-    },
-    {
-      "target_player_id": "12527",
-      "target_player": "Ashton Jeanty",
-      "position": "RB",
-      "seller_manager": "MochaSmev",
-      "seller_team": "MochaSmevs",
-      "hsg_value": 7746.8,
-      "seller_hold_value": 7898.6,
-      "valuation_gap_hsg_minus_seller": -151.8,
-      "optimal_lineup_value_gain": 4858.0,
-      "best_opening_package": [
-        "Sam Darnold",
-        "KC Concepcion",
-        "2028 Mid 2nd \u2014 original Hurts So Good"
-      ],
-      "hsg_modeled_surplus": 328.1,
-      "acceptance_fit_score": 0.411,
-      "recommendation_band": "strong_candidate",
-      "decision_score": 0.12099
+      "decision_score": 0.18954
     },
     {
       "target_player_id": "11604",
@@ -1263,19 +1223,39 @@
       "position": "TE",
       "seller_manager": "Drigs24",
       "seller_team": "BING BONG DRIGSY\ud83c\udf4e",
-      "hsg_value": 8255.6,
-      "seller_hold_value": 8085.8,
-      "valuation_gap_hsg_minus_seller": 169.8,
-      "optimal_lineup_value_gain": 4671.0,
+      "hsg_value": 8339.8,
+      "seller_hold_value": 8171.3,
+      "valuation_gap_hsg_minus_seller": 168.5,
+      "optimal_lineup_value_gain": 4841.0,
       "best_opening_package": [
         "Sam Darnold",
         "KC Concepcion",
         "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 910.7,
-      "acceptance_fit_score": 0.353,
+      "hsg_modeled_surplus": 933.9,
+      "acceptance_fit_score": 0.348,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.1504
+      "decision_score": 0.15143
+    },
+    {
+      "target_player_id": "12527",
+      "target_player": "Ashton Jeanty",
+      "position": "RB",
+      "seller_manager": "MochaSmev",
+      "seller_team": "MochaSmevs",
+      "hsg_value": 7723.6,
+      "seller_hold_value": 7939.0,
+      "valuation_gap_hsg_minus_seller": -215.4,
+      "optimal_lineup_value_gain": 4798.0,
+      "best_opening_package": [
+        "Sam Darnold",
+        "KC Concepcion",
+        "2028 Mid 2nd \u2014 original Hurts So Good"
+      ],
+      "hsg_modeled_surplus": 246.0,
+      "acceptance_fit_score": 0.419,
+      "recommendation_band": "strong_candidate",
+      "decision_score": 0.11525
     },
     {
       "target_player_id": "9224",
@@ -1283,37 +1263,18 @@
       "position": "RB",
       "seller_manager": "MochaSmev",
       "seller_team": "MochaSmevs",
-      "hsg_value": 4871.5,
-      "seller_hold_value": 5001.1,
-      "valuation_gap_hsg_minus_seller": -129.6,
-      "optimal_lineup_value_gain": 4569.0,
+      "hsg_value": 4925.8,
+      "seller_hold_value": 5098.1,
+      "valuation_gap_hsg_minus_seller": -172.3,
+      "optimal_lineup_value_gain": 4649.0,
       "best_opening_package": [
         "KC Concepcion",
         "2027 Mid 2nd \u2014 original Hurts So Good"
       ],
-      "hsg_modeled_surplus": 538.9,
-      "acceptance_fit_score": 0.485,
+      "hsg_modeled_surplus": 539.1,
+      "acceptance_fit_score": 0.478,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.16963
-    },
-    {
-      "target_player_id": "12507",
-      "target_player": "Omarion Hampton",
-      "position": "RB",
-      "seller_manager": "PVos",
-      "seller_team": "STINKS",
-      "hsg_value": 6558.0,
-      "seller_hold_value": 6121.6,
-      "valuation_gap_hsg_minus_seller": 436.4,
-      "optimal_lineup_value_gain": 4364.0,
-      "best_opening_package": [
-        "Sam Darnold",
-        "2029 Mid 1st \u2014 original Hurts So Good"
-      ],
-      "hsg_modeled_surplus": 1256.7,
-      "acceptance_fit_score": 0.522,
-      "recommendation_band": "strong_candidate",
-      "decision_score": 0.22071
+      "decision_score": 0.16809
     },
     {
       "target_player_id": "4866",
@@ -1321,18 +1282,37 @@
       "position": "RB",
       "seller_manager": "Ballard22",
       "seller_team": "King B",
-      "hsg_value": 4484.1,
-      "seller_hold_value": 4306.3,
-      "valuation_gap_hsg_minus_seller": 177.8,
-      "optimal_lineup_value_gain": 4336.0,
+      "hsg_value": 4447.0,
+      "seller_hold_value": 4306.1,
+      "valuation_gap_hsg_minus_seller": 140.9,
+      "optimal_lineup_value_gain": 4361.0,
       "best_opening_package": [
         "2029 Mid 1st \u2014 original Hurts So Good",
         "2029 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 506.9,
-      "acceptance_fit_score": 0.373,
+      "hsg_modeled_surplus": 467.8,
+      "acceptance_fit_score": 0.374,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.15258
+      "decision_score": 0.14794
+    },
+    {
+      "target_player_id": "12507",
+      "target_player": "Omarion Hampton",
+      "position": "RB",
+      "seller_manager": "PVos",
+      "seller_team": "STINKS",
+      "hsg_value": 6517.5,
+      "seller_hold_value": 6132.7,
+      "valuation_gap_hsg_minus_seller": 384.8,
+      "optimal_lineup_value_gain": 4358.0,
+      "best_opening_package": [
+        "Sam Darnold",
+        "2029 Mid 1st \u2014 original Hurts So Good"
+      ],
+      "hsg_modeled_surplus": 1206.3,
+      "acceptance_fit_score": 0.523,
+      "recommendation_band": "strong_candidate",
+      "decision_score": 0.21653
     },
     {
       "target_player_id": "8130",
@@ -1340,19 +1320,19 @@
       "position": "TE",
       "seller_manager": "jaco057",
       "seller_team": "HUNGRY DAWGS",
-      "hsg_value": 6710.9,
-      "seller_hold_value": 6397.2,
-      "valuation_gap_hsg_minus_seller": 313.7,
+      "hsg_value": 6718.1,
+      "seller_hold_value": 6406.5,
+      "valuation_gap_hsg_minus_seller": 311.6,
       "optimal_lineup_value_gain": 4311.0,
       "best_opening_package": [
         "KC Concepcion",
-        "Tyler Allgeier",
+        "2028 Mid 2nd \u2014 original Hurts So Good",
         "Antonio Williams"
       ],
-      "hsg_modeled_surplus": 1162.1,
-      "acceptance_fit_score": 0.457,
+      "hsg_modeled_surplus": 1201.6,
+      "acceptance_fit_score": 0.435,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.19987
+      "decision_score": 0.19948
     },
     {
       "target_player_id": "8151",
@@ -1360,18 +1340,18 @@
       "position": "RB",
       "seller_manager": "jder52",
       "seller_team": "The Shish Kebab Boys",
-      "hsg_value": 5089.7,
-      "seller_hold_value": 5360.2,
-      "valuation_gap_hsg_minus_seller": -270.5,
-      "optimal_lineup_value_gain": 3824.0,
+      "hsg_value": 5082.1,
+      "seller_hold_value": 5396.5,
+      "valuation_gap_hsg_minus_seller": -314.4,
+      "optimal_lineup_value_gain": 3809.0,
       "best_opening_package": [
         "KC Concepcion",
-        "Jonathon Brooks"
+        "2028 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 266.5,
-      "acceptance_fit_score": 0.635,
+      "hsg_modeled_surplus": 124.7,
+      "acceptance_fit_score": 0.665,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.15298
+      "decision_score": 0.14097
     },
     {
       "target_player_id": "6770",
@@ -1379,19 +1359,19 @@
       "position": "QB",
       "seller_manager": "MochaSmev",
       "seller_team": "MochaSmevs",
-      "hsg_value": 7568.7,
-      "seller_hold_value": 7511.9,
-      "valuation_gap_hsg_minus_seller": 56.8,
-      "optimal_lineup_value_gain": 3360.0,
+      "hsg_value": 7576.8,
+      "seller_hold_value": 7519.8,
+      "valuation_gap_hsg_minus_seller": 57.0,
+      "optimal_lineup_value_gain": 3282.0,
       "best_opening_package": [
         "KC Concepcion",
-        "2028 Mid 1st \u2014 original The Shish Kebab Boys",
-        "2029 Mid 1st \u2014 original Hurts So Good"
+        "2029 Mid 1st \u2014 original Hurts So Good",
+        "2029 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 678.9,
-      "acceptance_fit_score": 0.468,
+      "hsg_modeled_surplus": 859.5,
+      "acceptance_fit_score": 0.423,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.14626
+      "decision_score": 0.15248
     },
     {
       "target_player_id": "13287",
@@ -1399,19 +1379,19 @@
       "position": "RB",
       "seller_manager": "PVos",
       "seller_team": "STINKS",
-      "hsg_value": 7072.7,
-      "seller_hold_value": 6699.8,
-      "valuation_gap_hsg_minus_seller": 372.9,
-      "optimal_lineup_value_gain": 3008.0,
+      "hsg_value": 7078.5,
+      "seller_hold_value": 6761.5,
+      "valuation_gap_hsg_minus_seller": 317.0,
+      "optimal_lineup_value_gain": 2989.0,
       "best_opening_package": [
         "KC Concepcion",
         "2027 Mid 2nd \u2014 original Hurts So Good",
         "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 1400.2,
-      "acceptance_fit_score": 0.433,
+      "hsg_modeled_surplus": 1345.6,
+      "acceptance_fit_score": 0.437,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.20138
+      "decision_score": 0.19694
     },
     {
       "target_player_id": "8150",
@@ -1419,17 +1399,17 @@
       "position": "RB",
       "seller_manager": "Drigs24",
       "seller_team": "BING BONG DRIGSY\ud83c\udf4e",
-      "hsg_value": 3886.4,
-      "seller_hold_value": 3823.4,
-      "valuation_gap_hsg_minus_seller": 63.0,
-      "optimal_lineup_value_gain": 2704.0,
+      "hsg_value": 3790.4,
+      "seller_hold_value": 3764.3,
+      "valuation_gap_hsg_minus_seller": 26.1,
+      "optimal_lineup_value_gain": 2778.0,
       "best_opening_package": [
         "Sam Darnold"
       ],
-      "hsg_modeled_surplus": 573.7,
-      "acceptance_fit_score": 0.428,
+      "hsg_modeled_surplus": 468.8,
+      "acceptance_fit_score": 0.462,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.16919
+      "decision_score": 0.16064
     },
     {
       "target_player_id": "5850",
@@ -1437,37 +1417,37 @@
       "position": "RB",
       "seller_manager": "jder52",
       "seller_team": "The Shish Kebab Boys",
-      "hsg_value": 3013.0,
-      "seller_hold_value": 3150.4,
-      "valuation_gap_hsg_minus_seller": -137.4,
-      "optimal_lineup_value_gain": 2651.0,
+      "hsg_value": 2950.6,
+      "seller_hold_value": 3110.5,
+      "valuation_gap_hsg_minus_seller": -159.9,
+      "optimal_lineup_value_gain": 2656.0,
       "best_opening_package": [
         "KC Concepcion"
       ],
-      "hsg_modeled_surplus": 320.7,
-      "acceptance_fit_score": 0.637,
+      "hsg_modeled_surplus": 212.5,
+      "acceptance_fit_score": 0.692,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.1763
+      "decision_score": 0.16438
     },
     {
-      "target_player_id": "11566",
-      "target_player": "Jayden Daniels",
+      "target_player_id": "11560",
+      "target_player": "Caleb Williams",
       "position": "QB",
-      "seller_manager": "MochaSmev",
-      "seller_team": "MochaSmevs",
-      "hsg_value": 7213.1,
-      "seller_hold_value": 7129.9,
-      "valuation_gap_hsg_minus_seller": 83.2,
-      "optimal_lineup_value_gain": 2544.0,
+      "seller_manager": "nuckyniners",
+      "seller_team": "Chef Niners",
+      "hsg_value": 7722.0,
+      "seller_hold_value": 8009.6,
+      "valuation_gap_hsg_minus_seller": -287.6,
+      "optimal_lineup_value_gain": 2627.0,
       "best_opening_package": [
+        "Sam Darnold",
         "KC Concepcion",
-        "2028 Mid 1st \u2014 original The Shish Kebab Boys",
-        "2028 Mid 2nd \u2014 original Hurts So Good"
+        "2027 Mid 2nd \u2014 original Hurts So Good"
       ],
-      "hsg_modeled_surplus": 898.2,
-      "acceptance_fit_score": 0.417,
+      "hsg_modeled_surplus": 13.7,
+      "acceptance_fit_score": 0.437,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.15298
+      "decision_score": 0.08519
     },
     {
       "target_player_id": "7588",
@@ -1475,18 +1455,38 @@
       "position": "RB",
       "seller_manager": "Drigs24",
       "seller_team": "BING BONG DRIGSY\ud83c\udf4e",
-      "hsg_value": 3389.6,
-      "seller_hold_value": 3344.0,
-      "valuation_gap_hsg_minus_seller": 45.6,
-      "optimal_lineup_value_gain": 2437.0,
+      "hsg_value": 3281.1,
+      "seller_hold_value": 3266.1,
+      "valuation_gap_hsg_minus_seller": 15.0,
+      "optimal_lineup_value_gain": 2417.0,
       "best_opening_package": [
         "2027 Mid 2nd \u2014 original Hurts So Good",
+        "2029 Mid 2nd \u2014 original The Shish Kebab Boys"
+      ],
+      "hsg_modeled_surplus": 286.3,
+      "acceptance_fit_score": 0.403,
+      "recommendation_band": "strong_candidate",
+      "decision_score": 0.12819
+    },
+    {
+      "target_player_id": "11566",
+      "target_player": "Jayden Daniels",
+      "position": "QB",
+      "seller_manager": "MochaSmev",
+      "seller_team": "MochaSmevs",
+      "hsg_value": 7321.6,
+      "seller_hold_value": 7234.9,
+      "valuation_gap_hsg_minus_seller": 86.7,
+      "optimal_lineup_value_gain": 2414.0,
+      "best_opening_package": [
+        "KC Concepcion",
+        "2028 Mid 1st \u2014 original The Shish Kebab Boys",
         "2028 Mid 2nd \u2014 original Hurts So Good"
       ],
-      "hsg_modeled_surplus": 335.6,
-      "acceptance_fit_score": 0.394,
+      "hsg_modeled_surplus": 946.3,
+      "acceptance_fit_score": 0.412,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.13401
+      "decision_score": 0.15383
     },
     {
       "target_player_id": "6904",
@@ -1494,18 +1494,18 @@
       "position": "QB",
       "seller_manager": "jder52",
       "seller_team": "The Shish Kebab Boys",
-      "hsg_value": 6226.1,
-      "seller_hold_value": 6596.4,
-      "valuation_gap_hsg_minus_seller": -370.3,
-      "optimal_lineup_value_gain": 2152.0,
+      "hsg_value": 6267.0,
+      "seller_hold_value": 6639.7,
+      "valuation_gap_hsg_minus_seller": -372.7,
+      "optimal_lineup_value_gain": 2142.0,
       "best_opening_package": [
         "Sam Darnold",
         "KC Concepcion"
       ],
-      "hsg_modeled_surplus": 221.1,
-      "acceptance_fit_score": 0.656,
+      "hsg_modeled_surplus": 207.3,
+      "acceptance_fit_score": 0.66,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.13435
+      "decision_score": 0.13336
     },
     {
       "target_player_id": "12517",
@@ -1513,18 +1513,18 @@
       "position": "TE",
       "seller_manager": "Ballard22",
       "seller_team": "King B",
-      "hsg_value": 5564.2,
-      "seller_hold_value": 5675.0,
-      "valuation_gap_hsg_minus_seller": -110.8,
-      "optimal_lineup_value_gain": 1907.0,
+      "hsg_value": 5561.6,
+      "seller_hold_value": 5671.3,
+      "valuation_gap_hsg_minus_seller": -109.7,
+      "optimal_lineup_value_gain": 2053.0,
       "best_opening_package": [
-        "Sam Darnold",
-        "2027 Mid 2nd \u2014 original Hurts So Good"
+        "KC Concepcion",
+        "2028 Mid 1st \u2014 original The Shish Kebab Boys"
       ],
-      "hsg_modeled_surplus": 611.2,
-      "acceptance_fit_score": 0.376,
+      "hsg_modeled_surplus": 604.2,
+      "acceptance_fit_score": 0.375,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.13378
+      "decision_score": 0.13381
     },
     {
       "target_player_id": "12481",
@@ -1532,17 +1532,17 @@
       "position": "RB",
       "seller_manager": "nuckyniners",
       "seller_team": "Chef Niners",
-      "hsg_value": 3401.9,
-      "seller_hold_value": 3616.8,
-      "valuation_gap_hsg_minus_seller": -214.9,
-      "optimal_lineup_value_gain": 1880.0,
+      "hsg_value": 3333.8,
+      "seller_hold_value": 3574.1,
+      "valuation_gap_hsg_minus_seller": -240.3,
+      "optimal_lineup_value_gain": 1828.0,
       "best_opening_package": [
         "Sam Darnold"
       ],
-      "hsg_modeled_surplus": 89.2,
-      "acceptance_fit_score": 0.488,
+      "hsg_modeled_surplus": 12.2,
+      "acceptance_fit_score": 0.514,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.10194
+      "decision_score": 0.09221
     },
     {
       "target_player_id": "12518",
@@ -1550,43 +1550,21 @@
       "position": "TE",
       "seller_manager": "MochaSmev",
       "seller_team": "MochaSmevs",
-      "hsg_value": 4685.9,
-      "seller_hold_value": 5022.0,
-      "valuation_gap_hsg_minus_seller": -336.1,
-      "optimal_lineup_value_gain": 1717.0,
+      "hsg_value": 4602.1,
+      "seller_hold_value": 4933.1,
+      "valuation_gap_hsg_minus_seller": -331.0,
+      "optimal_lineup_value_gain": 1799.0,
       "best_opening_package": [
-        "KC Concepcion",
-        "2027 Mid 2nd \u2014 original Hurts So Good"
+        "2028 Mid 1st \u2014 original The Shish Kebab Boys",
+        "2029 Mid 1st \u2014 original Hurts So Good"
       ],
-      "hsg_modeled_surplus": 353.3,
-      "acceptance_fit_score": 0.477,
+      "hsg_modeled_surplus": 393.2,
+      "acceptance_fit_score": 0.496,
       "recommendation_band": "strong_candidate",
-      "decision_score": 0.12764
+      "decision_score": 0.13673
     }
   ],
   "best_direct_arbitrage_routes": [
-    {
-      "opponent_user_id": "833709164739014656",
-      "opponent_manager": "jaco057",
-      "opponent_team": "HUNGRY DAWGS",
-      "send_asset_id": "player:13298",
-      "send_asset": "KC Concepcion",
-      "receive_asset_id": "pick:2027:R1:orig10",
-      "receive_asset": "2027 Mid 1st \u2014 original The Shish Kebab Boys",
-      "hsg_hold_cost": 2692.3,
-      "hsg_receive_value": 2965.3,
-      "hsg_surplus": 273.0,
-      "hsg_value_ratio": 1.101,
-      "opponent_receive_value": 2883.0,
-      "opponent_hold_cost": 3028.4,
-      "opponent_surplus": -145.4,
-      "opponent_value_ratio": 0.952,
-      "deal_class": "near_direct_match",
-      "arbitrage_score": 0.28233,
-      "strategic_asset_score": 0.9238,
-      "strategic_score": 0.71202,
-      "strategic_class": "priority"
-    },
     {
       "opponent_user_id": "844772511156670464",
       "opponent_manager": "CoachKoko",
@@ -1595,18 +1573,62 @@
       "send_asset": "Antonio Williams",
       "receive_asset_id": "pick:2028:R2:orig6",
       "receive_asset": "2028 Early 2nd \u2014 original Trash Incessant Talkers",
-      "hsg_hold_cost": 1349.8,
-      "hsg_receive_value": 1612.0,
-      "hsg_surplus": 262.2,
-      "hsg_value_ratio": 1.194,
-      "opponent_receive_value": 1604.3,
-      "opponent_hold_cost": 1611.2,
-      "opponent_surplus": -6.9,
-      "opponent_value_ratio": 0.996,
-      "deal_class": "near_direct_match",
-      "arbitrage_score": 0.42722,
+      "hsg_hold_cost": 1360.5,
+      "hsg_receive_value": 1616.7,
+      "hsg_surplus": 256.2,
+      "hsg_value_ratio": 1.188,
+      "opponent_receive_value": 1617.0,
+      "opponent_hold_cost": 1615.9,
+      "opponent_surplus": 1.1,
+      "opponent_value_ratio": 1.001,
+      "deal_class": "mutual_arbitrage",
+      "arbitrage_score": 0.43377,
       "strategic_asset_score": 0.6096,
-      "strategic_score": 0.7048,
+      "strategic_score": 0.70353,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "833709164739014656",
+      "opponent_manager": "jaco057",
+      "opponent_team": "HUNGRY DAWGS",
+      "send_asset_id": "player:13298",
+      "send_asset": "KC Concepcion",
+      "receive_asset_id": "pick:2027:R1:orig10",
+      "receive_asset": "2027 Mid 1st \u2014 original The Shish Kebab Boys",
+      "hsg_hold_cost": 2738.1,
+      "hsg_receive_value": 2942.2,
+      "hsg_surplus": 204.1,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 2932.4,
+      "opponent_hold_cost": 3004.8,
+      "opponent_surplus": -72.4,
+      "opponent_value_ratio": 0.976,
+      "deal_class": "near_direct_match",
+      "arbitrage_score": 0.3193,
+      "strategic_asset_score": 0.9238,
+      "strategic_score": 0.70197,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "844772511156670464",
+      "opponent_manager": "CoachKoko",
+      "opponent_team": "Trash Incessant Talkers",
+      "send_asset_id": "player:11583",
+      "send_asset": "Jonathon Brooks",
+      "receive_asset_id": "pick:2029:R1:orig6",
+      "receive_asset": "2029 Early 1st \u2014 original Trash Incessant Talkers",
+      "hsg_hold_cost": 2043.8,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 224.9,
+      "hsg_value_ratio": 1.11,
+      "opponent_receive_value": 2037.6,
+      "opponent_hold_cost": 2267.5,
+      "opponent_surplus": -229.9,
+      "opponent_value_ratio": 0.899,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.1648,
+      "strategic_asset_score": 0.9854,
+      "strategic_score": 0.70042,
       "strategic_class": "priority"
     },
     {
@@ -1617,18 +1639,18 @@
       "send_asset": "KC Concepcion",
       "receive_asset_id": "pick:2027:R1:orig12",
       "receive_asset": "2027 Mid 1st \u2014 original King B",
-      "hsg_hold_cost": 2692.3,
-      "hsg_receive_value": 2965.3,
-      "hsg_surplus": 273.0,
-      "hsg_value_ratio": 1.101,
-      "opponent_receive_value": 3043.8,
-      "opponent_hold_cost": 3183.7,
-      "opponent_surplus": -139.9,
-      "opponent_value_ratio": 0.956,
+      "hsg_hold_cost": 2738.1,
+      "hsg_receive_value": 2942.2,
+      "hsg_surplus": 204.1,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 3096.1,
+      "opponent_hold_cost": 3158.9,
+      "opponent_surplus": -62.8,
+      "opponent_value_ratio": 0.98,
       "deal_class": "near_direct_match",
-      "arbitrage_score": 0.30242,
-      "strategic_asset_score": 0.8989,
-      "strategic_score": 0.70356,
+      "arbitrage_score": 0.33969,
+      "strategic_asset_score": 0.8908,
+      "strategic_score": 0.68945,
       "strategic_class": "priority"
     },
     {
@@ -1639,18 +1661,18 @@
       "send_asset": "KC Concepcion",
       "receive_asset_id": "pick:2027:R1:orig9",
       "receive_asset": "2027 Mid 1st \u2014 original Hurts So Good",
-      "hsg_hold_cost": 2692.3,
-      "hsg_receive_value": 2965.3,
-      "hsg_surplus": 273.0,
-      "hsg_value_ratio": 1.101,
-      "opponent_receive_value": 2883.0,
-      "opponent_hold_cost": 3028.4,
-      "opponent_surplus": -145.4,
-      "opponent_value_ratio": 0.952,
+      "hsg_hold_cost": 2738.1,
+      "hsg_receive_value": 2942.2,
+      "hsg_surplus": 204.1,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 2932.4,
+      "opponent_hold_cost": 3004.8,
+      "opponent_surplus": -72.4,
+      "opponent_value_ratio": 0.976,
       "deal_class": "near_direct_match",
-      "arbitrage_score": 0.28233,
-      "strategic_asset_score": 0.8821,
-      "strategic_score": 0.69116,
+      "arbitrage_score": 0.3193,
+      "strategic_asset_score": 0.8902,
+      "strategic_score": 0.68517,
       "strategic_class": "priority"
     },
     {
@@ -1661,62 +1683,18 @@
       "send_asset": "Antonio Williams",
       "receive_asset_id": "pick:2029:R2:orig6",
       "receive_asset": "2029 Early 2nd \u2014 original Trash Incessant Talkers",
-      "hsg_hold_cost": 1349.8,
-      "hsg_receive_value": 1527.8,
-      "hsg_surplus": 178.0,
-      "hsg_value_ratio": 1.132,
-      "opponent_receive_value": 1604.3,
-      "opponent_hold_cost": 1527.1,
-      "opponent_surplus": 77.2,
-      "opponent_value_ratio": 1.051,
+      "hsg_hold_cost": 1360.5,
+      "hsg_receive_value": 1535.0,
+      "hsg_surplus": 174.5,
+      "hsg_value_ratio": 1.128,
+      "opponent_receive_value": 1617.0,
+      "opponent_hold_cost": 1534.2,
+      "opponent_surplus": 82.8,
+      "opponent_value_ratio": 1.054,
       "deal_class": "mutual_arbitrage",
-      "arbitrage_score": 0.41363,
+      "arbitrage_score": 0.41227,
       "strategic_asset_score": 0.611,
-      "strategic_score": 0.68028,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "844772511156670464",
-      "opponent_manager": "CoachKoko",
-      "opponent_team": "Trash Incessant Talkers",
-      "send_asset_id": "player:11583",
-      "send_asset": "Jonathon Brooks",
-      "receive_asset_id": "pick:2029:R1:orig6",
-      "receive_asset": "2029 Early 1st \u2014 original Trash Incessant Talkers",
-      "hsg_hold_cost": 2130.9,
-      "hsg_receive_value": 2267.5,
-      "hsg_surplus": 136.6,
-      "hsg_value_ratio": 1.064,
-      "opponent_receive_value": 2103.3,
-      "opponent_hold_cost": 2266.3,
-      "opponent_surplus": -163.0,
-      "opponent_value_ratio": 0.928,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.20507,
-      "strategic_asset_score": 0.9854,
-      "strategic_score": 0.67108,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "player:13298",
-      "send_asset": "KC Concepcion",
-      "receive_asset_id": "pick:2027:R1:orig3",
-      "receive_asset": "2027 Mid 1st \u2014 original STINKS",
-      "hsg_hold_cost": 2692.3,
-      "hsg_receive_value": 2965.3,
-      "hsg_surplus": 273.0,
-      "hsg_value_ratio": 1.101,
-      "opponent_receive_value": 2959.4,
-      "opponent_hold_cost": 3233.9,
-      "opponent_surplus": -274.5,
-      "opponent_value_ratio": 0.915,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.21427,
-      "strategic_asset_score": 0.9003,
-      "strategic_score": 0.66326,
+      "strategic_score": 0.67604,
       "strategic_class": "priority"
     },
     {
@@ -1727,40 +1705,40 @@
       "send_asset": "Jonathon Brooks",
       "receive_asset_id": "pick:2029:R1:orig1",
       "receive_asset": "2029 Early 1st \u2014 original HUNGRY DAWGS",
-      "hsg_hold_cost": 2130.9,
-      "hsg_receive_value": 2267.5,
-      "hsg_surplus": 136.6,
-      "hsg_value_ratio": 1.064,
-      "opponent_receive_value": 2105.5,
-      "opponent_hold_cost": 2315.7,
-      "opponent_surplus": -210.2,
-      "opponent_value_ratio": 0.909,
+      "hsg_hold_cost": 2043.8,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 224.9,
+      "hsg_value_ratio": 1.11,
+      "opponent_receive_value": 2040.0,
+      "opponent_hold_cost": 2316.9,
+      "opponent_surplus": -276.9,
+      "opponent_value_ratio": 0.88,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.16737,
+      "arbitrage_score": 0.12856,
       "strategic_asset_score": 0.9306,
-      "strategic_score": 0.62464,
+      "strategic_score": 0.65398,
       "strategic_class": "priority"
     },
     {
-      "opponent_user_id": "844772511156670464",
-      "opponent_manager": "CoachKoko",
-      "opponent_team": "Trash Incessant Talkers",
-      "send_asset_id": "pick:2028:R1:orig10",
-      "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
-      "receive_asset_id": "pick:2029:R1:orig6",
-      "receive_asset": "2029 Early 1st \u2014 original Trash Incessant Talkers",
-      "hsg_hold_cost": 2208.9,
-      "hsg_receive_value": 2267.5,
-      "hsg_surplus": 58.6,
-      "hsg_value_ratio": 1.027,
-      "opponent_receive_value": 2059.1,
-      "opponent_hold_cost": 2266.3,
-      "opponent_surplus": -207.2,
-      "opponent_value_ratio": 0.909,
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "player:13298",
+      "send_asset": "KC Concepcion",
+      "receive_asset_id": "pick:2027:R1:orig3",
+      "receive_asset": "2027 Mid 1st \u2014 original STINKS",
+      "hsg_hold_cost": 2738.1,
+      "hsg_receive_value": 2942.2,
+      "hsg_surplus": 204.1,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 3010.0,
+      "opponent_hold_cost": 3208.7,
+      "opponent_surplus": -198.7,
+      "opponent_value_ratio": 0.938,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.14955,
-      "strategic_asset_score": 0.9854,
-      "strategic_score": 0.60049,
+      "arbitrage_score": 0.24931,
+      "strategic_asset_score": 0.9003,
+      "strategic_score": 0.65221,
       "strategic_class": "priority"
     },
     {
@@ -1771,18 +1749,40 @@
       "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
       "receive_asset_id": "pick:2029:R1:orig4",
       "receive_asset": "2029 Early 1st \u2014 original The Associate ",
-      "hsg_hold_cost": 2208.9,
-      "hsg_receive_value": 2267.5,
-      "hsg_surplus": 58.6,
-      "hsg_value_ratio": 1.027,
-      "opponent_receive_value": 2217.4,
-      "opponent_hold_cost": 2434.5,
-      "opponent_surplus": -217.1,
-      "opponent_value_ratio": 0.911,
+      "hsg_hold_cost": 2219.3,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 49.4,
+      "hsg_value_ratio": 1.022,
+      "opponent_receive_value": 2227.8,
+      "opponent_hold_cost": 2435.7,
+      "opponent_surplus": -207.9,
+      "opponent_value_ratio": 0.915,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.15482,
+      "arbitrage_score": 0.16051,
       "strategic_asset_score": 0.981,
-      "strategic_score": 0.60025,
+      "strategic_score": 0.59814,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "844772511156670464",
+      "opponent_manager": "CoachKoko",
+      "opponent_team": "Trash Incessant Talkers",
+      "send_asset_id": "pick:2028:R1:orig10",
+      "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
+      "receive_asset_id": "pick:2029:R1:orig6",
+      "receive_asset": "2029 Early 1st \u2014 original Trash Incessant Talkers",
+      "hsg_hold_cost": 2219.3,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 49.4,
+      "hsg_value_ratio": 1.022,
+      "opponent_receive_value": 2068.8,
+      "opponent_hold_cost": 2267.5,
+      "opponent_surplus": -198.7,
+      "opponent_value_ratio": 0.912,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.15519,
+      "strategic_asset_score": 0.9854,
+      "strategic_score": 0.59738,
       "strategic_class": "priority"
     },
     {
@@ -1793,220 +1793,299 @@
       "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
       "receive_asset_id": "pick:2029:R1:orig5",
       "receive_asset": "2029 Early 1st \u2014 original Ball Knower",
-      "hsg_hold_cost": 2208.9,
-      "hsg_receive_value": 2267.5,
-      "hsg_surplus": 58.6,
-      "hsg_value_ratio": 1.027,
-      "opponent_receive_value": 2239.6,
-      "opponent_hold_cost": 2458.0,
-      "opponent_surplus": -218.4,
-      "opponent_value_ratio": 0.911,
+      "hsg_hold_cost": 2219.3,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 49.4,
+      "hsg_value_ratio": 1.022,
+      "opponent_receive_value": 2250.1,
+      "opponent_hold_cost": 2459.3,
+      "opponent_surplus": -209.2,
+      "opponent_value_ratio": 0.915,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.15748,
+      "arbitrage_score": 0.1631,
       "strategic_asset_score": 0.958,
-      "strategic_score": 0.58877,
+      "strategic_score": 0.58666,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2029:R1:orig9",
+      "send_asset": "2029 Mid 1st \u2014 original Hurts So Good",
+      "receive_asset_id": "pick:2028:R1:orig3",
+      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
+      "hsg_hold_cost": 1989.6,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 155.0,
+      "hsg_value_ratio": 1.078,
+      "opponent_receive_value": 2029.8,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -309.1,
+      "opponent_value_ratio": 0.868,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09442,
+      "strategic_asset_score": 0.8961,
+      "strategic_score": 0.58447,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2029:R1:orig10",
+      "send_asset": "2029 Mid 1st \u2014 original The Shish Kebab Boys",
+      "receive_asset_id": "pick:2028:R1:orig3",
+      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
+      "hsg_hold_cost": 1989.6,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 155.0,
+      "hsg_value_ratio": 1.078,
+      "opponent_receive_value": 2029.8,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -309.1,
+      "opponent_value_ratio": 0.868,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09442,
+      "strategic_asset_score": 0.8961,
+      "strategic_score": 0.58447,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2027:R2:orig5",
+      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
+      "receive_asset_id": "pick:2028:R1:orig3",
+      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
+      "hsg_hold_cost": 1995.8,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 148.8,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 2036.2,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -302.7,
+      "opponent_value_ratio": 0.871,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09851,
+      "strategic_asset_score": 0.8961,
+      "strategic_score": 0.58314,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2029:R1:orig9",
+      "send_asset": "2029 Mid 1st \u2014 original Hurts So Good",
+      "receive_asset_id": "pick:2028:R1:orig9",
+      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
+      "hsg_hold_cost": 1989.6,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 155.0,
+      "hsg_value_ratio": 1.078,
+      "opponent_receive_value": 2029.8,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -309.1,
+      "opponent_value_ratio": 0.868,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09442,
+      "strategic_asset_score": 0.8928,
+      "strategic_score": 0.58279,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2029:R1:orig10",
+      "send_asset": "2029 Mid 1st \u2014 original The Shish Kebab Boys",
+      "receive_asset_id": "pick:2028:R1:orig9",
+      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
+      "hsg_hold_cost": 1989.6,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 155.0,
+      "hsg_value_ratio": 1.078,
+      "opponent_receive_value": 2029.8,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -309.1,
+      "opponent_value_ratio": 0.868,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09442,
+      "strategic_asset_score": 0.8928,
+      "strategic_score": 0.58279,
+      "strategic_class": "priority"
+    },
+    {
+      "opponent_user_id": "725401251478605824",
+      "opponent_manager": "PVos",
+      "opponent_team": "STINKS",
+      "send_asset_id": "pick:2027:R2:orig5",
+      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
+      "receive_asset_id": "pick:2028:R1:orig9",
+      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
+      "hsg_hold_cost": 1995.8,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 148.8,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 2036.2,
+      "opponent_hold_cost": 2338.9,
+      "opponent_surplus": -302.7,
+      "opponent_value_ratio": 0.871,
+      "deal_class": "needs_small_bridge",
+      "arbitrage_score": 0.09851,
+      "strategic_asset_score": 0.8928,
+      "strategic_score": 0.58146,
       "strategic_class": "priority"
     },
     {
       "opponent_user_id": "858530218330144768",
       "opponent_manager": "Ballard22",
       "opponent_team": "King B",
-      "send_asset_id": "pick:2029:R1:orig9",
-      "send_asset": "2029 Mid 1st \u2014 original Hurts So Good",
+      "send_asset_id": "pick:2027:R2:orig5",
+      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
       "receive_asset_id": "pick:2028:R1:orig12",
       "receive_asset": "2028 Mid 1st \u2014 original King B",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 1891.2,
-      "opponent_hold_cost": 2175.2,
-      "opponent_surplus": -284.0,
+      "hsg_hold_cost": 1995.8,
+      "hsg_receive_value": 2144.6,
+      "hsg_surplus": 148.8,
+      "hsg_value_ratio": 1.075,
+      "opponent_receive_value": 1898.1,
+      "opponent_hold_cost": 2185.4,
+      "opponent_surplus": -287.3,
       "opponent_value_ratio": 0.869,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09171,
-      "strategic_asset_score": 0.9003,
-      "strategic_score": 0.58176,
+      "arbitrage_score": 0.09038,
+      "strategic_asset_score": 0.8908,
+      "strategic_score": 0.57848,
       "strategic_class": "priority"
     },
     {
-      "opponent_user_id": "858530218330144768",
-      "opponent_manager": "Ballard22",
-      "opponent_team": "King B",
-      "send_asset_id": "pick:2029:R1:orig10",
-      "send_asset": "2029 Mid 1st \u2014 original The Shish Kebab Boys",
-      "receive_asset_id": "pick:2028:R1:orig12",
-      "receive_asset": "2028 Mid 1st \u2014 original King B",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 1891.2,
-      "opponent_hold_cost": 2175.2,
-      "opponent_surplus": -284.0,
-      "opponent_value_ratio": 0.869,
+      "opponent_user_id": "833709164739014656",
+      "opponent_manager": "jaco057",
+      "opponent_team": "HUNGRY DAWGS",
+      "send_asset_id": "pick:2028:R1:orig10",
+      "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
+      "receive_asset_id": "pick:2029:R1:orig1",
+      "receive_asset": "2029 Early 1st \u2014 original HUNGRY DAWGS",
+      "hsg_hold_cost": 2219.3,
+      "hsg_receive_value": 2268.7,
+      "hsg_surplus": 49.4,
+      "hsg_value_ratio": 1.022,
+      "opponent_receive_value": 2115.5,
+      "opponent_hold_cost": 2316.9,
+      "opponent_surplus": -201.4,
+      "opponent_value_ratio": 0.913,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09171,
-      "strategic_asset_score": 0.9003,
-      "strategic_score": 0.58176,
+      "arbitrage_score": 0.1566,
+      "strategic_asset_score": 0.9306,
+      "strategic_score": 0.57094,
       "strategic_class": "priority"
     },
     {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2029:R1:orig9",
-      "send_asset": "2029 Mid 1st \u2014 original Hurts So Good",
-      "receive_asset_id": "pick:2028:R1:orig3",
-      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 2028.7,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -299.2,
-      "opponent_value_ratio": 0.871,
+      "opponent_user_id": "844785316274483200",
+      "opponent_manager": "MochaSmev",
+      "opponent_team": "MochaSmevs",
+      "send_asset_id": "pick:2028:R1:orig10",
+      "send_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
+      "receive_asset_id": "pick:2027:R1:orig7",
+      "receive_asset": "2027 Late 1st \u2014 original MochaSmevs",
+      "hsg_hold_cost": 2219.3,
+      "hsg_receive_value": 2374.6,
+      "hsg_surplus": 155.3,
+      "hsg_value_ratio": 1.07,
+      "opponent_receive_value": 2304.1,
+      "opponent_hold_cost": 2634.0,
+      "opponent_surplus": -329.9,
+      "opponent_value_ratio": 0.875,
       "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09981,
-      "strategic_asset_score": 0.8961,
-      "strategic_score": 0.58166,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2029:R1:orig10",
-      "send_asset": "2029 Mid 1st \u2014 original The Shish Kebab Boys",
-      "receive_asset_id": "pick:2028:R1:orig3",
-      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 2028.7,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -299.2,
-      "opponent_value_ratio": 0.871,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09981,
-      "strategic_asset_score": 0.8961,
-      "strategic_score": 0.58166,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "858530218330144768",
-      "opponent_manager": "Ballard22",
-      "opponent_team": "King B",
-      "send_asset_id": "pick:2027:R2:orig5",
-      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
-      "receive_asset_id": "pick:2028:R1:orig12",
-      "receive_asset": "2028 Mid 1st \u2014 original King B",
-      "hsg_hold_cost": 1993.8,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 140.8,
-      "hsg_value_ratio": 1.071,
-      "opponent_receive_value": 1896.1,
-      "opponent_hold_cost": 2175.2,
-      "opponent_surplus": -279.1,
-      "opponent_value_ratio": 0.872,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09504,
-      "strategic_asset_score": 0.9003,
-      "strategic_score": 0.5811,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2027:R2:orig5",
-      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
-      "receive_asset_id": "pick:2028:R1:orig3",
-      "receive_asset": "2028 Mid 1st \u2014 original STINKS",
-      "hsg_hold_cost": 1993.8,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 140.8,
-      "hsg_value_ratio": 1.071,
-      "opponent_receive_value": 2034.0,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -293.9,
-      "opponent_value_ratio": 0.874,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.10319,
-      "strategic_asset_score": 0.8961,
-      "strategic_score": 0.581,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2029:R1:orig9",
-      "send_asset": "2029 Mid 1st \u2014 original Hurts So Good",
-      "receive_asset_id": "pick:2028:R1:orig9",
-      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 2028.7,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -299.2,
-      "opponent_value_ratio": 0.871,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09981,
-      "strategic_asset_score": 0.8832,
-      "strategic_score": 0.57522,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2029:R1:orig10",
-      "send_asset": "2029 Mid 1st \u2014 original The Shish Kebab Boys",
-      "receive_asset_id": "pick:2028:R1:orig9",
-      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
-      "hsg_hold_cost": 1988.6,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 146.0,
-      "hsg_value_ratio": 1.073,
-      "opponent_receive_value": 2028.7,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -299.2,
-      "opponent_value_ratio": 0.871,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.09981,
-      "strategic_asset_score": 0.8832,
-      "strategic_score": 0.57522,
-      "strategic_class": "priority"
-    },
-    {
-      "opponent_user_id": "725401251478605824",
-      "opponent_manager": "PVos",
-      "opponent_team": "STINKS",
-      "send_asset_id": "pick:2027:R2:orig5",
-      "send_asset": "2027 Early 2nd \u2014 original Ball Knower",
-      "receive_asset_id": "pick:2028:R1:orig9",
-      "receive_asset": "2028 Mid 1st \u2014 original Hurts So Good",
-      "hsg_hold_cost": 1993.8,
-      "hsg_receive_value": 2134.6,
-      "hsg_surplus": 140.8,
-      "hsg_value_ratio": 1.071,
-      "opponent_receive_value": 2034.0,
-      "opponent_hold_cost": 2327.9,
-      "opponent_surplus": -293.9,
-      "opponent_value_ratio": 0.874,
-      "deal_class": "needs_small_bridge",
-      "arbitrage_score": 0.10319,
-      "strategic_asset_score": 0.8832,
-      "strategic_score": 0.57456,
+      "arbitrage_score": 0.10854,
+      "strategic_asset_score": 0.8412,
+      "strategic_score": 0.55372,
       "strategic_class": "priority"
     }
   ],
-  "best_two_step_arbitrage_routes": [],
+  "best_two_step_arbitrage_routes": [
+    {
+      "source_asset_id": "player:13298",
+      "source_asset": "KC Concepcion",
+      "source_hsg_hold_value": 2738.1,
+      "step1_buyer_user_id": "833709164739014656",
+      "step1_buyer_manager": "jaco057",
+      "step1_buyer_team": "HUNGRY DAWGS",
+      "step1_receive_currency_asset_id": "pick:2027:R1:orig9",
+      "step1_receive_currency_asset": "2027 Mid 1st \u2014 original Hurts So Good",
+      "step1_buyer_value_ratio": 0.976,
+      "step2_seller_user_id": "725401251478605824",
+      "step2_seller_manager": "PVos",
+      "step2_seller_team": "STINKS",
+      "step2_target_asset_id": "pick:2027:R1:orig3",
+      "step2_target_asset": "2027 Mid 1st \u2014 original STINKS",
+      "step2_seller_currency_value": 3106.2,
+      "step2_target_hold_value": 3208.7,
+      "step2_value_ratio": 0.968,
+      "hsg_final_target_value": 2942.2,
+      "hsg_final_surplus_vs_original_asset": 204.1,
+      "route_floor_ratio": 0.968,
+      "arbitrage_score": 0.2453,
+      "strategic_asset_score": 0.9003,
+      "strategic_score": 0.67352,
+      "strategic_class": "priority"
+    },
+    {
+      "source_asset_id": "player:13298",
+      "source_asset": "KC Concepcion",
+      "source_hsg_hold_value": 2738.1,
+      "step1_buyer_user_id": "833709164739014656",
+      "step1_buyer_manager": "jaco057",
+      "step1_buyer_team": "HUNGRY DAWGS",
+      "step1_receive_currency_asset_id": "pick:2027:R1:orig9",
+      "step1_receive_currency_asset": "2027 Mid 1st \u2014 original Hurts So Good",
+      "step1_buyer_value_ratio": 0.976,
+      "step2_seller_user_id": "676939933792964608",
+      "step2_seller_manager": "chuckthegoat77",
+      "step2_seller_team": "The Associate ",
+      "step2_target_asset_id": "pick:2027:R1:orig12",
+      "step2_target_asset": "2027 Mid 1st \u2014 original King B",
+      "step2_seller_currency_value": 3056.4,
+      "step2_target_hold_value": 3158.9,
+      "step2_value_ratio": 0.968,
+      "hsg_final_target_value": 2942.2,
+      "hsg_final_surplus_vs_original_asset": 204.1,
+      "route_floor_ratio": 0.968,
+      "arbitrage_score": 0.2444,
+      "strategic_asset_score": 0.8908,
+      "strategic_score": 0.66819,
+      "strategic_class": "priority"
+    },
+    {
+      "source_asset_id": "pick:2028:R1:orig10",
+      "source_asset": "2028 Mid 1st \u2014 original The Shish Kebab Boys",
+      "source_hsg_hold_value": 2219.3,
+      "step1_buyer_user_id": "858530218330144768",
+      "step1_buyer_manager": "Ballard22",
+      "step1_buyer_team": "King B",
+      "step1_receive_currency_asset_id": "player:13345",
+      "step1_receive_currency_asset": "Jonah Coleman",
+      "step1_buyer_value_ratio": 1.12,
+      "step2_seller_user_id": "844772511156670464",
+      "step2_seller_manager": "CoachKoko",
+      "step2_seller_team": "Trash Incessant Talkers",
+      "step2_target_asset_id": "pick:2029:R1:orig6",
+      "step2_target_asset": "2029 Early 1st \u2014 original Trash Incessant Talkers",
+      "step2_seller_currency_value": 2104.2,
+      "step2_target_hold_value": 2267.5,
+      "step2_value_ratio": 0.928,
+      "hsg_final_target_value": 2268.7,
+      "hsg_final_surplus_vs_original_asset": 49.4,
+      "route_floor_ratio": 0.928,
+      "arbitrage_score": 0.13337,
+      "strategic_asset_score": 0.9854,
+      "strategic_score": 0.63569,
+      "strategic_class": "priority"
+    }
+  ],
   "league_threat_board": [
     {
       "user_id": "845157822193872896",
@@ -2015,7 +2094,7 @@
       "contender_score": 0.958,
       "dynasty_roster_score": 0.708,
       "competitive_tier": "elite_contender",
-      "starter_redraft_value": 45677.0,
+      "starter_redraft_value": 46165.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2023,30 +2102,30 @@
           "player": "Puka Nacua",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 8812.0,
-          "replacement_lineup_total": 38289.0,
-          "lineup_value_drop_if_unavailable": 7388.0,
-          "lineup_drop_pct": 16.17
+          "starter_value": 8846.0,
+          "replacement_lineup_total": 38722.0,
+          "lineup_value_drop_if_unavailable": 7443.0,
+          "lineup_drop_pct": 16.12
         },
         {
           "player_id": "4034",
           "player": "Christian McCaffrey",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 7866.0,
-          "replacement_lineup_total": 39235.0,
-          "lineup_value_drop_if_unavailable": 6442.0,
-          "lineup_drop_pct": 14.1
+          "starter_value": 7980.0,
+          "replacement_lineup_total": 39588.0,
+          "lineup_value_drop_if_unavailable": 6577.0,
+          "lineup_drop_pct": 14.25
         },
         {
           "player_id": "11564",
           "player": "Drake Maye",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 8312.0,
-          "replacement_lineup_total": 41549.0,
-          "lineup_value_drop_if_unavailable": 4128.0,
-          "lineup_drop_pct": 9.04
+          "starter_value": 8318.0,
+          "replacement_lineup_total": 42128.0,
+          "lineup_value_drop_if_unavailable": 4037.0,
+          "lineup_drop_pct": 8.74
         }
       ]
     },
@@ -2057,38 +2136,38 @@
       "contender_score": 0.875,
       "dynasty_roster_score": 0.958,
       "competitive_tier": "elite_contender",
-      "starter_redraft_value": 41812.0,
-      "fragility_score": 1.0,
+      "starter_redraft_value": 42405.0,
+      "fragility_score": 0.994,
       "most_irreplaceable_starters": [
         {
           "player_id": "9488",
           "player": "Jaxon Smith-Njigba",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 8362.0,
-          "replacement_lineup_total": 35911.0,
-          "lineup_value_drop_if_unavailable": 5901.0,
-          "lineup_drop_pct": 14.11
+          "starter_value": 8380.0,
+          "replacement_lineup_total": 36516.0,
+          "lineup_value_drop_if_unavailable": 5889.0,
+          "lineup_drop_pct": 13.89
         },
         {
           "player_id": "8138",
           "player": "James Cook",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 6342.0,
-          "replacement_lineup_total": 37618.0,
-          "lineup_value_drop_if_unavailable": 4194.0,
-          "lineup_drop_pct": 10.03
+          "starter_value": 6354.0,
+          "replacement_lineup_total": 38320.0,
+          "lineup_value_drop_if_unavailable": 4085.0,
+          "lineup_drop_pct": 9.63
         },
         {
           "player_id": "11560",
           "player": "Caleb Williams",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 7022.0,
-          "replacement_lineup_total": 37661.0,
-          "lineup_value_drop_if_unavailable": 4151.0,
-          "lineup_drop_pct": 9.93
+          "starter_value": 7150.0,
+          "replacement_lineup_total": 38325.0,
+          "lineup_value_drop_if_unavailable": 4080.0,
+          "lineup_drop_pct": 9.62
         }
       ]
     },
@@ -2099,7 +2178,7 @@
       "contender_score": 0.792,
       "dynasty_roster_score": 0.792,
       "competitive_tier": "elite_contender",
-      "starter_redraft_value": 41019.0,
+      "starter_redraft_value": 41180.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2107,30 +2186,30 @@
           "player": "Ja'Marr Chase",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 9243.0,
-          "replacement_lineup_total": 31969.0,
-          "lineup_value_drop_if_unavailable": 9050.0,
-          "lineup_drop_pct": 22.06
+          "starter_value": 9219.0,
+          "replacement_lineup_total": 32140.0,
+          "lineup_value_drop_if_unavailable": 9040.0,
+          "lineup_drop_pct": 21.95
         },
         {
           "player_id": "9509",
           "player": "Bijan Robinson",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 10140.0,
-          "replacement_lineup_total": 32386.0,
-          "lineup_value_drop_if_unavailable": 8633.0,
-          "lineup_drop_pct": 21.05
+          "starter_value": 10095.0,
+          "replacement_lineup_total": 32575.0,
+          "lineup_value_drop_if_unavailable": 8605.0,
+          "lineup_drop_pct": 20.9
         },
         {
           "player_id": "11604",
           "player": "Brock Bowers",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 6257.0,
-          "replacement_lineup_total": 34762.0,
-          "lineup_value_drop_if_unavailable": 6257.0,
-          "lineup_drop_pct": 15.25
+          "starter_value": 6394.0,
+          "replacement_lineup_total": 34787.0,
+          "lineup_value_drop_if_unavailable": 6393.0,
+          "lineup_drop_pct": 15.52
         }
       ]
     },
@@ -2141,7 +2220,7 @@
       "contender_score": 0.708,
       "dynasty_roster_score": 0.875,
       "competitive_tier": "contender",
-      "starter_redraft_value": 40564.0,
+      "starter_redraft_value": 40795.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2149,30 +2228,30 @@
           "player": "Amon-Ra St. Brown",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 7769.0,
-          "replacement_lineup_total": 33207.0,
-          "lineup_value_drop_if_unavailable": 7357.0,
-          "lineup_drop_pct": 18.14
+          "starter_value": 7953.0,
+          "replacement_lineup_total": 33227.0,
+          "lineup_value_drop_if_unavailable": 7568.0,
+          "lineup_drop_pct": 18.55
         },
         {
           "player_id": "12527",
           "player": "Ashton Jeanty",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 5768.0,
-          "replacement_lineup_total": 35098.0,
-          "lineup_value_drop_if_unavailable": 5466.0,
-          "lineup_drop_pct": 13.48
+          "starter_value": 5741.0,
+          "replacement_lineup_total": 35383.0,
+          "lineup_value_drop_if_unavailable": 5412.0,
+          "lineup_drop_pct": 13.27
         },
         {
           "player_id": "9224",
           "player": "Chase Brown",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 5479.0,
-          "replacement_lineup_total": 35387.0,
-          "lineup_value_drop_if_unavailable": 5177.0,
-          "lineup_drop_pct": 12.76
+          "starter_value": 5592.0,
+          "replacement_lineup_total": 35532.0,
+          "lineup_value_drop_if_unavailable": 5263.0,
+          "lineup_drop_pct": 12.9
         }
       ]
     },
@@ -2181,9 +2260,9 @@
       "manager": "jimmygoodjob",
       "team_name": "Hurts So Good",
       "contender_score": 0.625,
-      "dynasty_roster_score": 0.542,
+      "dynasty_roster_score": 0.458,
       "competitive_tier": "contender",
-      "starter_redraft_value": 37686.0,
+      "starter_redraft_value": 38205.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2191,20 +2270,20 @@
           "player": "Lamar Jackson",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 9367.0,
-          "replacement_lineup_total": 31161.0,
-          "lineup_value_drop_if_unavailable": 6525.0,
-          "lineup_drop_pct": 17.31
+          "starter_value": 9616.0,
+          "replacement_lineup_total": 31451.0,
+          "lineup_value_drop_if_unavailable": 6754.0,
+          "lineup_drop_pct": 17.68
         },
         {
           "player_id": "6786",
           "player": "CeeDee Lamb",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 7101.0,
-          "replacement_lineup_total": 33427.0,
-          "lineup_value_drop_if_unavailable": 4259.0,
-          "lineup_drop_pct": 11.3
+          "starter_value": 7140.0,
+          "replacement_lineup_total": 33927.0,
+          "lineup_value_drop_if_unavailable": 4278.0,
+          "lineup_drop_pct": 11.2
         },
         {
           "player_id": "8112",
@@ -2212,9 +2291,9 @@
           "position": "WR",
           "slot": "WR",
           "starter_value": 5109.0,
-          "replacement_lineup_total": 35419.0,
-          "lineup_value_drop_if_unavailable": 2267.0,
-          "lineup_drop_pct": 6.02
+          "replacement_lineup_total": 35958.0,
+          "lineup_value_drop_if_unavailable": 2247.0,
+          "lineup_drop_pct": 5.88
         }
       ]
     },
@@ -2223,9 +2302,9 @@
       "manager": "Ballard22",
       "team_name": "King B",
       "contender_score": 0.542,
-      "dynasty_roster_score": 0.458,
+      "dynasty_roster_score": 0.542,
       "competitive_tier": "contender",
-      "starter_redraft_value": 38008.0,
+      "starter_redraft_value": 38603.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2233,30 +2312,30 @@
           "player": "Jonathan Taylor",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 7233.0,
-          "replacement_lineup_total": 31623.0,
-          "lineup_value_drop_if_unavailable": 6385.0,
-          "lineup_drop_pct": 16.8
+          "starter_value": 7266.0,
+          "replacement_lineup_total": 32141.0,
+          "lineup_value_drop_if_unavailable": 6462.0,
+          "lineup_drop_pct": 16.74
         },
         {
           "player_id": "9226",
           "player": "De'Von Achane",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 6296.0,
-          "replacement_lineup_total": 32560.0,
-          "lineup_value_drop_if_unavailable": 5448.0,
-          "lineup_drop_pct": 14.33
+          "starter_value": 6339.0,
+          "replacement_lineup_total": 33068.0,
+          "lineup_value_drop_if_unavailable": 5535.0,
+          "lineup_drop_pct": 14.34
         },
         {
           "player_id": "4866",
           "player": "Saquon Barkley",
           "position": "RB",
           "slot": "FLEX",
-          "starter_value": 5246.0,
-          "replacement_lineup_total": 33610.0,
-          "lineup_value_drop_if_unavailable": 4398.0,
-          "lineup_drop_pct": 11.57
+          "starter_value": 5304.0,
+          "replacement_lineup_total": 34103.0,
+          "lineup_value_drop_if_unavailable": 4500.0,
+          "lineup_drop_pct": 11.66
         }
       ]
     },
@@ -2267,7 +2346,7 @@
       "contender_score": 0.458,
       "dynasty_roster_score": 0.292,
       "competitive_tier": "middle",
-      "starter_redraft_value": 33882.0,
+      "starter_redraft_value": 34272.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2275,30 +2354,30 @@
           "player": "Justin Jefferson",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 6781.0,
-          "replacement_lineup_total": 28091.0,
-          "lineup_value_drop_if_unavailable": 5791.0,
-          "lineup_drop_pct": 17.09
+          "starter_value": 6854.0,
+          "replacement_lineup_total": 28401.0,
+          "lineup_value_drop_if_unavailable": 5871.0,
+          "lineup_drop_pct": 17.13
         },
         {
           "player_id": "6904",
           "player": "Jalen Hurts",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 6609.0,
-          "replacement_lineup_total": 28263.0,
-          "lineup_value_drop_if_unavailable": 5619.0,
+          "starter_value": 6665.0,
+          "replacement_lineup_total": 28590.0,
+          "lineup_value_drop_if_unavailable": 5682.0,
           "lineup_drop_pct": 16.58
         },
         {
-          "player_id": "8151",
-          "player": "Kenneth Walker",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 4734.0,
-          "replacement_lineup_total": 29673.0,
-          "lineup_value_drop_if_unavailable": 4209.0,
-          "lineup_drop_pct": 12.42
+          "player_id": "4046",
+          "player": "Patrick Mahomes",
+          "position": "QB",
+          "slot": "SUPER_FLEX",
+          "starter_value": 5264.0,
+          "replacement_lineup_total": 29991.0,
+          "lineup_value_drop_if_unavailable": 4281.0,
+          "lineup_drop_pct": 12.49
         }
       ]
     },
@@ -2309,7 +2388,7 @@
       "contender_score": 0.375,
       "dynasty_roster_score": 0.625,
       "competitive_tier": "middle",
-      "starter_redraft_value": 30711.0,
+      "starter_redraft_value": 30730.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2317,30 +2396,30 @@
           "player": "Jahmyr Gibbs",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 10300.0,
-          "replacement_lineup_total": 20844.0,
-          "lineup_value_drop_if_unavailable": 9867.0,
-          "lineup_drop_pct": 32.13
+          "starter_value": 10191.0,
+          "replacement_lineup_total": 20965.0,
+          "lineup_value_drop_if_unavailable": 9765.0,
+          "lineup_drop_pct": 31.78
         },
         {
           "player_id": "7523",
           "player": "Trevor Lawrence",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 5484.0,
-          "replacement_lineup_total": 25660.0,
-          "lineup_value_drop_if_unavailable": 5051.0,
-          "lineup_drop_pct": 16.45
+          "starter_value": 5670.0,
+          "replacement_lineup_total": 25486.0,
+          "lineup_value_drop_if_unavailable": 5244.0,
+          "lineup_drop_pct": 17.06
         },
         {
           "player_id": "12507",
           "player": "Omarion Hampton",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 5274.0,
-          "replacement_lineup_total": 25870.0,
-          "lineup_value_drop_if_unavailable": 4841.0,
-          "lineup_drop_pct": 15.76
+          "starter_value": 5301.0,
+          "replacement_lineup_total": 25855.0,
+          "lineup_value_drop_if_unavailable": 4875.0,
+          "lineup_drop_pct": 15.86
         }
       ]
     },
@@ -2351,7 +2430,7 @@
       "contender_score": 0.292,
       "dynasty_roster_score": 0.375,
       "competitive_tier": "middle",
-      "starter_redraft_value": 27775.0,
+      "starter_redraft_value": 27635.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2359,30 +2438,30 @@
           "player": "Josh Allen",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 10716.0,
-          "replacement_lineup_total": 17059.0,
-          "lineup_value_drop_if_unavailable": 10716.0,
-          "lineup_drop_pct": 38.58
+          "starter_value": 10569.0,
+          "replacement_lineup_total": 17066.0,
+          "lineup_value_drop_if_unavailable": 10569.0,
+          "lineup_drop_pct": 38.24
         },
         {
           "player_id": "8130",
           "player": "Trey McBride",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 5897.0,
-          "replacement_lineup_total": 21878.0,
-          "lineup_value_drop_if_unavailable": 5897.0,
-          "lineup_drop_pct": 21.23
+          "starter_value": 5864.0,
+          "replacement_lineup_total": 21771.0,
+          "lineup_value_drop_if_unavailable": 5864.0,
+          "lineup_drop_pct": 21.22
         },
         {
           "player_id": "8137",
           "player": "George Pickens",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 4769.0,
-          "replacement_lineup_total": 23006.0,
-          "lineup_value_drop_if_unavailable": 4769.0,
-          "lineup_drop_pct": 17.17
+          "starter_value": 4870.0,
+          "replacement_lineup_total": 22765.0,
+          "lineup_value_drop_if_unavailable": 4870.0,
+          "lineup_drop_pct": 17.62
         }
       ]
     },
@@ -2393,7 +2472,7 @@
       "contender_score": 0.208,
       "dynasty_roster_score": 0.208,
       "competitive_tier": "retool_rebuild",
-      "starter_redraft_value": 18934.0,
+      "starter_redraft_value": 19241.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2401,30 +2480,30 @@
           "player": "Bo Nix",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 4385.0,
-          "replacement_lineup_total": 15317.0,
-          "lineup_value_drop_if_unavailable": 3617.0,
-          "lineup_drop_pct": 19.1
+          "starter_value": 4472.0,
+          "replacement_lineup_total": 15562.0,
+          "lineup_value_drop_if_unavailable": 3679.0,
+          "lineup_drop_pct": 19.12
         },
         {
           "player_id": "11635",
           "player": "Ladd McConkey",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2982.0,
-          "replacement_lineup_total": 16720.0,
-          "lineup_value_drop_if_unavailable": 2214.0,
-          "lineup_drop_pct": 11.69
+          "starter_value": 3060.0,
+          "replacement_lineup_total": 16974.0,
+          "lineup_value_drop_if_unavailable": 2267.0,
+          "lineup_drop_pct": 11.78
         },
         {
           "player_id": "2133",
           "player": "Davante Adams",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2243.0,
-          "replacement_lineup_total": 17459.0,
-          "lineup_value_drop_if_unavailable": 1475.0,
-          "lineup_drop_pct": 7.79
+          "starter_value": 2356.0,
+          "replacement_lineup_total": 17678.0,
+          "lineup_value_drop_if_unavailable": 1563.0,
+          "lineup_drop_pct": 8.12
         }
       ]
     },
@@ -2435,7 +2514,7 @@
       "contender_score": 0.125,
       "dynasty_roster_score": 0.042,
       "competitive_tier": "retool_rebuild",
-      "starter_redraft_value": 15259.0,
+      "starter_redraft_value": 15067.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2443,30 +2522,30 @@
           "player": "Brock Purdy",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 4129.0,
-          "replacement_lineup_total": 11730.0,
-          "lineup_value_drop_if_unavailable": 3529.0,
-          "lineup_drop_pct": 23.13
+          "starter_value": 4153.0,
+          "replacement_lineup_total": 11510.0,
+          "lineup_value_drop_if_unavailable": 3557.0,
+          "lineup_drop_pct": 23.61
         },
         {
           "player_id": "3163",
           "player": "Jared Goff",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 3799.0,
-          "replacement_lineup_total": 12060.0,
-          "lineup_value_drop_if_unavailable": 3199.0,
-          "lineup_drop_pct": 20.96
+          "starter_value": 3738.0,
+          "replacement_lineup_total": 11925.0,
+          "lineup_value_drop_if_unavailable": 3142.0,
+          "lineup_drop_pct": 20.85
         },
         {
           "player_id": "6790",
           "player": "D'Andre Swift",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 1901.0,
-          "replacement_lineup_total": 13958.0,
-          "lineup_value_drop_if_unavailable": 1301.0,
-          "lineup_drop_pct": 8.53
+          "starter_value": 1919.0,
+          "replacement_lineup_total": 13744.0,
+          "lineup_value_drop_if_unavailable": 1323.0,
+          "lineup_drop_pct": 8.78
         }
       ]
     },
@@ -2477,7 +2556,7 @@
       "contender_score": 0.042,
       "dynasty_roster_score": 0.125,
       "competitive_tier": "retool_rebuild",
-      "starter_redraft_value": 10391.0,
+      "starter_redraft_value": 10412.0,
       "fragility_score": 1.0,
       "most_irreplaceable_starters": [
         {
@@ -2485,30 +2564,30 @@
           "player": "C.J. Stroud",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 2865.0,
-          "replacement_lineup_total": 7563.0,
-          "lineup_value_drop_if_unavailable": 2828.0,
-          "lineup_drop_pct": 27.22
+          "starter_value": 2847.0,
+          "replacement_lineup_total": 7565.0,
+          "lineup_value_drop_if_unavailable": 2847.0,
+          "lineup_drop_pct": 27.34
         },
         {
           "player_id": "7543",
           "player": "Travis Etienne",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 2212.0,
-          "replacement_lineup_total": 8292.0,
-          "lineup_value_drop_if_unavailable": 2099.0,
-          "lineup_drop_pct": 20.2
+          "starter_value": 2254.0,
+          "replacement_lineup_total": 8264.0,
+          "lineup_value_drop_if_unavailable": 2148.0,
+          "lineup_drop_pct": 20.63
         },
         {
           "player_id": "11620",
           "player": "Rome Odunze",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 1599.0,
-          "replacement_lineup_total": 8905.0,
-          "lineup_value_drop_if_unavailable": 1486.0,
-          "lineup_drop_pct": 14.3
+          "starter_value": 1661.0,
+          "replacement_lineup_total": 8857.0,
+          "lineup_value_drop_if_unavailable": 1555.0,
+          "lineup_drop_pct": 14.93
         }
       ]
     }
