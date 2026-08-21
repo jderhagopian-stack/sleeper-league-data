@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM Engine v1.1.2 — STANDALONE
+FSFFL GM Engine v1.1.3 — STANDALONE
 
 Single-file full GM model. Includes the original GM-1.0 market/data foundation plus:
 1) independently optimized legal FSFFL starting lineups;
@@ -1710,7 +1710,7 @@ def base_main():
 DATA = Path("data")
 
 # Explicit model bump for generated files.
-CONFIG["model_version"] = "GM-1.1"
+CONFIG["model_version"] = "GM-1.1.3"
 CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1 independently optimizes legal starting lineups; Sleeper's current starters are not treated as authoritative.",
     "GM-1.1 ranks trade packages by HSG surplus and optimal-lineup gain before acceptance fit.",
@@ -1753,78 +1753,146 @@ def optimize_lineup(
     player_values: Dict[str, Dict[str, Any]],
     value_key: str = "market_redraft",
 ) -> Dict[str, Any]:
-    """Exact maximum-value legal lineup for the configured FSFFL starter slots."""
-    pids = [str(pid) for pid in player_ids if str(pid) != "0"]
-    # Players with no value can still fill a legal slot, so keep them.
-    candidates = []
-    for pid in pids:
+    """
+    Fast exact optimizer for FSFFL-style lineups.
+
+    Fixed-position slots determine minimum position counts. FLEX and SUPER_FLEX
+    are then enumerated by eligible position (at most 12 combinations for the
+    current FSFFL format), so runtime is effectively constant rather than a
+    player-bitmask search.
+    """
+    by_pos = {p: [] for p in POSITIONS}
+    for pid in player_ids:
+        pid = str(pid)
+        if pid == "0":
+            continue
         a = player_values.get(pid, {})
         pos = a.get("position")
-        if pos in POSITIONS:
-            candidates.append(pid)
+        if pos not in POSITIONS:
+            continue
+        by_pos[pos].append(
+            (safe_float(a.get(value_key)), pid, a)
+        )
 
-    # Constrained slots first dramatically reduces the DP state space.
-    priority = {"QB": 0, "RB": 0, "WR": 0, "TE": 0, "FLEX": 1, "SUPER_FLEX": 2}
-    ordered_slots = sorted(enumerate(LINEUP_SLOTS), key=lambda x: (priority.get(x[1], 3), x[0]))
-    ordered_slot_names = tuple(slot for _, slot in ordered_slots)
+    for pos in POSITIONS:
+        by_pos[pos].sort(key=lambda x: x[0], reverse=True)
 
-    @functools.lru_cache(maxsize=None)
-    def solve(slot_i: int, used_mask: int) -> Tuple[float, Tuple[int, ...]]:
-        if slot_i >= len(ordered_slot_names):
-            return 0.0, ()
-        slot = ordered_slot_names[slot_i]
-        best_value = float("-inf")
-        best_choice: Tuple[int, ...] = ()
-        for i, pid in enumerate(candidates):
-            if used_mask & (1 << i):
-                continue
-            a = player_values.get(pid, {})
-            if not eligible(a.get("position"), slot):
-                continue
-            rest_value, rest_choice = solve(slot_i + 1, used_mask | (1 << i))
-            if rest_value == float("-inf"):
-                continue
-            v = safe_float(a.get(value_key)) + rest_value
-            if v > best_value:
-                best_value = v
-                best_choice = (i,) + rest_choice
-        # An invalid/incomplete lineup is intentionally very bad.
-        return best_value, best_choice
+    fixed_counts = Counter()
+    flex_slots = []
+    for slot in LINEUP_SLOTS:
+        if slot in POSITIONS:
+            fixed_counts[slot] += 1
+        elif slot == "FLEX":
+            flex_slots.append(("FLEX", ("RB", "WR", "TE")))
+        elif slot == "SUPER_FLEX":
+            flex_slots.append(("SUPER_FLEX", ("QB", "RB", "WR", "TE")))
 
-    total, choice = solve(0, 0)
-    if total == float("-inf") or len(choice) != len(ordered_slot_names):
-        # Graceful fallback for pathological rosters: greedily fill what can be filled.
+    # Enumerate only the flexible slot position choices.
+    flex_choices = [choices for _, choices in flex_slots]
+    assignments = itertools.product(*flex_choices) if flex_choices else [()]
+
+    best_total = float("-inf")
+    best_counts = None
+    best_flex_assignment = None
+
+    for assignment in assignments:
+        counts = Counter(fixed_counts)
+        for pos in assignment:
+            counts[pos] += 1
+
+        valid = True
+        total = 0.0
+        for pos in POSITIONS:
+            need = counts[pos]
+            if len(by_pos[pos]) < need:
+                valid = False
+                break
+            total += sum(x[0] for x in by_pos[pos][:need])
+
+        if valid and total > best_total:
+            best_total = total
+            best_counts = counts
+            best_flex_assignment = assignment
+
+    if best_counts is None:
+        # Graceful fallback: greedily fill legal slots without crashing.
         used = set()
         rows = []
         total = 0.0
-        for slot in ordered_slot_names:
-            opts = [
-                pid for pid in candidates
-                if pid not in used and eligible(player_values.get(pid, {}).get("position"), slot)
-            ]
-            if not opts:
-                rows.append({"slot": slot, "player_id": None, "name": None, "position": None, "value": 0.0})
+        for slot in LINEUP_SLOTS:
+            eligible_positions = (
+                (slot,) if slot in POSITIONS
+                else ("RB", "WR", "TE") if slot == "FLEX"
+                else ("QB", "RB", "WR", "TE") if slot == "SUPER_FLEX"
+                else ()
+            )
+            options = []
+            for pos in eligible_positions:
+                for val, pid, a in by_pos.get(pos, []):
+                    if pid not in used:
+                        options.append((val, pid, a))
+                        break
+            if not options:
+                rows.append({
+                    "slot": slot, "player_id": None, "name": None,
+                    "position": None, "value": 0.0
+                })
                 continue
-            pid = max(opts, key=lambda x: safe_float(player_values.get(x, {}).get(value_key)))
+            val, pid, a = max(options, key=lambda x: x[0])
             used.add(pid)
-            a = player_values.get(pid, {})
-            val = safe_float(a.get(value_key))
             total += val
-            rows.append({"slot": slot, "player_id": pid, "name": a.get("name"), "position": a.get("position"), "value": round(val, 1)})
-        return {"total": round(total, 1), "player_ids": [r["player_id"] for r in rows if r["player_id"]], "lineup": rows, "complete": all(r["player_id"] for r in rows)}
+            rows.append({
+                "slot": slot,
+                "player_id": pid,
+                "name": a.get("name"),
+                "position": a.get("position"),
+                "value": round(val, 1),
+            })
+        return {
+            "total": round(total, 1),
+            "player_ids": [r["player_id"] for r in rows if r["player_id"]],
+            "lineup": rows,
+            "complete": all(r["player_id"] for r in rows),
+        }
 
-    chosen = [candidates[i] for i in choice]
+    # Select the exact top-N players at each required position.
+    selected_by_pos = {
+        pos: list(by_pos[pos][:best_counts[pos]])
+        for pos in POSITIONS
+    }
+
+    # Build slot rows while ensuring flexible slots use the selected surplus
+    # player at that position after mandatory slots are filled.
+    indices = Counter()
     rows = []
-    for slot, pid in zip(ordered_slot_names, chosen):
-        a = player_values.get(pid, {})
+    flex_iter = iter(best_flex_assignment or ())
+    for slot in LINEUP_SLOTS:
+        if slot in POSITIONS:
+            pos = slot
+        elif slot == "FLEX":
+            pos = next(flex_iter)
+        elif slot == "SUPER_FLEX":
+            pos = next(flex_iter)
+        else:
+            continue
+
+        i = indices[pos]
+        val, pid, a = selected_by_pos[pos][i]
+        indices[pos] += 1
         rows.append({
             "slot": slot,
             "player_id": pid,
             "name": a.get("name"),
             "position": a.get("position"),
-            "value": round(safe_float(a.get(value_key)), 1),
+            "value": round(val, 1),
         })
-    return {"total": round(total, 1), "player_ids": chosen, "lineup": rows, "complete": True}
+
+    return {
+        "total": round(best_total, 1),
+        "player_ids": [r["player_id"] for r in rows],
+        "lineup": rows,
+        "complete": len(rows) == len(LINEUP_SLOTS),
+    }
 
 
 def optimized_starter_sets(rosters: List[Dict[str, Any]]) -> Dict[str, set]:
@@ -1999,6 +2067,7 @@ def build_hsg_trade_opportunities_v11(
 
     val = matrix_lookup(owner_matrix)
     hsg_assets = owner_current_assets(user_uid, rosters, pick_assets)
+
     outgoing_candidates = []
     for aid in hsg_assets:
         meta = asset_metadata(aid, player_values, pick_assets)
@@ -2006,16 +2075,21 @@ def build_hsg_trade_opportunities_v11(
             continue
         if val[user_uid].get(aid, 0) > 0:
             outgoing_candidates.append(aid)
+
     outgoing_candidates.sort(key=lambda a: val[user_uid].get(a, 0), reverse=True)
     outgoing_candidates = outgoing_candidates[:16]
 
-    profile_trade = {str(p.get("user_id")): (p.get("trade_profile") or {}) for p in profiles}
+    profile_trade = {
+        str(p.get("user_id")): (p.get("trade_profile") or {})
+        for p in profiles
+    }
     opportunities = []
 
     for pid, target in player_values.items():
         seller_uid = owner_by_player.get(pid)
         if not seller_uid or seller_uid == user_uid:
             continue
+
         target_aid = f"player:{pid}"
         hsg_value = val[user_uid].get(target_aid, 0)
         seller_hold = val[seller_uid].get(target_aid, 0)
@@ -2030,69 +2104,144 @@ def build_hsg_trade_opportunities_v11(
         seller_trade = profile_trade.get(seller_uid, {})
         activity = safe_float(seller_trade.get("total_trades"))
         recent = safe_float(seller_trade.get("recent_trades_2025_2026"))
-        activity_score = clamp(0.6 * min(activity / 40, 1) + 0.4 * min(recent / 15, 1), 0, 1)
+        activity_score = clamp(
+            0.6 * min(activity / 40, 1)
+            + 0.4 * min(recent / 15, 1),
+            0, 1
+        )
 
-        package_rows = []
+        # STAGE 1: cheap economics/acceptance screen over all combinations.
+        prelim = []
         for n in (1, 2, 3):
             for combo in itertools.combinations(outgoing_candidates, n):
                 seller_values = [val[seller_uid].get(a, 0) for a in combo]
                 hsg_costs = [val[user_uid].get(a, 0) for a in combo]
                 if any(v <= 0 for v in seller_values):
                     continue
+
                 seller_effective = effective_package_value(seller_values)
                 ratio = seller_effective / seller_hold if seller_hold else 0
-                # Wider search band so surplus-positive creative offers are not prematurely discarded.
                 if ratio < 0.84 or ratio > 1.16:
                     continue
+
                 hsg_cost = sum(hsg_costs)
                 hsg_surplus = hsg_value - hsg_cost
                 fairness = 1 - min(abs(1.0 - ratio), 0.30) / 0.30
-                complexity_bonus = 0.03 if len(combo) == 2 else (-0.03 if len(combo) == 3 else 0)
-                acceptance_fit = clamp(0.64 * fairness + 0.30 * activity_score + complexity_bonus, 0, 1)
-                championship_utility, championship_meta = lineup_after_trade_utility(
-                    user_uid, list(combo), target, rosters, player_values
+                complexity_bonus = (
+                    0.03 if len(combo) == 2
+                    else -0.03 if len(combo) == 3
+                    else 0.0
                 )
-                lineup_gain = safe_float(championship_meta.get("optimal_lineup_value_gain"))
+                acceptance_fit = clamp(
+                    0.64 * fairness
+                    + 0.30 * activity_score
+                    + complexity_bonus,
+                    0, 1
+                )
 
-                # Decision score explicitly prioritizes our economics, then lineup gain,
-                # then the probability-shaped acceptance heuristic.
+                # Preliminary score intentionally favors HSG economics.
                 normalized_surplus = hsg_surplus / max(hsg_value, 1.0)
-                normalized_lineup = lineup_gain / max(championship_meta.get("base_optimal_lineup_redraft_value", 1.0), 1.0)
-                decision_score = (
-                    0.58 * normalized_surplus
-                    + 0.27 * normalized_lineup
-                    + 0.15 * acceptance_fit
-                )
-                severe_overpay = hsg_surplus < -0.12 * hsg_value
-                recommendation_band = (
-                    "strong_candidate" if hsg_surplus >= 0 and lineup_gain > 0
-                    else "negotiation_candidate" if hsg_surplus >= -0.06 * hsg_value and lineup_gain > 0
-                    else "overpay" if severe_overpay
-                    else "low_priority"
-                )
+                prelim_score = 0.82 * normalized_surplus + 0.18 * acceptance_fit
 
-                package_rows.append({
-                    "outgoing_asset_ids": list(combo),
-                    "outgoing_assets": [asset_metadata(a, player_values, pick_assets).get("name") for a in combo],
-                    "seller_perceived_effective_value": round(seller_effective, 1),
-                    "seller_hold_value_target": round(seller_hold, 1),
-                    "seller_value_ratio": round(ratio, 3),
-                    "hsg_hold_cost": round(hsg_cost, 1),
-                    "hsg_value_of_target": round(hsg_value, 1),
-                    "hsg_modeled_surplus": round(hsg_surplus, 1),
-                    "acceptance_fit_score": round(acceptance_fit, 3),
-                    "championship_utility_score": round(championship_utility, 4),
-                    "championship_utility": championship_meta,
-                    "decision_score": round(decision_score, 5),
-                    "recommendation_band": recommendation_band,
+                prelim.append({
+                    "combo": combo,
+                    "seller_effective": seller_effective,
+                    "ratio": ratio,
+                    "hsg_cost": hsg_cost,
+                    "hsg_surplus": hsg_surplus,
+                    "acceptance_fit": acceptance_fit,
+                    "prelim_score": prelim_score,
                 })
 
-        band_rank = {"strong_candidate": 3, "negotiation_candidate": 2, "low_priority": 1, "overpay": 0}
+        # Only the best economic candidates receive lineup simulation.
+        prelim.sort(
+            key=lambda x: (
+                x["hsg_surplus"] >= 0,
+                x["prelim_score"],
+                x["hsg_surplus"],
+                x["acceptance_fit"],
+            ),
+            reverse=True,
+        )
+        finalists = prelim[:30]
+
+        package_rows = []
+        for row in finalists:
+            combo = row["combo"]
+            championship_utility, championship_meta = lineup_after_trade_utility(
+                user_uid, list(combo), target, rosters, player_values
+            )
+            lineup_gain = safe_float(
+                championship_meta.get("optimal_lineup_value_gain")
+            )
+
+            normalized_surplus = row["hsg_surplus"] / max(hsg_value, 1.0)
+            base_lineup = max(
+                safe_float(
+                    championship_meta.get(
+                        "base_optimal_lineup_redraft_value"
+                    ),
+                    1.0,
+                ),
+                1.0,
+            )
+            normalized_lineup = lineup_gain / base_lineup
+
+            decision_score = (
+                0.58 * normalized_surplus
+                + 0.27 * normalized_lineup
+                + 0.15 * row["acceptance_fit"]
+            )
+
+            severe_overpay = row["hsg_surplus"] < -0.12 * hsg_value
+            recommendation_band = (
+                "strong_candidate"
+                if row["hsg_surplus"] >= 0 and lineup_gain > 0
+                else "negotiation_candidate"
+                if row["hsg_surplus"] >= -0.06 * hsg_value and lineup_gain > 0
+                else "overpay"
+                if severe_overpay
+                else "low_priority"
+            )
+
+            package_rows.append({
+                "outgoing_asset_ids": list(combo),
+                "outgoing_assets": [
+                    asset_metadata(a, player_values, pick_assets).get("name")
+                    for a in combo
+                ],
+                "seller_perceived_effective_value": round(
+                    row["seller_effective"], 1
+                ),
+                "seller_hold_value_target": round(seller_hold, 1),
+                "seller_value_ratio": round(row["ratio"], 3),
+                "hsg_hold_cost": round(row["hsg_cost"], 1),
+                "hsg_value_of_target": round(hsg_value, 1),
+                "hsg_modeled_surplus": round(row["hsg_surplus"], 1),
+                "acceptance_fit_score": round(row["acceptance_fit"], 3),
+                "championship_utility_score": round(
+                    championship_utility, 4
+                ),
+                "championship_utility": championship_meta,
+                "decision_score": round(decision_score, 5),
+                "recommendation_band": recommendation_band,
+            })
+
+        band_rank = {
+            "strong_candidate": 3,
+            "negotiation_candidate": 2,
+            "low_priority": 1,
+            "overpay": 0,
+        }
         package_rows.sort(
             key=lambda x: (
                 band_rank.get(x["recommendation_band"], 0),
                 x["hsg_modeled_surplus"],
-                safe_float((x.get("championship_utility") or {}).get("optimal_lineup_value_gain")),
+                safe_float(
+                    (x.get("championship_utility") or {}).get(
+                        "optimal_lineup_value_gain"
+                    )
+                ),
                 x["acceptance_fit_score"],
                 x["decision_score"],
             ),
@@ -2105,23 +2254,36 @@ def build_hsg_trade_opportunities_v11(
             "target_player": target.get("name"),
             "position": pos,
             "seller_user_id": seller_uid,
-            "seller_manager": manager_label(seller_uid, profile_by_uid),
+            "seller_manager": manager_label(
+                seller_uid, profile_by_uid
+            ),
             "seller_team": team_label(seller_uid, profile_by_uid),
-            "market_value": round(safe_float(target.get("market_dynasty")), 1),
+            "market_value": round(
+                safe_float(target.get("market_dynasty")), 1
+            ),
             "fsffl_value": round(fsffl_league_value(target), 1),
             "hsg_value": round(hsg_value, 1),
             "seller_hold_value": round(seller_hold, 1),
             "hsg_position_need": round(need, 3),
             "seller_trade_activity_score": round(activity_score, 3),
-            "target_value_gap_hsg_minus_seller": round(hsg_value - seller_hold, 1),
+            "target_value_gap_hsg_minus_seller": round(
+                hsg_value - seller_hold, 1
+            ),
             "best_candidate_packages": package_rows[:10],
-            "best_package_decision_score": best.get("decision_score") if best else None,
-            "best_package_recommendation_band": best.get("recommendation_band") if best else None,
+            "best_package_decision_score": (
+                best.get("decision_score") if best else None
+            ),
+            "best_package_recommendation_band": (
+                best.get("recommendation_band") if best else None
+            ),
         })
 
     opportunities.sort(
         key=lambda x: (
-            1 if x.get("best_package_recommendation_band") == "strong_candidate" else 0,
+            1
+            if x.get("best_package_recommendation_band")
+            == "strong_candidate"
+            else 0,
             safe_float(x.get("best_package_decision_score"), -999),
             x["hsg_position_need"],
             x["hsg_value"],
@@ -2131,15 +2293,18 @@ def build_hsg_trade_opportunities_v11(
 
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1",
+        "model_version": "GM-1.1.3",
         "user_id": user_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
-        "protected_players_excluded_from_auto_offers": sorted(PROTECTED_HSG_PLAYERS),
+        "protected_players_excluded_from_auto_offers": sorted(
+            PROTECTED_HSG_PLAYERS
+        ),
         "methodology_note": (
-            "GM-1.1 ranks HSG surplus first, optimal legal-lineup improvement second, "
-            "and seller acceptance fit third. Packages marked overpay are retained only "
-            "for price discovery and should not be interpreted as recommendations."
+            "GM-1.1.3 screens all packages economically first, then runs "
+            "optimal-lineup simulation only on the strongest candidates. "
+            "Final ranking prioritizes HSG surplus, lineup improvement, "
+            "and seller acceptance fit in that order."
         ),
         "opportunities": opportunities[:80],
     }
@@ -2215,7 +2380,7 @@ def build_sell_leverage_board():
     )
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1",
+        "model_version": "GM-1.1.3",
         "user_id": hsg_uid,
         "manager": USER_MANAGER,
         "team_name": USER_TEAM,
@@ -2233,7 +2398,7 @@ def write_optimal_lineup_index():
     teams = payload.get("teams") or []
     out = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "GM-1.1",
+        "model_version": "GM-1.1.3",
         "lineup_slots": LINEUP_SLOTS,
         "teams": [
             {
