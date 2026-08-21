@@ -1,5 +1,16 @@
 {
   "detected_source_week": null,
+  "draft_source": {
+    "mapped_rows": 0,
+    "mapping_coverage": 0.0,
+    "mapping_methods": {
+      "ambiguous_name": 0,
+      "fantasypros_id": 0,
+      "normalized_name": 0,
+      "unmatched": 0
+    },
+    "rows": 6011
+  },
   "fsffl_roster_coverage": {
     "active_non_taxi_players": {
       "coverage": 0.67873,
@@ -768,16 +779,15 @@
       }
     ]
   },
-  "generated_at_utc": "2026-08-21T22:37:13.107926+00:00",
+  "generated_at_utc": "2026-08-21T22:46:05.543907+00:00",
   "mapped_rows": 740,
-  "mapping_coverage": 0.91471,
-  "mapping_methods": {
-    "ambiguous_name": 0,
-    "fantasypros_id": 740,
-    "normalized_name": 0,
-    "unmatched": 69
-  },
+  "mapping_coverage": 0.1085,
   "quality_flags": [
+    {
+      "code": "LOW_MAPPING_COVERAGE",
+      "message": "Only 10.9% of weekly source rows mapped to Sleeper.",
+      "severity": "warning"
+    },
     {
       "code": "LOW_FSFFL_ROSTER_COVERAGE",
       "message": "Only 61.5% of currently rostered FSFFL players are present in the weekly source.",
@@ -795,5 +805,16 @@
     }
   ],
   "season": "2026",
-  "source_rows": 809
+  "source_rows": 6820,
+  "weekly_source": {
+    "mapped_rows": 740,
+    "mapping_coverage": 0.91471,
+    "mapping_methods": {
+      "ambiguous_name": 0,
+      "fantasypros_id": 740,
+      "normalized_name": 0,
+      "unmatched": 69
+    },
+    "rows": 809
+  }
 }
