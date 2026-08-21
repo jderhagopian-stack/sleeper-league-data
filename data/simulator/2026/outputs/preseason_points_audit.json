@@ -1,0 +1,958 @@
+{
+  "mapped_players": 234,
+  "mapping_methods": {
+    "normalized_name": 234,
+    "unmatched_name": 598
+  },
+  "missing_rostered_players": [
+    {
+      "player_name": "Chris Brazzell II",
+      "position": "WR",
+      "sleeper_id": "13353",
+      "team": "CAR"
+    },
+    {
+      "player_name": "Tyreek Hill",
+      "position": "WR",
+      "sleeper_id": "3321",
+      "team": "FA"
+    },
+    {
+      "player_name": "Kenny Gainwell",
+      "position": "RB",
+      "sleeper_id": "7567",
+      "team": "TB"
+    },
+    {
+      "player_name": "Chig Okonkwo",
+      "position": "TE",
+      "sleeper_id": "8210",
+      "team": "WAS"
+    }
+  ],
+  "parsed_rows_by_position": {
+    "QB": 95,
+    "RB": 193,
+    "TE": 188,
+    "WR": 356
+  },
+  "quality_gate": {
+    "minimum_rostered_coverage": 0.9,
+    "passed": true
+  },
+  "rostered_coverage": {
+    "coverage": 0.98319,
+    "covered": 234,
+    "total": 238
+  },
+  "season": "2026",
+  "source": "Razzball",
+  "source_last_updated": {
+    "QB": "2026-08-20 12:20:40 PM EST",
+    "RB": "2026-08-20 12:20:40 PM EST",
+    "TE": "2026-08-20 12:20:40 PM EST",
+    "WR": "2026-08-20 12:20:40 PM EST"
+  },
+  "unmatched_source_rows": [
+    {
+      "player_name": "Gardner Minshew II",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "ARI"
+    },
+    {
+      "player_name": "Joe Flacco",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Riley Leonard",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "IND"
+    },
+    {
+      "player_name": "Mason Rudolph",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "PIT"
+    },
+    {
+      "player_name": "Jameis Winston",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "Joe Milton III",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
+      "player_name": "Joshua Dobbs",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DET"
+    },
+    {
+      "player_name": "Jarrett Stidham",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DEN"
+    },
+    {
+      "player_name": "Tyrod Taylor",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "Tyson Bagent",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CHI"
+    },
+    {
+      "player_name": "Kyle Allen",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Drew Lock",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Tyler Huntley",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Trey Lance",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Tanner McKee",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "PHI"
+    },
+    {
+      "player_name": "Nick Mullens",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "JAX"
+    },
+    {
+      "player_name": "Tommy DeVito",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Jake Browning",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "TB"
+    },
+    {
+      "player_name": "Davis Mills",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Mitch Trubisky",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "TEN"
+    },
+    {
+      "player_name": "Kenny Pickett",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CAR"
+    },
+    {
+      "player_name": "Spencer Rattler",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NO"
+    },
+    {
+      "player_name": "Quinn Ewers",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "Josh Johnson",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Brett Rypien",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Stetson Bennett",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "LAR"
+    },
+    {
+      "player_name": "Behren Morton",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Adrian Martinez",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
+      "player_name": "Sam Howell",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
+      "player_name": "Joe Fagnano",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Athan Kaliakmanis",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "WAS"
+    },
+    {
+      "player_name": "Zach Wilson",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NO"
+    },
+    {
+      "player_name": "Sam Ehlinger",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DEN"
+    },
+    {
+      "player_name": "Shane Buechele",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Sam Hartman",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "WAS"
+    },
+    {
+      "player_name": "Garrett Nussmeier",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "KC"
+    },
+    {
+      "player_name": "Kurtis Rourke",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
+      "player_name": "Kyle McCord",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "Andy Dalton",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "PHI"
+    },
+    {
+      "player_name": "Luke Altmyer",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "DET"
+    },
+    {
+      "player_name": "Carson Wentz",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "MIN"
+    },
+    {
+      "player_name": "Max Brosmer",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "MIN"
+    },
+    {
+      "player_name": "Dillon Gabriel",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CLE"
+    },
+    {
+      "player_name": "DJ Uiagalelei",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Will Howard",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "PIT"
+    },
+    {
+      "player_name": "Case Keenum",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "CHI"
+    },
+    {
+      "player_name": "Brady Cook",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NYJ"
+    },
+    {
+      "player_name": "Will Levis",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "TEN"
+    },
+    {
+      "player_name": "Aidan O\u2019Connell",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "LV"
+    },
+    {
+      "player_name": "Brandon Allen",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "Cam Miller",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "Kenneth Gainwell",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "TB"
+    },
+    {
+      "player_name": "Justice Hill",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Samaje Perine",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Najee Harris",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "Braelon Allen",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYJ"
+    },
+    {
+      "player_name": "Kendre Miller",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NO"
+    },
+    {
+      "player_name": "Jaylen Wright",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "Chris Brooks",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "George Holani",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Brashard Smith",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "KC"
+    },
+    {
+      "player_name": "Ray Davis",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Ty Johnson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Ollie Gordon II",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "DJ Herman",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "DJ Giddens",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "IND"
+    },
+    {
+      "player_name": "Raheim Sanders",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CLE"
+    },
+    {
+      "player_name": "Kyle Juszczyk",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
+      "player_name": "Isaiah Davis",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYJ"
+    },
+    {
+      "player_name": "James Conner",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "ARI"
+    },
+    {
+      "player_name": "Alec Ingold",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Trevor Etienne",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CAR"
+    },
+    {
+      "player_name": "Jawhar Jordan",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Patrick Ricard",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "Tahj Brooks",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Hunter Luepke",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
+      "player_name": "Dylan Laube",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LV"
+    },
+    {
+      "player_name": "Max Bredeson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIN"
+    },
+    {
+      "player_name": "Adam Prentice",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DEN"
+    },
+    {
+      "player_name": "Phil Mafah",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
+      "player_name": "Zavier Scott",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIN"
+    },
+    {
+      "player_name": "Reggie Gilliam",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Travis Homer",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PIT"
+    },
+    {
+      "player_name": "Tyler Goodson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "ATL"
+    },
+    {
+      "player_name": "Velus Jones Jr.",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Andrew Beck",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYJ"
+    },
+    {
+      "player_name": "British Brooks",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Will Shipley",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PHI"
+    },
+    {
+      "player_name": "LeQuint Allen",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "JAX"
+    },
+    {
+      "player_name": "Riley Nowakowski",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PIT"
+    },
+    {
+      "player_name": "Brady Russell",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Ronnie Rivers",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAR"
+    },
+    {
+      "player_name": "Scott Matlock",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Cash Jones",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "ATL"
+    },
+    {
+      "player_name": "Frank Gore Jr.",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Craig Reynolds",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "WAS"
+    },
+    {
+      "player_name": "Jaret Patterson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Anderson Castle",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "IND"
+    },
+    {
+      "player_name": "Devin Singletary",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "JaMycal Hasty",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Sione Vaki",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DET"
+    },
+    {
+      "player_name": "Jaleel McLaughlin",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DEN"
+    },
+    {
+      "player_name": "Sincere McCormick",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
+      "player_name": "Salvon Ahmed",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CHI"
+    },
+    {
+      "player_name": "Anthony Hankerson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Jam Miller",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Eric Gray",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NYG"
+    },
+    {
+      "player_name": "Raheem Blackshear",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DET"
+    },
+    {
+      "player_name": "Anthony Tyus III",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CAR"
+    },
+    {
+      "player_name": "Miles Davis",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CAR"
+    },
+    {
+      "player_name": "Ben VanSumeren",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BUF"
+    },
+    {
+      "player_name": "Emanuel Wilson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SEA"
+    },
+    {
+      "player_name": "Owen Wright",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Jarquez Hunter",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAR"
+    },
+    {
+      "player_name": "Dean Connors",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAR"
+    },
+    {
+      "player_name": "Roschon Johnson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CHI"
+    },
+    {
+      "player_name": "Lucas Scott",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Robert Henry Jr.",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "WAS"
+    },
+    {
+      "player_name": "Lew Nichols",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PIT"
+    },
+    {
+      "player_name": "Isaac Guerendo",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
+      "player_name": "Hassan Haskins",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Brittain Brown",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CHI"
+    },
+    {
+      "player_name": "Ulysses Bentley IV",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "IND"
+    },
+    {
+      "player_name": "Dontae McMillan",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Elijah Tau-Tolliver",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "BAL"
+    },
+    {
+      "player_name": "Jaydn Ott",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "KC"
+    },
+    {
+      "player_name": "EJ Smith",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "KC"
+    },
+    {
+      "player_name": "Amar Johnson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Ahmani Marshall",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CLE"
+    },
+    {
+      "player_name": "Davon Booth",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CLE"
+    },
+    {
+      "player_name": "Jacob Saylors",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DET"
+    },
+    {
+      "player_name": "Gary Brightwell",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Noah Whittington",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "HOU"
+    },
+    {
+      "player_name": "Pierre Strong Jr.",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "Dameon Pierce",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PHI"
+    },
+    {
+      "player_name": "Damien Martinez",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "Kentrel Bullock",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Jamal Haynes",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CIN"
+    },
+    {
+      "player_name": "Josh Williams",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "TB"
+    },
+    {
+      "player_name": "Jaden Nixon",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "GB"
+    },
+    {
+      "player_name": "Carlos Washington",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "Donovan Edwards",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIA"
+    },
+    {
+      "player_name": "Jermar Jefferson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "MIN"
+    },
+    {
+      "player_name": "Gregory Desrosiers",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
+      "player_name": "Jashaun Corbin",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
+      "player_name": "Michael Burton",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CLE"
+    },
+    {
+      "player_name": "Cody Schrader",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DEN"
+    },
+    {
+      "player_name": "Julius Chestnut",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "TEN"
+    },
+    {
+      "player_name": "Roman Hemby",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LV"
+    },
+    {
+      "player_name": "AJ Dillon",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "CAR"
+    }
+  ]
+}
