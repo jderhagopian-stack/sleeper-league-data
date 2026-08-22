@@ -1,0 +1,9 @@
+{
+  "_instructions": {
+    "purpose": "Optional ingestion contract for future/current rookie prospects. Add rows via agent/data pipeline; do not hand-fill if reliable source data is unavailable.",
+    "normalization": "Except draft_capital_pick and raw age/breakout_age, quality metrics should preferably be normalized 0..1 within position/class or historical cohort.",
+    "market_rookie_rank": "Consensus/market rookie rank. Lower is better.",
+    "model_rookie_rank": "Optional. The engine calculates its own rank when absent."
+  },
+  "prospects": []
+}
