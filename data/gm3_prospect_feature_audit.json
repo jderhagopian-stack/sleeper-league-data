@@ -1,13 +1,14 @@
 {
-  "generated_at_utc": "2026-08-22T21:36:22.967757+00:00",
+  "generated_at_utc": "2026-08-22T22:13:54.418611+00:00",
   "model_version": "FSFFL-GM-3.0-Prospect-Feature-Enrichment-v1",
   "season": 2026,
   "college_season": 2025,
   "sources": {
-    "pfr_draft": {
-      "available": false,
-      "url": "https://www.pro-football-reference.com/years/2026/draft.htm",
-      "error": "HTTP Error 403: Forbidden"
+    "wikipedia_draft_api": {
+      "available": true,
+      "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2026_NFL_draft&prop=wikitext&format=json&formatversion=2",
+      "rows": 257,
+      "provenance": "Wikipedia NFL draft selection table; article states selections are listed according to the NFL official draft tracker."
     },
     "nflverse_combine": {
       "available": true,
@@ -43,59 +44,13 @@
     }
   },
   "matched": {
-    "draft": 0,
+    "draft": 46,
     "combine": 26,
     "college": 46
   },
   "unmatched": {
     "draft": [
-      "Elijah Sarratt",
-      "Fernando Mendoza",
-      "CJ Daniels",
-      "Carson Beck",
-      "Germie Bernard",
-      "Ty Simpson",
-      "Omar Cooper",
-      "Max Klare",
-      "Carnell Tate",
-      "Jordyn Tyson",
-      "Malachi Fields",
-      "Jadarian Price",
-      "Jeremiyah Love",
-      "Nicholas Singleton",
-      "Drew Allar",
-      "Ja'Kobi Lane",
-      "Makai Lemon",
-      "Caleb Douglas",
-      "KC Concepcion",
-      "Antonio Williams",
-      "Adam Randall",
-      "Cade Klubnik",
-      "Mike Washington",
-      "Taylen Green",
-      "Chris Bell",
-      "Ted Hurst",
-      "Zachariah Branch",
-      "Matt Hibner",
-      "Malik Benson",
-      "Kenyon Sadiq",
-      "Emmett Johnson",
-      "Jonah Coleman",
-      "Denzel Boston",
-      "Demond Claiborne",
-      "Eli Stowers",
-      "Chris Brazzell",
-      "Skyler Bell",
-      "Garrett Nussmeier",
-      "Kaytron Allen",
-      "Zavion Thomas",
-      "Cyrus Allen",
-      "Kaelon Black",
-      "De'Zhaun Stribling",
-      "Eli Raridon",
-      "Eli Heidenreich",
-      "Seth McGowan",
-      "Barion Brown"
+      "Matt Hibner"
     ],
     "combine": [
       "Elijah Sarratt",
@@ -126,7 +81,7 @@
   },
   "prospect_count": 47,
   "match_rates": {
-    "draft": 0.0,
+    "draft": 0.9787,
     "combine": 0.5532,
     "college": 0.9787
   }
