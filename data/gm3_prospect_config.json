@@ -1,0 +1,63 @@
+{
+  "model_version": "FSFFL-GM-3.0-Prospect-Engine-v1",
+  "input_file": "data/gm3_prospect_inputs.json",
+  "market_rank_field": "market_rookie_rank",
+  "weights": {
+    "WR": {
+      "draft_capital": 0.24,
+      "yards_per_route_run": 0.2,
+      "breakout_age": 0.14,
+      "target_share": 0.12,
+      "early_declare": 0.08,
+      "dominator": 0.08,
+      "single_coverage": 0.06,
+      "competition": 0.04,
+      "athleticism": 0.04
+    },
+    "RB": {
+      "draft_capital": 0.28,
+      "rushing_grade": 0.12,
+      "missed_tackles_forced_per_attempt": 0.15,
+      "yards_after_contact_per_attempt": 0.13,
+      "receiving_yprr": 0.11,
+      "target_rate": 0.07,
+      "pass_block": 0.04,
+      "age": 0.05,
+      "competition": 0.05
+    },
+    "QB": {
+      "draft_capital": 0.27,
+      "passing_grade": 0.12,
+      "sack_rate_inverse": 0.12,
+      "rushing_value": 0.13,
+      "deep_accuracy": 0.08,
+      "epa_per_play": 0.08,
+      "big_time_throw_rate": 0.06,
+      "turnover_worthy_inverse": 0.06,
+      "competition": 0.04,
+      "age": 0.04
+    },
+    "TE": {
+      "draft_capital": 0.24,
+      "yards_per_route_run": 0.18,
+      "receiving_grade": 0.14,
+      "target_share": 0.1,
+      "athleticism": 0.1,
+      "age": 0.08,
+      "route_role": 0.08,
+      "competition": 0.08
+    }
+  },
+  "thresholds": {
+    "DRAFT_SLEEPER": 70,
+    "BLUE_CHIP": 82,
+    "BUST_RISK": 72
+  },
+  "research_basis": [
+    "Draft capital is treated as a primary prior across positions.",
+    "WR: YPRR, early production/breakout age, market share, early declare and competition context.",
+    "RB: draft capital, elusive/rushing efficiency, receiving ability and role-supporting skills.",
+    "QB: draft capital, passing quality, stable sack/scramble tendencies and rushing fantasy value.",
+    "Weights are transparent priors until historical prospect-feature backtesting is available."
+  ]
+}
