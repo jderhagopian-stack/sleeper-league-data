@@ -406,11 +406,24 @@ def main():
     season = active_season()
     patch_gm22_runtime(season)
 
-    # Run the complete, proven GM 2.2 engine first. This is the inherited core,
-    # not a separate pre-step or compatibility-only data source.
+    # Preserve the authoritative phase-aware GM 3.0 intelligence file.
+    intelligence_path = DATA / "football_intelligence_signals.json"
+    phase_aware_intelligence = load(intelligence_path, None)
+
+    # Run the complete proven GM 2.2 core.
+    # GM 2.2 may temporarily overwrite football_intelligence_signals.json
+    # with its legacy format.
     core.main()
 
-    # Promote/enrich its universal outputs in place as GM 3.0.
+    # Restore the newer GM 3.0 phase-aware intelligence contract.
+    if (
+        isinstance(phase_aware_intelligence, dict)
+        and phase_aware_intelligence.get("model_version")
+        == "FSFFL-GM-3.0-Football-Intelligence-v1"
+    ):
+        dump(intelligence_path, phase_aware_intelligence)
+
+    # Promote/enrich the inherited GM 2.2 outputs into GM 3.0.
     promote_universal_outputs(season)
     report = gm30_validation(season)
 
