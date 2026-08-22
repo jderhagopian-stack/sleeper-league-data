@@ -1,0 +1,41 @@
+{
+  "generated_at_utc": "2026-08-22T22:16:35.778732+00:00",
+  "model_version": "FSFFL-GM-3.0",
+  "season": 2026,
+  "architecture": "GM_2_2_CORE_EVOLVED_TO_GM_3_0",
+  "scope": "ALL_TEAMS",
+  "team_view_count": 12,
+  "core_inheritance": {
+    "source_engine": "script/build_fsffl_gm_engine.py",
+    "source_model": "GM-2.2",
+    "preserved_capabilities": [
+      "universal_franchise_mode",
+      "optimized_legal_lineups",
+      "dynamic_hold_and_break_glass_values",
+      "nonlinear_package_economics",
+      "bilateral_trade_economics",
+      "owner_specific_sell_leverage",
+      "hold_wait_benchmark",
+      "mutual_trade_map",
+      "strategic_asset_profiles"
+    ]
+  },
+  "gm30_upgrades": [
+    "dynamic_operating_season",
+    "dynamic_future_pick_horizon",
+    "simulator_1_0_team_context",
+    "prospect_intelligence_interface",
+    "football_intelligence_coverage",
+    "explicit_2_2_provenance_and_regression_baseline"
+  ],
+  "evidence_coverage": {
+    "season_phase": "PRESEASON",
+    "usage_records": 0,
+    "snap_records": 0,
+    "prior_snap_records": 419,
+    "preseason_usage_records": 51,
+    "manual_intelligence_records": 82,
+    "prospect_count": 47
+  },
+  "simulator_validation_passed": true
+}
