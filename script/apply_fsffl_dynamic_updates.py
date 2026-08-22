@@ -1,27 +1,13 @@
 #!/usr/bin/env python3
 """
-FSFFL Simulator - dynamic in-season projection updater.
+FSFFL Simulator dynamic in-season updater.
 
-This layer sits AFTER build_fsffl_weekly_projections.py and BEFORE the season
-simulator. It is season-agnostic and intentionally does nothing to preseason
-means when the NFL state says preseason.
-
-Inputs:
-- data/nfl_state.json
-- data/players.json
-- data/league.json
-- data/stats/nfl/<season>/player_weekly_normalized.json (when regular season data exists)
-- data/simulator/<season>/inputs/player_weekly_projections.json
-
-Updates future weeks using:
-- actual current-season fantasy scoring under exact FSFFL rules
-- increasing in-season weight as sample size grows
-- Sleeper injury/status availability
-- actual completed weeks are not projected forward as if unknown
-
-Outputs:
-- overwrites player_weekly_projections.json with dynamic future-week means
-- data/simulator/<season>/outputs/dynamic_projection_audit.json
+Key behavior:
+- Preseason: does NOT spread transient Sleeper injury tags across the season.
+- Regular season: current injury tags affect only the immediate forecast week
+  unless an explicit expected-return week is available.
+- Current-season actual performance is blended into future means increasingly
+  as sample size grows.
 """
 
 from __future__ import annotations
@@ -31,7 +17,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional
 
 DATA = Path("data")
 SIM_ROOT = DATA / "simulator"
@@ -54,6 +40,16 @@ STAT_ALIASES = {
     "rush_2pt": ("rushing_2pt_conversions", "rush_2pt"),
     "rec_2pt": ("receiving_2pt_conversions", "rec_2pt"),
 }
+
+TRANSIENT_AVAILABILITY = {
+    "probable": 0.95,
+    "questionable": 0.72,
+    "doubtful": 0.25,
+    "out": 0.0,
+    "inactive": 0.0,
+}
+
+LONG_TERM_STATUSES = {"ir", "pup", "nfi", "suspended"}
 
 
 def load_json(path: Path, default=None):
@@ -129,7 +125,6 @@ def extract_weekly_rows(payload: Any) -> List[Dict[str, Any]]:
             return
 
         local = dict(ctx)
-
         if parent_key:
             wk = maybe_week(parent_key)
             if wk is not None:
@@ -171,10 +166,9 @@ def extract_weekly_rows(payload: Any) -> List[Dict[str, Any]]:
             row.get("position"),
             row.get("week"),
         )
-        if sig in seen:
-            continue
-        seen.add(sig)
-        deduped.append(row)
+        if sig not in seen:
+            seen.add(sig)
+            deduped.append(row)
     return deduped
 
 
@@ -193,9 +187,9 @@ def score_row(row: Dict[str, Any], scoring: Dict[str, Any]) -> float:
     fum_weight = as_float(scoring.get("fum_lost"))
     if fum_weight:
         if row.get("fumbles_lost") not in (None, ""):
-            lost = as_float(row.get("fumbles_lost"))
+            lost = as_float(row["fumbles_lost"])
         elif row.get("fum_lost") not in (None, ""):
-            lost = as_float(row.get("fum_lost"))
+            lost = as_float(row["fum_lost"])
         else:
             lost = sum(
                 as_float(row.get(k))
@@ -209,29 +203,61 @@ def score_row(row: Dict[str, Any], scoring: Dict[str, Any]) -> float:
     return total
 
 
-def active_probability(player: Dict[str, Any]) -> Tuple[float, str]:
-    status = str(
-        player.get("injury_status")
-        or player.get("status")
-        or ""
-    ).strip().lower()
-
-    if status in {"out", "ir", "pup", "nfi", "suspended", "inactive"}:
-        return 0.0, status or "out"
-    if status in {"doubtful"}:
-        return 0.25, status
-    if status in {"questionable"}:
-        return 0.72, status
-    if status in {"probable"}:
-        return 0.95, status
-    return 1.0, status or "no_injury_flag"
-
-
-def current_season_weight(completed_games: int) -> float:
-    # Preseason prior dominates early; actual season becomes dominant later.
-    if completed_games <= 0:
+def actual_weight(games: int) -> float:
+    if games <= 0:
         return 0.0
-    return min(0.80, 0.10 + 0.06 * completed_games)
+    return min(0.80, 0.10 + 0.06 * games)
+
+
+def injury_status(meta: Dict[str, Any]) -> str:
+    return str(meta.get("injury_status") or meta.get("status") or "").strip().lower()
+
+
+def explicit_return_week(meta: Dict[str, Any]) -> Optional[int]:
+    for key in (
+        "expected_return_week",
+        "injury_return_week",
+        "return_week",
+    ):
+        wk = maybe_week(meta.get(key))
+        if wk is not None:
+            return wk
+    return None
+
+
+def apply_availability(
+    row: Dict[str, Any],
+    week: int,
+    current_week: int,
+    regular_active: bool,
+    status: str,
+    return_week: Optional[int],
+) -> bool:
+    if row.get("is_bye"):
+        row["active_probability"] = 0.0
+        return False
+
+    # Preseason injury labels are often about preseason participation, not
+    # Week 1 availability. Do not contaminate the whole regular-season prior.
+    if not regular_active:
+        return False
+
+    probability = None
+
+    if status in LONG_TERM_STATUSES:
+        if return_week is not None:
+            probability = 0.0 if week < return_week else 1.0
+        elif week == current_week:
+            probability = 0.0
+    elif status in TRANSIENT_AVAILABILITY and week == current_week:
+        probability = TRANSIENT_AVAILABILITY[status]
+
+    if probability is None:
+        return False
+
+    before = as_float(row.get("active_probability", 1.0))
+    row["active_probability"] = min(before, probability)
+    return row["active_probability"] != before
 
 
 def main():
@@ -245,6 +271,7 @@ def main():
     sim_dir = SIM_ROOT / season
     input_path = sim_dir / "inputs" / "player_weekly_projections.json"
     audit_path = sim_dir / "outputs" / "dynamic_projection_audit.json"
+
     projections = load_json(input_path)
     if not projections or not projections.get("players"):
         raise RuntimeError("Missing weekly projection input")
@@ -259,6 +286,7 @@ def main():
 
     by_name_pos = defaultdict(list)
     current_rows = []
+
     if regular_active and current_path.exists():
         current_rows = extract_weekly_rows(load_json(current_path))
         for row in current_rows:
@@ -267,95 +295,94 @@ def main():
                 continue
             name = norm_name(str(row.get("player_name") or ""))
             pos = normalize_position(row.get("position"))
-            if not name or not pos:
-                continue
-            by_name_pos[(name, pos)].append(score_row(row, scoring))
+            if name and pos:
+                by_name_pos[(name, pos)].append(score_row(row, scoring))
 
-    changed_means = 0
-    injury_adjusted = 0
-    actual_players = 0
-    future_week_rows = 0
+    players_with_actual = 0
+    players_with_mean_changes = 0
+    availability_rows_changed = 0
+    unresolved_long_term = 0
     player_audit = {}
 
-    for sid, player_projection in projections["players"].items():
-        name = str(player_projection.get("name") or "")
-        pos = normalize_position(player_projection.get("position"))
+    for sid, pp in projections["players"].items():
+        name = str(pp.get("name") or "")
+        pos = normalize_position(pp.get("position"))
         if not pos:
             continue
 
         meta = players_meta.get(str(sid), {}) if isinstance(players_meta, dict) else {}
-        availability, injury_label = active_probability(meta)
+        status = injury_status(meta)
+        return_week = explicit_return_week(meta)
 
         scores = by_name_pos.get((norm_name(name), pos), [])
-        actual_ppg = sum(scores) / len(scores) if scores else None
-        weight = current_season_weight(len(scores)) if regular_active else 0.0
+        ppg = sum(scores) / len(scores) if scores else None
+        weight = actual_weight(len(scores)) if regular_active else 0.0
+
         if scores:
-            actual_players += 1
+            players_with_actual += 1
 
-        base_ppg = as_float(player_projection.get("season_baseline_ppg"))
+        base_ppg = as_float(pp.get("season_baseline_ppg"))
         updated_ppg = base_ppg
-        if actual_ppg is not None and weight > 0:
-            updated_ppg = (1.0 - weight) * base_ppg + weight * actual_ppg
+        if ppg is not None and weight > 0:
+            updated_ppg = (1.0 - weight) * base_ppg + weight * ppg
 
-        player_changed = False
-        for week_str, row in (player_projection.get("weeks") or {}).items():
+        changed = False
+        availability_changed_for_player = 0
+
+        for week_str, row in (pp.get("weeks") or {}).items():
             week = maybe_week(week_str)
             if week is None:
                 continue
 
-            # Past/current weeks are not future forecasts. Leave their means
-            # untouched here; the simulator's midseason state layer will later
-            # lock actual completed FSFFL matchup results.
             if regular_active and week < current_week:
                 continue
 
-            if row.get("is_bye"):
-                row["active_probability"] = 0.0
-                continue
+            if not row.get("is_bye") and weight > 0:
+                old_mean = as_float(row.get("mean"))
+                if abs(updated_ppg - old_mean) > 1e-9:
+                    old_sd = max(0.1, as_float(row.get("sd")))
+                    ratio = updated_ppg / max(0.25, old_mean)
+                    row["mean"] = round(updated_ppg, 3)
+                    row["median"] = round(max(0.0, as_float(row.get("median")) * ratio), 3)
+                    row["sd"] = round(max(0.1, old_sd * max(0.70, min(1.30, ratio))), 3)
+                    row["p25"] = round(max(0.0, row["mean"] - 0.67448975 * row["sd"]), 3)
+                    row["p75"] = round(max(0.0, row["mean"] + 0.67448975 * row["sd"]), 3)
+                    changed = True
 
-            future_week_rows += 1
-            old_mean = as_float(row.get("mean"))
-            old_sd = max(0.1, as_float(row.get("sd")))
+            if apply_availability(
+                row, week, current_week, regular_active, status, return_week
+            ):
+                availability_rows_changed += 1
+                availability_changed_for_player += 1
 
-            if weight > 0 and abs(updated_ppg - old_mean) > 1e-9:
-                ratio = updated_ppg / max(0.25, old_mean)
-                row["mean"] = round(updated_ppg, 3)
-                row["median"] = round(max(0.0, as_float(row.get("median")) * ratio), 3)
-                row["sd"] = round(max(0.1, old_sd * max(0.70, min(1.30, ratio))), 3)
-                row["p25"] = round(max(0.0, row["mean"] - 0.67448975 * row["sd"]), 3)
-                row["p75"] = round(max(0.0, row["mean"] + 0.67448975 * row["sd"]), 3)
-                player_changed = True
+        if changed:
+            players_with_mean_changes += 1
 
-            # Injury availability is applied even in preseason.
-            if availability < as_float(row.get("active_probability", 1.0)):
-                row["active_probability"] = availability
-                injury_adjusted += 1
+        if regular_active and status in LONG_TERM_STATUSES and return_week is None:
+            unresolved_long_term += 1
 
-        if player_changed:
-            changed_means += 1
-
-        player_projection["dynamic_update"] = {
+        pp["dynamic_update"] = {
             "regular_season_update_active": regular_active,
             "completed_games_sample": len(scores),
-            "actual_fsffl_ppg": round(actual_ppg, 3) if actual_ppg is not None else None,
+            "actual_fsffl_ppg": round(ppg, 3) if ppg is not None else None,
             "actual_weight": round(weight, 3),
             "updated_future_ppg": round(updated_ppg, 3),
-            "availability_probability": availability,
-            "injury_label": injury_label,
+            "injury_status": status or "none",
+            "expected_return_week": return_week,
+            "availability_rows_changed": availability_changed_for_player,
         }
-
-        player_audit[sid] = player_projection["dynamic_update"]
+        player_audit[sid] = pp["dynamic_update"]
 
     projections["dynamic_update_stage"] = {
         "season_type": season_type,
         "current_week": current_week,
         "leg": leg,
         "regular_season_update_active": regular_active,
+        "injury_policy": (
+            "Preseason transient tags ignored. In season, transient tags affect "
+            "only current week; long-term tags use explicit return week when available."
+        ),
     }
-    projections["source"] = (
-        str(projections.get("source") or "")
-        + "; dynamic current-season/injury update layer"
-    )
 
     write_json(input_path, projections)
     write_json(
@@ -368,23 +395,19 @@ def main():
             "regular_season_update_active": regular_active,
             "current_stats_file": str(current_path),
             "current_weekly_rows_parsed": len(current_rows),
-            "players_with_actual_samples": actual_players,
-            "players_with_future_mean_changes": changed_means,
-            "future_week_rows_checked": future_week_rows,
-            "injury_adjusted_week_rows": injury_adjusted,
-            "preseason_behavior": (
-                "Current-season performance weighting disabled; injury flags only."
-                if not regular_active else None
-            ),
+            "players_with_actual_samples": players_with_actual,
+            "players_with_future_mean_changes": players_with_mean_changes,
+            "availability_rows_changed": availability_rows_changed,
+            "unresolved_long_term_injuries": unresolved_long_term,
+            "preseason_transient_injury_tags_ignored": not regular_active,
             "player_updates": player_audit,
         },
     )
 
     print(
-        f"Dynamic projection layer complete for {season}. "
-        f"regular_active={regular_active}; "
-        f"actual_players={actual_players}; changed_means={changed_means}; "
-        f"injury_rows={injury_adjusted}"
+        f"Dynamic projection layer complete: regular_active={regular_active}; "
+        f"actual_players={players_with_actual}; mean_changes={players_with_mean_changes}; "
+        f"availability_rows_changed={availability_rows_changed}"
     )
 
 
