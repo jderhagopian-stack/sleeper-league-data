@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-08-22T07:45:44.830204+00:00",
-  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4.4-Directional-Catalysts",
-  "scope": "ALL_ACTIVE_QB_RB_WR_TE",
-  "player_universe_count": 645,
-  "candidate_count": 40,
+  "generated_at_utc": "2026-08-22T08:16:34.048756+00:00",
+  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4.5-Semantic-Hygiene",
+  "scope": "ALL_CURRENT_NFL_QB_RB_WR_TE",
+  "player_universe_count": 482,
+  "candidate_count": 35,
   "season_phase": "PRESEASON",
   "decision_sequence": [
     "HISTORICAL_BREAKOUT_PROFILE",
@@ -31,12 +31,12 @@
     "CURRENT_REGULAR_SEASON_USAGE_NOT_EXPECTED"
   ],
   "signal_counts": {
-    "HISTORICAL_BREAKOUT_PROFILE": 15,
+    "HISTORICAL_BREAKOUT_PROFILE": 11,
     "WAIVER_TARGET": 1,
     "ROLE_INFLECTION": 3,
-    "BUY_LOW": 5,
-    "DYNASTY_STASH": 4,
-    "HIDDEN_GEM": 8,
+    "BUY_LOW": 4,
+    "DYNASTY_STASH": 2,
+    "HIDDEN_GEM": 6,
     "FRAGILE_VALUE": 11,
     "VALUE_TRAP_RISK": 10
   },
@@ -47,7 +47,11 @@
     "market_lag_required_for_breakout": true,
     "historical_profile_alone_is_watchlist": true,
     "prior_year_usage_is_baseline_not_catalyst": true,
-    "position_specific_cutoffs_dynamic": true
+    "position_specific_cutoffs_dynamic": true,
+    "already_established_disqualified_from_breakout_profile": true,
+    "hidden_gem_blocked_by_negative_current_evidence": true,
+    "actionable_candidates_require_current_nfl_team": true,
+    "dynasty_stash_requires_developmental_age_profile": true
   },
   "candidates": [
     {
@@ -83,6 +87,8 @@
         "score": 1.221,
         "cutoff": 0.846,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -165,6 +171,8 @@
         "score": 0.108,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -246,6 +254,8 @@
         "score": -0.301,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -348,6 +358,8 @@
         "score": 0.125,
         "cutoff": 0.846,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.6,
         "features_used": 3,
         "contributions": {
@@ -453,6 +465,8 @@
         "score": 1.4,
         "cutoff": 0.846,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -505,89 +519,6 @@
       "confidence_grade": "B"
     },
     {
-      "player_id": "11603",
-      "name": "AJ Barner",
-      "position": "TE",
-      "nfl_team": "SEA",
-      "age": 24.0,
-      "years_exp": 2.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 6,
-      "market_value": 1428.5,
-      "market_score": 0.38271604938271603,
-      "usage_score": 0.7895,
-      "manual_score": 0.62,
-      "manual_evidence": [
-        "preseason_role"
-      ],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 20,
-        "offense_snaps": 998.0,
-        "offense_snap_pct": 0.7895,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": 7.135,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 2.078,
-        "cutoff": 1.433,
-        "clears_cutoff": true,
-        "feature_coverage": 0.8,
-        "features_used": 4,
-        "contributions": {
-          "age": {
-            "value": "AGE_23_24",
-            "weight": 0.536
-          },
-          "experience": {
-            "value": "EXP_YEAR_3",
-            "weight": 0.805
-          },
-          "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": 0.447
-          },
-          "prior_ppg": {
-            "value": "PPG_ALREADY_HIGH",
-            "weight": 0.29
-          }
-        },
-        "base_breakout_rate": 0.0754
-      },
-      "current_catalyst_profile": {
-        "present": true,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 1,
-        "positive_evidence_count": 1,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 1,
-        "max_positive_strength": 0.62,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 79.6,
-      "market_mispricing_score": 41.3,
-      "signals": [
-        "HISTORICAL_BREAKOUT_PROFILE",
-        "HIDDEN_GEM",
-        "BUY_LOW",
-        "DYNASTY_STASH"
-      ],
-      "direction": "ACQUIRE",
-      "confidence_score": 70.0,
-      "confidence_grade": "B"
-    },
-    {
       "player_id": "11565",
       "name": "J.J. McCarthy",
       "position": "QB",
@@ -618,6 +549,8 @@
         "score": 1.409,
         "cutoff": 0.846,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -699,6 +632,8 @@
         "score": 2.117,
         "cutoff": 1.433,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -742,8 +677,7 @@
       "signals": [
         "HISTORICAL_BREAKOUT_PROFILE",
         "HIDDEN_GEM",
-        "BUY_LOW",
-        "DYNASTY_STASH"
+        "BUY_LOW"
       ],
       "direction": "ACQUIRE",
       "confidence_score": 55.0,
@@ -780,6 +714,8 @@
         "score": 1.597,
         "cutoff": 1.57,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -861,6 +797,8 @@
         "score": 1.494,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -941,6 +879,8 @@
         "score": 1.524,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -989,6 +929,90 @@
       "confidence_grade": "B"
     },
     {
+      "player_id": "11603",
+      "name": "AJ Barner",
+      "position": "TE",
+      "nfl_team": "SEA",
+      "age": 24.0,
+      "years_exp": 2.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": true,
+      "fsffl_roster_id": 6,
+      "market_value": 1428.5,
+      "market_score": 0.38271604938271603,
+      "usage_score": 0.7895,
+      "manual_score": 0.62,
+      "manual_evidence": [
+        "preseason_role"
+      ],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": {
+        "source_season": 2025,
+        "games": 20,
+        "offense_snaps": 998.0,
+        "offense_snap_pct": 0.7895,
+        "evidence_type": "PRIOR_REGULAR_SEASON"
+      },
+      "prior_half_ppr_ppg": 7.135,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": 2.078,
+        "cutoff": 1.433,
+        "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
+        "feature_coverage": 0.8,
+        "features_used": 4,
+        "contributions": {
+          "age": {
+            "value": "AGE_23_24",
+            "weight": 0.536
+          },
+          "experience": {
+            "value": "EXP_YEAR_3",
+            "weight": 0.805
+          },
+          "prior_snap": {
+            "value": "SNAP_70_PLUS",
+            "weight": 0.447
+          },
+          "prior_ppg": {
+            "value": "PPG_ALREADY_HIGH",
+            "weight": 0.29
+          }
+        },
+        "base_breakout_rate": 0.0754
+      },
+      "current_catalyst_profile": {
+        "present": true,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 1,
+        "positive_evidence_count": 1,
+        "negative_evidence_count": 0,
+        "strong_positive_evidence_count": 0,
+        "positive_independent_sources": 1,
+        "max_positive_strength": 0.62,
+        "max_negative_strength": 0.0,
+        "negative_veto": false,
+        "strong": false,
+        "corroborated": false
+      },
+      "latent_value_score": 79.6,
+      "market_mispricing_score": 41.3,
+      "signals": [
+        "HIDDEN_GEM"
+      ],
+      "direction": "ACQUIRE",
+      "confidence_score": 70.0,
+      "confidence_grade": "B"
+    },
+    {
       "player_id": "11597",
       "name": "Theo Johnson",
       "position": "TE",
@@ -1019,6 +1043,10 @@
         "score": 1.225,
         "cutoff": 1.433,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1067,162 +1095,6 @@
       "confidence_grade": "C"
     },
     {
-      "player_id": "12524",
-      "name": "Shedeur Sanders",
-      "position": "QB",
-      "nfl_team": "CLE",
-      "age": 24.0,
-      "years_exp": 1.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 4,
-      "market_value": 1263.0,
-      "market_score": 0.2880658436213992,
-      "usage_score": 0.9163,
-      "manual_score": 0.3,
-      "manual_evidence": [
-        "role_loss"
-      ],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 8,
-        "offense_snaps": 428.0,
-        "offense_snap_pct": 0.9163,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": 12.113,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 0.074,
-        "cutoff": 0.846,
-        "clears_cutoff": false,
-        "feature_coverage": 0.8,
-        "features_used": 4,
-        "contributions": {
-          "age": {
-            "value": "AGE_23_24",
-            "weight": 0.535
-          },
-          "experience": {
-            "value": "EXP_YEAR_2",
-            "weight": 0.375
-          },
-          "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": -0.07
-          },
-          "prior_ppg": {
-            "value": "PPG_BELOW_AVG",
-            "weight": -0.766
-          }
-        },
-        "base_breakout_rate": 0.0982
-      },
-      "current_catalyst_profile": {
-        "present": true,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 1,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 1,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.45,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 63.4,
-      "market_mispricing_score": 34.6,
-      "signals": [
-        "HIDDEN_GEM"
-      ],
-      "direction": "ACQUIRE",
-      "confidence_score": 55.0,
-      "confidence_grade": "C"
-    },
-    {
-      "player_id": "11559",
-      "name": "Michael Penix",
-      "position": "QB",
-      "nfl_team": "ATL",
-      "age": 26.0,
-      "years_exp": 2.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 5,
-      "market_value": 1399.3,
-      "market_score": 0.36213991769547327,
-      "usage_score": 0.9322,
-      "manual_score": 0.36,
-      "manual_evidence": [
-        "injury_concern"
-      ],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 9,
-        "offense_snaps": 553.0,
-        "offense_snap_pct": 0.9322,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": null,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 0.192,
-        "cutoff": 0.846,
-        "clears_cutoff": false,
-        "feature_coverage": 0.6,
-        "features_used": 3,
-        "contributions": {
-          "age": {
-            "value": "AGE_25_26",
-            "weight": -0.04
-          },
-          "experience": {
-            "value": "EXP_YEAR_3",
-            "weight": 0.302
-          },
-          "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": -0.07
-          }
-        },
-        "base_breakout_rate": 0.0982
-      },
-      "current_catalyst_profile": {
-        "present": true,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 1,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 1,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.55,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 63.6,
-      "market_mispricing_score": 27.4,
-      "signals": [
-        "HIDDEN_GEM"
-      ],
-      "direction": "ACQUIRE",
-      "confidence_score": 45.0,
-      "confidence_grade": "D"
-    },
-    {
       "player_id": "5012",
       "name": "Mark Andrews",
       "position": "TE",
@@ -1255,6 +1127,8 @@
         "score": 1.754,
         "cutoff": 1.433,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1335,6 +1209,8 @@
         "score": 0.907,
         "cutoff": 0.846,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1383,84 +1259,6 @@
       "confidence_grade": "B"
     },
     {
-      "player_id": "11604",
-      "name": "Brock Bowers",
-      "position": "TE",
-      "nfl_team": "LV",
-      "age": 23.0,
-      "years_exp": 2.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 11,
-      "market_value": 7838.0,
-      "market_score": 0.9711934156378601,
-      "usage_score": 0.8592,
-      "manual_score": null,
-      "manual_evidence": [],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 12,
-        "offense_snaps": 605.0,
-        "offense_snap_pct": 0.8592,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": 11.85,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 2.078,
-        "cutoff": 1.433,
-        "clears_cutoff": true,
-        "feature_coverage": 0.8,
-        "features_used": 4,
-        "contributions": {
-          "age": {
-            "value": "AGE_23_24",
-            "weight": 0.536
-          },
-          "experience": {
-            "value": "EXP_YEAR_3",
-            "weight": 0.805
-          },
-          "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": 0.447
-          },
-          "prior_ppg": {
-            "value": "PPG_ALREADY_HIGH",
-            "weight": 0.29
-          }
-        },
-        "base_breakout_rate": 0.0754
-      },
-      "current_catalyst_profile": {
-        "present": false,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 0,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 86.5,
-      "market_mispricing_score": -10.6,
-      "signals": [
-        "HISTORICAL_BREAKOUT_PROFILE"
-      ],
-      "direction": "WATCHLIST",
-      "confidence_score": 55.0,
-      "confidence_grade": "C"
-    },
-    {
       "player_id": "3271",
       "name": "Tyler Higbee",
       "position": "TE",
@@ -1493,6 +1291,8 @@
         "score": 1.754,
         "cutoff": 1.433,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1573,6 +1373,8 @@
         "score": 1.754,
         "cutoff": 1.433,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1651,6 +1453,8 @@
         "score": 1.754,
         "cutoff": 1.433,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1699,74 +1503,6 @@
       "confidence_grade": "D"
     },
     {
-      "player_id": "11567",
-      "name": "Jordan Travis",
-      "position": "QB",
-      "nfl_team": null,
-      "age": 24.0,
-      "years_exp": 1.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": false,
-      "fsffl_roster_id": null,
-      "market_value": null,
-      "market_score": null,
-      "usage_score": null,
-      "manual_score": null,
-      "manual_evidence": [],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": null,
-      "prior_half_ppr_ppg": null,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 1.071,
-        "cutoff": 0.846,
-        "clears_cutoff": true,
-        "feature_coverage": 0.6,
-        "features_used": 3,
-        "contributions": {
-          "age": {
-            "value": "AGE_23_24",
-            "weight": 0.535
-          },
-          "experience": {
-            "value": "EXP_YEAR_2",
-            "weight": 0.375
-          },
-          "prior_snap": {
-            "value": "SNAP_UNKNOWN",
-            "weight": 0.161
-          }
-        },
-        "base_breakout_rate": 0.0982
-      },
-      "current_catalyst_profile": {
-        "present": false,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 0,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 80.7,
-      "market_mispricing_score": null,
-      "signals": [
-        "HISTORICAL_BREAKOUT_PROFILE"
-      ],
-      "direction": "WATCHLIST",
-      "confidence_score": 30.0,
-      "confidence_grade": "D"
-    },
-    {
       "player_id": "12511",
       "name": "Will Howard",
       "position": "QB",
@@ -1793,6 +1529,8 @@
         "score": 1.071,
         "cutoff": 0.846,
         "clears_cutoff": true,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.6,
         "features_used": 3,
         "contributions": {
@@ -1837,74 +1575,6 @@
       "confidence_grade": "D"
     },
     {
-      "player_id": "6789",
-      "name": "Henry Ruggs",
-      "position": "WR",
-      "nfl_team": null,
-      "age": 22.0,
-      "years_exp": 2.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": false,
-      "fsffl_roster_id": null,
-      "market_value": null,
-      "market_score": null,
-      "usage_score": null,
-      "manual_score": null,
-      "manual_evidence": [],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": null,
-      "prior_half_ppr_ppg": null,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": 1.642,
-        "cutoff": 1.57,
-        "clears_cutoff": true,
-        "feature_coverage": 0.6,
-        "features_used": 3,
-        "contributions": {
-          "age": {
-            "value": "AGE_22_OR_YOUNGER",
-            "weight": 0.959
-          },
-          "experience": {
-            "value": "EXP_YEAR_3",
-            "weight": 0.33
-          },
-          "prior_snap": {
-            "value": "SNAP_UNKNOWN",
-            "weight": 0.353
-          }
-        },
-        "base_breakout_rate": 0.0722
-      },
-      "current_catalyst_profile": {
-        "present": false,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 0,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "latent_value_score": 78.4,
-      "market_mispricing_score": null,
-      "signals": [
-        "HISTORICAL_BREAKOUT_PROFILE"
-      ],
-      "direction": "WATCHLIST",
-      "confidence_score": 30.0,
-      "confidence_grade": "D"
-    },
-    {
       "player_id": "4034",
       "name": "Christian McCaffrey",
       "position": "RB",
@@ -1937,6 +1607,10 @@
         "score": 0.314,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2039,6 +1713,8 @@
         "score": -0.076,
         "cutoff": 0.253,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.67,
         "features_used": 2,
         "contributions": {
@@ -2132,6 +1808,8 @@
         "score": 0.214,
         "cutoff": 0.888,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.67,
         "features_used": 2,
         "contributions": {
@@ -2204,6 +1882,8 @@
         "score": -0.963,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2282,6 +1962,10 @@
         "score": -0.341,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2360,6 +2044,10 @@
         "score": -0.341,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2438,6 +2126,10 @@
         "score": -2.165,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2516,6 +2208,10 @@
         "score": -0.341,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2594,6 +2290,10 @@
         "score": 0.153,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2672,6 +2372,10 @@
         "score": 0.695,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2750,6 +2454,10 @@
         "score": -0.18,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2828,6 +2536,8 @@
         "score": -0.239,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2908,6 +2618,10 @@
         "score": -1.179,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -2987,6 +2701,10 @@
         "score": -1.179,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -3065,6 +2783,10 @@
         "score": 0.314,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -3144,6 +2866,8 @@
         "score": -0.093,
         "cutoff": 1.57,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.6,
         "features_used": 3,
         "contributions": {
@@ -3212,6 +2936,8 @@
         "score": -0.644,
         "cutoff": 1.393,
         "clears_cutoff": false,
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.6,
         "features_used": 3,
         "contributions": {
