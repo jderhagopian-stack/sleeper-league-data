@@ -1,13 +1,22 @@
 {
   "model_version": "FSFFL-GM-3.0",
-  "season": 2026,
-  "user_manager": "jimmygoodjob",
-  "user_team": "Hurts So Good",
-  "user_user_id": "846634401482792960",
+  "perspective": {
+    "mode": "runtime_selectable",
+    "runtime_variable": "GM30_USER_ID",
+    "fallback": "LEAGUE_VIEW",
+    "note": "The workflow may set a preferred default team. The engine itself contains no manager identity."
+  },
+  "season_resolution": {
+    "mode": "dynamic_from_league_metadata",
+    "source": "data/league.json",
+    "field": "season",
+    "hardcoded_season": false
+  },
   "architecture": {
     "role": "primary_gm_engine",
-    "simulator": "Simulator 1.0",
-    "legacy_gm22_policy": "compatibility_input_only_until_replaced",
+    "league_scope": "all_teams",
+    "perspective_scope": "any_team_or_league_view",
+    "simulator": "Simulator",
     "output_root": "data/gm",
     "writes_to_simulator_directory": false
   },
@@ -28,10 +37,10 @@
     "trade_summary": "data/owner_trade_summary.json",
     "transactions": "data/transactions.json",
     "football_intelligence": "data/football_intelligence_signals.json",
-    "sim_standings": "data/simulator/2026/outputs/standings_projection.json",
-    "sim_lineups": "data/simulator/2026/outputs/weekly_optimized_lineups.json",
-    "sim_projections": "data/simulator/2026/inputs/player_weekly_projections.json",
-    "sim_validation": "data/simulator/2026/outputs/validation_report.json",
+    "sim_standings": "data/simulator/{season}/outputs/standings_projection.json",
+    "sim_lineups": "data/simulator/{season}/outputs/weekly_optimized_lineups.json",
+    "sim_projections": "data/simulator/{season}/inputs/player_weekly_projections.json",
+    "sim_validation": "data/simulator/{season}/outputs/validation_report.json",
     "prospect_board": "data/gm/prospect_board.json"
   },
   "decision_weights": {
@@ -82,7 +91,7 @@
     "single_source_news_weight": 0.42
   },
   "counterfactual_simulator": {
-    "mode": "in_memory_same_simulator_1_0_engine",
+    "mode": "in_memory_same_simulator_engine",
     "default_simulations": 20000,
     "important_trade_simulations": 50000,
     "writes_to_simulator_directory": false,
@@ -91,19 +100,12 @@
   "self_audit": {
     "persistent_journal": "data/gm/decision_journal.json",
     "calibration_report": "data/gm/calibration_report.json",
-    "true_prospect_history_optional": "data/gm3_prospect_history.json"
+    "true_prospect_history_optional": "data/gm_prospect_history.json"
   },
   "prospect_engine": {
-    "config": "data/gm3_prospect_config.json",
-    "inputs": "data/gm3_prospect_inputs.json",
+    "config": "data/gm_prospect_config.json",
+    "inputs": "data/gm_prospect_inputs.json",
     "output": "data/gm/prospect_board.json",
-    "missing_data_policy": "do not fabricate; report DATA_INPUT_REQUIRED"
-  },
-  "notes": [
-    "GM 3.0 is the primary GM engine and replaces GM 2.2.",
-    "Legacy GM 2.2-derived datasets may be consumed temporarily as compatibility inputs until equivalent GM 3.0-native datasets replace them.",
-    "Simulator 1.0 is an upstream analytical input; GM 3.0 never writes into simulator directories.",
-    "Simulator title/playoff probabilities measure 2026 utility, not dynasty asset value.",
-    "Missing optional inputs lower confidence rather than silently counting as negative evidence."
-  ]
+    "missing_data_policy": "do_not_fabricate"
+  }
 }
