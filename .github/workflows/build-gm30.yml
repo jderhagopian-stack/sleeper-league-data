@@ -2,11 +2,6 @@ name: Build and Validate GM 3.0
 
 on:
   workflow_dispatch:
-    inputs:
-      perspective_user_id:
-        description: "Optional Sleeper user ID for team perspective; blank = league view"
-        required: false
-        type: string
 
 permissions:
   contents: write
@@ -30,17 +25,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Resolve GM perspective
-        shell: bash
-        run: |
-          if [ -n "${{ inputs.perspective_user_id }}" ]; then
-            echo "GM30_USER_ID=${{ inputs.perspective_user_id }}" >> "$GITHUB_ENV"
-          elif [ -n "${{ vars.GM30_USER_ID }}" ]; then
-            echo "GM30_USER_ID=${{ vars.GM30_USER_ID }}" >> "$GITHUB_ENV"
-          else
-            echo "No team perspective supplied; GM 3.0 will run in league-view mode."
-          fi
-
       - name: Build GM 3.0 prospect intelligence
         run: python script/build_gm30_prospect_engine.py
 
@@ -55,17 +39,14 @@ jobs:
       - name: Build GM 3.0 calibration audit
         run: python script/build_gm30_calibration.py
 
-      - name: Build GM 3.0
+      - name: Build GM 3.0 league-wide intelligence
         run: python script/build_fsffl_gm30.py
 
-      - name: Run GM 3.0 architecture validation gate
+      - name: Run GM 3.0 validation gate
         run: python script/validate_gm30.py
 
-      - name: Show GM 3.0 output summary
-        shell: bash
-        run: |
-          echo "GM 3.0 validation passed."
-          find data/gm -maxdepth 2 -type f -print | sort
+      - name: Show validated GM 3.0 outputs
+        run: find data/gm -maxdepth 2 -type f -print | sort
 
       - name: Commit validated GM 3.0 outputs
         shell: bash
@@ -78,6 +59,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No GM 3.0 output changes to commit."
           else
-            git commit -m "Build validated FSFFL GM 3.0 outputs"
+            git commit -m "Build validated FSFFL GM 3.0 league-wide outputs"
             git push origin HEAD:main
           fi
