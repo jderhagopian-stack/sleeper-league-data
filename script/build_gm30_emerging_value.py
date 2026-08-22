@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.4-Directional-Catalysts"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.5-Semantic-Hygiene"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -94,6 +94,22 @@ def player_universe():
     if isinstance(raw, list):
         raw = {str(x.get("player_id")): x for x in raw if isinstance(x, dict)}
     return raw
+
+def current_nfl_team(p, v):
+    team = first(p, "team", default=first(v, "nfl_team"))
+    team = str(team or "").strip().upper()
+    if team in {"", "FA", "FREE_AGENT", "FREE AGENT", "UNK", "UNKNOWN", "N/A", "NA", "NONE"}:
+        return None
+    return team
+
+def dynasty_stash_eligible(pos, age, exp):
+    # "Stash" is a developmental label, not a generic value label.
+    age_limits = {"QB": 26, "RB": 24, "WR": 25, "TE": 26}
+    if age is None:
+        return exp is not None and exp <= 3
+    if age > age_limits.get(pos, 25):
+        return False
+    return exp is None or exp <= 4
 
 def age_curve(pos, age):
     if age is None:
@@ -395,9 +411,12 @@ def historical_profile(calibration, pos, age, exp, draft_round, prior_snap, prio
         "draft_capital": bin_draft(draft_round),
         "experience": bin_experience(exp),
     }
+    ppg_bin = None
+    already_established = False
     if not rookie:
         features["prior_snap"] = bin_snap(prior_snap)
         ppg_bin = bin_ppg(pos, prior_ppg)
+        already_established = ppg_bin == "PPG_ALREADY_HIGH"
         if ppg_bin is not None:
             features["prior_ppg"] = ppg_bin
 
@@ -416,12 +435,18 @@ def historical_profile(calibration, pos, age, exp, draft_round, prior_snap, prio
 
     expected = 3 if rookie else 5
     coverage = used / expected
-    clears = threshold is not None and score >= float(threshold)
+    clears = (
+        threshold is not None
+        and score >= float(threshold)
+        and not already_established
+    )
     return {
         "cohort": "ROOKIE_YEAR" if rookie else "VETERAN_NEXT_YEAR",
         "score": round(score, 3),
         "cutoff": float(threshold) if threshold is not None else None,
         "clears_cutoff": bool(clears),
+        "already_established": already_established,
+        "disqualifiers": ["PRIOR_PPG_ALREADY_HIGH"] if already_established else [],
         "feature_coverage": round(coverage, 2),
         "features_used": used,
         "contributions": contributions,
@@ -585,13 +610,24 @@ def classify(row):
     hist_coverage = float(hist.get("feature_coverage") or 0)
     strong_now = bool(catalyst.get("strong"))
     corroborated_now = bool(catalyst.get("corroborated"))
+    negative_now = (
+        int(catalyst.get("negative_evidence_count") or 0) > 0
+        or bool(catalyst.get("negative_veto"))
+    )
 
     # Historical profile alone creates WATCHLIST status, never a breakout alert.
     if hist_ok:
         tags.append("HISTORICAL_BREAKOUT_PROFILE")
 
-    # Structural market mispricing: require history or broad football evidence.
-    if gap is not None and gap >= 0.25 and latent >= 0.62 and (hist_ok or row["usage_score"] is not None):
+    # Structural market mispricing: require history or broad football evidence,
+    # and do not label a player a hidden gem while current evidence is negative.
+    if (
+        gap is not None
+        and gap >= 0.25
+        and latent >= 0.62
+        and (hist_ok or row["usage_score"] is not None)
+        and not negative_now
+    ):
         tags.append("HIDDEN_GEM")
 
     # Empirically calibrated breakout gate:
@@ -611,7 +647,13 @@ def classify(row):
     if rostered and gap is not None and gap >= 0.18 and hist_ok:
         tags.append("BUY_LOW")
 
-    if hist_ok and hist_coverage >= 0.67 and mkt is not None and mkt <= 0.40:
+    if (
+        hist_ok
+        and hist_coverage >= 0.67
+        and mkt is not None
+        and mkt <= 0.40
+        and dynasty_stash_eligible(row["position"], row["age"], row["years_exp"])
+    ):
         tags.append("DYNASTY_STASH")
 
     # Role inflection requires a strong current signal; history is useful but not mandatory.
@@ -659,9 +701,13 @@ def main():
         if not name or name == pid:
             continue
 
+        v = vals.get(str(pid), {})
+        nfl_team = current_nfl_team(p, v)
+        if nfl_team is None:
+            continue
+
         age = num(p.get("age"))
         exp = num(first(p, "years_exp", "experience"))
-        v = vals.get(str(pid), {})
         u = usage.get(str(pid), {}) if isinstance(usage, dict) else {}
         s = snaps.get(str(pid), {}) if isinstance(snaps, dict) else {}
         prior = prior_snaps.get(str(pid), {}) if isinstance(prior_snaps, dict) else {}
@@ -707,7 +753,7 @@ def main():
             "player_id": str(pid),
             "name": name,
             "position": pos,
-            "nfl_team": first(p, "team", default=first(v, "nfl_team")),
+            "nfl_team": nfl_team,
             "age": age,
             "years_exp": exp,
             "draft_round": num(p.get("draft_round")),
@@ -785,12 +831,14 @@ def main():
     payload = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_version": MODEL,
-        "scope": "ALL_ACTIVE_QB_RB_WR_TE",
+        "scope": "ALL_CURRENT_NFL_QB_RB_WR_TE",
         "player_universe_count": sum(
-            1 for p in players.values()
+            1
+            for pid, p in players.items()
             if isinstance(p, dict)
             and str(p.get("position", "")).upper() in POSITIONS
             and p.get("active") is not False
+            and current_nfl_team(p, vals.get(str(pid), {})) is not None
         ),
         "candidate_count": len(rows),
         "season_phase": phase,
@@ -818,6 +866,10 @@ def main():
             "historical_profile_alone_is_watchlist": True,
             "prior_year_usage_is_baseline_not_catalyst": True,
             "position_specific_cutoffs_dynamic": True,
+            "already_established_disqualified_from_breakout_profile": True,
+            "hidden_gem_blocked_by_negative_current_evidence": True,
+            "actionable_candidates_require_current_nfl_team": True,
+            "dynasty_stash_requires_developmental_age_profile": True,
         },
         "candidates": rows,
     }
