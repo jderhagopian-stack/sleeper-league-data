@@ -1,0 +1,2456 @@
+{
+  "generated_at_utc": "2026-08-22T03:52:33.188798+00:00",
+  "model_version": "FSFFL-GM-3.0",
+  "user_id": "709546576091090944",
+  "manager": "nuckyniners",
+  "team_name": "Chef Niners",
+  "team_state": "elite_contender",
+  "objective_weights": {
+    "current": 0.5,
+    "future": 0.25,
+    "liquidity": 0.1,
+    "resilience": 0.15
+  },
+  "methodology_note": "Strategic profiles cover players and picks. Break-glass values explicitly price current utility, tier scarcity, upside optionality, liquidity, depth resilience, expected hold value and pick-specific quality. Values are heuristics for decision support, not guaranteed trade prices.",
+  "assets": [
+    {
+      "asset_id": "player:9488",
+      "asset_type": "player",
+      "player_id": "9488",
+      "name": "Jaxon Smith-Njigba",
+      "position": "WR",
+      "age": 24,
+      "base_franchise_value": 10191.7,
+      "market_dynasty": 8682.0,
+      "market_redraft": 8362.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 5894.0,
+      "depth_insurance_drop": 6216.0,
+      "strategic_score": 0.5661,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.9111,
+      "scarcity": {
+        "percentile": 0.9845,
+        "tier_gap": 0.3939,
+        "scarcity_score": 0.7778
+      },
+      "future_distribution": {
+        "upside_optionality": 0.3817,
+        "downside_risk": 0.0129,
+        "hold_appreciation_pct": 0.0874,
+        "distribution_floor": 6738.4,
+        "distribution_median": 8682.0,
+        "distribution_ceiling": 11704.4,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.5163,
+      "hold_premium_value": 5261.7,
+      "break_glass_value": 15453.4,
+      "trade_elasticity": 0.4368,
+      "premium_components": {
+        "core": 0.1573,
+        "tier_scarcity": 0.0827,
+        "optionality": 0.084,
+        "liquidity": 0.0638,
+        "expected_hold_appreciation": 0.0612,
+        "resilience": 0.0673
+      }
+    },
+    {
+      "asset_id": "player:11560",
+      "asset_type": "player",
+      "player_id": "11560",
+      "name": "Caleb Williams",
+      "position": "QB",
+      "age": 24,
+      "base_franchise_value": 8496.6,
+      "market_dynasty": 7073.0,
+      "market_redraft": 7018.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 3975.0,
+      "depth_insurance_drop": 4550.0,
+      "strategic_score": 0.4991,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.9211,
+      "scarcity": {
+        "percentile": 0.9255,
+        "tier_gap": 0.2103,
+        "scarcity_score": 0.6752
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4936,
+        "downside_risk": 0.0027,
+        "hold_appreciation_pct": 0.1086,
+        "distribution_floor": 5511.2,
+        "distribution_median": 7073.0,
+        "distribution_ceiling": 10049.6,
+        "years_exp": 2.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.4955,
+      "hold_premium_value": 4210.3,
+      "break_glass_value": 12706.9,
+      "trade_elasticity": 0.5496,
+      "premium_components": {
+        "core": 0.1353,
+        "tier_scarcity": 0.0641,
+        "optionality": 0.1086,
+        "liquidity": 0.0645,
+        "expected_hold_appreciation": 0.076,
+        "resilience": 0.047
+      }
+    },
+    {
+      "asset_id": "player:8138",
+      "asset_type": "player",
+      "player_id": "8138",
+      "name": "James Cook",
+      "position": "RB",
+      "age": 26,
+      "base_franchise_value": 6899.4,
+      "market_dynasty": 5398.0,
+      "market_redraft": 6388.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 4242.0,
+      "depth_insurance_drop": 5500.0,
+      "strategic_score": 0.4604,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.8174,
+      "scarcity": {
+        "percentile": 0.8913,
+        "tier_gap": 0.4781,
+        "scarcity_score": 0.7467
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2236,
+        "downside_risk": 0.27,
+        "hold_appreciation_pct": 0.0332,
+        "distribution_floor": 3773.2,
+        "distribution_median": 5398.0,
+        "distribution_ceiling": 6722.3,
+        "years_exp": 4.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.383,
+      "hold_premium_value": 2642.6,
+      "break_glass_value": 9542.0,
+      "trade_elasticity": 0.5297,
+      "premium_components": {
+        "core": 0.1234,
+        "tier_scarcity": 0.0768,
+        "optionality": 0.0492,
+        "liquidity": 0.0572,
+        "expected_hold_appreciation": 0.0232,
+        "resilience": 0.0531
+      }
+    },
+    {
+      "asset_id": "player:6797",
+      "asset_type": "player",
+      "player_id": "6797",
+      "name": "Justin Herbert",
+      "position": "QB",
+      "age": 28,
+      "base_franchise_value": 6965.8,
+      "market_dynasty": 5875.0,
+      "market_redraft": 5658.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 2615.0,
+      "depth_insurance_drop": 3190.0,
+      "strategic_score": 0.4042,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.8681,
+      "scarcity": {
+        "percentile": 0.8617,
+        "tier_gap": 0.2175,
+        "scarcity_score": 0.6362
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2717,
+        "downside_risk": 0.1629,
+        "hold_appreciation_pct": 0.0526,
+        "distribution_floor": 4295.3,
+        "distribution_median": 5875.0,
+        "distribution_ceiling": 7500.1,
+        "years_exp": 6.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3541,
+      "hold_premium_value": 2466.5,
+      "break_glass_value": 9432.3,
+      "trade_elasticity": 0.63,
+      "premium_components": {
+        "core": 0.1073,
+        "tier_scarcity": 0.0576,
+        "optionality": 0.0598,
+        "liquidity": 0.0608,
+        "expected_hold_appreciation": 0.0368,
+        "resilience": 0.0318
+      }
+    },
+    {
+      "asset_id": "player:12526",
+      "asset_type": "player",
+      "player_id": "12526",
+      "name": "Tetairoa McMillan",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 5299.4,
+      "market_dynasty": 4766.0,
+      "market_redraft": 3192.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1046.0,
+      "strategic_score": 0.3252,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.7681,
+      "scarcity": {
+        "percentile": 0.9021,
+        "tier_gap": 0.2476,
+        "scarcity_score": 0.673
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5616,
+        "downside_risk": 0.1156,
+        "hold_appreciation_pct": 0.1095,
+        "distribution_floor": 3552.2,
+        "distribution_median": 4766.0,
+        "distribution_ceiling": 6982.5,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.4094,
+      "hold_premium_value": 2169.8,
+      "break_glass_value": 7469.2,
+      "trade_elasticity": 0.7466,
+      "premium_components": {
+        "core": 0.087,
+        "tier_scarcity": 0.0637,
+        "optionality": 0.1236,
+        "liquidity": 0.0538,
+        "expected_hold_appreciation": 0.0766,
+        "resilience": 0.0047
+      }
+    },
+    {
+      "asset_id": "player:8144",
+      "asset_type": "player",
+      "player_id": "8144",
+      "name": "Chris Olave",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 5024.4,
+      "market_dynasty": 4277.0,
+      "market_redraft": 3886.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 1418.0,
+      "depth_insurance_drop": 1740.0,
+      "strategic_score": 0.3263,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.7297,
+      "scarcity": {
+        "percentile": 0.8711,
+        "tier_gap": 0.1396,
+        "scarcity_score": 0.6151
+      },
+      "future_distribution": {
+        "upside_optionality": 0.3431,
+        "downside_risk": 0.182,
+        "hold_appreciation_pct": 0.0636,
+        "distribution_floor": 3102.5,
+        "distribution_median": 4277.0,
+        "distribution_ceiling": 5658.6,
+        "years_exp": 4.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3298,
+      "hold_premium_value": 1657.3,
+      "break_glass_value": 6681.7,
+      "trade_elasticity": 0.6972,
+      "premium_components": {
+        "core": 0.0873,
+        "tier_scarcity": 0.0542,
+        "optionality": 0.0755,
+        "liquidity": 0.0511,
+        "expected_hold_appreciation": 0.0445,
+        "resilience": 0.0173
+      }
+    },
+    {
+      "asset_id": "player:12514",
+      "asset_type": "player",
+      "player_id": "12514",
+      "name": "Emeka Egbuka",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 4649.9,
+      "market_dynasty": 4361.0,
+      "market_redraft": 2653.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 507.0,
+      "strategic_score": 0.2951,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.7304,
+      "scarcity": {
+        "percentile": 0.8814,
+        "tier_gap": 0.107,
+        "scarcity_score": 0.6104
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5647,
+        "downside_risk": 0.2271,
+        "hold_appreciation_pct": 0.0989,
+        "distribution_floor": 3104.5,
+        "distribution_median": 4361.0,
+        "distribution_ceiling": 6397.8,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3804,
+      "hold_premium_value": 1768.8,
+      "break_glass_value": 6418.7,
+      "trade_elasticity": 0.7637,
+      "premium_components": {
+        "core": 0.08,
+        "tier_scarcity": 0.0535,
+        "optionality": 0.1242,
+        "liquidity": 0.0511,
+        "expected_hold_appreciation": 0.0692,
+        "resilience": 0.0023
+      }
+    },
+    {
+      "asset_id": "player:12481",
+      "asset_type": "player",
+      "player_id": "12481",
+      "name": "Cam Skattebo",
+      "position": "RB",
+      "age": 24,
+      "base_franchise_value": 3942.0,
+      "market_dynasty": 3255.0,
+      "market_redraft": 2800.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1912.0,
+      "strategic_score": 0.2832,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.6671,
+      "scarcity": {
+        "percentile": 0.7464,
+        "tier_gap": 0.1521,
+        "scarcity_score": 0.5384
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4835,
+        "downside_risk": 0.1389,
+        "hold_appreciation_pct": 0.0931,
+        "distribution_floor": 2403.2,
+        "distribution_median": 3255.0,
+        "distribution_ceiling": 4603.4,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.347,
+      "hold_premium_value": 1367.7,
+      "break_glass_value": 5309.7,
+      "trade_elasticity": 0.7798,
+      "premium_components": {
+        "core": 0.0774,
+        "tier_scarcity": 0.0427,
+        "optionality": 0.1064,
+        "liquidity": 0.0467,
+        "expected_hold_appreciation": 0.0652,
+        "resilience": 0.0087
+      }
+    },
+    {
+      "asset_id": "player:12529",
+      "asset_type": "player",
+      "player_id": "12529",
+      "name": "TreVeyon Henderson",
+      "position": "RB",
+      "age": 23,
+      "base_franchise_value": 3642.7,
+      "market_dynasty": 3354.0,
+      "market_redraft": 2146.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1258.0,
+      "strategic_score": 0.272,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6739,
+      "scarcity": {
+        "percentile": 0.7609,
+        "tier_gap": 0.1516,
+        "scarcity_score": 0.5476
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5622,
+        "downside_risk": 0.1261,
+        "hold_appreciation_pct": 0.1086,
+        "distribution_floor": 2489.3,
+        "distribution_median": 3354.0,
+        "distribution_ceiling": 4915.1,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3715,
+      "hold_premium_value": 1353.4,
+      "break_glass_value": 4996.1,
+      "trade_elasticity": 0.7797,
+      "premium_components": {
+        "core": 0.075,
+        "tier_scarcity": 0.044,
+        "optionality": 0.1237,
+        "liquidity": 0.0472,
+        "expected_hold_appreciation": 0.076,
+        "resilience": 0.0057
+      }
+    },
+    {
+      "asset_id": "player:9484",
+      "asset_type": "player",
+      "player_id": "9484",
+      "name": "Tucker Kraft",
+      "position": "TE",
+      "age": 25,
+      "base_franchise_value": 3596.2,
+      "market_dynasty": 3328.0,
+      "market_redraft": 2017.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 1592.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.274,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.7065,
+      "scarcity": {
+        "percentile": 0.8548,
+        "tier_gap": 0.2161,
+        "scarcity_score": 0.6313
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4146,
+        "downside_risk": 0.3029,
+        "hold_appreciation_pct": 0.0643,
+        "distribution_floor": 2293.4,
+        "distribution_median": 3328.0,
+        "distribution_ceiling": 4557.8,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3285,
+      "hold_premium_value": 1181.4,
+      "break_glass_value": 4777.6,
+      "trade_elasticity": 0.6944,
+      "premium_components": {
+        "core": 0.0754,
+        "tier_scarcity": 0.0568,
+        "optionality": 0.0912,
+        "liquidity": 0.0495,
+        "expected_hold_appreciation": 0.045,
+        "resilience": 0.0106
+      }
+    },
+    {
+      "asset_id": "player:5849",
+      "asset_type": "player",
+      "player_id": "5849",
+      "name": "Kyler Murray",
+      "position": "QB",
+      "age": 29,
+      "base_franchise_value": 3308.2,
+      "market_dynasty": 3060.0,
+      "market_redraft": 3043.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 575.0,
+      "strategic_score": 0.2418,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6921,
+      "scarcity": {
+        "percentile": 0.5426,
+        "tier_gap": 0.1815,
+        "scarcity_score": 0.4162
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2656,
+        "downside_risk": 0.2019,
+        "hold_appreciation_pct": 0.0476,
+        "distribution_floor": 2201.4,
+        "distribution_median": 3060.0,
+        "distribution_ceiling": 3894.3,
+        "years_exp": 7.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2385,
+      "hold_premium_value": 788.9,
+      "break_glass_value": 4097.1,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0688,
+        "tier_scarcity": 0.0268,
+        "optionality": 0.0584,
+        "liquidity": 0.0484,
+        "expected_hold_appreciation": 0.0333,
+        "resilience": 0.0026
+      }
+    },
+    {
+      "asset_id": "player:7526",
+      "asset_type": "player",
+      "player_id": "7526",
+      "name": "Jaylen Waddle",
+      "position": "WR",
+      "age": 27,
+      "base_franchise_value": 3293.2,
+      "market_dynasty": 3203.0,
+      "market_redraft": 2468.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 322.0,
+      "strategic_score": 0.2392,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6665,
+      "scarcity": {
+        "percentile": 0.7474,
+        "tier_gap": 0.1573,
+        "scarcity_score": 0.5409
+      },
+      "future_distribution": {
+        "upside_optionality": 0.265,
+        "downside_risk": 0.3053,
+        "hold_appreciation_pct": 0.0372,
+        "distribution_floor": 2205.0,
+        "distribution_median": 3203.0,
+        "distribution_ceiling": 4075.0,
+        "years_exp": 5.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2438,
+      "hold_premium_value": 802.8,
+      "break_glass_value": 4096.0,
+      "trade_elasticity": 0.7859,
+      "premium_components": {
+        "core": 0.0683,
+        "tier_scarcity": 0.043,
+        "optionality": 0.0583,
+        "liquidity": 0.0467,
+        "expected_hold_appreciation": 0.026,
+        "resilience": 0.0015
+      }
+    },
+    {
+      "asset_id": "player:4983",
+      "asset_type": "player",
+      "player_id": "4983",
+      "name": "DJ Moore",
+      "position": "WR",
+      "age": 29,
+      "base_franchise_value": 2554.2,
+      "market_dynasty": 2478.0,
+      "market_redraft": 1878.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.202,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6304,
+      "scarcity": {
+        "percentile": 0.6753,
+        "tier_gap": 0.1952,
+        "scarcity_score": 0.5073
+      },
+      "future_distribution": {
+        "upside_optionality": 0.168,
+        "downside_risk": 0.4597,
+        "hold_appreciation_pct": 0.0043,
+        "distribution_floor": 1591.1,
+        "distribution_median": 2478.0,
+        "distribution_ceiling": 2996.3,
+        "years_exp": 8.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.1838,
+      "hold_premium_value": 469.6,
+      "break_glass_value": 3023.8,
+      "trade_elasticity": 0.7982,
+      "premium_components": {
+        "core": 0.0614,
+        "tier_scarcity": 0.0383,
+        "optionality": 0.037,
+        "liquidity": 0.0441,
+        "expected_hold_appreciation": 0.003,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:12489",
+      "asset_type": "player",
+      "player_id": "12489",
+      "name": "RJ Harvey",
+      "position": "RB",
+      "age": 25,
+      "base_franchise_value": 2112.7,
+      "market_dynasty": 1982.0,
+      "market_redraft": 888.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.195,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5854,
+      "scarcity": {
+        "percentile": 0.6159,
+        "tier_gap": 0.0951,
+        "scarcity_score": 0.4337
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4712,
+        "downside_risk": 0.3732,
+        "hold_appreciation_pct": 0.0675,
+        "distribution_floor": 1324.1,
+        "distribution_median": 1982.0,
+        "distribution_ceiling": 2787.2,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.281,
+      "hold_premium_value": 593.7,
+      "break_glass_value": 2706.4,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0602,
+        "tier_scarcity": 0.0289,
+        "optionality": 0.1037,
+        "liquidity": 0.041,
+        "expected_hold_appreciation": 0.0473,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "pick:2029:R1:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 1st \u2014 original Chef Niners",
+      "base_franchise_value": 1612.2,
+      "strategic_score": 0.3441,
+      "core_status": "core_pick",
+      "liquidity_score": 0.98,
+      "pick_profile": {
+        "round": 1,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.98,
+        "upside_optionality": 0.7904,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.5564,
+      "hold_premium_value": 897.0,
+      "break_glass_value": 2509.2,
+      "trade_elasticity": 0.45,
+      "premium_components": {
+        "round": 0.15,
+        "specific_pick_quality": 0.0797,
+        "optionality": 0.1581,
+        "liquidity": 0.0686,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "player:10236",
+      "asset_type": "player",
+      "player_id": "10236",
+      "name": "Dalton Kincaid",
+      "position": "TE",
+      "age": 26,
+      "base_franchise_value": 1876.4,
+      "market_dynasty": 1895.0,
+      "market_redraft": 425.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 425.0,
+      "strategic_score": 0.197,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.62,
+      "scarcity": {
+        "percentile": 0.5968,
+        "tier_gap": 0.3975,
+        "scarcity_score": 0.527
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4291,
+        "downside_risk": 0.4215,
+        "hold_appreciation_pct": 0.0551,
+        "distribution_floor": 1238.5,
+        "distribution_median": 1895.0,
+        "distribution_ceiling": 2613.0,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2799,
+      "hold_premium_value": 525.2,
+      "break_glass_value": 2401.6,
+      "trade_elasticity": 0.795,
+      "premium_components": {
+        "core": 0.0606,
+        "tier_scarcity": 0.041,
+        "optionality": 0.0944,
+        "liquidity": 0.0434,
+        "expected_hold_appreciation": 0.0386,
+        "resilience": 0.0019
+      }
+    },
+    {
+      "asset_id": "pick:2028:R2:orig4",
+      "asset_type": "pick",
+      "name": "2028 Early 2nd \u2014 original The Associate ",
+      "base_franchise_value": 1604.9,
+      "strategic_score": 0.3129,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2028,
+        "horizon_seasons": 2,
+        "quality_signal": 0.936,
+        "early_scenario_weight": 0.643,
+        "late_scenario_weight": 0.151,
+        "liquidity": 0.88,
+        "upside_optionality": 0.6839,
+        "own_pick_control_bonus": 0.0,
+        "most_likely_tier": "early",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3547,
+      "hold_premium_value": 569.3,
+      "break_glass_value": 2174.2,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.131,
+        "optionality": 0.0821,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.0
+      }
+    },
+    {
+      "asset_id": "pick:2027:R2:orig2",
+      "asset_type": "pick",
+      "name": "2027 Late 2nd \u2014 original Chef Niners",
+      "base_franchise_value": 1389.3,
+      "strategic_score": 0.2333,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2027,
+        "horizon_seasons": 1,
+        "quality_signal": 0.341,
+        "early_scenario_weight": 0.295,
+        "late_scenario_weight": 0.625,
+        "liquidity": 0.88,
+        "upside_optionality": 0.4575,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3442,
+      "hold_premium_value": 478.3,
+      "break_glass_value": 1867.6,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.0477,
+        "optionality": 0.0549,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "player:6806",
+      "asset_type": "player",
+      "player_id": "6806",
+      "name": "J.K. Dobbins",
+      "position": "RB",
+      "age": 27,
+      "base_franchise_value": 1576.3,
+      "market_dynasty": 1562.0,
+      "market_redraft": 655.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1381,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5249,
+      "scarcity": {
+        "percentile": 0.4565,
+        "tier_gap": 0.053,
+        "scarcity_score": 0.3153
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2191,
+        "downside_risk": 0.5632,
+        "hold_appreciation_pct": 0.0031,
+        "distribution_floor": 954.4,
+        "distribution_median": 1562.0,
+        "distribution_ceiling": 1940.7,
+        "years_exp": 6.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.1548,
+      "hold_premium_value": 244.1,
+      "break_glass_value": 1820.4,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0514,
+        "tier_scarcity": 0.0163,
+        "optionality": 0.0482,
+        "liquidity": 0.0367,
+        "expected_hold_appreciation": 0.0022,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:9502",
+      "asset_type": "player",
+      "player_id": "9502",
+      "name": "Tank Dell",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 1286.1,
+      "market_dynasty": 1465.0,
+      "market_redraft": 84.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1379,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5012,
+      "scarcity": {
+        "percentile": 0.3866,
+        "tier_gap": 0.0351,
+        "scarcity_score": 0.2636
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4385,
+        "downside_risk": 0.52,
+        "hold_appreciation_pct": 0.0469,
+        "distribution_floor": 914.2,
+        "distribution_median": 1465.0,
+        "distribution_ceiling": 2029.0,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2276,
+      "hold_premium_value": 292.7,
+      "break_glass_value": 1578.8,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0514,
+        "tier_scarcity": 0.0118,
+        "optionality": 0.0965,
+        "liquidity": 0.0351,
+        "expected_hold_appreciation": 0.0328,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "pick:2029:R2:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 2nd \u2014 original Chef Niners",
+      "base_franchise_value": 1092.5,
+      "strategic_score": 0.2432,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.88,
+        "upside_optionality": 0.5266,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3513,
+      "hold_premium_value": 383.8,
+      "break_glass_value": 1476.3,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.0465,
+        "optionality": 0.0632,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2027:R3:orig2",
+      "asset_type": "pick",
+      "name": "2027 Late 3rd \u2014 original Chef Niners",
+      "base_franchise_value": 989.4,
+      "strategic_score": 0.1534,
+      "core_status": "developmental_pick",
+      "liquidity_score": 0.72,
+      "pick_profile": {
+        "round": 3,
+        "season": 2027,
+        "horizon_seasons": 1,
+        "quality_signal": 0.341,
+        "early_scenario_weight": 0.295,
+        "late_scenario_weight": 0.625,
+        "liquidity": 0.72,
+        "upside_optionality": 0.2386,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2236,
+      "hold_premium_value": 221.2,
+      "break_glass_value": 1210.6,
+      "trade_elasticity": 0.75,
+      "premium_components": {
+        "round": 0.035,
+        "specific_pick_quality": 0.0239,
+        "optionality": 0.0143,
+        "liquidity": 0.0504,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2029:R3:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 3rd \u2014 original Chef Niners",
+      "base_franchise_value": 806.5,
+      "strategic_score": 0.1612,
+      "core_status": "developmental_pick",
+      "liquidity_score": 0.72,
+      "pick_profile": {
+        "round": 3,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.72,
+        "upside_optionality": 0.2944,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2263,
+      "hold_premium_value": 182.5,
+      "break_glass_value": 989.0,
+      "trade_elasticity": 0.75,
+      "premium_components": {
+        "round": 0.035,
+        "specific_pick_quality": 0.0232,
+        "optionality": 0.0177,
+        "liquidity": 0.0504,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "player:11783",
+      "asset_type": "player",
+      "player_id": "11783",
+      "name": "Ryan Flournoy",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 493.3,
+      "market_dynasty": 589.0,
+      "market_redraft": 3.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1052,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.4195,
+      "scarcity": {
+        "percentile": 0.0876,
+        "tier_gap": 0.2021,
+        "scarcity_score": 0.1277
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4051,
+        "downside_risk": 0.43,
+        "hold_appreciation_pct": 0.0499,
+        "distribution_floor": 383.4,
+        "distribution_median": 589.0,
+        "distribution_ceiling": 803.0,
+        "years_exp": 2.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2039,
+      "hold_premium_value": 100.6,
+      "break_glass_value": 593.9,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0473,
+        "tier_scarcity": 0.0032,
+        "optionality": 0.0891,
+        "liquidity": 0.0294,
+        "expected_hold_appreciation": 0.0349,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:13270",
+      "asset_type": "player",
+      "player_id": "13270",
+      "name": "CJ Daniels",
+      "position": "WR",
+      "age": 24,
+      "base_franchise_value": 182.6,
+      "market_dynasty": 215.0,
+      "market_redraft": 0.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.123,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.3581,
+      "scarcity": {
+        "percentile": 0.0052,
+        "tier_gap": 0.0,
+        "scarcity_score": 0.0034
+      },
+      "future_distribution": {
+        "upside_optionality": 0.7707,
+        "downside_risk": 0.28,
+        "hold_appreciation_pct": 0.1307,
+        "distribution_floor": 149.6,
+        "distribution_median": 215.0,
+        "distribution_ceiling": 344.2,
+        "years_exp": 0.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3356,
+      "hold_premium_value": 61.3,
+      "break_glass_value": 243.9,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0494,
+        "tier_scarcity": 0.0,
+        "optionality": 0.1696,
+        "liquidity": 0.0251,
+        "expected_hold_appreciation": 0.0915,
+        "resilience": 0.0
+      }
+    }
+  ],
+  "players": [
+    {
+      "asset_id": "player:9488",
+      "asset_type": "player",
+      "player_id": "9488",
+      "name": "Jaxon Smith-Njigba",
+      "position": "WR",
+      "age": 24,
+      "base_franchise_value": 10191.7,
+      "market_dynasty": 8682.0,
+      "market_redraft": 8362.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 5894.0,
+      "depth_insurance_drop": 6216.0,
+      "strategic_score": 0.5661,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.9111,
+      "scarcity": {
+        "percentile": 0.9845,
+        "tier_gap": 0.3939,
+        "scarcity_score": 0.7778
+      },
+      "future_distribution": {
+        "upside_optionality": 0.3817,
+        "downside_risk": 0.0129,
+        "hold_appreciation_pct": 0.0874,
+        "distribution_floor": 6738.4,
+        "distribution_median": 8682.0,
+        "distribution_ceiling": 11704.4,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.5163,
+      "hold_premium_value": 5261.7,
+      "break_glass_value": 15453.4,
+      "trade_elasticity": 0.4368,
+      "premium_components": {
+        "core": 0.1573,
+        "tier_scarcity": 0.0827,
+        "optionality": 0.084,
+        "liquidity": 0.0638,
+        "expected_hold_appreciation": 0.0612,
+        "resilience": 0.0673
+      }
+    },
+    {
+      "asset_id": "player:11560",
+      "asset_type": "player",
+      "player_id": "11560",
+      "name": "Caleb Williams",
+      "position": "QB",
+      "age": 24,
+      "base_franchise_value": 8496.6,
+      "market_dynasty": 7073.0,
+      "market_redraft": 7018.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 3975.0,
+      "depth_insurance_drop": 4550.0,
+      "strategic_score": 0.4991,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.9211,
+      "scarcity": {
+        "percentile": 0.9255,
+        "tier_gap": 0.2103,
+        "scarcity_score": 0.6752
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4936,
+        "downside_risk": 0.0027,
+        "hold_appreciation_pct": 0.1086,
+        "distribution_floor": 5511.2,
+        "distribution_median": 7073.0,
+        "distribution_ceiling": 10049.6,
+        "years_exp": 2.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.4955,
+      "hold_premium_value": 4210.3,
+      "break_glass_value": 12706.9,
+      "trade_elasticity": 0.5496,
+      "premium_components": {
+        "core": 0.1353,
+        "tier_scarcity": 0.0641,
+        "optionality": 0.1086,
+        "liquidity": 0.0645,
+        "expected_hold_appreciation": 0.076,
+        "resilience": 0.047
+      }
+    },
+    {
+      "asset_id": "player:8138",
+      "asset_type": "player",
+      "player_id": "8138",
+      "name": "James Cook",
+      "position": "RB",
+      "age": 26,
+      "base_franchise_value": 6899.4,
+      "market_dynasty": 5398.0,
+      "market_redraft": 6388.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 4242.0,
+      "depth_insurance_drop": 5500.0,
+      "strategic_score": 0.4604,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.8174,
+      "scarcity": {
+        "percentile": 0.8913,
+        "tier_gap": 0.4781,
+        "scarcity_score": 0.7467
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2236,
+        "downside_risk": 0.27,
+        "hold_appreciation_pct": 0.0332,
+        "distribution_floor": 3773.2,
+        "distribution_median": 5398.0,
+        "distribution_ceiling": 6722.3,
+        "years_exp": 4.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.383,
+      "hold_premium_value": 2642.6,
+      "break_glass_value": 9542.0,
+      "trade_elasticity": 0.5297,
+      "premium_components": {
+        "core": 0.1234,
+        "tier_scarcity": 0.0768,
+        "optionality": 0.0492,
+        "liquidity": 0.0572,
+        "expected_hold_appreciation": 0.0232,
+        "resilience": 0.0531
+      }
+    },
+    {
+      "asset_id": "player:6797",
+      "asset_type": "player",
+      "player_id": "6797",
+      "name": "Justin Herbert",
+      "position": "QB",
+      "age": 28,
+      "base_franchise_value": 6965.8,
+      "market_dynasty": 5875.0,
+      "market_redraft": 5658.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 2615.0,
+      "depth_insurance_drop": 3190.0,
+      "strategic_score": 0.4042,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.8681,
+      "scarcity": {
+        "percentile": 0.8617,
+        "tier_gap": 0.2175,
+        "scarcity_score": 0.6362
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2717,
+        "downside_risk": 0.1629,
+        "hold_appreciation_pct": 0.0526,
+        "distribution_floor": 4295.3,
+        "distribution_median": 5875.0,
+        "distribution_ceiling": 7500.1,
+        "years_exp": 6.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3541,
+      "hold_premium_value": 2466.5,
+      "break_glass_value": 9432.3,
+      "trade_elasticity": 0.63,
+      "premium_components": {
+        "core": 0.1073,
+        "tier_scarcity": 0.0576,
+        "optionality": 0.0598,
+        "liquidity": 0.0608,
+        "expected_hold_appreciation": 0.0368,
+        "resilience": 0.0318
+      }
+    },
+    {
+      "asset_id": "player:12526",
+      "asset_type": "player",
+      "player_id": "12526",
+      "name": "Tetairoa McMillan",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 5299.4,
+      "market_dynasty": 4766.0,
+      "market_redraft": 3192.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1046.0,
+      "strategic_score": 0.3252,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.7681,
+      "scarcity": {
+        "percentile": 0.9021,
+        "tier_gap": 0.2476,
+        "scarcity_score": 0.673
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5616,
+        "downside_risk": 0.1156,
+        "hold_appreciation_pct": 0.1095,
+        "distribution_floor": 3552.2,
+        "distribution_median": 4766.0,
+        "distribution_ceiling": 6982.5,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.4094,
+      "hold_premium_value": 2169.8,
+      "break_glass_value": 7469.2,
+      "trade_elasticity": 0.7466,
+      "premium_components": {
+        "core": 0.087,
+        "tier_scarcity": 0.0637,
+        "optionality": 0.1236,
+        "liquidity": 0.0538,
+        "expected_hold_appreciation": 0.0766,
+        "resilience": 0.0047
+      }
+    },
+    {
+      "asset_id": "player:8144",
+      "asset_type": "player",
+      "player_id": "8144",
+      "name": "Chris Olave",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 5024.4,
+      "market_dynasty": 4277.0,
+      "market_redraft": 3886.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 1418.0,
+      "depth_insurance_drop": 1740.0,
+      "strategic_score": 0.3263,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.7297,
+      "scarcity": {
+        "percentile": 0.8711,
+        "tier_gap": 0.1396,
+        "scarcity_score": 0.6151
+      },
+      "future_distribution": {
+        "upside_optionality": 0.3431,
+        "downside_risk": 0.182,
+        "hold_appreciation_pct": 0.0636,
+        "distribution_floor": 3102.5,
+        "distribution_median": 4277.0,
+        "distribution_ceiling": 5658.6,
+        "years_exp": 4.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3298,
+      "hold_premium_value": 1657.3,
+      "break_glass_value": 6681.7,
+      "trade_elasticity": 0.6972,
+      "premium_components": {
+        "core": 0.0873,
+        "tier_scarcity": 0.0542,
+        "optionality": 0.0755,
+        "liquidity": 0.0511,
+        "expected_hold_appreciation": 0.0445,
+        "resilience": 0.0173
+      }
+    },
+    {
+      "asset_id": "player:12514",
+      "asset_type": "player",
+      "player_id": "12514",
+      "name": "Emeka Egbuka",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 4649.9,
+      "market_dynasty": 4361.0,
+      "market_redraft": 2653.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 507.0,
+      "strategic_score": 0.2951,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.7304,
+      "scarcity": {
+        "percentile": 0.8814,
+        "tier_gap": 0.107,
+        "scarcity_score": 0.6104
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5647,
+        "downside_risk": 0.2271,
+        "hold_appreciation_pct": 0.0989,
+        "distribution_floor": 3104.5,
+        "distribution_median": 4361.0,
+        "distribution_ceiling": 6397.8,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3804,
+      "hold_premium_value": 1768.8,
+      "break_glass_value": 6418.7,
+      "trade_elasticity": 0.7637,
+      "premium_components": {
+        "core": 0.08,
+        "tier_scarcity": 0.0535,
+        "optionality": 0.1242,
+        "liquidity": 0.0511,
+        "expected_hold_appreciation": 0.0692,
+        "resilience": 0.0023
+      }
+    },
+    {
+      "asset_id": "player:12481",
+      "asset_type": "player",
+      "player_id": "12481",
+      "name": "Cam Skattebo",
+      "position": "RB",
+      "age": 24,
+      "base_franchise_value": 3942.0,
+      "market_dynasty": 3255.0,
+      "market_redraft": 2800.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1912.0,
+      "strategic_score": 0.2832,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.6671,
+      "scarcity": {
+        "percentile": 0.7464,
+        "tier_gap": 0.1521,
+        "scarcity_score": 0.5384
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4835,
+        "downside_risk": 0.1389,
+        "hold_appreciation_pct": 0.0931,
+        "distribution_floor": 2403.2,
+        "distribution_median": 3255.0,
+        "distribution_ceiling": 4603.4,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.347,
+      "hold_premium_value": 1367.7,
+      "break_glass_value": 5309.7,
+      "trade_elasticity": 0.7798,
+      "premium_components": {
+        "core": 0.0774,
+        "tier_scarcity": 0.0427,
+        "optionality": 0.1064,
+        "liquidity": 0.0467,
+        "expected_hold_appreciation": 0.0652,
+        "resilience": 0.0087
+      }
+    },
+    {
+      "asset_id": "player:12529",
+      "asset_type": "player",
+      "player_id": "12529",
+      "name": "TreVeyon Henderson",
+      "position": "RB",
+      "age": 23,
+      "base_franchise_value": 3642.7,
+      "market_dynasty": 3354.0,
+      "market_redraft": 2146.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 1258.0,
+      "strategic_score": 0.272,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6739,
+      "scarcity": {
+        "percentile": 0.7609,
+        "tier_gap": 0.1516,
+        "scarcity_score": 0.5476
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5622,
+        "downside_risk": 0.1261,
+        "hold_appreciation_pct": 0.1086,
+        "distribution_floor": 2489.3,
+        "distribution_median": 3354.0,
+        "distribution_ceiling": 4915.1,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3715,
+      "hold_premium_value": 1353.4,
+      "break_glass_value": 4996.1,
+      "trade_elasticity": 0.7797,
+      "premium_components": {
+        "core": 0.075,
+        "tier_scarcity": 0.044,
+        "optionality": 0.1237,
+        "liquidity": 0.0472,
+        "expected_hold_appreciation": 0.076,
+        "resilience": 0.0057
+      }
+    },
+    {
+      "asset_id": "player:9484",
+      "asset_type": "player",
+      "player_id": "9484",
+      "name": "Tucker Kraft",
+      "position": "TE",
+      "age": 25,
+      "base_franchise_value": 3596.2,
+      "market_dynasty": 3328.0,
+      "market_redraft": 2017.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 1592.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.274,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.7065,
+      "scarcity": {
+        "percentile": 0.8548,
+        "tier_gap": 0.2161,
+        "scarcity_score": 0.6313
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4146,
+        "downside_risk": 0.3029,
+        "hold_appreciation_pct": 0.0643,
+        "distribution_floor": 2293.4,
+        "distribution_median": 3328.0,
+        "distribution_ceiling": 4557.8,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3285,
+      "hold_premium_value": 1181.4,
+      "break_glass_value": 4777.6,
+      "trade_elasticity": 0.6944,
+      "premium_components": {
+        "core": 0.0754,
+        "tier_scarcity": 0.0568,
+        "optionality": 0.0912,
+        "liquidity": 0.0495,
+        "expected_hold_appreciation": 0.045,
+        "resilience": 0.0106
+      }
+    },
+    {
+      "asset_id": "player:5849",
+      "asset_type": "player",
+      "player_id": "5849",
+      "name": "Kyler Murray",
+      "position": "QB",
+      "age": 29,
+      "base_franchise_value": 3308.2,
+      "market_dynasty": 3060.0,
+      "market_redraft": 3043.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 575.0,
+      "strategic_score": 0.2418,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6921,
+      "scarcity": {
+        "percentile": 0.5426,
+        "tier_gap": 0.1815,
+        "scarcity_score": 0.4162
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2656,
+        "downside_risk": 0.2019,
+        "hold_appreciation_pct": 0.0476,
+        "distribution_floor": 2201.4,
+        "distribution_median": 3060.0,
+        "distribution_ceiling": 3894.3,
+        "years_exp": 7.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2385,
+      "hold_premium_value": 788.9,
+      "break_glass_value": 4097.1,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0688,
+        "tier_scarcity": 0.0268,
+        "optionality": 0.0584,
+        "liquidity": 0.0484,
+        "expected_hold_appreciation": 0.0333,
+        "resilience": 0.0026
+      }
+    },
+    {
+      "asset_id": "player:7526",
+      "asset_type": "player",
+      "player_id": "7526",
+      "name": "Jaylen Waddle",
+      "position": "WR",
+      "age": 27,
+      "base_franchise_value": 3293.2,
+      "market_dynasty": 3203.0,
+      "market_redraft": 2468.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 322.0,
+      "strategic_score": 0.2392,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6665,
+      "scarcity": {
+        "percentile": 0.7474,
+        "tier_gap": 0.1573,
+        "scarcity_score": 0.5409
+      },
+      "future_distribution": {
+        "upside_optionality": 0.265,
+        "downside_risk": 0.3053,
+        "hold_appreciation_pct": 0.0372,
+        "distribution_floor": 2205.0,
+        "distribution_median": 3203.0,
+        "distribution_ceiling": 4075.0,
+        "years_exp": 5.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2438,
+      "hold_premium_value": 802.8,
+      "break_glass_value": 4096.0,
+      "trade_elasticity": 0.7859,
+      "premium_components": {
+        "core": 0.0683,
+        "tier_scarcity": 0.043,
+        "optionality": 0.0583,
+        "liquidity": 0.0467,
+        "expected_hold_appreciation": 0.026,
+        "resilience": 0.0015
+      }
+    },
+    {
+      "asset_id": "player:4983",
+      "asset_type": "player",
+      "player_id": "4983",
+      "name": "DJ Moore",
+      "position": "WR",
+      "age": 29,
+      "base_franchise_value": 2554.2,
+      "market_dynasty": 2478.0,
+      "market_redraft": 1878.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.202,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.6304,
+      "scarcity": {
+        "percentile": 0.6753,
+        "tier_gap": 0.1952,
+        "scarcity_score": 0.5073
+      },
+      "future_distribution": {
+        "upside_optionality": 0.168,
+        "downside_risk": 0.4597,
+        "hold_appreciation_pct": 0.0043,
+        "distribution_floor": 1591.1,
+        "distribution_median": 2478.0,
+        "distribution_ceiling": 2996.3,
+        "years_exp": 8.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.1838,
+      "hold_premium_value": 469.6,
+      "break_glass_value": 3023.8,
+      "trade_elasticity": 0.7982,
+      "premium_components": {
+        "core": 0.0614,
+        "tier_scarcity": 0.0383,
+        "optionality": 0.037,
+        "liquidity": 0.0441,
+        "expected_hold_appreciation": 0.003,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:12489",
+      "asset_type": "player",
+      "player_id": "12489",
+      "name": "RJ Harvey",
+      "position": "RB",
+      "age": 25,
+      "base_franchise_value": 2112.7,
+      "market_dynasty": 1982.0,
+      "market_redraft": 888.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.195,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5854,
+      "scarcity": {
+        "percentile": 0.6159,
+        "tier_gap": 0.0951,
+        "scarcity_score": 0.4337
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4712,
+        "downside_risk": 0.3732,
+        "hold_appreciation_pct": 0.0675,
+        "distribution_floor": 1324.1,
+        "distribution_median": 1982.0,
+        "distribution_ceiling": 2787.2,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.281,
+      "hold_premium_value": 593.7,
+      "break_glass_value": 2706.4,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0602,
+        "tier_scarcity": 0.0289,
+        "optionality": 0.1037,
+        "liquidity": 0.041,
+        "expected_hold_appreciation": 0.0473,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:10236",
+      "asset_type": "player",
+      "player_id": "10236",
+      "name": "Dalton Kincaid",
+      "position": "TE",
+      "age": 26,
+      "base_franchise_value": 1876.4,
+      "market_dynasty": 1895.0,
+      "market_redraft": 425.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 425.0,
+      "strategic_score": 0.197,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.62,
+      "scarcity": {
+        "percentile": 0.5968,
+        "tier_gap": 0.3975,
+        "scarcity_score": 0.527
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4291,
+        "downside_risk": 0.4215,
+        "hold_appreciation_pct": 0.0551,
+        "distribution_floor": 1238.5,
+        "distribution_median": 1895.0,
+        "distribution_ceiling": 2613.0,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2799,
+      "hold_premium_value": 525.2,
+      "break_glass_value": 2401.6,
+      "trade_elasticity": 0.795,
+      "premium_components": {
+        "core": 0.0606,
+        "tier_scarcity": 0.041,
+        "optionality": 0.0944,
+        "liquidity": 0.0434,
+        "expected_hold_appreciation": 0.0386,
+        "resilience": 0.0019
+      }
+    },
+    {
+      "asset_id": "player:6806",
+      "asset_type": "player",
+      "player_id": "6806",
+      "name": "J.K. Dobbins",
+      "position": "RB",
+      "age": 27,
+      "base_franchise_value": 1576.3,
+      "market_dynasty": 1562.0,
+      "market_redraft": 655.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1381,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5249,
+      "scarcity": {
+        "percentile": 0.4565,
+        "tier_gap": 0.053,
+        "scarcity_score": 0.3153
+      },
+      "future_distribution": {
+        "upside_optionality": 0.2191,
+        "downside_risk": 0.5632,
+        "hold_appreciation_pct": 0.0031,
+        "distribution_floor": 954.4,
+        "distribution_median": 1562.0,
+        "distribution_ceiling": 1940.7,
+        "years_exp": 6.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.1548,
+      "hold_premium_value": 244.1,
+      "break_glass_value": 1820.4,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0514,
+        "tier_scarcity": 0.0163,
+        "optionality": 0.0482,
+        "liquidity": 0.0367,
+        "expected_hold_appreciation": 0.0022,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:9502",
+      "asset_type": "player",
+      "player_id": "9502",
+      "name": "Tank Dell",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 1286.1,
+      "market_dynasty": 1465.0,
+      "market_redraft": 84.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1379,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.5012,
+      "scarcity": {
+        "percentile": 0.3866,
+        "tier_gap": 0.0351,
+        "scarcity_score": 0.2636
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4385,
+        "downside_risk": 0.52,
+        "hold_appreciation_pct": 0.0469,
+        "distribution_floor": 914.2,
+        "distribution_median": 1465.0,
+        "distribution_ceiling": 2029.0,
+        "years_exp": 3.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2276,
+      "hold_premium_value": 292.7,
+      "break_glass_value": 1578.8,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0514,
+        "tier_scarcity": 0.0118,
+        "optionality": 0.0965,
+        "liquidity": 0.0351,
+        "expected_hold_appreciation": 0.0328,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:11783",
+      "asset_type": "player",
+      "player_id": "11783",
+      "name": "Ryan Flournoy",
+      "position": "WR",
+      "age": 26,
+      "base_franchise_value": 493.3,
+      "market_dynasty": 589.0,
+      "market_redraft": 3.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.1052,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.4195,
+      "scarcity": {
+        "percentile": 0.0876,
+        "tier_gap": 0.2021,
+        "scarcity_score": 0.1277
+      },
+      "future_distribution": {
+        "upside_optionality": 0.4051,
+        "downside_risk": 0.43,
+        "hold_appreciation_pct": 0.0499,
+        "distribution_floor": 383.4,
+        "distribution_median": 589.0,
+        "distribution_ceiling": 803.0,
+        "years_exp": 2.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2039,
+      "hold_premium_value": 100.6,
+      "break_glass_value": 593.9,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0473,
+        "tier_scarcity": 0.0032,
+        "optionality": 0.0891,
+        "liquidity": 0.0294,
+        "expected_hold_appreciation": 0.0349,
+        "resilience": 0.0
+      }
+    },
+    {
+      "asset_id": "player:13270",
+      "asset_type": "player",
+      "player_id": "13270",
+      "name": "CJ Daniels",
+      "position": "WR",
+      "age": 24,
+      "base_franchise_value": 182.6,
+      "market_dynasty": 215.0,
+      "market_redraft": 0.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.123,
+      "core_status": "developmental_or_expendable",
+      "liquidity_score": 0.3581,
+      "scarcity": {
+        "percentile": 0.0052,
+        "tier_gap": 0.0,
+        "scarcity_score": 0.0034
+      },
+      "future_distribution": {
+        "upside_optionality": 0.7707,
+        "downside_risk": 0.28,
+        "hold_appreciation_pct": 0.1307,
+        "distribution_floor": 149.6,
+        "distribution_median": 215.0,
+        "distribution_ceiling": 344.2,
+        "years_exp": 0.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3356,
+      "hold_premium_value": 61.3,
+      "break_glass_value": 243.9,
+      "trade_elasticity": 0.8,
+      "premium_components": {
+        "core": 0.0494,
+        "tier_scarcity": 0.0,
+        "optionality": 0.1696,
+        "liquidity": 0.0251,
+        "expected_hold_appreciation": 0.0915,
+        "resilience": 0.0
+      }
+    }
+  ],
+  "picks": [
+    {
+      "asset_id": "pick:2029:R1:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 1st \u2014 original Chef Niners",
+      "base_franchise_value": 1612.2,
+      "strategic_score": 0.3441,
+      "core_status": "core_pick",
+      "liquidity_score": 0.98,
+      "pick_profile": {
+        "round": 1,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.98,
+        "upside_optionality": 0.7904,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.5564,
+      "hold_premium_value": 897.0,
+      "break_glass_value": 2509.2,
+      "trade_elasticity": 0.45,
+      "premium_components": {
+        "round": 0.15,
+        "specific_pick_quality": 0.0797,
+        "optionality": 0.1581,
+        "liquidity": 0.0686,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2028:R2:orig4",
+      "asset_type": "pick",
+      "name": "2028 Early 2nd \u2014 original The Associate ",
+      "base_franchise_value": 1604.9,
+      "strategic_score": 0.3129,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2028,
+        "horizon_seasons": 2,
+        "quality_signal": 0.936,
+        "early_scenario_weight": 0.643,
+        "late_scenario_weight": 0.151,
+        "liquidity": 0.88,
+        "upside_optionality": 0.6839,
+        "own_pick_control_bonus": 0.0,
+        "most_likely_tier": "early",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3547,
+      "hold_premium_value": 569.3,
+      "break_glass_value": 2174.2,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.131,
+        "optionality": 0.0821,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.0
+      }
+    },
+    {
+      "asset_id": "pick:2027:R2:orig2",
+      "asset_type": "pick",
+      "name": "2027 Late 2nd \u2014 original Chef Niners",
+      "base_franchise_value": 1389.3,
+      "strategic_score": 0.2333,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2027,
+        "horizon_seasons": 1,
+        "quality_signal": 0.341,
+        "early_scenario_weight": 0.295,
+        "late_scenario_weight": 0.625,
+        "liquidity": 0.88,
+        "upside_optionality": 0.4575,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3442,
+      "hold_premium_value": 478.3,
+      "break_glass_value": 1867.6,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.0477,
+        "optionality": 0.0549,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2029:R2:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 2nd \u2014 original Chef Niners",
+      "base_franchise_value": 1092.5,
+      "strategic_score": 0.2432,
+      "core_status": "liquid_pick",
+      "liquidity_score": 0.88,
+      "pick_profile": {
+        "round": 2,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.88,
+        "upside_optionality": 0.5266,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.3513,
+      "hold_premium_value": 383.8,
+      "break_glass_value": 1476.3,
+      "trade_elasticity": 0.62,
+      "premium_components": {
+        "round": 0.08,
+        "specific_pick_quality": 0.0465,
+        "optionality": 0.0632,
+        "liquidity": 0.0616,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2027:R3:orig2",
+      "asset_type": "pick",
+      "name": "2027 Late 3rd \u2014 original Chef Niners",
+      "base_franchise_value": 989.4,
+      "strategic_score": 0.1534,
+      "core_status": "developmental_pick",
+      "liquidity_score": 0.72,
+      "pick_profile": {
+        "round": 3,
+        "season": 2027,
+        "horizon_seasons": 1,
+        "quality_signal": 0.341,
+        "early_scenario_weight": 0.295,
+        "late_scenario_weight": 0.625,
+        "liquidity": 0.72,
+        "upside_optionality": 0.2386,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2236,
+      "hold_premium_value": 221.2,
+      "break_glass_value": 1210.6,
+      "trade_elasticity": 0.75,
+      "premium_components": {
+        "round": 0.035,
+        "specific_pick_quality": 0.0239,
+        "optionality": 0.0143,
+        "liquidity": 0.0504,
+        "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "pick:2029:R3:orig2",
+      "asset_type": "pick",
+      "name": "2029 Late 3rd \u2014 original Chef Niners",
+      "base_franchise_value": 806.5,
+      "strategic_score": 0.1612,
+      "core_status": "developmental_pick",
+      "liquidity_score": 0.72,
+      "pick_profile": {
+        "round": 3,
+        "season": 2029,
+        "horizon_seasons": 3,
+        "quality_signal": 0.332,
+        "early_scenario_weight": 0.289,
+        "late_scenario_weight": 0.632,
+        "liquidity": 0.72,
+        "upside_optionality": 0.2944,
+        "own_pick_control_bonus": 0.1,
+        "most_likely_tier": "late",
+        "confidence": "medium"
+      },
+      "objective_state": "elite_contender",
+      "objective_weights": {
+        "current": 0.5,
+        "future": 0.25,
+        "liquidity": 0.1,
+        "resilience": 0.15
+      },
+      "hold_premium_pct": 0.2263,
+      "hold_premium_value": 182.5,
+      "break_glass_value": 989.0,
+      "trade_elasticity": 0.75,
+      "premium_components": {
+        "round": 0.035,
+        "specific_pick_quality": 0.0232,
+        "optionality": 0.0177,
+        "liquidity": 0.0504,
+        "own_pick_control": 0.1
+      }
+    }
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 8.757,
+      "expected_points_for": 1663.28,
+      "playoff_probability": 0.8141,
+      "bye_probability": 0.2513,
+      "championship_probability": 0.1192
+    },
+    "evidence_coverage": {
+      "usage_records": 0,
+      "snap_records": 0,
+      "manual_intelligence_records": 0,
+      "prospect_count": 0
+    }
+  }
+}

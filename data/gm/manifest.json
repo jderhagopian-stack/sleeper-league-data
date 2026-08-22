@@ -1,38 +1,38 @@
 {
-  "generated_at_utc": "2026-08-22T03:38:59.726483+00:00",
+  "generated_at_utc": "2026-08-22T03:53:58.427447+00:00",
   "model_version": "FSFFL-GM-3.0",
-  "season": "2026",
+  "season": 2026,
+  "architecture": "GM_2_2_CORE_EVOLVED_TO_GM_3_0",
   "scope": "ALL_TEAMS",
   "team_view_count": 12,
-  "inputs": {
-    "valuation": "dynasty valuation datasets",
-    "simulator": "FSFFL-Season-Simulator-1.0"
+  "core_inheritance": {
+    "source_engine": "script/build_fsffl_gm_engine.py",
+    "source_model": "GM-2.2",
+    "preserved_capabilities": [
+      "universal_franchise_mode",
+      "optimized_legal_lineups",
+      "dynamic_hold_and_break_glass_values",
+      "nonlinear_package_economics",
+      "bilateral_trade_economics",
+      "owner_specific_sell_leverage",
+      "hold_wait_benchmark",
+      "mutual_trade_map",
+      "strategic_asset_profiles"
+    ]
   },
-  "architecture": "primary_gm_engine_league_wide",
-  "features": [
-    "live_league_intelligence",
-    "dynamic_player_signal_layer",
-    "owner_specific_market_model",
-    "all_team_command_centers",
-    "trade_routing",
-    "championship_utility_bridge",
-    "opportunity_radar",
-    "confidence_evidence",
-    "roster_arbitrage",
-    "pick_forecasting",
-    "decision_journal",
-    "counterfactual_fast_trade_utility"
+  "gm30_upgrades": [
+    "dynamic_operating_season",
+    "dynamic_future_pick_horizon",
+    "simulator_1_0_team_context",
+    "prospect_intelligence_interface",
+    "football_intelligence_coverage",
+    "explicit_2_2_provenance_and_regression_baseline"
   ],
-  "outputs": [
-    "simulator_bridge.json",
-    "owner_profiles_v3.json",
-    "pick_forecast.json",
-    "opportunity_radar.json",
-    "roster_arbitrage.json",
-    "team_trade_routes.json",
-    "team_command_centers.json",
-    "league_intelligence.json",
-    "decision_journal_snapshot.json",
-    "validation_report.json"
-  ]
+  "evidence_coverage": {
+    "usage_records": 0,
+    "snap_records": 0,
+    "manual_intelligence_records": 0,
+    "prospect_count": 0
+  },
+  "simulator_validation_passed": true
 }

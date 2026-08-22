@@ -1,7 +1,57 @@
 {
   "model_version": "FSFFL-GM-3.0",
+  "season": 2026,
   "simulator_model_version": "FSFFL-Season-Simulator-1.0",
-  "season": "2026",
+  "validation": {
+    "checks": [
+      {
+        "code": "LEAGUE_SEASON",
+        "message": "Detected season: 2026",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "ROSTERS_12",
+        "message": "Roster count: 12",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "FULL_REGULAR_SCHEDULE",
+        "message": "Expected 14 weeks with 6 matchups each.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "PROJECTION_FEED",
+        "message": "Player weekly projection feed is present.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "ROSTER_PROJECTION_COVERAGE",
+        "message": "Regular-season projection coverage: 95.9% of rostered players.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "PLAYOFF_PROJECTION_COVERAGE",
+        "message": "Weeks 15-17 projection coverage: 95.9%.",
+        "passed": true,
+        "severity": "warning"
+      },
+      {
+        "code": "DISTRIBUTION_WIDTHS",
+        "message": "0 projection rows require generic SD fallback.",
+        "passed": true,
+        "severity": "warning"
+      }
+    ],
+    "generated_at_utc": "2026-08-22T02:11:26.983223+00:00",
+    "model_version": "FSFFL-Season-Simulator-1.0",
+    "season": "2026",
+    "validation_passed": true
+  },
   "teams": [
     {
       "bye_probability": 0.71618,
@@ -29,39 +79,7 @@
         "9": 0.0023
       },
       "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "user_id": "845157822193872896",
-      "simulator_strength_index": 82.4,
-      "competitive_window": "elite_contender"
-    },
-    {
-      "bye_probability": 0.31808,
-      "championship_probability": 0.20832,
-      "division": 2,
-      "division_probability": 0.47682,
-      "expected_losses": 5.055,
-      "expected_points_for": 1697.68,
-      "expected_wins": 8.945,
-      "manager": "Drigs24",
-      "playoff_probability": 0.85122,
-      "roster_id": 11,
-      "seed_probabilities": {
-        "1": 0.1367,
-        "10": 0.00732,
-        "11": 0.00098,
-        "12": 4e-05,
-        "2": 0.18138,
-        "3": 0.166,
-        "4": 0.1479,
-        "5": 0.12256,
-        "6": 0.09668,
-        "7": 0.06994,
-        "8": 0.04586,
-        "9": 0.02464
-      },
-      "team_name": "BING BONG DRIGSY\ud83c\udf4e",
-      "user_id": "853063390963277824",
-      "simulator_strength_index": 70.5,
-      "competitive_window": "elite_contender"
+      "user_id": "845157822193872896"
     },
     {
       "bye_probability": 0.35258,
@@ -89,9 +107,35 @@
         "9": 0.01658
       },
       "team_name": "Hurts So Good",
-      "user_id": "846634401482792960",
-      "simulator_strength_index": 69.0,
-      "competitive_window": "contender"
+      "user_id": "846634401482792960"
+    },
+    {
+      "bye_probability": 0.31808,
+      "championship_probability": 0.20832,
+      "division": 2,
+      "division_probability": 0.47682,
+      "expected_losses": 5.055,
+      "expected_points_for": 1697.68,
+      "expected_wins": 8.945,
+      "manager": "Drigs24",
+      "playoff_probability": 0.85122,
+      "roster_id": 11,
+      "seed_probabilities": {
+        "1": 0.1367,
+        "10": 0.00732,
+        "11": 0.00098,
+        "12": 4e-05,
+        "2": 0.18138,
+        "3": 0.166,
+        "4": 0.1479,
+        "5": 0.12256,
+        "6": 0.09668,
+        "7": 0.06994,
+        "8": 0.04586,
+        "9": 0.02464
+      },
+      "team_name": "BING BONG DRIGSY\ud83c\udf4e",
+      "user_id": "853063390963277824"
     },
     {
       "bye_probability": 0.2513,
@@ -119,39 +163,7 @@
         "9": 0.0305
       },
       "team_name": "Chef Niners",
-      "user_id": "709546576091090944",
-      "simulator_strength_index": 60.2,
-      "competitive_window": "contender"
-    },
-    {
-      "bye_probability": 0.10004,
-      "championship_probability": 0.05736,
-      "division": 1,
-      "division_probability": 0.43962,
-      "expected_losses": 6.086,
-      "expected_points_for": 1572.63,
-      "expected_wins": 7.914,
-      "manager": "MochaSmev",
-      "playoff_probability": 0.60712,
-      "roster_id": 7,
-      "seed_probabilities": {
-        "1": 0.0343,
-        "10": 0.02832,
-        "11": 0.0052,
-        "12": 0.00036,
-        "2": 0.06574,
-        "3": 0.09612,
-        "4": 0.12104,
-        "5": 0.13978,
-        "6": 0.15014,
-        "7": 0.14704,
-        "8": 0.12772,
-        "9": 0.08424
-      },
-      "team_name": "MochaSmevs",
-      "user_id": "844785316274483200",
-      "simulator_strength_index": 42.1,
-      "competitive_window": "bubble"
+      "user_id": "709546576091090944"
     },
     {
       "bye_probability": 0.1334,
@@ -179,9 +191,35 @@
         "9": 0.0621
       },
       "team_name": "King B",
-      "user_id": "858530218330144768",
-      "simulator_strength_index": 51.3,
-      "competitive_window": "bubble"
+      "user_id": "858530218330144768"
+    },
+    {
+      "bye_probability": 0.10004,
+      "championship_probability": 0.05736,
+      "division": 1,
+      "division_probability": 0.43962,
+      "expected_losses": 6.086,
+      "expected_points_for": 1572.63,
+      "expected_wins": 7.914,
+      "manager": "MochaSmev",
+      "playoff_probability": 0.60712,
+      "roster_id": 7,
+      "seed_probabilities": {
+        "1": 0.0343,
+        "10": 0.02832,
+        "11": 0.0052,
+        "12": 0.00036,
+        "2": 0.06574,
+        "3": 0.09612,
+        "4": 0.12104,
+        "5": 0.13978,
+        "6": 0.15014,
+        "7": 0.14704,
+        "8": 0.12772,
+        "9": 0.08424
+      },
+      "team_name": "MochaSmevs",
+      "user_id": "844785316274483200"
     },
     {
       "bye_probability": 0.06978,
@@ -209,9 +247,7 @@
         "9": 0.10992
       },
       "team_name": "The Shish Kebab Boys",
-      "user_id": "850548458887704576",
-      "simulator_strength_index": 41.2,
-      "competitive_window": "bubble"
+      "user_id": "850548458887704576"
     },
     {
       "bye_probability": 0.04,
@@ -239,9 +275,7 @@
         "9": 0.18194
       },
       "team_name": "STINKS",
-      "user_id": "725401251478605824",
-      "simulator_strength_index": 29.7,
-      "competitive_window": "bubble"
+      "user_id": "725401251478605824"
     },
     {
       "bye_probability": 0.01794,
@@ -269,9 +303,7 @@
         "9": 0.26032
       },
       "team_name": "Ball Knower",
-      "user_id": "840356119955251200",
-      "simulator_strength_index": 21.9,
-      "competitive_window": "retool_rebuild"
+      "user_id": "840356119955251200"
     },
     {
       "bye_probability": 0.0007,
@@ -299,9 +331,7 @@
         "9": 0.18178
       },
       "team_name": "Trash Incessant Talkers",
-      "user_id": "844772511156670464",
-      "simulator_strength_index": 12.4,
-      "competitive_window": "retool_rebuild"
+      "user_id": "844772511156670464"
     },
     {
       "bye_probability": 0.0,
@@ -329,9 +359,7 @@
         "9": 0.0423
       },
       "team_name": "HUNGRY DAWGS",
-      "user_id": "833709164739014656",
-      "simulator_strength_index": 7.1,
-      "competitive_window": "retool_rebuild"
+      "user_id": "833709164739014656"
     },
     {
       "bye_probability": 0.0,
@@ -359,11 +387,7 @@
         "9": 0.00338
       },
       "team_name": "The Associate ",
-      "user_id": "676939933792964608",
-      "simulator_strength_index": 2.3,
-      "competitive_window": "retool_rebuild"
+      "user_id": "676939933792964608"
     }
-  ],
-  "projection_player_count": 234,
-  "lineup_roster_count": 12
+  ]
 }

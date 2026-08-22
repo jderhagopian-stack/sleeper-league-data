@@ -1,54 +1,100 @@
 {
+  "generated_at_utc": "2026-08-22T03:53:58.428620+00:00",
   "model_version": "FSFFL-GM-3.0",
-  "generated_at_utc": "2026-08-22T03:38:59.726505+00:00",
+  "season": 2026,
   "passed": true,
   "checks": [
     {
-      "check": "required_input:asset_values",
+      "check": "gm22_core_inherited",
       "passed": true
     },
     {
-      "check": "required_input:owner_behavior",
+      "check": "all_12_team_views",
       "passed": true
     },
     {
-      "check": "required_input:rosters",
+      "check": "season_dynamic",
       "passed": true
     },
     {
-      "check": "required_input:players",
+      "check": "future_pick_horizon_dynamic",
       "passed": true
     },
     {
-      "check": "required_input:sim_standings",
+      "check": "simulator_connected",
       "passed": true
     },
     {
-      "check": "required_input:sim_lineups",
+      "check": "mutual_trade_map_preserved",
       "passed": true
     },
     {
-      "check": "required_input:sim_projections",
+      "check": "strategic_profiles_preserved",
       "passed": true
     },
     {
-      "check": "simulator_teams_12",
-      "passed": true,
-      "value": 12
-    },
-    {
-      "check": "championship_probabilities_sum_near_1",
-      "passed": true,
-      "value": 1.0
-    },
-    {
-      "check": "gm30_does_not_write_simulator_paths",
+      "check": "trade_opportunities_preserved",
       "passed": true
-    },
-    {
-      "check": "team_command_centers_cover_all_simulator_teams",
-      "passed": true,
-      "value": 12
     }
-  ]
+  ],
+  "warnings": [
+    "FOOTBALL_INTELLIGENCE_EMPTY",
+    "PROSPECT_INTELLIGENCE_EMPTY"
+  ],
+  "evidence_coverage": {
+    "usage_records": 0,
+    "snap_records": 0,
+    "manual_intelligence_records": 0,
+    "prospect_count": 0
+  },
+  "simulator_validation": {
+    "checks": [
+      {
+        "code": "LEAGUE_SEASON",
+        "message": "Detected season: 2026",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "ROSTERS_12",
+        "message": "Roster count: 12",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "FULL_REGULAR_SCHEDULE",
+        "message": "Expected 14 weeks with 6 matchups each.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "PROJECTION_FEED",
+        "message": "Player weekly projection feed is present.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "ROSTER_PROJECTION_COVERAGE",
+        "message": "Regular-season projection coverage: 95.9% of rostered players.",
+        "passed": true,
+        "severity": "error"
+      },
+      {
+        "code": "PLAYOFF_PROJECTION_COVERAGE",
+        "message": "Weeks 15-17 projection coverage: 95.9%.",
+        "passed": true,
+        "severity": "warning"
+      },
+      {
+        "code": "DISTRIBUTION_WIDTHS",
+        "message": "0 projection rows require generic SD fallback.",
+        "passed": true,
+        "severity": "warning"
+      }
+    ],
+    "generated_at_utc": "2026-08-22T02:11:26.983223+00:00",
+    "model_version": "FSFFL-Season-Simulator-1.0",
+    "season": "2026",
+    "validation_passed": true
+  }
 }
