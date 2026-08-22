@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "code": "WIN_SUM",
+      "passed": true,
+      "target": 84.0,
+      "value": 83.999
+    },
+    {
+      "code": "PLAYOFF_PROB_SUM",
+      "passed": true,
+      "target": 6,
+      "value": 6.0
+    },
+    {
+      "code": "BYE_PROB_SUM",
+      "passed": true,
+      "target": 2,
+      "value": 2.00001
+    },
+    {
+      "code": "TITLE_PROB_SUM",
+      "passed": true,
+      "target": 1,
+      "value": 0.99999
+    },
+    {
+      "code": "RUNTIME_RECORDED",
+      "passed": true,
+      "value": 1.033
+    }
+  ],
+  "generated_at_utc": "2026-08-22T01:46:44.983705+00:00",
+  "model_version": "FSFFL-Season-Simulator-1.0-preproduction",
+  "passed": true,
+  "season": "2026"
+}
