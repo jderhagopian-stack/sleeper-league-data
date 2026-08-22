@@ -9,7 +9,522 @@
       "data/stats/nfl/2024/player_weekly_normalized.json",
       "data/stats/nfl/2025/player_weekly_normalized.json"
     ],
-    "scored_history_rows": 0
+    "position_history_rows": {
+      "QB": 1914,
+      "RB": 3812,
+      "TE": 2079,
+      "WR": 5241
+    },
+    "schema_by_file": {
+      "data/stats/nfl/2023/player_weekly_normalized.json": {
+        "dict_nodes_seen": 119526,
+        "list_nodes_seen": 1,
+        "most_common_keys": [
+          {
+            "count": 79684,
+            "key": "pos_rank_half_ppr"
+          },
+          {
+            "count": 79684,
+            "key": "pos_rank_ppr"
+          },
+          {
+            "count": 79684,
+            "key": "pos_rank_std"
+          },
+          {
+            "count": 77434,
+            "key": "gms_active"
+          },
+          {
+            "count": 52844,
+            "key": "gp"
+          },
+          {
+            "count": 52496,
+            "key": "tm_def_snp"
+          },
+          {
+            "count": 52496,
+            "key": "tm_off_snp"
+          },
+          {
+            "count": 52496,
+            "key": "tm_st_snp"
+          },
+          {
+            "count": 39842,
+            "key": "nfl_team"
+          },
+          {
+            "count": 39842,
+            "key": "player_id"
+          },
+          {
+            "count": 39842,
+            "key": "player_name"
+          },
+          {
+            "count": 39842,
+            "key": "position"
+          },
+          {
+            "count": 39842,
+            "key": "season"
+          },
+          {
+            "count": 39842,
+            "key": "sleeper_points"
+          },
+          {
+            "count": 39842,
+            "key": "stats"
+          },
+          {
+            "count": 39842,
+            "key": "week"
+          },
+          {
+            "count": 36078,
+            "key": "st_snp"
+          },
+          {
+            "count": 23936,
+            "key": "gs"
+          },
+          {
+            "count": 21058,
+            "key": "def_snp"
+          },
+          {
+            "count": 20162,
+            "key": "off_snp"
+          },
+          {
+            "count": 18246,
+            "key": "idp_tkl"
+          },
+          {
+            "count": 17534,
+            "key": "pts_ppr"
+          },
+          {
+            "count": 17528,
+            "key": "pts_half_ppr"
+          },
+          {
+            "count": 17502,
+            "key": "pts_std"
+          },
+          {
+            "count": 15860,
+            "key": "idp_tkl_solo"
+          },
+          {
+            "count": 12316,
+            "key": "idp_tkl_ast"
+          },
+          {
+            "count": 9852,
+            "key": "rec_tgt"
+          },
+          {
+            "count": 9818,
+            "key": "rush_rec_yd"
+          },
+          {
+            "count": 8972,
+            "key": "rec"
+          },
+          {
+            "count": 8906,
+            "key": "rec_lng"
+          },
+          {
+            "count": 8906,
+            "key": "rec_yd"
+          },
+          {
+            "count": 8902,
+            "key": "rec_ypt"
+          },
+          {
+            "count": 8900,
+            "key": "rec_ypr"
+          },
+          {
+            "count": 8688,
+            "key": "rec_air_yd"
+          },
+          {
+            "count": 8254,
+            "key": "rec_yar"
+          },
+          {
+            "count": 7290,
+            "key": "penalty"
+          },
+          {
+            "count": 7256,
+            "key": "penalty_yd"
+          },
+          {
+            "count": 5640,
+            "key": "rush_att"
+          },
+          {
+            "count": 5498,
+            "key": "rush_lng"
+          },
+          {
+            "count": 5496,
+            "key": "rush_yd"
+          }
+        ],
+        "stat_candidate_nodes": 11158,
+        "weekly_rows_extracted": 4308
+      },
+      "data/stats/nfl/2024/player_weekly_normalized.json": {
+        "dict_nodes_seen": 121923,
+        "list_nodes_seen": 1,
+        "most_common_keys": [
+          {
+            "count": 81278,
+            "key": "pos_rank_half_ppr"
+          },
+          {
+            "count": 81278,
+            "key": "pos_rank_ppr"
+          },
+          {
+            "count": 81278,
+            "key": "pos_rank_std"
+          },
+          {
+            "count": 79038,
+            "key": "gms_active"
+          },
+          {
+            "count": 52976,
+            "key": "gp"
+          },
+          {
+            "count": 52262,
+            "key": "tm_def_snp"
+          },
+          {
+            "count": 52262,
+            "key": "tm_off_snp"
+          },
+          {
+            "count": 52262,
+            "key": "tm_st_snp"
+          },
+          {
+            "count": 40641,
+            "key": "nfl_team"
+          },
+          {
+            "count": 40641,
+            "key": "player_id"
+          },
+          {
+            "count": 40641,
+            "key": "player_name"
+          },
+          {
+            "count": 40641,
+            "key": "position"
+          },
+          {
+            "count": 40641,
+            "key": "season"
+          },
+          {
+            "count": 40641,
+            "key": "sleeper_points"
+          },
+          {
+            "count": 40641,
+            "key": "stats"
+          },
+          {
+            "count": 40641,
+            "key": "week"
+          },
+          {
+            "count": 36076,
+            "key": "st_snp"
+          },
+          {
+            "count": 23936,
+            "key": "gs"
+          },
+          {
+            "count": 21106,
+            "key": "def_snp"
+          },
+          {
+            "count": 20074,
+            "key": "off_snp"
+          },
+          {
+            "count": 18178,
+            "key": "idp_tkl"
+          },
+          {
+            "count": 17230,
+            "key": "pts_ppr"
+          },
+          {
+            "count": 17226,
+            "key": "pts_half_ppr"
+          },
+          {
+            "count": 17188,
+            "key": "pts_std"
+          },
+          {
+            "count": 15520,
+            "key": "idp_tkl_solo"
+          },
+          {
+            "count": 12956,
+            "key": "idp_tkl_ast"
+          },
+          {
+            "count": 9688,
+            "key": "rush_rec_yd"
+          },
+          {
+            "count": 9600,
+            "key": "rec_tgt"
+          },
+          {
+            "count": 8760,
+            "key": "rec"
+          },
+          {
+            "count": 8706,
+            "key": "rec_lng"
+          },
+          {
+            "count": 8696,
+            "key": "rec_yd"
+          },
+          {
+            "count": 8680,
+            "key": "rec_ypr"
+          },
+          {
+            "count": 8680,
+            "key": "rec_ypt"
+          },
+          {
+            "count": 8526,
+            "key": "rec_air_yd"
+          },
+          {
+            "count": 8116,
+            "key": "rec_yar"
+          },
+          {
+            "count": 8102,
+            "key": "penalty"
+          },
+          {
+            "count": 7992,
+            "key": "penalty_yd"
+          },
+          {
+            "count": 5596,
+            "key": "rush_att"
+          },
+          {
+            "count": 5482,
+            "key": "rush_yd"
+          },
+          {
+            "count": 5480,
+            "key": "rush_ypa"
+          }
+        ],
+        "stat_candidate_nodes": 11018,
+        "weekly_rows_extracted": 4337
+      },
+      "data/stats/nfl/2025/player_weekly_normalized.json": {
+        "dict_nodes_seen": 123051,
+        "list_nodes_seen": 1,
+        "most_common_keys": [
+          {
+            "count": 82034,
+            "key": "pos_rank_half_ppr"
+          },
+          {
+            "count": 82034,
+            "key": "pos_rank_ppr"
+          },
+          {
+            "count": 82034,
+            "key": "pos_rank_std"
+          },
+          {
+            "count": 79784,
+            "key": "gms_active"
+          },
+          {
+            "count": 52980,
+            "key": "gp"
+          },
+          {
+            "count": 49490,
+            "key": "tm_def_snp"
+          },
+          {
+            "count": 49490,
+            "key": "tm_off_snp"
+          },
+          {
+            "count": 49490,
+            "key": "tm_st_snp"
+          },
+          {
+            "count": 41017,
+            "key": "nfl_team"
+          },
+          {
+            "count": 41017,
+            "key": "player_id"
+          },
+          {
+            "count": 41017,
+            "key": "player_name"
+          },
+          {
+            "count": 41017,
+            "key": "position"
+          },
+          {
+            "count": 41017,
+            "key": "season"
+          },
+          {
+            "count": 41017,
+            "key": "sleeper_points"
+          },
+          {
+            "count": 41017,
+            "key": "stats"
+          },
+          {
+            "count": 41017,
+            "key": "week"
+          },
+          {
+            "count": 34406,
+            "key": "st_snp"
+          },
+          {
+            "count": 23892,
+            "key": "gs"
+          },
+          {
+            "count": 19908,
+            "key": "def_snp"
+          },
+          {
+            "count": 19090,
+            "key": "off_snp"
+          },
+          {
+            "count": 18700,
+            "key": "pts_idp"
+          },
+          {
+            "count": 18124,
+            "key": "idp_tkl"
+          },
+          {
+            "count": 15056,
+            "key": "idp_tkl_solo"
+          },
+          {
+            "count": 13808,
+            "key": "pts_ppr"
+          },
+          {
+            "count": 13806,
+            "key": "pts_half_ppr"
+          },
+          {
+            "count": 13758,
+            "key": "pts_std"
+          },
+          {
+            "count": 13440,
+            "key": "idp_tkl_ast"
+          },
+          {
+            "count": 9778,
+            "key": "rush_rec_yd"
+          },
+          {
+            "count": 9720,
+            "key": "rec_tgt"
+          },
+          {
+            "count": 8832,
+            "key": "rec"
+          },
+          {
+            "count": 8750,
+            "key": "rec_lng"
+          },
+          {
+            "count": 8748,
+            "key": "rec_yd"
+          },
+          {
+            "count": 8744,
+            "key": "rec_ypr"
+          },
+          {
+            "count": 8744,
+            "key": "rec_ypt"
+          },
+          {
+            "count": 8588,
+            "key": "rec_air_yd"
+          },
+          {
+            "count": 8102,
+            "key": "rec_yar"
+          },
+          {
+            "count": 8016,
+            "key": "penalty"
+          },
+          {
+            "count": 7816,
+            "key": "penalty_yd"
+          },
+          {
+            "count": 5594,
+            "key": "rush_att"
+          },
+          {
+            "count": 5464,
+            "key": "rush_yd"
+          }
+        ],
+        "stat_candidate_nodes": 11098,
+        "weekly_rows_extracted": 4401
+      }
+    },
+    "scored_history_rows": 13046,
+    "scoring_method_counts": {
+      "raw_stats_fsffl": 13046
+    }
   },
   "important_limitations": [
     "No injury/availability adjustment yet beyond bye weeks.",
@@ -17,22 +532,26 @@
     "No in-season usage/performance updating yet.",
     "No same-game/team correlation layer yet."
   ],
-  "player_specific_volatility_players": 0,
+  "player_specific_volatility_players": 185,
   "position_calibration_source": {
-    "QB": "fallback",
-    "RB": "fallback",
-    "TE": "fallback",
-    "WR": "fallback"
+    "QB": "historical",
+    "RB": "historical",
+    "TE": "historical",
+    "WR": "historical"
   },
   "position_cv": {
-    "QB": 0.34,
-    "RB": 0.62,
-    "TE": 0.72,
-    "WR": 0.68
+    "QB": 0.53135,
+    "RB": 0.83363,
+    "TE": 0.74474,
+    "WR": 0.77162
   },
-  "position_volatility_players": 234,
+  "position_volatility_players": 49,
   "quality_gate": {
+    "all_positions_historical_passed": true,
+    "coverage_passed": true,
+    "history_rows_passed": true,
     "minimum_baseline_coverage": 0.95,
+    "minimum_history_rows": 1000,
     "passed": true
   },
   "season": "2026",
