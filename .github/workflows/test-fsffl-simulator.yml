@@ -36,10 +36,10 @@ jobs:
       - name: Apply corrected dynamic updates
         run: python script/apply_fsffl_dynamic_updates.py
 
-      - name: Run vectorized FSFFL Season Simulator
+      - name: Run pre-production FSFFL Season Simulator
         env:
           FSFFL_SIMULATIONS: "3000"
-        run: python script/run_fsffl_season_simulator_fast.py
+        run: python script/run_fsffl_season_simulator_preproduction.py
 
       - name: Commit simulator test outputs
         run: |
@@ -51,6 +51,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No simulator changes to commit."
           else
-            git commit -m "Update FSFFL simulator test data"
+            git commit -m "Update FSFFL simulator pre-production data"
             git push origin HEAD:main
           fi
