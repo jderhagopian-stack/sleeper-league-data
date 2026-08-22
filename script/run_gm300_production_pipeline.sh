@@ -66,12 +66,14 @@ python script/validate_gm30.py
 
 python - <<'PY'
 import json
+import os
 from pathlib import Path
 
+focal_manager = os.environ.get("GM30_FOCAL_MANAGER", "jimmygoodjob")
 idx = json.load(open("data/gm/franchise_index.json"))
 focal = next(
     x for x in idx["teams"]
-    if x.get("manager") == "jimmygoodjob"
+    if x.get("manager") == focal_manager
 )
 trade_path = Path(focal["paths"]["trade_opportunities"])
 trade = json.load(trade_path.open())
