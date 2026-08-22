@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-08-22T06:35:18.103645+00:00",
-  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4.2-Season-Specific-PPG",
+  "generated_at_utc": "2026-08-22T07:35:41.480614+00:00",
+  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4.3-Structured-Preseason",
   "scope": "ALL_ACTIVE_QB_RB_WR_TE",
   "player_universe_count": 645,
-  "candidate_count": 40,
+  "candidate_count": 44,
   "season_phase": "PRESEASON",
   "decision_sequence": [
     "HISTORICAL_BREAKOUT_PROFILE",
@@ -37,7 +37,7 @@
     "BUY_LOW": 5,
     "DYNASTY_STASH": 4,
     "WAIVER_TARGET": 1,
-    "ROLE_INFLECTION": 3,
+    "ROLE_INFLECTION": 7,
     "HIDDEN_GEM": 8,
     "FRAGILE_VALUE": 11,
     "VALUE_TRAP_RISK": 10
@@ -137,10 +137,14 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": true,
+        "preseason_signal_strength": 0.68,
+        "preseason_signal_reasons": [
+          "PASS_ATTEMPT_SHARE"
+        ],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
-        "max_strength": 0.45,
+        "max_strength": 0.68,
         "strong": true,
         "corroborated": true
       },
@@ -154,7 +158,7 @@
         "DYNASTY_STASH"
       ],
       "direction": "PRIORITY_ACQUIRE",
-      "confidence_score": 76.1,
+      "confidence_score": 79.7,
       "confidence_grade": "B"
     },
     {
@@ -215,6 +219,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 1,
         "independent_sources": 1,
@@ -291,6 +297,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 2,
         "strong_evidence_count": 1,
         "independent_sources": 2,
@@ -366,6 +374,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 2,
         "strong_evidence_count": 1,
         "independent_sources": 2,
@@ -458,6 +468,10 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": true,
+        "preseason_signal_strength": 0.7,
+        "preseason_signal_reasons": [
+          "PASS_ATTEMPT_SHARE"
+        ],
         "evidence_count": 2,
         "strong_evidence_count": 1,
         "independent_sources": 2,
@@ -473,6 +487,324 @@
       "direction": "ACQUIRE",
       "confidence_score": 78.1,
       "confidence_grade": "B"
+    },
+    {
+      "player_id": "13150",
+      "name": "Darius Cooper",
+      "position": "WR",
+      "nfl_team": "PHI",
+      "age": 24.0,
+      "years_exp": 1.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": false,
+      "fsffl_roster_id": null,
+      "market_value": null,
+      "market_score": null,
+      "usage_score": 0.16908833333333334,
+      "manual_score": 0.84,
+      "manual_evidence": [
+        "depth_chart_rise",
+        "injury_opportunity"
+      ],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": {
+        "source_season": 2025,
+        "games": 14,
+        "offense_snaps": 233.0,
+        "offense_snap_pct": 0.2607,
+        "evidence_type": "PRIOR_REGULAR_SEASON"
+      },
+      "prior_half_ppr_ppg": 2.283,
+      "preseason_usage_evidence": {
+        "source_season": 2026,
+        "source": "ESPN_PRESEASON_BOXSCORE",
+        "evidence_type": "STRUCTURED_PRESEASON_USAGE",
+        "games": 1,
+        "starter_games": 0,
+        "starter_rate": 0.0,
+        "pass_attempts": 0,
+        "pass_attempt_share": 0.0,
+        "carries": 0,
+        "carry_share": 0.0,
+        "targets": 5,
+        "target_share": 0.2083,
+        "receptions": 2,
+        "touches": 2,
+        "touch_share": 0.0741,
+        "latest_game_role_share": 0.2083,
+        "latest_game_starter": false,
+        "meaningful_role_signal": true,
+        "signal_strength": 0.696,
+        "signal_reasons": [
+          "TARGET_SHARE"
+        ],
+        "limitations": [
+          "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
+          "ROUTE_PARTICIPATION_NOT_AVAILABLE"
+        ]
+      },
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": -2.252,
+        "cutoff": 1.57,
+        "clears_cutoff": false,
+        "feature_coverage": 0.8,
+        "features_used": 4,
+        "contributions": {
+          "age": {
+            "value": "AGE_23_24",
+            "weight": 0.162
+          },
+          "experience": {
+            "value": "EXP_YEAR_2",
+            "weight": 0.448
+          },
+          "prior_snap": {
+            "value": "SNAP_20_44",
+            "weight": -1.5
+          },
+          "prior_ppg": {
+            "value": "PPG_LOW",
+            "weight": -1.362
+          }
+        },
+        "base_breakout_rate": 0.0722
+      },
+      "current_catalyst_profile": {
+        "present": true,
+        "structured_preseason_usage": true,
+        "preseason_signal_strength": 0.7,
+        "preseason_signal_reasons": [
+          "TARGET_SHARE"
+        ],
+        "evidence_count": 2,
+        "strong_evidence_count": 2,
+        "independent_sources": 2,
+        "max_strength": 0.9,
+        "strong": true,
+        "corroborated": true
+      },
+      "latent_value_score": 50.7,
+      "market_mispricing_score": null,
+      "signals": [
+        "ROLE_INFLECTION"
+      ],
+      "direction": "ACQUIRE",
+      "confidence_score": 73.4,
+      "confidence_grade": "B"
+    },
+    {
+      "player_id": "9502",
+      "name": "Tank Dell",
+      "position": "WR",
+      "nfl_team": "HOU",
+      "age": 26.0,
+      "years_exp": 3.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": true,
+      "fsffl_roster_id": 2,
+      "market_value": 1356.3,
+      "market_score": 0.3333333333333333,
+      "usage_score": null,
+      "manual_score": 0.7,
+      "manual_evidence": [
+        "depth_chart_rise",
+        "injury_opportunity",
+        "injury_concern"
+      ],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": null,
+      "prior_half_ppr_ppg": null,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": 0.802,
+        "cutoff": 1.57,
+        "clears_cutoff": false,
+        "feature_coverage": 0.6,
+        "features_used": 3,
+        "contributions": {
+          "age": {
+            "value": "AGE_25_26",
+            "weight": 0.089
+          },
+          "experience": {
+            "value": "EXP_YEAR_4_5",
+            "weight": 0.36
+          },
+          "prior_snap": {
+            "value": "SNAP_UNKNOWN",
+            "weight": 0.353
+          }
+        },
+        "base_breakout_rate": 0.0722
+      },
+      "current_catalyst_profile": {
+        "present": true,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 3,
+        "strong_evidence_count": 2,
+        "independent_sources": 3,
+        "max_strength": 0.9,
+        "strong": true,
+        "corroborated": true
+      },
+      "latent_value_score": 57.6,
+      "market_mispricing_score": 24.3,
+      "signals": [
+        "ROLE_INFLECTION"
+      ],
+      "direction": "ACQUIRE",
+      "confidence_score": 69.7,
+      "confidence_grade": "B"
+    },
+    {
+      "player_id": "5374",
+      "name": "Justin Watson",
+      "position": "WR",
+      "nfl_team": "HOU",
+      "age": 30.0,
+      "years_exp": 8.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": false,
+      "fsffl_roster_id": null,
+      "market_value": null,
+      "market_score": null,
+      "usage_score": 0.29,
+      "manual_score": 0.84,
+      "manual_evidence": [
+        "depth_chart_rise",
+        "injury_opportunity"
+      ],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": {
+        "source_season": 2025,
+        "games": 4,
+        "offense_snaps": 68.0,
+        "offense_snap_pct": 0.29,
+        "evidence_type": "PRIOR_REGULAR_SEASON"
+      },
+      "prior_half_ppr_ppg": 1.5,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": -5.489,
+        "cutoff": 1.57,
+        "clears_cutoff": false,
+        "feature_coverage": 0.8,
+        "features_used": 4,
+        "contributions": {
+          "age": {
+            "value": "AGE_29_PLUS",
+            "weight": -1.379
+          },
+          "experience": {
+            "value": "EXP_YEAR_6_PLUS",
+            "weight": -1.248
+          },
+          "prior_snap": {
+            "value": "SNAP_20_44",
+            "weight": -1.5
+          },
+          "prior_ppg": {
+            "value": "PPG_LOW",
+            "weight": -1.362
+          }
+        },
+        "base_breakout_rate": 0.0722
+      },
+      "current_catalyst_profile": {
+        "present": true,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 2,
+        "strong_evidence_count": 2,
+        "independent_sources": 2,
+        "max_strength": 0.9,
+        "strong": true,
+        "corroborated": true
+      },
+      "latent_value_score": 29.4,
+      "market_mispricing_score": null,
+      "signals": [
+        "ROLE_INFLECTION"
+      ],
+      "direction": "ACQUIRE",
+      "confidence_score": 64.7,
+      "confidence_grade": "C"
+    },
+    {
+      "player_id": "6927",
+      "name": "Quez Watkins",
+      "position": "WR",
+      "nfl_team": "PHI",
+      "age": 28.0,
+      "years_exp": 6.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": false,
+      "fsffl_roster_id": null,
+      "market_value": null,
+      "market_score": null,
+      "usage_score": null,
+      "manual_score": 0.84,
+      "manual_evidence": [
+        "depth_chart_rise",
+        "injury_opportunity"
+      ],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": null,
+      "prior_half_ppr_ppg": null,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": -1.288,
+        "cutoff": 1.57,
+        "clears_cutoff": false,
+        "feature_coverage": 0.6,
+        "features_used": 3,
+        "contributions": {
+          "age": {
+            "value": "AGE_27_28",
+            "weight": -0.393
+          },
+          "experience": {
+            "value": "EXP_YEAR_6_PLUS",
+            "weight": -1.248
+          },
+          "prior_snap": {
+            "value": "SNAP_UNKNOWN",
+            "weight": 0.353
+          }
+        },
+        "base_breakout_rate": 0.0722
+      },
+      "current_catalyst_profile": {
+        "present": true,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 2,
+        "strong_evidence_count": 2,
+        "independent_sources": 2,
+        "max_strength": 0.9,
+        "strong": true,
+        "corroborated": true
+      },
+      "latent_value_score": 49.8,
+      "market_mispricing_score": null,
+      "signals": [
+        "ROLE_INFLECTION"
+      ],
+      "direction": "ACQUIRE",
+      "confidence_score": 54.7,
+      "confidence_grade": "C"
     },
     {
       "player_id": "11603",
@@ -532,6 +864,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -607,6 +941,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -682,6 +1018,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -757,6 +1095,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -832,6 +1172,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 1,
         "independent_sources": 1,
@@ -906,6 +1248,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -980,6 +1324,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1050,6 +1396,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1122,6 +1470,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -1196,6 +1546,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1270,6 +1622,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1342,6 +1696,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -1416,6 +1772,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1490,6 +1848,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1554,6 +1914,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -1626,6 +1988,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -1688,6 +2052,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -1750,6 +2116,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -1824,6 +2192,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 1,
         "strong_evidence_count": 1,
         "independent_sources": 1,
@@ -1912,10 +2282,14 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": true,
+        "preseason_signal_strength": 0.7,
+        "preseason_signal_reasons": [
+          "PASS_ATTEMPT_SHARE"
+        ],
         "evidence_count": 1,
         "strong_evidence_count": 0,
         "independent_sources": 1,
-        "max_strength": 0.45,
+        "max_strength": 0.7,
         "strong": true,
         "corroborated": true
       },
@@ -1925,7 +2299,7 @@
         "FRAGILE_VALUE"
       ],
       "direction": "SELL_OR_AVOID",
-      "confidence_score": 69.6,
+      "confidence_score": 73.5,
       "confidence_grade": "B"
     },
     {
@@ -1986,6 +2360,8 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 2,
         "strong_evidence_count": 0,
         "independent_sources": 1,
@@ -2072,12 +2448,16 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": true,
+        "preseason_signal_strength": 0.69,
+        "preseason_signal_reasons": [
+          "TOUCH_SHARE"
+        ],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
-        "max_strength": 0.0,
+        "max_strength": 0.69,
         "strong": true,
-        "corroborated": true
+        "corroborated": false
       },
       "latent_value_score": 46.4,
       "market_mispricing_score": -47.4,
@@ -2085,8 +2465,8 @@
         "FRAGILE_VALUE"
       ],
       "direction": "SELL_OR_AVOID",
-      "confidence_score": 57.2,
-      "confidence_grade": "C"
+      "confidence_score": 68.1,
+      "confidence_grade": "B"
     },
     {
       "player_id": "12490",
@@ -2144,6 +2524,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2216,6 +2598,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2288,6 +2672,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2360,6 +2746,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2432,6 +2820,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2504,6 +2894,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2576,6 +2968,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2648,6 +3042,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2720,6 +3116,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2792,6 +3190,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2864,6 +3264,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2933,6 +3335,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,
@@ -2995,6 +3399,8 @@
       "current_catalyst_profile": {
         "present": false,
         "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
         "evidence_count": 0,
         "strong_evidence_count": 0,
         "independent_sources": 0,

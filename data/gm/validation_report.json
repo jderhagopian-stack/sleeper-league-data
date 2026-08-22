@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T06:36:20.930018+00:00",
+  "generated_at_utc": "2026-08-22T07:36:35.053039+00:00",
   "model_version": "FSFFL-GM-3.0",
   "season": 2026,
   "passed": true,
@@ -38,13 +38,15 @@
     }
   ],
   "warnings": [
-    "FOOTBALL_INTELLIGENCE_EMPTY",
     "PROSPECT_INTELLIGENCE_EMPTY"
   ],
   "evidence_coverage": {
+    "season_phase": "PRESEASON",
     "usage_records": 0,
     "snap_records": 0,
-    "manual_intelligence_records": 0,
+    "prior_snap_records": 419,
+    "preseason_usage_records": 50,
+    "manual_intelligence_records": 185,
     "prospect_count": 0
   },
   "simulator_validation": {
