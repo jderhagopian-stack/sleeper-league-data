@@ -1,28 +1,51 @@
 {
-  "generated_at_utc": "2026-08-22T21:22:23.990530+00:00",
+  "generated_at_utc": "2026-08-22T21:36:22.967757+00:00",
   "model_version": "FSFFL-GM-3.0-Prospect-Feature-Enrichment-v1",
   "season": 2026,
   "college_season": 2025,
   "sources": {
-    "nflverse_draft": {
-      "available": true,
-      "url": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/draft_picks.csv"
+    "pfr_draft": {
+      "available": false,
+      "url": "https://www.pro-football-reference.com/years/2026/draft.htm",
+      "error": "HTTP Error 403: Forbidden"
     },
     "nflverse_combine": {
       "available": true,
       "url": "https://github.com/nflverse/nflverse-data/releases/download/combine/combine.csv"
     },
-    "cfbfastR_player_stats": {
+    "sportsdataverse_season_summaries": {
       "available": true,
-      "url": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-data/main/player_stats/parquet/player_stats_2025.parquet",
-      "raw_rows": 213202,
-      "aggregated_players": 0
+      "college_season": 2025,
+      "datasets": {
+        "receiving": {
+          "available": true,
+          "tag": "espn_cfb_receiving",
+          "asset": "cfb_receiving_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_receiving/cfb_receiving_2025.parquet",
+          "rows": 2330
+        },
+        "rushing": {
+          "available": true,
+          "tag": "espn_cfb_rushing",
+          "asset": "cfb_rushing_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_rushing/cfb_rushing_2025.parquet",
+          "rows": 1609
+        },
+        "passing": {
+          "available": true,
+          "tag": "espn_cfb_passing",
+          "asset": "cfb_passing_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_passing/cfb_passing_2025.parquet",
+          "rows": 567
+        }
+      },
+      "aggregated_players": 2934
     }
   },
   "matched": {
     "draft": 0,
     "combine": 26,
-    "college": 0
+    "college": 46
   },
   "unmatched": {
     "draft": [
@@ -98,59 +121,13 @@
       "Eli Raridon"
     ],
     "college": [
-      "Elijah Sarratt",
-      "Fernando Mendoza",
-      "CJ Daniels",
-      "Carson Beck",
-      "Germie Bernard",
-      "Ty Simpson",
-      "Omar Cooper",
-      "Max Klare",
-      "Carnell Tate",
-      "Jordyn Tyson",
-      "Malachi Fields",
-      "Jadarian Price",
-      "Jeremiyah Love",
-      "Nicholas Singleton",
-      "Drew Allar",
-      "Ja'Kobi Lane",
-      "Makai Lemon",
-      "Caleb Douglas",
-      "KC Concepcion",
-      "Antonio Williams",
-      "Adam Randall",
-      "Cade Klubnik",
-      "Mike Washington",
-      "Taylen Green",
-      "Chris Bell",
-      "Ted Hurst",
-      "Zachariah Branch",
-      "Matt Hibner",
-      "Malik Benson",
-      "Kenyon Sadiq",
-      "Emmett Johnson",
-      "Jonah Coleman",
-      "Denzel Boston",
-      "Demond Claiborne",
-      "Eli Stowers",
-      "Chris Brazzell",
-      "Skyler Bell",
-      "Garrett Nussmeier",
-      "Kaytron Allen",
-      "Zavion Thomas",
-      "Cyrus Allen",
-      "Kaelon Black",
-      "De'Zhaun Stribling",
-      "Eli Raridon",
-      "Eli Heidenreich",
-      "Seth McGowan",
-      "Barion Brown"
+      "Matt Hibner"
     ]
   },
   "prospect_count": 47,
   "match_rates": {
     "draft": 0.0,
     "combine": 0.5532,
-    "college": 0.0
+    "college": 0.9787
   }
 }
