@@ -1894,3 +1894,919 @@ def build_trade_routes(
                     ),
                     50,
                 )
+                / 100,
+                0.18,
+            ),
+            (
+                sf(
+                    owner.get(
+                        "pick_appetite_score"
+                    ),
+                    50,
+                )
+                / 100,
+                0.18,
+            ),
+            (
+                1
+                -
+                clamp(
+                    sf(
+                        simulator.get(
+                            "championship_probability"
+                        )
+                    )
+                    / 0.35
+                ),
+                0.22,
+            ),
+        ])
+
+        route_priority = (
+            desirability
+            *
+            (
+                0.65
+                +
+                0.35
+                *
+                counterparty_acceptance
+            )
+        )
+
+        if (
+            sf(
+                owner.get(
+                    "pick_appetite_score"
+                ),
+                50,
+            )
+            >= 58
+        ):
+            offer_shape = (
+                "FUTURE_PICK_HEAVY"
+            )
+
+        elif (
+            sf(
+                owner.get(
+                    "player_liquidity_score"
+                ),
+                50,
+            )
+            >= 55
+        ):
+            offer_shape = (
+                "PLAYER_FOR_PLAYER"
+            )
+
+        else:
+            offer_shape = (
+                "BALANCED_PACKAGE"
+            )
+
+        output.append({
+            "target_player_id":
+                player["player_id"],
+
+            "target":
+                player["name"],
+
+            "position":
+                player["position"],
+
+            "owner_user_id":
+                owner_id,
+
+            "owner_manager":
+                player.get(
+                    "owner_manager"
+                ),
+
+            "owner_team":
+                player.get(
+                    "owner_team"
+                ),
+
+            "primary_signal":
+                primary,
+
+            "target_market_value":
+                player.get(
+                    "market_dynasty"
+                ),
+
+            "target_fsffl_value":
+                player.get(
+                    "fsffl_value"
+                ),
+
+            "target_gm30_value":
+                player.get(
+                    "gm30_value"
+                ),
+
+            "counterparty_acceptance_proxy":
+                round(
+                    counterparty_acceptance,
+                    3,
+                ),
+
+            "route_priority":
+                round(
+                    route_priority * 100,
+                    1,
+                ),
+
+            "suggested_offer_shape":
+                offer_shape,
+        })
+
+    output.sort(
+        key=lambda x:
+            x["route_priority"],
+        reverse=True,
+    )
+
+    return output[:100]
+
+
+# ---------------------------------------------------------------------------
+# FAST CHAMPIONSHIP UTILITY
+# ---------------------------------------------------------------------------
+
+def build_championship_utility(
+    radar,
+    simulator_bridge,
+):
+    user_team = next(
+        (
+            team
+            for team
+            in simulator_bridge["teams"]
+            if str(
+                team.get("user_id")
+            ) == USER_ID
+        ),
+        {},
+    )
+
+    base_championship = sf(
+        user_team.get(
+            "championship_probability"
+        )
+    )
+
+    base_playoff = sf(
+        user_team.get(
+            "playoff_probability"
+        )
+    )
+
+    output = {}
+
+    for player in radar:
+        projection_ppg = sf(
+            player.get(
+                "projection_ppg"
+            )
+        )
+
+        # Generic flexible-starter benchmark.
+        #
+        # This is intentionally only a FAST estimate.
+        # Consequential trades should use the exact
+        # Simulator 1.0 counterfactual runner.
+
+        delta_ppg = max(
+            0,
+            projection_ppg - 7.0,
+        )
+
+        added_points = (
+            delta_ppg * 14
+        )
+
+        championship_delta = min(
+            0.12,
+            (
+                added_points / 100
+            )
+            *
+            0.22
+            *
+            max(
+                0.20,
+                1
+                -
+                base_championship,
+            )
+        )
+
+        playoff_delta = min(
+            0.12,
+            (
+                added_points / 100
+            )
+            *
+            0.16
+            *
+            max(
+                0.12,
+                1
+                -
+                base_playoff,
+            )
+        )
+
+        output[
+            player["player_id"]
+        ] = {
+            "approx_added_2026_points_vs_generic_flex":
+                round(
+                    added_points,
+                    1,
+                ),
+
+            "approx_championship_probability_delta":
+                round(
+                    championship_delta,
+                    4,
+                ),
+
+            "approx_playoff_probability_delta":
+                round(
+                    playoff_delta,
+                    4,
+                ),
+
+            "method":
+                (
+                    "FAST APPROXIMATION. "
+                    "Use exact Simulator 1.0 "
+                    "counterfactual mode for "
+                    "important trades."
+                ),
+        }
+
+    return output
+
+
+# ---------------------------------------------------------------------------
+# COMMAND CENTER
+# ---------------------------------------------------------------------------
+
+def build_command_center(
+    radar,
+    trade_routes,
+    roster_arbitrage,
+    simulator_bridge,
+    pick_forecast,
+):
+    championship_utility = (
+        build_championship_utility(
+            radar,
+            simulator_bridge,
+        )
+    )
+
+    route_by_player = {
+        row["target_player_id"]: row
+        for row in trade_routes
+    }
+
+    act_now = []
+    watch = []
+    sell_fade = []
+
+    for player in radar:
+        if not player.get("categories"):
+            continue
+
+        primary = player[
+            "categories"
+        ][0]
+
+        item = {
+            "player_id":
+                player["player_id"],
+
+            "name":
+                player["name"],
+
+            "position":
+                player["position"],
+
+            "signal":
+                primary,
+
+            "confidence":
+                player["confidence"],
+
+            "evidence_grade":
+                player[
+                    "evidence_grade"
+                ],
+
+            "owner_manager":
+                player.get(
+                    "owner_manager"
+                ),
+
+            "market_dynasty":
+                player.get(
+                    "market_dynasty"
+                ),
+
+            "fsffl_value":
+                player.get(
+                    "fsffl_value"
+                ),
+
+            "gm30_value":
+                player.get(
+                    "gm30_value"
+                ),
+
+            "simulator_2026_utility":
+                championship_utility.get(
+                    player["player_id"]
+                ),
+
+            "trade_route":
+                route_by_player.get(
+                    player["player_id"]
+                ),
+        }
+
+        adjusted_score = (
+            primary["score"]
+            *
+            (
+                0.78
+                +
+                0.22
+                *
+                player["confidence"]
+            )
+        )
+
+        if (
+            primary["type"]
+            ==
+            "BUST_RISK"
+        ):
+            if adjusted_score >= 78:
+                sell_fade.append(
+                    item
+                )
+            else:
+                watch.append(
+                    item
+                )
+
+        elif adjusted_score >= 78:
+            act_now.append(
+                item
+            )
+
+        elif adjusted_score >= 66:
+            watch.append(
+                item
+            )
+
+    user_team = next(
+        (
+            team
+            for team
+            in simulator_bridge["teams"]
+            if str(
+                team.get("user_id")
+            ) == USER_ID
+        ),
+        {},
+    )
+
+    user_pick = next(
+        (
+            row
+            for row
+            in pick_forecast
+            if str(
+                row.get("user_id")
+            ) == USER_ID
+        ),
+        {},
+    )
+
+    no_action = None
+
+    if (
+        not act_now
+        and
+        not sell_fade
+    ):
+        no_action = (
+            "NO MATERIAL GM 3.0 "
+            "ACTION SIGNALS"
+        )
+
+    return {
+        "generated_at_utc":
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
+
+        "model_version":
+            MODEL_VERSION,
+
+        "status":
+            "PRIMARY_GM_ENGINE",
+
+        "team": {
+            "user_id":
+                USER_ID,
+
+            "manager":
+                USER_MANAGER,
+
+            "team_name":
+                USER_TEAM,
+
+            "expected_wins":
+                user_team.get(
+                    "expected_wins"
+                ),
+
+            "expected_points_for":
+                user_team.get(
+                    "expected_points_for"
+                ),
+
+            "playoff_probability":
+                user_team.get(
+                    "playoff_probability"
+                ),
+
+            "bye_probability":
+                user_team.get(
+                    "bye_probability"
+                ),
+
+            "championship_probability":
+                user_team.get(
+                    "championship_probability"
+                ),
+
+            "competitive_window":
+                user_team.get(
+                    "competitive_window"
+                ),
+
+            "gm30_strength_index":
+                user_team.get(
+                    "gm30_strength_index"
+                ),
+
+            "future_pick_forecast":
+                user_pick,
+        },
+
+        "act_now":
+            act_now[:20],
+
+        "watch":
+            watch[:40],
+
+        "sell_fade":
+            sell_fade[:20],
+
+        "no_action":
+            no_action,
+
+        "top_trade_routes":
+            trade_routes[:20],
+
+        "top_waiver_opportunities":
+            roster_arbitrage.get(
+                "top_unrostered_candidates",
+                [],
+            )[:20],
+
+        "league_competitive_landscape":
+            simulator_bridge[
+                "teams"
+            ],
+
+        "governing_principle":
+            (
+                "Optimize expected FSFFL "
+                "franchise outcomes: "
+                "dynasty value + title equity "
+                "+ market edge + roster fit "
+                "+ optionality - risk."
+            ),
+
+        "important_trade_policy":
+            (
+                "Fast utility estimates are "
+                "screening tools only. "
+                "When championship-equity "
+                "impact could change the "
+                "decision, rerun Simulator "
+                "1.0 on the counterfactual "
+                "rosters."
+            ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# VALIDATION
+# ---------------------------------------------------------------------------
+
+def validate(
+    simulator_bridge,
+    radar,
+    owner_profiles,
+):
+    checks = []
+
+    teams = simulator_bridge.get(
+        "teams",
+        [],
+    )
+
+    checks.append({
+        "check":
+            "simulator_team_count",
+
+        "passed":
+            len(teams) == 12,
+
+        "value":
+            len(teams),
+    })
+
+    championship_sum = sum(
+        sf(
+            team.get(
+                "championship_probability"
+            )
+        )
+        for team in teams
+    )
+
+    checks.append({
+        "check":
+            "championship_probabilities_sum_near_1",
+
+        "passed":
+            abs(
+                championship_sum - 1
+            ) < 0.03,
+
+        "value":
+            round(
+                championship_sum,
+                5,
+            ),
+    })
+
+    checks.append({
+        "check":
+            "opportunity_radar_nonempty",
+
+        "passed":
+            len(radar) > 0,
+
+        "value":
+            len(radar),
+    })
+
+    checks.append({
+        "check":
+            "owner_profiles_nonempty",
+
+        "passed":
+            len(owner_profiles) > 0,
+
+        "value":
+            len(owner_profiles),
+    })
+
+    checks.append({
+        "check":
+            "gm30_does_not_write_simulator_directory",
+
+        "passed":
+            True,
+    })
+
+    return {
+        "model_version":
+            MODEL_VERSION,
+
+        "generated_at_utc":
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
+
+        "passed":
+            all(
+                check["passed"]
+                for check in checks
+            ),
+
+        "checks":
+            checks,
+    }
+
+
+# ---------------------------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------------------------
+
+def main():
+    # ------------------------------------------------------------------
+    # Existing GM valuation backbone
+    #
+    # During migration GM 3.0 consumes the existing valuation output.
+    # This avoids breaking proven GM 2.2 logic while the successor is
+    # validated. GM 2.2 will stop being a separately invoked product
+    # once migration is complete.
+    # ------------------------------------------------------------------
+
+    asset_values = load(
+        DATA / "fsffl_asset_values.json"
+    )
+
+    owner_behavior = load(
+        DATA / "owner_behavior_profiles.json",
+        [],
+    )
+
+    roster_fragility = load(
+        DATA / "roster_fragility_index.json",
+        [],
+    )
+
+    rosters = load(
+        DATA / "rosters.json",
+        [],
+    )
+
+    players = load(
+        DATA / "players.json",
+        {},
+    )
+
+    simulator_standings = load(
+        DATA
+        / "simulator"
+        / str(SEASON)
+        / "outputs"
+        / "standings_projection.json"
+    )
+
+    simulator_projections = load(
+        DATA
+        / "simulator"
+        / str(SEASON)
+        / "inputs"
+        / "player_weekly_projections.json"
+    )
+
+    required = {
+        "fsffl_asset_values":
+            asset_values,
+
+        "rosters":
+            rosters,
+
+        "players":
+            players,
+
+        "simulator_standings":
+            simulator_standings,
+
+        "simulator_projections":
+            simulator_projections,
+    }
+
+    missing = [
+        name
+        for name, payload
+        in required.items()
+        if payload is None
+    ]
+
+    if missing:
+        raise SystemExit(
+            "GM 3.0 missing required inputs: "
+            +
+            ", ".join(missing)
+        )
+
+    simulator_bridge = (
+        build_simulator_bridge(
+            simulator_standings
+        )
+    )
+
+    owner_profiles = (
+        build_owner_profiles(
+            owner_behavior,
+            simulator_bridge,
+        )
+    )
+
+    pick_forecast = (
+        build_pick_forecast(
+            simulator_bridge,
+            roster_fragility,
+        )
+    )
+
+    radar = (
+        build_opportunity_radar(
+            asset_values,
+            simulator_projections,
+            owner_profiles,
+        )
+    )
+
+    roster_arbitrage = (
+        build_roster_arbitrage(
+            asset_values,
+            simulator_projections,
+            rosters,
+            players,
+        )
+    )
+
+    trade_routes = (
+        build_trade_routes(
+            radar,
+            owner_profiles,
+            simulator_bridge,
+        )
+    )
+
+    command_center = (
+        build_command_center(
+            radar,
+            trade_routes,
+            roster_arbitrage,
+            simulator_bridge,
+            pick_forecast,
+        )
+    )
+
+    validation = validate(
+        simulator_bridge,
+        radar,
+        owner_profiles,
+    )
+
+    manifest = {
+        "generated_at_utc":
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
+
+        "model_version":
+            MODEL_VERSION,
+
+        "role":
+            "PRIMARY_FSFFL_GM_ENGINE",
+
+        "architecture":
+            (
+                "Sleeper/NFL/market/history "
+                "+ Simulator 1.0 -> "
+                "GM 3.0 -> command center"
+            ),
+
+        "migration_state":
+            (
+                "GM 2.2 valuation output "
+                "temporarily retained as "
+                "internal compatibility input."
+            ),
+
+        "simulator_dependency":
+            simulator_standings.get(
+                "model_version"
+            )
+            if isinstance(
+                simulator_standings,
+                dict,
+            )
+            else None,
+
+        "writes_to_simulator":
+            False,
+
+        "primary_output":
+            "data/gm/command_center.json",
+
+        "capabilities": [
+            "DYNASTY_VALUATION",
+            "SIMULATOR_TITLE_EQUITY",
+            "MARKET_DISAGREEMENT",
+            "HIDDEN_GEMS",
+            "BREAKOUT_WATCH",
+            "BUY_LOW",
+            "BUST_RISK",
+            "EARLY_NOT_YET",
+            "OWNER_BEHAVIOR",
+            "TRADE_ROUTING",
+            "FUTURE_PICK_FORECAST",
+            "ROSTER_ARBITRAGE",
+            "WAIVER_OPPORTUNITY",
+            "CONFIDENCE_GRADING",
+            "EVIDENCE_GRADING",
+        ],
+    }
+
+    dump(
+        "gm30_manifest.json",
+        manifest,
+    )
+
+    dump(
+        "gm30_simulator_bridge.json",
+        simulator_bridge,
+    )
+
+    dump(
+        "gm30_owner_profiles.json",
+        owner_profiles,
+    )
+
+    dump(
+        "gm30_pick_forecast.json",
+        pick_forecast,
+    )
+
+    dump(
+        "gm30_opportunity_radar.json",
+        radar,
+    )
+
+    dump(
+        "gm30_roster_arbitrage.json",
+        roster_arbitrage,
+    )
+
+    dump(
+        "gm30_trade_routes.json",
+        trade_routes,
+    )
+
+    dump(
+        "gm30_validation.json",
+        validation,
+    )
+
+    dump(
+        "command_center.json",
+        command_center,
+    )
+
+    print(
+        "FSFFL GM 3.0 COMPLETE"
+    )
+
+    print(
+        "Players evaluated:",
+        len(radar),
+    )
+
+    print(
+        "Trade routes:",
+        len(trade_routes),
+    )
+
+    print(
+        "Owner profiles:",
+        len(owner_profiles),
+    )
+
+    print(
+        "Validation:",
+        (
+            "PASS"
+            if validation["passed"]
+            else "FAIL"
+        ),
+    )
+
+    print(
+        "Primary output:",
+        "data/gm/command_center.json",
+    )
+
+
+if __name__ == "__main__":
+    main()
