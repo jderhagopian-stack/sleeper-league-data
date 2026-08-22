@@ -80,13 +80,13 @@ def market_value(v):
     return num(first(v,"market_value","value","fsffl_value","dynasty_value","ktc_value"))
 
 def normalize_market(rows):
-    vals=[market_value(v) for v in rows.values()]
-    vals=[x for x in vals if x is not None and x>=0]
-    if not vals:return {}
-    lo,hi=min(vals),max(vals)
-    span=max(hi-lo,1)
-    return {pid:clamp((market_value(v)-lo)/span) for pid,v in rows.items()
-            if market_value(v) is not None}
+    # Percentile-style market score is much more stable than min/max scaling.
+    pairs=[(pid,market_value(v)) for pid,v in rows.items()]
+    pairs=[(pid,val) for pid,val in pairs if val is not None and val>=0]
+    if not pairs:return {}
+    ordered=sorted(pairs,key=lambda x:x[1])
+    n=max(len(ordered)-1,1)
+    return {pid:i/n for i,(pid,_) in enumerate(ordered)}
 
 def usage_features(u,s):
     # Flexible schema: consume whichever normalized/raw fields exist.
@@ -124,36 +124,62 @@ def classify(row):
     intel=row["manual_score"]
     rostered=row["fsffl_rostered"]
 
-    latent=sum(x for x in [young,ped,usage,intel] if x is not None)
-    n=sum(x is not None for x in [young,ped,usage,intel])
-    latent=latent/n if n else 0.5
-    price=mkt if mkt is not None else 0.35
-    gap=latent-price
-    row["latent_value_score"]=round(latent*100,1)
-    row["market_mispricing_score"]=round(gap*100,1)
+    # Structural priors are useful, but age alone can NEVER create a buy signal.
+    structural=[x for x in (young,ped) if x is not None]
+    football=[x for x in (usage,intel) if x is not None]
+    market_known=mkt is not None
 
-    if gap>=0.28 and latent>=0.64:
+    structural_score=sum(structural)/len(structural) if structural else None
+    football_score=sum(football)/len(football) if football else None
+
+    # Latent score weights real football evidence highest when it exists.
+    pieces=[]
+    if structural_score is not None: pieces.append((structural_score,0.35))
+    if football_score is not None: pieces.append((football_score,0.50))
+    if ped is not None: pieces.append((ped,0.15))
+    denom=sum(w for _,w in pieces)
+    latent=sum(v*w for v,w in pieces)/denom if denom else None
+    if latent is None:
+        latent=0.5
+
+    price=mkt if market_known else None
+    gap=(latent-price) if price is not None else None
+    row["latent_value_score"]=round(latent*100,1)
+    row["market_mispricing_score"]=round(gap*100,1) if gap is not None else None
+
+    evidence_count=sum(x is not None for x in (young,ped,usage,intel,mkt))
+    has_real_football=bool(football)
+    has_structural_depth=len(structural)>=2
+
+    # High-conviction acquisition tags require either real football evidence
+    # or multiple independent structural priors. Age-only candidates are monitor-only.
+    if gap is not None and gap>=0.25 and latent>=0.65 and (has_real_football or has_structural_depth):
         tags.append("HIDDEN_GEM")
-    if usage is not None and usage>=0.58 and young is not None and young>=0.65 and gap>=0.10:
+    if usage is not None and usage>=0.58 and young is not None and young>=0.65 and gap is not None and gap>=0.08:
         tags.append("BREAKOUT_CANDIDATE")
-    if not rostered and latent>=0.60 and gap>=0.18:
+    if not rostered and gap is not None and gap>=0.20 and latent>=0.62 and (has_real_football or has_structural_depth):
         tags.append("WAIVER_TARGET")
-    if rostered and price<=0.42 and latent>=0.62 and gap>=0.18:
+    if rostered and gap is not None and gap>=0.18 and latent>=0.62 and (has_real_football or has_structural_depth):
         tags.append("BUY_LOW")
-    if young is not None and young>=0.72 and ped is not None and ped>=0.48 and price<=0.35:
+    if young is not None and young>=0.72 and ped is not None and ped>=0.48 and (price is None or price<=0.40):
         tags.append("DYNASTY_STASH")
-    if intel is not None and intel>=0.68 and price<=0.50:
+    if intel is not None and intel>=0.68 and (price is None or price<=0.55):
         tags.append("ROLE_INFLECTION")
-    if price>=0.68 and latent<=0.48 and price-latent>=0.18:
+    if price is not None and price>=0.72 and latent<=0.50 and price-latent>=0.18:
         tags.append("FRAGILE_VALUE")
-    if price>=0.58 and latent<=0.42:
+    if price is not None and price>=0.60 and latent<=0.42:
         tags.append("VALUE_TRAP_RISK")
 
     acquire={"HIDDEN_GEM","BREAKOUT_CANDIDATE","WAIVER_TARGET","BUY_LOW","DYNASTY_STASH","ROLE_INFLECTION"}
     sell={"FRAGILE_VALUE","VALUE_TRAP_RISK"}
-    if any(x in tags for x in sell): direction="SELL_OR_AVOID"
-    elif "WAIVER_TARGET" in tags: direction="ADD"
-    elif any(x in tags for x in acquire): direction="ACQUIRE"
+    if any(x in tags for x in sell):
+        direction="SELL_OR_AVOID"
+    elif "WAIVER_TARGET" in tags:
+        direction="ADD"
+    elif any(x in tags for x in acquire):
+        direction="ACQUIRE"
+    elif evidence_count < 3:
+        direction="INSUFFICIENT_EVIDENCE"
     return tags,direction
 
 def main():
@@ -245,6 +271,11 @@ def main():
             ("MANUAL_INTELLIGENCE_EMPTY",int(fi.get("manual_intelligence_records") or 0)==0),
         ] if cond],
         "signal_counts":{k:len(v) for k,v in buckets.items()},
+        "quality_controls":{
+            "age_only_can_trigger_acquire":False,
+            "hidden_gem_requires":"market gap + football evidence OR multiple structural priors",
+            "market_normalization":"percentile_rank",
+        },
         "candidates":rows,
     }
     dump=OUT/"emerging_value.json"
