@@ -25,26 +25,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      # ---------------------------------------------------------
-      # PHASE 1 — REFRESH THE PROVEN GM 2.2 CORE
-      # ---------------------------------------------------------
-
-      - name: Build proven GM 2.2 core
-        run: python script/build_fsffl_gm_engine.py
-
-      - name: Preserve GM 2.2 regression baseline
+      - name: Verify frozen GM 2.2 reference exists
         shell: bash
         run: |
-          rm -rf data/gm22_reference
-          mkdir -p data/gm22_reference
-          cp -a data/gm/. data/gm22_reference/
-
-          echo "GM 2.2 reference snapshot preserved."
-          find data/gm22_reference -type f -print | sort
-
-      # ---------------------------------------------------------
-      # PHASE 2 — CLEAN THE PRODUCTION GM NAMESPACE
-      # ---------------------------------------------------------
+          test -f data/gm22_reference/franchise_index.json
+          test -f data/gm22_reference/league/mutual_trade_map.json
+          echo "Frozen GM 2.2 regression baseline found."
 
       - name: Clean GM 3.0 production output
         shell: bash
@@ -52,65 +38,26 @@ jobs:
           rm -rf data/gm
           mkdir -p data/gm
 
-          echo "Clean GM 3.0 production namespace created."
-
-      # ---------------------------------------------------------
-      # PHASE 3 — BUILD GM 3.0 UPGRADES
-      # ---------------------------------------------------------
-
       - name: Build GM 3.0 prospect intelligence
         run: python script/build_gm30_prospect_engine.py
 
       - name: Normalize prospect-board contract
         shell: bash
         run: |
-          mkdir -p data/gm
-
           if [ -f data/gm/gm30_prospect_radar.json ]; then
-            cp data/gm/gm30_prospect_radar.json \
-               data/gm/prospect_board.json
+            cp data/gm/gm30_prospect_radar.json data/gm/prospect_board.json
           fi
 
       - name: Build GM 3.0 calibration audit
         run: python script/build_gm30_calibration.py
 
-      - name: Build GM 3.0 league-wide intelligence
+      - name: Build consolidated GM 3.0
         run: python script/build_fsffl_gm30.py
 
-      # ---------------------------------------------------------
-      # PHASE 4 — VALIDATION
-      # ---------------------------------------------------------
-
-      - name: Run GM 3.0 architecture validation
+      - name: Run consolidated GM 3.0 validation gate
         run: python script/validate_gm30.py
 
-      - name: Verify GM 2.2 core was preserved
-        shell: bash
-        run: |
-          test -d data/gm22_reference/teams
-          test -d data/gm22_reference/league
-
-          test -f data/gm22_reference/franchise_index.json
-          test -f data/gm22_reference/league/mutual_trade_map.json
-
-          echo "GM 2.2 core preservation: PASS"
-
-      - name: Verify GM 3.0 league-wide outputs
-        shell: bash
-        run: |
-          test -f data/gm/manifest.json
-          test -f data/gm/team_command_centers.json
-          test -f data/gm/team_trade_routes.json
-          test -f data/gm/league_intelligence.json
-          test -f data/gm/validation_report.json
-
-          echo "GM 3.0 league-wide output contract: PASS"
-
-      # ---------------------------------------------------------
-      # PHASE 5 — REPORT
-      # ---------------------------------------------------------
-
-      - name: Show GM 3.0 outputs
+      - name: Show validated GM 3.0 output tree
         shell: bash
         run: |
           echo "=============================="
@@ -118,30 +65,17 @@ jobs:
           echo "=============================="
           find data/gm -type f -print | sort
 
-          echo ""
-          echo "=============================="
-          echo "GM 2.2 REGRESSION REFERENCE"
-          echo "=============================="
-          find data/gm22_reference -type f -print | sort
-
-      # ---------------------------------------------------------
-      # PHASE 6 — COMMIT ONLY AFTER EVERYTHING PASSES
-      # ---------------------------------------------------------
-
-      - name: Commit validated GM system
+      - name: Commit validated GM 3.0 outputs
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/gm/
-          git add data/gm22_reference/
+          git add -A data/gm/
 
           if git diff --cached --quiet; then
-            echo "No GM output changes to commit."
+            echo "No GM 3.0 output changes to commit."
           else
-            git commit -m \
-              "Build GM 3.0 on preserved GM 2.2 core"
+            git commit -m "Build consolidated FSFFL GM 3.0 outputs"
             git push origin HEAD:main
           fi
