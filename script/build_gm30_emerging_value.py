@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.3-Structured-Preseason"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.4-Directional-Catalysts"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -431,48 +431,141 @@ def historical_profile(calibration, pos, age, exp, draft_round, prior_snap, prio
 def catalyst_profile(m, pre):
     evidence = m.get("evidence") if isinstance(m, dict) else []
     evidence = evidence if isinstance(evidence, list) else []
-    strengths = [num(x.get("strength"), 0) for x in evidence if isinstance(x, dict)]
-    max_strength = max(strengths) if strengths else 0.0
-    strong_count = sum(1 for x in strengths if x >= 0.75)
-    independent_sources = len({
-        str(x.get("source"))
-        for x in evidence
-        if isinstance(x, dict) and x.get("source")
-    })
 
-    # A preseason record only counts as structured catalyst evidence if the
-    # ingestion layer explicitly qualified it as a meaningful role signal.
-    structured_preseason = bool(
-        isinstance(pre, dict) and pre.get("meaningful_role_signal")
+    positive_signal_types = {
+        "depth_chart_rise",
+        "starter_reps",
+        "camp_buzz",
+        "preseason_role",
+        "injury_opportunity",
+        "coach_praise",
+    }
+    negative_signal_types = {
+        "depth_chart_fall",
+        "injury_concern",
+        "role_loss",
+    }
+
+    positive_evidence = []
+    negative_evidence = []
+
+    for x in evidence:
+        if not isinstance(x, dict):
+            continue
+
+        signal_type = str(
+            x.get("signal_type")
+            or x.get("type")
+            or x.get("signal")
+            or ""
+        )
+
+        if signal_type in negative_signal_types:
+            negative_evidence.append(x)
+        elif signal_type in positive_signal_types:
+            positive_evidence.append(x)
+        else:
+            # Unknown evidence may remain informational, but it cannot
+            # corroborate a positive breakout thesis.
+            continue
+
+    positive_strengths = [
+        num(x.get("strength"), 0) for x in positive_evidence
+    ]
+    negative_strengths = [
+        num(x.get("strength"), 0) for x in negative_evidence
+    ]
+
+    positive_max = max(positive_strengths) if positive_strengths else 0.0
+    negative_max = max(negative_strengths) if negative_strengths else 0.0
+
+    positive_strong_count = sum(
+        1 for x in positive_strengths if x >= 0.75
     )
+
+    positive_sources = {
+        str(x.get("source"))
+        for x in positive_evidence
+        if x.get("source")
+    }
+
+    structured_preseason = bool(
+        isinstance(pre, dict)
+        and pre.get("meaningful_role_signal")
+    )
+
     preseason_strength = (
         num(pre.get("signal_strength"), 0)
-        if isinstance(pre, dict) and structured_preseason
+        if structured_preseason
         else 0.0
     )
-    max_strength = max(max_strength, preseason_strength)
 
-    # Structured preseason usage is an independent source. One qualified
-    # preseason signal can create a strong catalyst, but HIGH_PRIORITY still
-    # requires corroboration from another source or multiple strong signals.
-    strong = structured_preseason or max_strength >= 0.75
-    corroborated = (
-        (structured_preseason and independent_sources >= 1)
-        or strong_count >= 2
-        or independent_sources >= 2
+    # A structured preseason result must actually be strong enough.
+    preseason_strong = (
+        structured_preseason
+        and preseason_strength >= 0.75
     )
 
+    max_positive_strength = max(
+        positive_max,
+        preseason_strength,
+    )
+
+    # Strong means at least one genuinely strong POSITIVE catalyst.
+    strong = (
+        preseason_strong
+        or positive_max >= 0.75
+    )
+
+    # Corroboration must come from independent POSITIVE evidence.
+    # Negative evidence can never corroborate a breakout thesis.
+    corroborated = (
+        (
+            preseason_strong
+            and len(positive_sources) >= 1
+        )
+        or positive_strong_count >= 2
+        or len(positive_sources) >= 2
+    )
+
+    # Strong negative evidence can veto a positive breakout catalyst
+    # unless there is genuinely corroborated positive evidence.
+    negative_veto = (
+        negative_max >= 0.75
+        and not corroborated
+    )
+
+    if negative_veto:
+        strong = False
+        corroborated = False
+
     return {
-        "present": structured_preseason or bool(evidence),
+        "present": (
+            structured_preseason
+            or bool(positive_evidence)
+            or bool(negative_evidence)
+        ),
         "structured_preseason_usage": structured_preseason,
-        "preseason_signal_strength": round(preseason_strength, 2),
+        "preseason_signal_strength": round(
+            preseason_strength, 2
+        ),
         "preseason_signal_reasons": (
-            list(pre.get("signal_reasons") or []) if isinstance(pre, dict) else []
+            list(pre.get("signal_reasons") or [])
+            if isinstance(pre, dict)
+            else []
         ),
         "evidence_count": len(evidence),
-        "strong_evidence_count": strong_count,
-        "independent_sources": independent_sources,
-        "max_strength": round(max_strength, 2),
+        "positive_evidence_count": len(positive_evidence),
+        "negative_evidence_count": len(negative_evidence),
+        "strong_positive_evidence_count": positive_strong_count,
+        "positive_independent_sources": len(positive_sources),
+        "max_positive_strength": round(
+            max_positive_strength, 2
+        ),
+        "max_negative_strength": round(
+            negative_max, 2
+        ),
+        "negative_veto": negative_veto,
         "strong": strong,
         "corroborated": corroborated,
     }
@@ -646,8 +739,8 @@ def main():
         if catalyst["present"]:
             catalyst_quality = min(
                 1.0,
-                0.45 * catalyst["max_strength"]
-                + 0.30 * min(catalyst["independent_sources"] / 2, 1)
+                0.45 * catalyst["max_positive_strength"]
+                + 0.30 * min(catalyst["positive_independent_sources"] / 2, 1)
                 + 0.25 * (1.0 if catalyst["structured_preseason_usage"] else 0.0),
             )
         market_cov = 1.0 if mkt is not None else 0.0
