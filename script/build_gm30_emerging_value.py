@@ -17,7 +17,7 @@ from pathlib import Path
 
 DATA=Path("data")
 OUT=DATA/"gm"
-MODEL="FSFFL-GM-3.0-Emerging-Value-v1"
+MODEL="FSFFL-GM-3.0-Emerging-Value-v2-Phase-Aware"
 POSITIONS={"QB","RB","WR","TE"}
 
 def load(path, default):
@@ -54,7 +54,14 @@ def values_by_player():
 
 def intelligence():
     x=load(DATA/"football_intelligence_signals.json",{}) or {}
-    return x, x.get("usage") or {}, x.get("snaps") or {}, x.get("manual_intelligence") or {}
+    return (
+        x,
+        x.get("usage") or {},
+        x.get("snaps") or {},
+        x.get("prior_snaps") or {},
+        x.get("preseason_usage") or {},
+        x.get("manual_intelligence") or {},
+    )
 
 def player_universe():
     raw=load(DATA/"players.json",{}) or {}
@@ -88,17 +95,41 @@ def normalize_market(rows):
     n=max(len(ordered)-1,1)
     return {pid:i/n for i,(pid,_) in enumerate(ordered)}
 
-def usage_features(u,s):
-    # Flexible schema: consume whichever normalized/raw fields exist.
-    snap=num(first(s,"snap_share","offense_snap_pct","offensive_snap_pct"))
-    route=num(first(u,"route_participation","route_share","routes_pct"))
-    target=num(first(u,"target_share","tgt_share"))
-    touch=num(first(u,"opportunity_share","touch_share","carry_share"))
-    vals=[]
-    for x in (snap,route,target,touch):
-        if x is None:continue
-        if x>1:x/=100
-        vals.append(clamp(x))
+def usage_features(u,s,prior,preseason,phase):
+    # Phase-aware football evidence. Current usage dominates in-season;
+    # preseason usage and prior-year role carry more weight before Week 1.
+    def collect(d, keys):
+        vals=[]
+        for key in keys:
+            x=num(first(d,key))
+            if x is None:
+                continue
+            if x>1:
+                x/=100
+            vals.append(clamp(x))
+        return vals
+
+    current = collect(s,("snap_share","offense_snap_pct","offensive_snap_pct")) + \
+              collect(u,("route_participation","route_share","routes_pct",
+                         "target_share","tgt_share","opportunity_share",
+                         "touch_share","carry_share"))
+    prior_vals = collect(prior,("offense_snap_pct","snap_share"))
+    preseason_vals = collect(preseason,("snap_share","offense_snap_pct",
+                                        "route_participation","target_share",
+                                        "touch_share","carry_share"))
+
+    if phase in {"TRAINING_CAMP","PRESEASON","OFFSEASON","POSTSEASON"}:
+        weighted=[]
+        if preseason_vals:
+            weighted.append((sum(preseason_vals)/len(preseason_vals),0.55))
+        if prior_vals:
+            weighted.append((sum(prior_vals)/len(prior_vals),0.45))
+        if not weighted:
+            return None, 0
+        denom=sum(w for _,w in weighted)
+        return sum(v*w for v,w in weighted)/denom, len(preseason_vals)+len(prior_vals)
+
+    vals=current or prior_vals
     return (sum(vals)/len(vals) if vals else None), len(vals)
 
 def manual_features(m):
@@ -187,7 +218,8 @@ def main():
     owners=roster_owners()
     vals=values_by_player()
     market_norm=normalize_market(vals)
-    fi,usage,snaps,manual=intelligence()
+    fi,usage,snaps,prior_snaps,preseason_usage,manual=intelligence()
+    phase=str(fi.get("season_phase") or "UNKNOWN")
     rows=[]
 
     for pid,p in players.items():
@@ -204,8 +236,10 @@ def main():
         v=vals.get(str(pid),{})
         u=usage.get(str(pid),{}) if isinstance(usage,dict) else {}
         s=snaps.get(str(pid),{}) if isinstance(snaps,dict) else {}
+        prior=prior_snaps.get(str(pid),{}) if isinstance(prior_snaps,dict) else {}
+        pre=preseason_usage.get(str(pid),{}) if isinstance(preseason_usage,dict) else {}
         m=manual.get(str(pid),{}) if isinstance(manual,dict) else {}
-        uscore,usage_n=usage_features(u,s)
+        uscore,usage_n=usage_features(u,s,prior,pre,phase)
         mscore,manual_evidence,manual_n=manual_features(m)
         if manual_n==0:mscore=None
 
@@ -225,6 +259,9 @@ def main():
             "usage_score":uscore,
             "manual_score":mscore,
             "manual_evidence":manual_evidence,
+            "season_phase":phase,
+            "prior_snap_evidence":prior if prior else None,
+            "preseason_usage_evidence":pre if pre else None,
         }
 
         evidence_fields=sum(x is not None for x in
@@ -260,21 +297,23 @@ def main():
             if isinstance(p,dict) and str(p.get("position","")).upper() in POSITIONS and p.get("active") is not False
         ),
         "candidate_count":len(rows),
+        "season_phase":phase,
+        "phase_weights":fi.get("phase_weights") or {},
         "source_coverage":{
             "fsffl_market_players":len(vals),
             "usage_records":int(fi.get("usage_records") or 0),
             "snap_records":int(fi.get("snap_records") or 0),
+            "prior_snap_records":int(fi.get("prior_snap_records") or 0),
+            "preseason_usage_records":int(fi.get("preseason_usage_records") or 0),
             "manual_intelligence_records":int(fi.get("manual_intelligence_records") or 0),
         },
-        "warnings":[x for x,cond in [
-            ("FOOTBALL_USAGE_EMPTY",int(fi.get("usage_records") or 0)==0 and int(fi.get("snap_records") or 0)==0),
-            ("MANUAL_INTELLIGENCE_EMPTY",int(fi.get("manual_intelligence_records") or 0)==0),
-        ] if cond],
+        "warnings":list(fi.get("warnings") or []),
         "signal_counts":{k:len(v) for k,v in buckets.items()},
         "quality_controls":{
             "age_only_can_trigger_acquire":False,
-            "hidden_gem_requires":"market gap + football evidence OR multiple structural priors",
+            "hidden_gem_requires":"market gap + phase-appropriate football evidence OR multiple structural priors",
             "market_normalization":"percentile_rank",
+            "phase_aware":True,
         },
         "candidates":rows,
     }
