@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v5.1-Buy-Low-Action-Gate"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v5.2-Stash-Action-Gate"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -821,7 +821,10 @@ def classify(row):
         and mkt <= 0.40
         and dynasty_stash_eligible(row["position"], row["age"], exp)
     ):
-        tags.append("DYNASTY_STASH")
+        if credible_path and not negative_now:
+            tags.append("DYNASTY_STASH")
+        else:
+            tags.append("DYNASTY_STASH_WATCH")
 
     # Role inflection is allowed for developmental players, or for Year-5+ players
     # only if the extraordinary-circumstance gate is satisfied.
@@ -864,7 +867,11 @@ def classify(row):
         }
     ):
         direction = "ACQUIRE"
-    elif "DEVELOPMENTAL_WATCH" in tags or "BUY_LOW_WATCH" in tags:
+    elif (
+        "DEVELOPMENTAL_WATCH" in tags
+        or "BUY_LOW_WATCH" in tags
+        or "DYNASTY_STASH_WATCH" in tags
+    ):
         direction = "WATCHLIST"
 
     return tags, direction
@@ -1011,6 +1018,7 @@ def main():
         "BUY_LOW": 4,
         "HIDDEN_GEM": 3,
         "BUY_LOW_WATCH": 2,
+        "DYNASTY_STASH_WATCH": 2,
         "EXTRAORDINARY_VETERAN_EVENT": 2,
         "DEVELOPMENTAL_WATCH": 1,
     }
@@ -1063,7 +1071,8 @@ def main():
             "Years-exp 1-4 are the normal universe; rookies belong to the separate "
             "prospect model; Year-5+ players require extraordinary corroborated "
             "circumstances. Historical profile is an input, not an action signal. "
-            "Buy-low market dislocation without a credible current path is WATCHLIST only."
+            "Buy-low market dislocation without a credible current path is WATCHLIST only. "
+            "Dynasty-stash profiles without a credible current path are WATCHLIST only."
         ),
         "source_coverage": {
             "fsffl_market_players": len(vals),
@@ -1094,6 +1103,7 @@ def main():
             "qb_injury_opportunity_alone_not_sufficient_for_add": True,
             "developmental_trajectory_is_core_signal": True,
             "buy_low_watch_separated_from_actionable_buy_low": True,
+            "dynasty_stash_watch_separated_from_actionable_stash": True,
         },
         "candidates": rows,
     }
