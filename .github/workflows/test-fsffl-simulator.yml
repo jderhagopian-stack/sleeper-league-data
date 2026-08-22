@@ -30,8 +30,13 @@ jobs:
       - name: Build FSFFL weekly projections
         run: python script/build_fsffl_weekly_projections.py
 
-      - name: Run FSFFL Season Simulator
-        run: python script/build_fsffl_season_simulator.py
+      - name: Apply dynamic in-season updates
+        run: python script/apply_fsffl_dynamic_updates.py
+
+      - name: Run fast FSFFL Season Simulator
+        env:
+          FSFFL_SIMULATIONS: "3000"
+        run: python script/run_fsffl_season_simulator.py
 
       - name: Commit simulator test outputs
         run: |
