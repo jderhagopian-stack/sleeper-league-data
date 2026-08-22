@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T05:29:41.962753+00:00",
-  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4-Historical-Calibrated",
+  "generated_at_utc": "2026-08-22T06:08:39.349181+00:00",
+  "model_version": "FSFFL-GM-3.0-Emerging-Value-v4.1-PPG-Schema-Tolerant",
   "scope": "ALL_ACTIVE_QB_RB_WR_TE",
   "player_universe_count": 645,
   "candidate_count": 33,
@@ -16,10 +16,19 @@
     "prior_snap_records": 416,
     "preseason_usage_records": 0,
     "manual_intelligence_records": 185,
-    "prior_ppg_players": 0
+    "prior_ppg_players": 0,
+    "prior_ppg_diagnostics": {
+      "target_season": 2025,
+      "rows_seen": 134470,
+      "target_season_rows": 0,
+      "regular_season_rows": 0,
+      "fantasy_position_rows": 0,
+      "players_aggregated": 0
+    }
   },
   "warnings": [
     "CURRENT_REGULAR_SEASON_USAGE_NOT_EXPECTED",
+    "PRIOR_PPG_TARGET_SEASON_NOT_FOUND",
     "STRUCTURED_PRESEASON_USAGE_NOT_AVAILABLE"
   ],
   "signal_counts": {
