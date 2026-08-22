@@ -21,6 +21,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install simulator dependency
+        run: python -m pip install --disable-pip-version-check numpy
+
       - name: Build FSFFL projection sources
         run: python script/build_fsffl_player_projections.py
 
@@ -30,13 +33,13 @@ jobs:
       - name: Build FSFFL weekly projections
         run: python script/build_fsffl_weekly_projections.py
 
-      - name: Apply dynamic in-season updates
+      - name: Apply corrected dynamic updates
         run: python script/apply_fsffl_dynamic_updates.py
 
-      - name: Run fast FSFFL Season Simulator
+      - name: Run vectorized FSFFL Season Simulator
         env:
           FSFFL_SIMULATIONS: "3000"
-        run: python script/run_fsffl_season_simulator.py
+        run: python script/run_fsffl_season_simulator_fast.py
 
       - name: Commit simulator test outputs
         run: |
