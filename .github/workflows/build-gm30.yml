@@ -51,6 +51,9 @@ jobs:
       - name: Build GM 3.0 calibration audit
         run: python script/build_gm30_calibration.py
 
+      - name: Build phase-aware football intelligence
+        run: python script/build_gm30_football_intelligence.py
+
       - name: Build GM 3.0 emerging value intelligence
         run: python script/build_gm30_emerging_value.py
 
