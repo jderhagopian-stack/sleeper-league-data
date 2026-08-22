@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FSFFL GM 3.0 — dedicated prospect intelligence engine v1.1."""
+"""FSFFL GM 3.0 — dedicated prospect intelligence engine v1.2."""
 from __future__ import annotations
 import json, math
 from pathlib import Path
@@ -187,7 +187,7 @@ def main():
 
     OUT.mkdir(parents=True, exist_ok=True)
     output = {
-        'model_version': 'FSFFL-GM-3.0-Prospect-Engine-v1.1-Lifecycle-Coverage-Gated',
+        'model_version': cfg.get('model_version', 'FSFFL-GM-3.0-Prospect-Engine-v1.2'),
         'prospect_count': len(rows),
         'signal_eligible_count': sum(1 for r in rows if r['signal_eligible']),
         'sparse_prior_count': sum(1 for r in rows if not r['signal_eligible']),
