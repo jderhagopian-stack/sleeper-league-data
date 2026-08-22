@@ -1,0 +1,43 @@
+{
+  "baseline_coverage": 1.0,
+  "baseline_players": 234,
+  "generated_players": 234,
+  "history": {
+    "files_missing": [],
+    "files_used": [
+      "data/stats/nfl/2023/player_weekly_normalized.json",
+      "data/stats/nfl/2024/player_weekly_normalized.json",
+      "data/stats/nfl/2025/player_weekly_normalized.json"
+    ],
+    "scored_history_rows": 0
+  },
+  "important_limitations": [
+    "No injury/availability adjustment yet beyond bye weeks.",
+    "No opponent-specific weekly matchup adjustment yet.",
+    "No in-season usage/performance updating yet.",
+    "No same-game/team correlation layer yet."
+  ],
+  "player_specific_volatility_players": 0,
+  "position_calibration_source": {
+    "QB": "fallback",
+    "RB": "fallback",
+    "TE": "fallback",
+    "WR": "fallback"
+  },
+  "position_cv": {
+    "QB": 0.34,
+    "RB": 0.62,
+    "TE": 0.72,
+    "WR": 0.68
+  },
+  "position_volatility_players": 234,
+  "quality_gate": {
+    "minimum_baseline_coverage": 0.95,
+    "passed": true
+  },
+  "season": "2026",
+  "weeks_generated": [
+    1,
+    17
+  ]
+}
