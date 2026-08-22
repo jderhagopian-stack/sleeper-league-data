@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM 3.0 — Current Catalyst Ingestion v4
+FSFFL GM 3.0 — Current Catalyst Ingestion v4.1
 
 Current-season evidence:
 - Sleeper add/drop velocity as market context only
@@ -455,7 +455,7 @@ def main():
 
         key = (
             str(d.get("team") or p.get("team") or ""),
-            str(d.get("pos_group") or pos),
+            pos,
         )
         team_groups.setdefault(key, []).append((str(pid), p, d))
 
@@ -563,7 +563,7 @@ def main():
         if d:
             key = (
                 str(d.get("team") or p.get("team") or ""),
-                str(d.get("pos_group") or pos),
+                pos,
             )
             group = team_groups.get(key, [])
             idx = next(
@@ -704,7 +704,7 @@ def main():
 
     intel["current_catalyst_ingestion"] = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4-CBS-Player-News",
+        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4.1-Position-Safe-Depth",
         "season": season,
         "season_phase": phase,
         "automatic_catalyst_records": len(manual),
@@ -716,6 +716,9 @@ def main():
         "public_news_source": news_source_url,
         "injury_opportunity_policy": (
             "DIRECT_NEXT_MAN_UP_AND_MATERIALLY_UNAVAILABLE_ONLY"
+        ),
+        "depth_grouping_policy": (
+            "SAME_TEAM_AND_SAME_FANTASY_POSITION_QB_RB_WR_TE"
         ),
         "sleeper_add_velocity_policy": (
             "MARKET_CONTEXT_ONLY_NOT_ROLE_EVIDENCE"
@@ -760,7 +763,7 @@ def main():
     )
 
     print(
-        f"Current Catalyst v4: {len(manual)} records; "
+        f"Current Catalyst v4.1: {len(manual)} records; "
         "audited evidence rules active."
     )
     if intel["warnings"]:
