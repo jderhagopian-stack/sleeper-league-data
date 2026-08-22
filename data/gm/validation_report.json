@@ -1,0 +1,54 @@
+{
+  "model_version": "FSFFL-GM-3.0",
+  "generated_at_utc": "2026-08-22T03:23:34.153399+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "check": "required_input:asset_values",
+      "passed": true
+    },
+    {
+      "check": "required_input:owner_behavior",
+      "passed": true
+    },
+    {
+      "check": "required_input:rosters",
+      "passed": true
+    },
+    {
+      "check": "required_input:players",
+      "passed": true
+    },
+    {
+      "check": "required_input:sim_standings",
+      "passed": true
+    },
+    {
+      "check": "required_input:sim_lineups",
+      "passed": true
+    },
+    {
+      "check": "required_input:sim_projections",
+      "passed": true
+    },
+    {
+      "check": "simulator_teams_12",
+      "passed": true,
+      "value": 12
+    },
+    {
+      "check": "championship_probabilities_sum_near_1",
+      "passed": true,
+      "value": 1.0
+    },
+    {
+      "check": "gm30_does_not_write_simulator_paths",
+      "passed": true
+    },
+    {
+      "check": "team_command_centers_cover_all_simulator_teams",
+      "passed": true,
+      "value": 12
+    }
+  ]
+}

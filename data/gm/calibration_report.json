@@ -1,0 +1,240 @@
+{
+  "generated_at_utc": "2026-08-22T03:23:33.909002+00:00",
+  "model_version": "FSFFL-GM-3.0",
+  "architecture": {
+    "engine_role": "primary_gm_engine",
+    "output_root": "data/gm",
+    "legacy_gm22_policy": "compatibility_input_only_until_replaced"
+  },
+  "draft_proxy": {
+    "sample": 144,
+    "by_round_position": [
+      {
+        "round": "1",
+        "position": "QB",
+        "sample": 12,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.75,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "1",
+        "position": "RB",
+        "sample": 13,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.769,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "1",
+        "position": "TE",
+        "sample": 7,
+        "rostered_rate": 0.857,
+        "original_drafter_retention_rate": 0.857,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "1",
+        "position": "WR",
+        "sample": 16,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.75,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "2",
+        "position": "QB",
+        "sample": 7,
+        "rostered_rate": 0.571,
+        "original_drafter_retention_rate": 0.286,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "2",
+        "position": "RB",
+        "sample": 14,
+        "rostered_rate": 0.714,
+        "original_drafter_retention_rate": 0.5,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "2",
+        "position": "TE",
+        "sample": 2,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 1.0,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "2",
+        "position": "WR",
+        "sample": 25,
+        "rostered_rate": 0.64,
+        "original_drafter_retention_rate": 0.64,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "3",
+        "position": "QB",
+        "sample": 5,
+        "rostered_rate": 0.4,
+        "original_drafter_retention_rate": 0.4,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "3",
+        "position": "RB",
+        "sample": 16,
+        "rostered_rate": 0.5,
+        "original_drafter_retention_rate": 0.25,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "3",
+        "position": "TE",
+        "sample": 9,
+        "rostered_rate": 0.556,
+        "original_drafter_retention_rate": 0.444,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "round": "3",
+        "position": "WR",
+        "sample": 18,
+        "rostered_rate": 0.611,
+        "original_drafter_retention_rate": 0.389,
+        "active_nfl_rate": 1.0
+      }
+    ],
+    "by_season_round": [
+      {
+        "season": "2023",
+        "round": "1",
+        "sample": 12,
+        "rostered_rate": 0.917,
+        "original_drafter_retention_rate": 0.667,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2023",
+        "round": "2",
+        "sample": 12,
+        "rostered_rate": 0.417,
+        "original_drafter_retention_rate": 0.333,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2023",
+        "round": "3",
+        "sample": 12,
+        "rostered_rate": 0.333,
+        "original_drafter_retention_rate": 0.167,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2024",
+        "round": "1",
+        "sample": 12,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.667,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2024",
+        "round": "2",
+        "sample": 12,
+        "rostered_rate": 0.417,
+        "original_drafter_retention_rate": 0.333,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2024",
+        "round": "3",
+        "sample": 12,
+        "rostered_rate": 0.25,
+        "original_drafter_retention_rate": 0.0,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2025",
+        "round": "1",
+        "sample": 12,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.833,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2025",
+        "round": "2",
+        "sample": 12,
+        "rostered_rate": 0.833,
+        "original_drafter_retention_rate": 0.583,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2025",
+        "round": "3",
+        "sample": 12,
+        "rostered_rate": 0.667,
+        "original_drafter_retention_rate": 0.417,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2026",
+        "round": "1",
+        "sample": 12,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 0.917,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2026",
+        "round": "2",
+        "sample": 12,
+        "rostered_rate": 1.0,
+        "original_drafter_retention_rate": 1.0,
+        "active_nfl_rate": 1.0
+      },
+      {
+        "season": "2026",
+        "round": "3",
+        "sample": 12,
+        "rostered_rate": 0.917,
+        "original_drafter_retention_rate": 0.833,
+        "active_nfl_rate": 1.0
+      }
+    ]
+  },
+  "waiver_proxy": {
+    "sample": 854,
+    "warning": "Waiver retention/acquisition proxy is useful for owner behavior, not a pure player-hit label."
+  },
+  "existing_transaction_performance_available": true,
+  "existing_owner_calibration_available": true,
+  "true_prospect_feature_backtest": {
+    "available": false,
+    "required_file": "data/gm3_prospect_history.json",
+    "status": "DATA_GAP",
+    "why_it_matters": "Prospect feature weights should not be optimized against retention proxies."
+  },
+  "calibration_policy": {
+    "allowed_now": [
+      "owner behavior priors",
+      "pick-location priors",
+      "waiver aggression priors",
+      "retention/roster survival sanity checks"
+    ],
+    "not_claimed_without_true_history": [
+      "causal prospect hit rates",
+      "Puka-style sleeper precision",
+      "college metric coefficients"
+    ],
+    "future_metrics": [
+      "precision_at_k",
+      "recall_of_breakouts",
+      "false_positive_rate",
+      "market_value_gain_30_90_365d",
+      "Brier/log-loss where probabilistic labels exist"
+    ]
+  }
+}

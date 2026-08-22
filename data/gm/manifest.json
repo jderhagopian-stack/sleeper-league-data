@@ -1,0 +1,38 @@
+{
+  "generated_at_utc": "2026-08-22T03:23:34.153377+00:00",
+  "model_version": "FSFFL-GM-3.0",
+  "season": "2026",
+  "scope": "ALL_TEAMS",
+  "team_view_count": 12,
+  "inputs": {
+    "valuation": "dynasty valuation datasets",
+    "simulator": "FSFFL-Season-Simulator-1.0"
+  },
+  "architecture": "primary_gm_engine_league_wide",
+  "features": [
+    "live_league_intelligence",
+    "dynamic_player_signal_layer",
+    "owner_specific_market_model",
+    "all_team_command_centers",
+    "trade_routing",
+    "championship_utility_bridge",
+    "opportunity_radar",
+    "confidence_evidence",
+    "roster_arbitrage",
+    "pick_forecasting",
+    "decision_journal",
+    "counterfactual_fast_trade_utility"
+  ],
+  "outputs": [
+    "simulator_bridge.json",
+    "owner_profiles_v3.json",
+    "pick_forecast.json",
+    "opportunity_radar.json",
+    "roster_arbitrage.json",
+    "team_trade_routes.json",
+    "team_command_centers.json",
+    "league_intelligence.json",
+    "decision_journal_snapshot.json",
+    "validation_report.json"
+  ]
+}
