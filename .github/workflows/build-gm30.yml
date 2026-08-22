@@ -13,6 +13,7 @@ concurrency:
 jobs:
   gm30:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - name: Check out repository
@@ -25,12 +26,61 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install simulator dependency
+        run: python -m pip install --disable-pip-version-check numpy
+
       - name: Verify frozen GM 2.2 reference exists
         shell: bash
         run: |
           test -f data/gm22_reference/franchise_index.json
           test -f data/gm22_reference/league/mutual_trade_map.json
           echo "Frozen GM 2.2 regression baseline found."
+
+      # Rebuild simulator inputs from the SAME checked-out league snapshot.
+      # Do not refresh Sleeper in the middle of this workflow.
+      - name: Build NFL schedule and matchup layer
+        run: python script/build_fsffl_nfl_schedule_matchups.py
+
+      - name: Build FSFFL projection sources
+        run: python script/build_fsffl_player_projections.py
+
+      - name: Build FSFFL scoring baseline
+        run: python script/build_fsffl_scoring_baseline.py
+
+      - name: Build FSFFL weekly projections
+        run: python script/build_fsffl_weekly_projections.py
+
+      - name: Apply dynamic in-season updates
+        run: python script/apply_fsffl_dynamic_updates.py
+
+      - name: Run fresh 50k baseline season simulator
+        env:
+          FSFFL_SIMULATIONS: "50000"
+        run: python script/run_fsffl_season_simulator_preproduction.py
+
+      - name: Verify baseline simulator validation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          season = str(json.load(open("data/league.json"))["season"])
+          out = Path("data") / "simulator" / season / "outputs"
+          required = [
+              out / "season_simulation.json",
+              out / "standings_projection.json",
+              out / "preproduction_validation.json",
+          ]
+          for p in required:
+              if not p.exists():
+                  raise SystemExit(f"Missing simulator output: {p}")
+
+          v = json.load((out / "preproduction_validation.json").open())
+          if not v.get("passed"):
+              raise SystemExit("Baseline simulator validation failed")
+          print("Fresh baseline simulator: PASS")
+          PY
 
       - name: Clean GM 3.0 production output
         shell: bash
@@ -60,11 +110,74 @@ jobs:
       - name: Build GM 3.0 emerging value intelligence
         run: python script/build_gm30_emerging_value.py
 
-      - name: Build consolidated GM 3.0
-        run: python script/build_fsffl_gm30.py
+      # Counterfactual GM 3.0:
+      # GM 2.2 screens economically plausible packages, then the same season
+      # simulator re-runs the actual league with the proposed bilateral roster
+      # change and feeds points/wins/playoff/bye/title deltas back into ranking.
+      - name: Build counterfactual simulator-integrated GM 3.0
+        env:
+          GM30_FOCAL_MANAGER: "jimmygoodjob"
+          GM30_CF_SCREEN_SIMS: "2500"
+          GM30_CF_FOCAL_SCREEN_SIMS: "5000"
+          GM30_CF_FINAL_SIMS: "15000"
+          GM30_CF_GENERAL_TARGETS: "3"
+          GM30_CF_GENERAL_PACKAGES: "1"
+          GM30_CF_FOCAL_TARGETS: "6"
+          GM30_CF_FOCAL_PACKAGES: "2"
+          GM30_CF_FOCAL_FINALISTS: "3"
+        run: python script/run_fsffl_gm30_counterfactual.py
 
       - name: Run consolidated GM 3.0 validation gate
         run: python script/validate_gm30.py
+
+      - name: Verify counterfactual trade simulation exists
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          idx = json.load(open("data/gm/franchise_index.json"))
+          focal = next(
+              x for x in idx["teams"]
+              if x.get("manager") == "jimmygoodjob"
+          )
+          trade_path = Path(focal["paths"]["trade_opportunities"])
+          trade = json.load(trade_path.open())
+
+          simulated = []
+          for opp in trade.get("opportunities") or []:
+              for pkg in opp.get("best_candidate_packages") or []:
+                  if pkg.get("counterfactual_simulation_status") in {
+                      "SCREENED",
+                      "FINAL_CONFIRMED",
+                  }:
+                      simulated.append(pkg)
+
+          if not simulated:
+              raise SystemExit(
+                  "No counterfactual-simulated focal trade packages found"
+              )
+
+          sample = simulated[0]
+          summary = sample.get("gm30_simulation_summary") or {}
+          required = {
+              "expected_points_delta",
+              "expected_wins_delta",
+              "playoff_probability_delta",
+              "bye_probability_delta",
+              "championship_probability_delta",
+          }
+          if not required.issubset(summary):
+              raise SystemExit(
+                  "Counterfactual simulation missing required outcome deltas"
+              )
+
+          print(
+              "Counterfactual GM 3.0: PASS — "
+              f"{len(simulated)} focal packages simulated."
+          )
+          PY
 
       - name: Show validated GM 3.0 output tree
         shell: bash
@@ -76,17 +189,9 @@ jobs:
 
           echo ""
           echo "=============================="
-          echo "FOOTBALL INTELLIGENCE"
+          echo "FRESH BASELINE SIMULATOR"
           echo "=============================="
-          test -f data/football_intelligence_signals.json
-          echo "data/football_intelligence_signals.json"
-
-          echo ""
-          echo "=============================="
-          echo "CURRENT CATALYST STATE"
-          echo "=============================="
-          test -f data/gm3_current_catalyst_state.json
-          echo "data/gm3_current_catalyst_state.json"
+          find data/simulator -path "*/outputs/standings_projection.json" -print
 
       - name: Commit validated GM 3.0 outputs
         shell: bash
@@ -96,12 +201,13 @@ jobs:
 
           git add -A \
             data/gm/ \
+            data/simulator/ \
             data/football_intelligence_signals.json \
             data/gm3_current_catalyst_state.json
 
           if git diff --cached --quiet; then
             echo "No GM 3.0 output changes to commit."
           else
-            git commit -m "Build consolidated FSFFL GM 3.0 outputs"
+            git commit -m "Build counterfactual simulator-integrated GM 3.0"
             git push origin HEAD:main
           fi
