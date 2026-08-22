@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T16:36:38.296277+00:00",
+  "generated_at_utc": "2026-08-22T20:36:51.021339+00:00",
   "model_version": "FSFFL-GM-3.0",
   "season": 2026,
   "passed": true,
@@ -37,17 +37,15 @@
       "passed": true
     }
   ],
-  "warnings": [
-    "PROSPECT_INTELLIGENCE_EMPTY"
-  ],
+  "warnings": [],
   "evidence_coverage": {
     "season_phase": "PRESEASON",
     "usage_records": 0,
     "snap_records": 0,
     "prior_snap_records": 419,
-    "preseason_usage_records": 50,
-    "manual_intelligence_records": 80,
-    "prospect_count": 0
+    "preseason_usage_records": 49,
+    "manual_intelligence_records": 82,
+    "prospect_count": 47
   },
   "simulator_validation": {
     "checks": [
@@ -94,7 +92,7 @@
         "severity": "warning"
       }
     ],
-    "generated_at_utc": "2026-08-22T16:34:00.582303+00:00",
+    "generated_at_utc": "2026-08-22T20:33:55.808729+00:00",
     "model_version": "FSFFL-Season-Simulator-1.0",
     "season": "2026",
     "validation_passed": true
