@@ -109,8 +109,7 @@ def usage_features(u,s,prior,preseason,phase):
             vals.append(clamp(x))
         return vals
 
-    current = collect(s,("snap_share","offense_snap_pct","offensive_snap_pct")) + \
-              collect(u,("route_participation","route_share","routes_pct",
+    current = collect(s,("snap_share","offense_snap_pct","offensive_snap_pct")) +               collect(u,("route_participation","route_share","routes_pct",
                          "target_share","tgt_share","opportunity_share",
                          "touch_share","carry_share"))
     prior_vals = collect(prior,("offense_snap_pct","snap_share"))
@@ -289,7 +288,20 @@ def main():
         if tags:
             rows.append(row)
 
-    rows.sort(key=lambda r:(r["market_mispricing_score"],r["confidence_score"]),reverse=True)
+    # Missing market data is valid for emerging/low-profile players.
+    # Keep those candidates, but rank them after measurable mispricings.
+    rows.sort(
+        key=lambda r:(
+            r["market_mispricing_score"]
+            if r["market_mispricing_score"] is not None
+            else float("-inf"),
+            r["confidence_score"]
+            if r["confidence_score"] is not None
+            else 0.0,
+        ),
+        reverse=True,
+    )
+
     buckets={}
     for r in rows:
         for tag in r["signals"]:buckets.setdefault(tag,[]).append(r["player_id"])
@@ -324,6 +336,7 @@ def main():
             "breakout_requires_current_catalyst":True,
             "role_inflection_requires_current_catalyst":True,
             "prior_year_usage_is_baseline_not_catalyst":True,
+            "missing_market_data_sort_safe":True,
         },
         "candidates":rows,
     }
