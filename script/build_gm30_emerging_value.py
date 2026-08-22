@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.2-Season-Specific-PPG"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.3-Structured-Preseason"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -439,15 +439,36 @@ def catalyst_profile(m, pre):
         for x in evidence
         if isinstance(x, dict) and x.get("source")
     })
-    structured_preseason = bool(pre)
 
-    # Generic public-news keyword matches are corroboration, not a strong catalyst.
+    # A preseason record only counts as structured catalyst evidence if the
+    # ingestion layer explicitly qualified it as a meaningful role signal.
+    structured_preseason = bool(
+        isinstance(pre, dict) and pre.get("meaningful_role_signal")
+    )
+    preseason_strength = (
+        num(pre.get("signal_strength"), 0)
+        if isinstance(pre, dict) and structured_preseason
+        else 0.0
+    )
+    max_strength = max(max_strength, preseason_strength)
+
+    # Structured preseason usage is an independent source. One qualified
+    # preseason signal can create a strong catalyst, but HIGH_PRIORITY still
+    # requires corroboration from another source or multiple strong signals.
     strong = structured_preseason or max_strength >= 0.75
-    corroborated = structured_preseason or strong_count >= 2 or independent_sources >= 2
+    corroborated = (
+        (structured_preseason and independent_sources >= 1)
+        or strong_count >= 2
+        or independent_sources >= 2
+    )
 
     return {
-        "present": bool(pre) or bool(evidence),
+        "present": structured_preseason or bool(evidence),
         "structured_preseason_usage": structured_preseason,
+        "preseason_signal_strength": round(preseason_strength, 2),
+        "preseason_signal_reasons": (
+            list(pre.get("signal_reasons") or []) if isinstance(pre, dict) else []
+        ),
         "evidence_count": len(evidence),
         "strong_evidence_count": strong_count,
         "independent_sources": independent_sources,
