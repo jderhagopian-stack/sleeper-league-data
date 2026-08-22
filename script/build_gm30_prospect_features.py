@@ -4,13 +4,12 @@ FSFFL GM 3.0 — Prospect Feature Enrichment v1
 
 Reliable automated sources
 --------------------------
-1) nflverse draft picks (PFR-backed):
-   https://raw.githubusercontent.com/nflverse/nfldata/master/data/draft_picks.csv
+1) Pro-Football-Reference current NFL draft table:
+   https://www.pro-football-reference.com/years/<season>/draft.htm
 2) nflverse combine dataset (PFR-backed):
    https://github.com/nflverse/nflverse-data/releases/download/combine/combine.csv
-3) SportsDataverse / cfbfastR player stats:
-   https://raw.githubusercontent.com/sportsdataverse/cfbfastR-data/main/
-       player_stats/parquet/player_stats_<college_season>.parquet
+3) SportsDataverse season-summary releases:
+   espn_cfb_receiving / espn_cfb_rushing / espn_cfb_passing
 
 Design principles
 -----------------
@@ -28,8 +27,10 @@ import io
 import json
 import math
 import re
+import html
 import unicodedata
 import urllib.request
+import urllib.error
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,17 +42,20 @@ DATA = Path("data")
 INPUTS = DATA / "gm3_prospect_inputs.json"
 AUDIT = DATA / "gm3_prospect_feature_audit.json"
 
-DRAFT_URL = (
-    "https://raw.githubusercontent.com/nflverse/nfldata/master/data/draft_picks.csv"
-)
+PFR_DRAFT_URL = "https://www.pro-football-reference.com/years/{season}/draft.htm"
 COMBINE_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
     "combine/combine.csv"
 )
-CFB_PARQUET = (
-    "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-data/main/"
-    "player_stats/parquet/player_stats_{season}.parquet"
+SPORTSDATAVERSE_RELEASE_API = (
+    "https://api.github.com/repos/sportsdataverse/sportsdataverse-data/"
+    "releases/tags/{tag}"
 )
+COLLEGE_RELEASE_TAGS = {
+    "receiving": "espn_cfb_receiving",
+    "rushing": "espn_cfb_rushing",
+    "passing": "espn_cfb_passing",
+}
 
 POSITIONS = {"QB", "RB", "WR", "TE"}
 
@@ -103,6 +107,358 @@ def read_parquet_url(url):
     with urllib.request.urlopen(url, timeout=90) as r:
         raw = r.read()
     return pd.read_parquet(io.BytesIO(raw))
+
+
+def fetch_bytes(url, timeout=90, accept=None):
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (compatible; FSFFL-GM30/1.0; "
+            "+https://github.com/jderhagopian-stack/sleeper-league-data)"
+        )
+    }
+    if accept:
+        headers["Accept"] = accept
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def fetch_text(url, timeout=90):
+    return fetch_bytes(url, timeout=timeout).decode("utf-8", errors="replace")
+
+
+def strip_html(value):
+    value = re.sub(r"<[^>]+>", "", str(value or ""))
+    return html.unescape(value).strip()
+
+
+def read_pfr_draft(season):
+    """
+    Parse Pro-Football-Reference's current-year draft table using only the
+    standard library. PFR table cells expose stable data-stat attributes.
+    """
+    url = PFR_DRAFT_URL.format(season=season)
+    text = fetch_text(url)
+
+    rows = []
+    for tr in re.findall(r"<tr\b[^>]*>(.*?)</tr>", text, flags=re.I | re.S):
+        cells = {}
+        for stat, body in re.findall(
+            r"<t[dh]\b[^>]*data-stat=[\"']([^\"']+)[\"'][^>]*>(.*?)</t[dh]>",
+            tr,
+            flags=re.I | re.S,
+        ):
+            cells[stat] = strip_html(body)
+
+        round_raw = cells.get("draft_round") or cells.get("round")
+        pick_raw = cells.get("draft_pick") or cells.get("pick")
+        name = cells.get("player") or cells.get("player_name")
+        pos = cells.get("pos") or cells.get("position")
+
+        try:
+            rnd = int(str(round_raw).strip())
+            pick = int(str(pick_raw).strip())
+        except (TypeError, ValueError):
+            continue
+
+        if not name or not (1 <= pick <= 300):
+            continue
+
+        rows.append(
+            {
+                "season": int(season),
+                "full_name": name,
+                "position": norm_pos(pos),
+                "pick": pick,
+                "round": rnd,
+            }
+        )
+
+    if len(rows) < 100:
+        raise RuntimeError(
+            f"PFR draft parse returned only {len(rows)} drafted players for {season}"
+        )
+
+    return pd.DataFrame(rows), url
+
+
+def release_asset_url(tag, season):
+    """
+    Discover the exact season parquet asset through the GitHub release API.
+    This avoids hard-coding SportsDataverse asset filenames.
+    """
+    api_url = SPORTSDATAVERSE_RELEASE_API.format(tag=tag)
+    payload = json.loads(
+        fetch_bytes(
+            api_url,
+            accept="application/vnd.github+json",
+        ).decode("utf-8")
+    )
+
+    assets = payload.get("assets") or []
+    parquet = []
+    for asset in assets:
+        name = str(asset.get("name") or "")
+        if name.lower().endswith(".parquet") and str(season) in name:
+            parquet.append(asset)
+
+    if not parquet:
+        raise RuntimeError(
+            f"No {season} parquet asset found in SportsDataverse release {tag}"
+        )
+
+    # Prefer exact/simple season asset names when several candidates exist.
+    parquet.sort(
+        key=lambda a: (
+            len(str(a.get("name") or "")),
+            str(a.get("name") or ""),
+        )
+    )
+    chosen = parquet[0]
+    url = chosen.get("browser_download_url")
+    if not url:
+        raise RuntimeError(f"Release asset for {tag} lacks browser_download_url")
+
+    return url, str(chosen.get("name") or "")
+
+
+def read_release_parquet(tag, season):
+    url, asset_name = release_asset_url(tag, season)
+    raw = fetch_bytes(url, timeout=120)
+    return pd.read_parquet(io.BytesIO(raw)), url, asset_name
+
+
+def aggregate_college_summaries(receiving, rushing, passing):
+    """
+    Convert SportsDataverse season-summary tables into one normalized player
+    feature frame. Team shares are calculated before player-level aggregation.
+    """
+    frames = []
+
+    # RECEIVING ---------------------------------------------------------------
+    if isinstance(receiving, pd.DataFrame) and not receiving.empty:
+        r = receiving.copy()
+        name_col = first_col(r, "receiver_player_name")
+        team_col = first_col(r, "pos_team")
+        yards_col = first_col(r, "yards")
+        targets_col = first_col(r, "targets", "plays")
+        rec_col = first_col(r, "comp")
+        td_col = first_col(r, "passing_td")
+        epa_col = first_col(r, "EPAplay")
+        success_col = first_col(r, "success")
+
+        if name_col and team_col:
+            r["__name"] = r[name_col]
+            r["__norm_name"] = r["__name"].map(norm_name)
+            r["__team"] = r[team_col]
+
+            for dest, col in (
+                ("rec_yards", yards_col),
+                ("targets", targets_col),
+                ("receptions", rec_col),
+                ("rec_td", td_col),
+                ("rec_epa_play", epa_col),
+                ("rec_success", success_col),
+            ):
+                r[dest] = pd.to_numeric(r[col], errors="coerce") if col else np.nan
+
+            team_yards = r.groupby("__team")["rec_yards"].transform("sum")
+            team_targets = r.groupby("__team")["targets"].transform("sum")
+            team_td = r.groupby("__team")["rec_td"].transform("sum")
+
+            r["receiving_yards_share_raw"] = (
+                r["rec_yards"] / team_yards.replace(0, np.nan)
+            )
+            r["target_share_raw"] = (
+                r["targets"] / team_targets.replace(0, np.nan)
+            )
+            r["receiving_td_share_raw"] = (
+                r["rec_td"] / team_td.replace(0, np.nan)
+            )
+            r["dominator_raw"] = r[
+                ["receiving_yards_share_raw", "receiving_td_share_raw"]
+            ].mean(axis=1, skipna=True)
+
+            # Efficiency composite: EPA/play + success, falling back to yards/target.
+            ypt = r["rec_yards"] / r["targets"].replace(0, np.nan)
+            r["receiving_efficiency_raw"] = (
+                r[["rec_epa_play", "rec_success"]]
+                .mean(axis=1, skipna=True)
+            )
+            r.loc[
+                r["receiving_efficiency_raw"].isna(),
+                "receiving_efficiency_raw",
+            ] = ypt
+
+            frames.append(
+                r[
+                    [
+                        "__norm_name", "__name",
+                        "receiving_yards_share_raw",
+                        "target_share_raw",
+                        "dominator_raw",
+                        "receiving_efficiency_raw",
+                    ]
+                ]
+            )
+
+    # RUSHING -----------------------------------------------------------------
+    if isinstance(rushing, pd.DataFrame) and not rushing.empty:
+        r = rushing.copy()
+        name_col = first_col(r, "rusher_player_name")
+        team_col = first_col(r, "pos_team")
+        yards_col = first_col(r, "yards")
+        carries_col = first_col(r, "plays")
+        td_col = first_col(r, "rushing_td")
+        epa_col = first_col(r, "EPAplay")
+        success_col = first_col(r, "success")
+
+        if name_col and team_col:
+            r["__name"] = r[name_col]
+            r["__norm_name"] = r["__name"].map(norm_name)
+            r["__team"] = r[team_col]
+            for dest, col in (
+                ("rush_yards", yards_col),
+                ("rush_attempts", carries_col),
+                ("rush_td", td_col),
+                ("rush_epa_play", epa_col),
+                ("rush_success", success_col),
+            ):
+                r[dest] = pd.to_numeric(r[col], errors="coerce") if col else np.nan
+
+            team_yards = r.groupby("__team")["rush_yards"].transform("sum")
+            r["rushing_yards_share_raw"] = (
+                r["rush_yards"] / team_yards.replace(0, np.nan)
+            )
+            ypc = r["rush_yards"] / r["rush_attempts"].replace(0, np.nan)
+            r["rushing_efficiency_raw"] = (
+                r[["rush_epa_play", "rush_success"]]
+                .mean(axis=1, skipna=True)
+            )
+            r.loc[
+                r["rushing_efficiency_raw"].isna(),
+                "rushing_efficiency_raw",
+            ] = ypc
+            r["rushing_value_raw"] = r["rush_yards"]
+
+            frames.append(
+                r[
+                    [
+                        "__norm_name", "__name",
+                        "rushing_yards_share_raw",
+                        "rushing_efficiency_raw",
+                        "rushing_value_raw",
+                    ]
+                ]
+            )
+
+    # PASSING -----------------------------------------------------------------
+    if isinstance(passing, pd.DataFrame) and not passing.empty:
+        p = passing.copy()
+        name_col = first_col(p, "passer_player_name")
+        if name_col:
+            p["__name"] = p[name_col]
+            p["__norm_name"] = p["__name"].map(norm_name)
+
+            fields = {
+                "pass_yards": first_col(p, "yards"),
+                "pass_att": first_col(p, "att"),
+                "pass_comp": first_col(p, "comp"),
+                "pass_td": first_col(p, "passing_td"),
+                "pass_int": first_col(p, "pass_int"),
+                "sacked": first_col(p, "sacked"),
+                "pass_epa_play": first_col(p, "EPAplay"),
+                "pass_success": first_col(p, "success"),
+                "yardsdropback": first_col(p, "yardsdropback"),
+                "comppct": first_col(p, "comppct"),
+            }
+            for dest, col in fields.items():
+                p[dest] = pd.to_numeric(p[col], errors="coerce") if col else np.nan
+
+            p["passing_efficiency_raw"] = (
+                p[["pass_epa_play", "pass_success", "yardsdropback"]]
+                .mean(axis=1, skipna=True)
+            )
+            p["completion_efficiency_raw"] = p["comppct"]
+            dropbacks = p["pass_att"].fillna(0) + p["sacked"].fillna(0)
+            p["sack_rate_inverse_raw"] = 1.0 - (
+                p["sacked"].fillna(0) / dropbacks.replace(0, np.nan)
+            )
+            td = p["pass_td"].fillna(0)
+            ints = p["pass_int"].fillna(0)
+            p["td_int_efficiency_raw"] = (
+                (td + 1.0) / (td + ints + 2.0)
+            )
+
+            frames.append(
+                p[
+                    [
+                        "__norm_name", "__name",
+                        "passing_efficiency_raw",
+                        "completion_efficiency_raw",
+                        "sack_rate_inverse_raw",
+                        "td_int_efficiency_raw",
+                    ]
+                ]
+            )
+
+    if not frames:
+        return pd.DataFrame()
+
+    # Outer merge all category frames by normalized name.
+    merged = None
+    for frame in frames:
+        # Multiple-team seasons: aggregate raw feature columns by max for shares/
+        # rates (best demonstrated stint) and sum only volume where applicable.
+        feature_cols = [
+            c for c in frame.columns if c not in {"__norm_name", "__name"}
+        ]
+        agg = {c: "max" for c in feature_cols}
+        agg["__name"] = "first"
+        frame = frame.groupby("__norm_name", as_index=False).agg(agg)
+
+        if merged is None:
+            merged = frame
+        else:
+            merged = merged.merge(
+                frame,
+                on="__norm_name",
+                how="outer",
+                suffixes=("", "__dup"),
+            )
+            if "__name__dup" in merged:
+                merged["__name"] = merged["__name"].fillna(
+                    merged["__name__dup"]
+                )
+                merged = merged.drop(columns=["__name__dup"])
+
+    # Normalize raw metrics to 0..1 empirical percentiles.
+    percentile_fields = [
+        ("receiving_yards_share_raw", "receiving_yards_share"),
+        ("target_share_raw", "target_share"),
+        ("dominator_raw", "dominator"),
+        ("receiving_efficiency_raw", "receiving_efficiency"),
+        ("rushing_yards_share_raw", "rushing_yards_share"),
+        ("rushing_efficiency_raw", "rushing_efficiency"),
+        ("rushing_value_raw", "rushing_value"),
+        ("passing_efficiency_raw", "passing_efficiency"),
+        ("completion_efficiency_raw", "completion_efficiency"),
+        ("sack_rate_inverse_raw", "sack_rate_inverse"),
+        ("td_int_efficiency_raw", "td_int_efficiency"),
+    ]
+    for raw_col, out_col in percentile_fields:
+        if raw_col in merged:
+            merged[out_col] = pct_rank(merged[raw_col], True)
+        else:
+            merged[out_col] = np.nan
+
+    # Approximate all-purpose scrimmage share from available receiving/rushing
+    # team-share components. This remains transparent and source-derived.
+    merged["scrimmage_yards_share"] = merged[
+        ["receiving_yards_share", "rushing_yards_share"]
+    ].max(axis=1, skipna=True)
+
+    return merged
 
 
 def first_col(df, *names):
@@ -354,17 +710,23 @@ def position_percentiles(stats, field_map):
 def draft_map(df, season):
     if df.empty:
         return {}
+
     season_col = first_col(df, "season", "draft_year")
-    name_col = first_col(df, "full_name", "name")
-    pos_col = first_col(df, "position", "category")
-    pick_col = first_col(df, "pick", "overall")
-    round_col = first_col(df, "round")
+    name_col = first_col(df, "full_name", "name", "player")
+    pos_col = first_col(df, "position", "pos", "category")
+    pick_col = first_col(df, "pick", "overall", "draft_pick")
+    round_col = first_col(df, "round", "draft_round")
 
     out = {}
-    if not all([season_col, name_col, pick_col]):
+    if not all([name_col, pick_col]):
         return out
 
-    sub = df[pd.to_numeric(df[season_col], errors="coerce") == season]
+    sub = df.copy()
+    if season_col:
+        sub = sub[
+            pd.to_numeric(sub[season_col], errors="coerce") == int(season)
+        ]
+
     for _, r in sub.iterrows():
         name = norm_name(r.get(name_col))
         if not name:
@@ -372,8 +734,12 @@ def draft_map(df, season):
         out.setdefault(name, []).append(
             {
                 "draft_capital_pick": numeric(r.get(pick_col)),
-                "nfl_draft_round": numeric(r.get(round_col)) if round_col else None,
-                "draft_position": norm_pos(r.get(pos_col)) if pos_col else None,
+                "nfl_draft_round": (
+                    numeric(r.get(round_col)) if round_col else None
+                ),
+                "draft_position": (
+                    norm_pos(r.get(pos_col)) if pos_col else None
+                ),
             }
         )
     return out
@@ -461,23 +827,8 @@ def college_match(stats, name, position):
     rows = stats[stats["__norm_name"] == q]
     if rows.empty:
         return None
-    if len(rows) == 1:
-        return rows.iloc[0].to_dict()
-
-    # If duplicated, prefer an explicit matching position.
-    exact = rows[rows["__position"].map(norm_pos) == norm_pos(position)]
-    if len(exact) == 1:
-        return exact.iloc[0].to_dict()
-
-    # Otherwise aggregate duplicates only if they represent same normalized name.
-    numeric_cols = [
-        c for c in rows.columns
-        if pd.api.types.is_numeric_dtype(rows[c])
-    ]
-    result = rows.iloc[0].to_dict()
-    for c in numeric_cols:
-        result[c] = rows[c].sum(min_count=1)
-    return result
+    # aggregate_college_summaries already de-duplicates normalized names.
+    return rows.iloc[0].to_dict()
 
 
 def main():
@@ -501,52 +852,72 @@ def main():
 
     # Load sources independently. One source failure must not destroy all prospect data.
     try:
-        draft_df = read_csv_url(DRAFT_URL)
-        audit["sources"]["nflverse_draft"] = {"available": True, "url": DRAFT_URL}
+        draft_df, draft_url = read_pfr_draft(season)
+        audit["sources"]["pfr_draft"] = {
+            "available": True,
+            "url": draft_url,
+            "rows": int(len(draft_df)),
+        }
     except Exception as e:
         draft_df = pd.DataFrame()
-        audit["sources"]["nflverse_draft"] = {"available": False, "error": str(e)}
+        audit["sources"]["pfr_draft"] = {
+            "available": False,
+            "url": PFR_DRAFT_URL.format(season=season),
+            "error": str(e),
+        }
 
     try:
         combine_df = read_csv_url(COMBINE_URL)
-        audit["sources"]["nflverse_combine"] = {"available": True, "url": COMBINE_URL}
+        audit["sources"]["nflverse_combine"] = {
+            "available": True,
+            "url": COMBINE_URL,
+        }
     except Exception as e:
         combine_df = pd.DataFrame()
-        audit["sources"]["nflverse_combine"] = {"available": False, "error": str(e)}
+        audit["sources"]["nflverse_combine"] = {
+            "available": False,
+            "error": str(e),
+        }
 
-    cfb_url = CFB_PARQUET.format(season=college_season)
+    college_tables = {}
+    college_source_meta = {}
+    for kind, tag in COLLEGE_RELEASE_TAGS.items():
+        try:
+            df, url, asset_name = read_release_parquet(tag, college_season)
+            college_tables[kind] = df
+            college_source_meta[kind] = {
+                "available": True,
+                "tag": tag,
+                "asset": asset_name,
+                "url": url,
+                "rows": int(len(df)),
+            }
+        except Exception as e:
+            college_tables[kind] = pd.DataFrame()
+            college_source_meta[kind] = {
+                "available": False,
+                "tag": tag,
+                "error": str(e),
+            }
+
     try:
-        college_raw = read_parquet_url(cfb_url)
-        college = aggregate_player_stats(college_raw)
-        college = add_team_shares(college)
-        college = position_percentiles(
-            college,
-            [
-                ("receiving_yards_share", "receiving_yards_share", True),
-                ("target_share", "target_share", True),
-                ("dominator", "dominator", True),
-                ("yards_per_target", "receiving_efficiency", True),
-                ("rushing_yards_share", "rushing_yards_share", True),
-                ("scrimmage_yards_share", "scrimmage_yards_share", True),
-                ("yards_per_carry", "rushing_efficiency", True),
-                ("completion_pct", "completion_efficiency", True),
-                ("yards_per_attempt", "passing_efficiency", True),
-                ("sack_rate_inverse_raw", "sack_rate_inverse", True),
-                ("td_int_efficiency_raw", "td_int_efficiency", True),
-                ("rush_yards", "rushing_value", True),
-            ],
+        college = aggregate_college_summaries(
+            college_tables.get("receiving", pd.DataFrame()),
+            college_tables.get("rushing", pd.DataFrame()),
+            college_tables.get("passing", pd.DataFrame()),
         )
-        audit["sources"]["cfbfastR_player_stats"] = {
-            "available": True,
-            "url": cfb_url,
-            "raw_rows": int(len(college_raw)),
+        audit["sources"]["sportsdataverse_season_summaries"] = {
+            "available": not college.empty,
+            "college_season": college_season,
+            "datasets": college_source_meta,
             "aggregated_players": int(len(college)),
         }
     except Exception as e:
         college = pd.DataFrame()
-        audit["sources"]["cfbfastR_player_stats"] = {
+        audit["sources"]["sportsdataverse_season_summaries"] = {
             "available": False,
-            "url": cfb_url,
+            "college_season": college_season,
+            "datasets": college_source_meta,
             "error": str(e),
         }
 
@@ -563,7 +934,7 @@ def main():
         if d:
             row["draft_capital_pick"] = d.get("draft_capital_pick")
             row["nfl_draft_round"] = d.get("nfl_draft_round")
-            row["draft_capital_source"] = "nflverse/PFR draft_picks"
+            row["draft_capital_source"] = "Pro-Football-Reference 2026 draft table"
             audit["matched"]["draft"] += 1
         else:
             audit["unmatched"]["draft"].append(name)
@@ -601,7 +972,7 @@ def main():
                     used.append(dest)
             if used:
                 row["college_features_source"] = (
-                    f"SportsDataverse/cfbfastR player_stats {college_season}"
+                    f"SportsDataverse season summaries (passing/rushing/receiving) {college_season}"
                 )
                 row["college_features_used"] = used
                 audit["matched"]["college"] += 1
