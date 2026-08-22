@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:45.428512+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:41:04.976823+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "850548458887704576",
   "focal_manager": "jder52",
   "focal_team": "The Shish Kebab Boys",
@@ -63218,5 +63218,25 @@
       "best_package_recommendation_band": "focal_overpay_or_bad_timing",
       "best_package_decision_score": -0.54166
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 7.44,
+      "expected_points_for": 1598.63,
+      "playoff_probability": 0.52996,
+      "bye_probability": 0.06978,
+      "championship_probability": 0.0459
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

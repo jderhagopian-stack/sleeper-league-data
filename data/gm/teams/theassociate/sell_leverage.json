@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:03.001009+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:34.680645+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "676939933792964608",
   "focal_manager": "chuckthegoat77",
   "focal_team": "The Associate ",
@@ -3729,5 +3729,25 @@
       ],
       "market_should_be_tested": false
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 1.708,
+      "expected_points_for": 1070.41,
+      "playoff_probability": 2e-05,
+      "bye_probability": 0.0,
+      "championship_probability": 0.0
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

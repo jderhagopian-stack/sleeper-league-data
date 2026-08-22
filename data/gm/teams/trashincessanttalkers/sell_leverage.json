@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:17.915754+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:45.286546+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "844772511156670464",
   "focal_manager": "CoachKoko",
   "focal_team": "Trash Incessant Talkers",
@@ -3129,5 +3129,25 @@
       ],
       "market_should_be_tested": false
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 4.722,
+      "expected_points_for": 1336.93,
+      "playoff_probability": 0.03112,
+      "bye_probability": 0.0007,
+      "championship_probability": 0.0003
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

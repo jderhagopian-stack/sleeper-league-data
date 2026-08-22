@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:59.149901+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:41:14.715495+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "purpose": "Compact context for arbitrary bilateral trade analysis.",
   "teams": {
     "833709164739014656": {
@@ -670,6 +670,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.761,
             "early_scenario_weight": 0.541,
             "late_scenario_weight": 0.292,
@@ -693,6 +694,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.941,
             "early_scenario_weight": 0.646,
             "late_scenario_weight": 0.147,
@@ -758,6 +760,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.728,
             "early_scenario_weight": 0.522,
             "late_scenario_weight": 0.319,
@@ -781,6 +784,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.579,
             "early_scenario_weight": 0.436,
             "late_scenario_weight": 0.439,
@@ -804,6 +808,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.756,
             "early_scenario_weight": 0.539,
             "late_scenario_weight": 0.296,
@@ -827,6 +832,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.752,
             "early_scenario_weight": 0.536,
             "late_scenario_weight": 0.3,
@@ -850,6 +856,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.761,
             "early_scenario_weight": 0.541,
             "late_scenario_weight": 0.292,
@@ -873,6 +880,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.336,
             "early_scenario_weight": 0.292,
             "late_scenario_weight": 0.628,
@@ -1973,6 +1981,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.331,
             "early_scenario_weight": 0.289,
             "late_scenario_weight": 0.632,
@@ -2017,6 +2026,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.936,
             "early_scenario_weight": 0.643,
             "late_scenario_weight": 0.151,
@@ -2040,6 +2050,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.341,
             "early_scenario_weight": 0.295,
             "late_scenario_weight": 0.625,
@@ -2105,6 +2116,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.331,
             "early_scenario_weight": 0.289,
             "late_scenario_weight": 0.632,
@@ -2128,6 +2140,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.341,
             "early_scenario_weight": 0.295,
             "late_scenario_weight": 0.625,
@@ -2151,6 +2164,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.331,
             "early_scenario_weight": 0.289,
             "late_scenario_weight": 0.632,
@@ -2902,6 +2916,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -2988,6 +3003,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.629,
             "early_scenario_weight": 0.465,
             "late_scenario_weight": 0.399,
@@ -3032,6 +3048,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.397,
             "early_scenario_weight": 0.33,
             "late_scenario_weight": 0.586,
@@ -3055,6 +3072,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.583,
             "early_scenario_weight": 0.438,
             "late_scenario_weight": 0.436,
@@ -3078,6 +3096,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.615,
             "early_scenario_weight": 0.457,
             "late_scenario_weight": 0.41,
@@ -3164,6 +3183,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.939,
             "early_scenario_weight": 0.644,
             "late_scenario_weight": 0.149,
@@ -3187,6 +3207,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -3231,6 +3252,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.629,
             "early_scenario_weight": 0.465,
             "late_scenario_weight": 0.399,
@@ -3254,6 +3276,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.615,
             "early_scenario_weight": 0.457,
             "late_scenario_weight": 0.41,
@@ -3319,6 +3342,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.939,
             "early_scenario_weight": 0.644,
             "late_scenario_weight": 0.149,
@@ -3342,6 +3366,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.629,
             "early_scenario_weight": 0.465,
             "late_scenario_weight": 0.399,
@@ -3365,6 +3390,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.615,
             "early_scenario_weight": 0.457,
             "late_scenario_weight": 0.41,
@@ -4156,6 +4182,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.639,
             "early_scenario_weight": 0.47,
             "late_scenario_weight": 0.391,
@@ -4200,6 +4227,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.936,
             "early_scenario_weight": 0.643,
             "late_scenario_weight": 0.151,
@@ -4223,6 +4251,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.932,
             "early_scenario_weight": 0.64,
             "late_scenario_weight": 0.155,
@@ -4288,6 +4317,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.941,
             "early_scenario_weight": 0.646,
             "late_scenario_weight": 0.147,
@@ -4416,6 +4446,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.728,
             "early_scenario_weight": 0.522,
             "late_scenario_weight": 0.319,
@@ -4502,6 +4533,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.588,
             "early_scenario_weight": 0.441,
             "late_scenario_weight": 0.432,
@@ -4525,6 +4557,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.936,
             "early_scenario_weight": 0.643,
             "late_scenario_weight": 0.151,
@@ -4548,6 +4581,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.336,
             "early_scenario_weight": 0.292,
             "late_scenario_weight": 0.628,
@@ -4571,6 +4605,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -4636,6 +4671,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.336,
             "early_scenario_weight": 0.292,
             "late_scenario_weight": 0.628,
@@ -5404,6 +5440,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5469,6 +5506,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5492,6 +5530,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.341,
             "early_scenario_weight": 0.295,
             "late_scenario_weight": 0.625,
@@ -5599,6 +5638,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5643,6 +5683,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5729,6 +5770,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -5794,6 +5836,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5817,6 +5860,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -5840,6 +5884,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.425,
             "early_scenario_weight": 0.347,
             "late_scenario_weight": 0.563,
@@ -6605,6 +6650,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.948,
             "early_scenario_weight": 0.65,
             "late_scenario_weight": 0.142,
@@ -6712,6 +6758,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.943,
             "early_scenario_weight": 0.647,
             "late_scenario_weight": 0.146,
@@ -6756,6 +6803,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.948,
             "early_scenario_weight": 0.65,
             "late_scenario_weight": 0.142,
@@ -6989,6 +7037,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.943,
             "early_scenario_weight": 0.647,
             "late_scenario_weight": 0.146,
@@ -7012,6 +7061,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.411,
             "early_scenario_weight": 0.338,
             "late_scenario_weight": 0.574,
@@ -7035,6 +7085,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.728,
             "early_scenario_weight": 0.522,
             "late_scenario_weight": 0.319,
@@ -7773,6 +7824,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -7943,6 +7995,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.433,
             "early_scenario_weight": 0.351,
             "late_scenario_weight": 0.557,
@@ -7966,6 +8019,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.423,
             "early_scenario_weight": 0.345,
             "late_scenario_weight": 0.565,
@@ -7989,6 +8043,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.413,
             "early_scenario_weight": 0.34,
             "late_scenario_weight": 0.573,
@@ -8033,6 +8088,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.433,
             "early_scenario_weight": 0.351,
             "late_scenario_weight": 0.557,
@@ -8098,6 +8154,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.397,
             "early_scenario_weight": 0.33,
             "late_scenario_weight": 0.586,
@@ -8142,6 +8199,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.423,
             "early_scenario_weight": 0.345,
             "late_scenario_weight": 0.565,
@@ -8207,6 +8265,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.413,
             "early_scenario_weight": 0.34,
             "late_scenario_weight": 0.573,
@@ -8230,6 +8289,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.941,
             "early_scenario_weight": 0.646,
             "late_scenario_weight": 0.147,
@@ -8253,6 +8313,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -8276,6 +8337,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.761,
             "early_scenario_weight": 0.541,
             "late_scenario_weight": 0.292,
@@ -8362,6 +8424,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.433,
             "early_scenario_weight": 0.351,
             "late_scenario_weight": 0.557,
@@ -8385,6 +8448,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.737,
             "early_scenario_weight": 0.528,
             "late_scenario_weight": 0.312,
@@ -8429,6 +8493,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.423,
             "early_scenario_weight": 0.345,
             "late_scenario_weight": 0.565,
@@ -8452,6 +8517,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.413,
             "early_scenario_weight": 0.34,
             "late_scenario_weight": 0.573,
@@ -9220,6 +9286,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.939,
             "early_scenario_weight": 0.644,
             "late_scenario_weight": 0.149,
@@ -9348,6 +9415,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.943,
             "early_scenario_weight": 0.647,
             "late_scenario_weight": 0.146,
@@ -9434,6 +9502,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.411,
             "early_scenario_weight": 0.338,
             "late_scenario_weight": 0.574,
@@ -9478,6 +9547,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.425,
             "early_scenario_weight": 0.347,
             "late_scenario_weight": 0.563,
@@ -9501,6 +9571,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.756,
             "early_scenario_weight": 0.539,
             "late_scenario_weight": 0.296,
@@ -9524,6 +9595,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.752,
             "early_scenario_weight": 0.536,
             "late_scenario_weight": 0.3,
@@ -9673,6 +9745,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.756,
             "early_scenario_weight": 0.539,
             "late_scenario_weight": 0.296,
@@ -9696,6 +9769,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.752,
             "early_scenario_weight": 0.536,
             "late_scenario_weight": 0.3,
@@ -9740,6 +9814,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.425,
             "early_scenario_weight": 0.347,
             "late_scenario_weight": 0.563,
@@ -10597,6 +10672,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.737,
             "early_scenario_weight": 0.528,
             "late_scenario_weight": 0.312,
@@ -10620,6 +10696,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.588,
             "early_scenario_weight": 0.441,
             "late_scenario_weight": 0.432,
@@ -10643,6 +10720,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.747,
             "early_scenario_weight": 0.533,
             "late_scenario_weight": 0.304,
@@ -10687,6 +10765,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.85,
             "early_scenario_weight": 0.593,
             "late_scenario_weight": 0.221,
@@ -10710,6 +10789,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.579,
             "early_scenario_weight": 0.436,
             "late_scenario_weight": 0.439,
@@ -10754,6 +10834,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.583,
             "early_scenario_weight": 0.438,
             "late_scenario_weight": 0.436,
@@ -10777,6 +10858,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.737,
             "early_scenario_weight": 0.528,
             "late_scenario_weight": 0.312,
@@ -10842,6 +10924,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.747,
             "early_scenario_weight": 0.533,
             "late_scenario_weight": 0.304,
@@ -10928,6 +11011,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.579,
             "early_scenario_weight": 0.436,
             "late_scenario_weight": 0.439,
@@ -10972,6 +11056,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.583,
             "early_scenario_weight": 0.438,
             "late_scenario_weight": 0.436,
@@ -10995,6 +11080,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.588,
             "early_scenario_weight": 0.441,
             "late_scenario_weight": 0.432,
@@ -11018,6 +11104,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.747,
             "early_scenario_weight": 0.533,
             "late_scenario_weight": 0.304,
@@ -11041,6 +11128,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.397,
             "early_scenario_weight": 0.33,
             "late_scenario_weight": 0.586,
@@ -11064,6 +11152,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.411,
             "early_scenario_weight": 0.338,
             "late_scenario_weight": 0.574,
@@ -12077,6 +12166,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.948,
             "early_scenario_weight": 0.65,
             "late_scenario_weight": 0.142,
@@ -12100,6 +12190,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.932,
             "early_scenario_weight": 0.64,
             "late_scenario_weight": 0.155,
@@ -12889,6 +12980,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -12933,6 +13025,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -12977,6 +13070,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -13105,6 +13199,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -13149,6 +13244,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -13214,6 +13310,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -13258,6 +13355,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -13281,6 +13379,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.43,
             "early_scenario_weight": 0.349,
             "late_scenario_weight": 0.559,
@@ -14091,6 +14190,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -14135,6 +14235,7 @@
           "pick_profile": {
             "round": 1,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.648,
             "early_scenario_weight": 0.476,
             "late_scenario_weight": 0.383,
@@ -14179,6 +14280,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.639,
             "early_scenario_weight": 0.47,
             "late_scenario_weight": 0.391,
@@ -14202,6 +14304,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.932,
             "early_scenario_weight": 0.64,
             "late_scenario_weight": 0.155,
@@ -14225,6 +14328,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -14248,6 +14352,7 @@
           "pick_profile": {
             "round": 2,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.648,
             "early_scenario_weight": 0.476,
             "late_scenario_weight": 0.383,
@@ -14397,6 +14502,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2027,
+            "horizon_seasons": 1,
             "quality_signal": 0.639,
             "early_scenario_weight": 0.47,
             "late_scenario_weight": 0.391,
@@ -14420,6 +14526,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2028,
+            "horizon_seasons": 2,
             "quality_signal": 0.644,
             "early_scenario_weight": 0.473,
             "late_scenario_weight": 0.387,
@@ -14443,6 +14550,7 @@
           "pick_profile": {
             "round": 3,
             "season": 2029,
+            "horizon_seasons": 3,
             "quality_signal": 0.648,
             "early_scenario_weight": 0.476,
             "late_scenario_weight": 0.383,
@@ -14539,5 +14647,7 @@
         }
       }
     }
-  }
+  },
+  "inherited_core": "GM-2.2",
+  "season": 2026
 }

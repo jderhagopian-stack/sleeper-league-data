@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:24.883219+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:50.232733+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "844785316274483200",
   "focal_manager": "MochaSmev",
@@ -250,6 +250,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.85,
         "early_scenario_weight": 0.593,
         "late_scenario_weight": 0.221,
@@ -646,6 +647,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.433,
         "early_scenario_weight": 0.351,
         "late_scenario_weight": 0.557,
@@ -685,6 +687,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.423,
         "early_scenario_weight": 0.345,
         "late_scenario_weight": 0.565,
@@ -724,6 +727,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.413,
         "early_scenario_weight": 0.34,
         "late_scenario_weight": 0.573,
@@ -1469,5 +1473,25 @@
       "market_should_be_tested": false
     }
   ],
-  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums."
+  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums.",
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 7.914,
+      "expected_points_for": 1572.63,
+      "playoff_probability": 0.60712,
+      "bye_probability": 0.10004,
+      "championship_probability": 0.05736
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

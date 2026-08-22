@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:00:55.749488+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:29.515329+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "725401251478605824",
   "focal_manager": "PVos",
@@ -301,6 +301,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.644,
         "early_scenario_weight": 0.473,
         "late_scenario_weight": 0.387,
@@ -493,6 +494,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.629,
         "early_scenario_weight": 0.465,
         "late_scenario_weight": 0.399,
@@ -583,6 +585,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.397,
         "early_scenario_weight": 0.33,
         "late_scenario_weight": 0.586,
@@ -622,6 +625,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.583,
         "early_scenario_weight": 0.438,
         "late_scenario_weight": 0.436,
@@ -661,6 +665,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.615,
         "early_scenario_weight": 0.457,
         "late_scenario_weight": 0.41,
@@ -1458,5 +1463,25 @@
       "market_should_be_tested": false
     }
   ],
-  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums."
+  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums.",
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 6.921,
+      "expected_points_for": 1530.1,
+      "playoff_probability": 0.36922,
+      "bye_probability": 0.04,
+      "championship_probability": 0.02514
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

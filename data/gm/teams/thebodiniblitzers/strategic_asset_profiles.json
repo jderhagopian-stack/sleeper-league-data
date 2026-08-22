@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:00:35.551138+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:15.092744+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "user_id": "845157822193872896",
   "manager": "Anthonyder",
   "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
@@ -177,6 +177,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.939,
         "early_scenario_weight": 0.644,
         "late_scenario_weight": 0.149,
@@ -471,6 +472,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.943,
         "early_scenario_weight": 0.647,
         "late_scenario_weight": 0.146,
@@ -663,6 +665,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.411,
         "early_scenario_weight": 0.338,
         "late_scenario_weight": 0.574,
@@ -753,6 +756,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.425,
         "early_scenario_weight": 0.347,
         "late_scenario_weight": 0.563,
@@ -792,6 +796,7 @@
       "pick_profile": {
         "round": 2,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.756,
         "early_scenario_weight": 0.539,
         "late_scenario_weight": 0.296,
@@ -831,6 +836,7 @@
       "pick_profile": {
         "round": 2,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.752,
         "early_scenario_weight": 0.536,
         "late_scenario_weight": 0.3,
@@ -1176,6 +1182,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.756,
         "early_scenario_weight": 0.539,
         "late_scenario_weight": 0.296,
@@ -1215,6 +1222,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.752,
         "early_scenario_weight": 0.536,
         "late_scenario_weight": 0.3,
@@ -1305,6 +1313,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.425,
         "early_scenario_weight": 0.347,
         "late_scenario_weight": 0.563,
@@ -2419,6 +2428,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.939,
         "early_scenario_weight": 0.644,
         "late_scenario_weight": 0.149,
@@ -2458,6 +2468,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.943,
         "early_scenario_weight": 0.647,
         "late_scenario_weight": 0.146,
@@ -2497,6 +2508,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.411,
         "early_scenario_weight": 0.338,
         "late_scenario_weight": 0.574,
@@ -2536,6 +2548,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.425,
         "early_scenario_weight": 0.347,
         "late_scenario_weight": 0.563,
@@ -2575,6 +2588,7 @@
       "pick_profile": {
         "round": 2,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.756,
         "early_scenario_weight": 0.539,
         "late_scenario_weight": 0.296,
@@ -2614,6 +2628,7 @@
       "pick_profile": {
         "round": 2,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.752,
         "early_scenario_weight": 0.536,
         "late_scenario_weight": 0.3,
@@ -2653,6 +2668,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.756,
         "early_scenario_weight": 0.539,
         "late_scenario_weight": 0.296,
@@ -2692,6 +2708,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.752,
         "early_scenario_weight": 0.536,
         "late_scenario_weight": 0.3,
@@ -2731,6 +2748,7 @@
       "pick_profile": {
         "round": 3,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.425,
         "early_scenario_weight": 0.347,
         "late_scenario_weight": 0.563,
@@ -2759,5 +2777,25 @@
         "own_pick_control": 0.1
       }
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 10.534,
+      "expected_points_for": 1766.3,
+      "playoff_probability": 0.97624,
+      "bye_probability": 0.71618,
+      "championship_probability": 0.32888
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

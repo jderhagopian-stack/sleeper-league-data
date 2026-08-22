@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:00:42.155911+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:19.801392+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "833709164739014656",
   "focal_manager": "jaco057",
@@ -250,6 +250,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.761,
         "early_scenario_weight": 0.541,
         "late_scenario_weight": 0.292,
@@ -289,6 +290,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.941,
         "early_scenario_weight": 0.646,
         "late_scenario_weight": 0.147,
@@ -430,6 +432,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.728,
         "early_scenario_weight": 0.522,
         "late_scenario_weight": 0.319,
@@ -469,6 +472,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.579,
         "early_scenario_weight": 0.436,
         "late_scenario_weight": 0.439,
@@ -508,6 +512,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.756,
         "early_scenario_weight": 0.539,
         "late_scenario_weight": 0.296,
@@ -547,6 +552,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.752,
         "early_scenario_weight": 0.536,
         "late_scenario_weight": 0.3,
@@ -586,6 +592,7 @@
       "pick_profile": {
         "round": 2,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.761,
         "early_scenario_weight": 0.541,
         "late_scenario_weight": 0.292,
@@ -625,6 +632,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.336,
         "early_scenario_weight": 0.292,
         "late_scenario_weight": 0.628,
@@ -1427,5 +1435,25 @@
       "market_should_be_tested": false
     }
   ],
-  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums."
+  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums.",
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 3.089,
+      "expected_points_for": 1191.73,
+      "playoff_probability": 0.0028,
+      "bye_probability": 0.0,
+      "championship_probability": 4e-05
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

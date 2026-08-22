@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:00:55.749304+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:40:29.515142+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "725401251478605824",
   "focal_manager": "PVos",
   "focal_team": "STINKS",
@@ -3969,5 +3969,25 @@
       ],
       "market_should_be_tested": false
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 6.921,
+      "expected_points_for": 1530.1,
+      "playoff_probability": 0.36922,
+      "bye_probability": 0.04,
+      "championship_probability": 0.02514
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

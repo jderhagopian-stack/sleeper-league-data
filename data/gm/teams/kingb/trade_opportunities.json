@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:59.054308+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:41:14.639477+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "858530218330144768",
   "focal_manager": "Ballard22",
   "focal_team": "King B",
@@ -64546,5 +64546,25 @@
       "best_package_recommendation_band": "focal_overpay_or_bad_timing",
       "best_package_decision_score": -0.41705
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 8.214,
+      "expected_points_for": 1601.36,
+      "playoff_probability": 0.68672,
+      "bye_probability": 0.1334,
+      "championship_probability": 0.05618
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

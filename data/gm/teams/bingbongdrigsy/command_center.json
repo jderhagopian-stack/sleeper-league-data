@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:52.271044+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:41:09.807616+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "853063390963277824",
   "focal_manager": "Drigs24",
@@ -454,6 +454,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2027,
+        "horizon_seasons": 1,
         "quality_signal": 0.43,
         "early_scenario_weight": 0.349,
         "late_scenario_weight": 0.559,
@@ -544,6 +545,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2028,
+        "horizon_seasons": 2,
         "quality_signal": 0.43,
         "early_scenario_weight": 0.349,
         "late_scenario_weight": 0.559,
@@ -634,6 +636,7 @@
       "pick_profile": {
         "round": 1,
         "season": 2029,
+        "horizon_seasons": 3,
         "quality_signal": 0.43,
         "early_scenario_weight": 0.349,
         "late_scenario_weight": 0.559,
@@ -1489,5 +1492,25 @@
       "market_should_be_tested": false
     }
   ],
-  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums."
+  "operating_note": "GM-2.2 compares every move against holding. No asset is untouchable, but elite, scarce, liquid and high-upside assets require nonlinear premiums.",
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 8.945,
+      "expected_points_for": 1697.68,
+      "playoff_probability": 0.85122,
+      "bye_probability": 0.31808,
+      "championship_probability": 0.20832
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }

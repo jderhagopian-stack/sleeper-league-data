@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-08-22T11:01:52.270875+00:00",
-  "model_version": "GM-2.2",
+  "generated_at_utc": "2026-08-22T11:41:09.807439+00:00",
+  "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "853063390963277824",
   "focal_manager": "Drigs24",
   "focal_team": "BING BONG DRIGSY\ud83c\udf4e",
@@ -3489,5 +3489,25 @@
       ],
       "market_should_be_tested": false
     }
-  ]
+  ],
+  "inherited_core": "GM-2.2",
+  "season": 2026,
+  "gm30": {
+    "simulator_1_0": {
+      "expected_wins": 8.945,
+      "expected_points_for": 1697.68,
+      "playoff_probability": 0.85122,
+      "bye_probability": 0.31808,
+      "championship_probability": 0.20832
+    },
+    "evidence_coverage": {
+      "season_phase": "PRESEASON",
+      "usage_records": 0,
+      "snap_records": 0,
+      "prior_snap_records": 419,
+      "preseason_usage_records": 50,
+      "manual_intelligence_records": 80,
+      "prospect_count": 0
+    }
+  }
 }
