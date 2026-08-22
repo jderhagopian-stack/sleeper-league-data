@@ -1,240 +1,722 @@
 {
-  "generated_at_utc": "2026-08-22T04:59:19.635627+00:00",
-  "model_version": "FSFFL-GM-3.0",
-  "architecture": {
-    "engine_role": "primary_gm_engine",
-    "output_root": "data/gm",
-    "legacy_gm22_policy": "compatibility_input_only_until_replaced"
+  "generated_at_utc": "2026-08-22T05:12:25.532686+00:00",
+  "model_version": "FSFFL-GM-3.0-Historical-Breakout-v1",
+  "status": "HISTORICAL_BACKTEST_COMPLETE",
+  "training_window": {
+    "start_season": 2018,
+    "end_season": 2025
   },
-  "draft_proxy": {
-    "sample": 144,
-    "by_round_position": [
-      {
-        "round": "1",
-        "position": "QB",
-        "sample": 12,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.75,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "1",
-        "position": "RB",
-        "sample": 13,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.769,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "1",
-        "position": "TE",
-        "sample": 7,
-        "rostered_rate": 0.857,
-        "original_drafter_retention_rate": 0.857,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "1",
-        "position": "WR",
+  "veteran_sample": 1147,
+  "rookie_sample": 322,
+  "veteran_position_summary": {
+    "QB": {
+      "sample": 163,
+      "base_breakout_rate": 0.0982,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
         "sample": 16,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.75,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "2",
-        "position": "QB",
-        "sample": 7,
-        "rostered_rate": 0.571,
-        "original_drafter_retention_rate": 0.286,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "2",
-        "position": "RB",
-        "sample": 14,
-        "rostered_rate": 0.714,
-        "original_drafter_retention_rate": 0.5,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "2",
-        "position": "TE",
-        "sample": 2,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 1.0,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "2",
-        "position": "WR",
+        "score_cutoff": 0.846,
+        "precision": 0.375,
+        "recall": 0.375,
+        "lift_vs_base": 3.82
+      }
+    },
+    "RB": {
+      "sample": 289,
+      "base_breakout_rate": 0.09,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 29,
+        "score_cutoff": 1.393,
+        "precision": 0.2414,
+        "recall": 0.2692,
+        "lift_vs_base": 2.683
+      }
+    },
+    "TE": {
+      "sample": 252,
+      "base_breakout_rate": 0.0754,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
         "sample": 25,
-        "rostered_rate": 0.64,
-        "original_drafter_retention_rate": 0.64,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "3",
-        "position": "QB",
-        "sample": 5,
-        "rostered_rate": 0.4,
-        "original_drafter_retention_rate": 0.4,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "3",
-        "position": "RB",
-        "sample": 16,
-        "rostered_rate": 0.5,
-        "original_drafter_retention_rate": 0.25,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "3",
-        "position": "TE",
-        "sample": 9,
-        "rostered_rate": 0.556,
-        "original_drafter_retention_rate": 0.444,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "round": "3",
-        "position": "WR",
-        "sample": 18,
-        "rostered_rate": 0.611,
-        "original_drafter_retention_rate": 0.389,
-        "active_nfl_rate": 1.0
+        "score_cutoff": 1.433,
+        "precision": 0.36,
+        "recall": 0.4737,
+        "lift_vs_base": 4.775
       }
-    ],
-    "by_season_round": [
-      {
-        "season": "2023",
-        "round": "1",
-        "sample": 12,
-        "rostered_rate": 0.917,
-        "original_drafter_retention_rate": 0.667,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2023",
-        "round": "2",
-        "sample": 12,
-        "rostered_rate": 0.417,
-        "original_drafter_retention_rate": 0.333,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2023",
-        "round": "3",
-        "sample": 12,
-        "rostered_rate": 0.333,
-        "original_drafter_retention_rate": 0.167,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2024",
-        "round": "1",
-        "sample": 12,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.667,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2024",
-        "round": "2",
-        "sample": 12,
-        "rostered_rate": 0.417,
-        "original_drafter_retention_rate": 0.333,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2024",
-        "round": "3",
-        "sample": 12,
-        "rostered_rate": 0.25,
-        "original_drafter_retention_rate": 0.0,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2025",
-        "round": "1",
-        "sample": 12,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.833,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2025",
-        "round": "2",
-        "sample": 12,
-        "rostered_rate": 0.833,
-        "original_drafter_retention_rate": 0.583,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2025",
-        "round": "3",
-        "sample": 12,
-        "rostered_rate": 0.667,
-        "original_drafter_retention_rate": 0.417,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2026",
-        "round": "1",
-        "sample": 12,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 0.917,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2026",
-        "round": "2",
-        "sample": 12,
-        "rostered_rate": 1.0,
-        "original_drafter_retention_rate": 1.0,
-        "active_nfl_rate": 1.0
-      },
-      {
-        "season": "2026",
-        "round": "3",
-        "sample": 12,
-        "rostered_rate": 0.917,
-        "original_drafter_retention_rate": 0.833,
-        "active_nfl_rate": 1.0
+    },
+    "WR": {
+      "sample": 443,
+      "base_breakout_rate": 0.0722,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 44,
+        "score_cutoff": 1.57,
+        "precision": 0.1818,
+        "recall": 0.25,
+        "lift_vs_base": 2.517
       }
-    ]
+    }
   },
-  "waiver_proxy": {
-    "sample": 854,
-    "warning": "Waiver retention/acquisition proxy is useful for owner behavior, not a pure player-hit label."
+  "rookie_position_summary": {
+    "QB": {
+      "sample": 34,
+      "base_breakout_rate": 0.2647,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 10,
+        "score_cutoff": 0.253,
+        "precision": 0.6,
+        "recall": 0.6667,
+        "lift_vs_base": 2.267
+      }
+    },
+    "RB": {
+      "sample": 93,
+      "base_breakout_rate": 0.2043,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 10,
+        "score_cutoff": 0.888,
+        "precision": 0.6,
+        "recall": 0.3158,
+        "lift_vs_base": 2.937
+      }
+    },
+    "TE": {
+      "sample": 56,
+      "base_breakout_rate": 0.0714,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 10,
+        "score_cutoff": 0.648,
+        "precision": 0.3,
+        "recall": 0.75,
+        "lift_vs_base": 4.2
+      }
+    },
+    "WR": {
+      "sample": 139,
+      "base_breakout_rate": 0.1079,
+      "recommended_cutoff": {
+        "top_fraction": 0.1,
+        "sample": 14,
+        "score_cutoff": 0.699,
+        "precision": 0.2857,
+        "recall": 0.2667,
+        "lift_vs_base": 2.648
+      }
+    }
   },
-  "existing_transaction_performance_available": true,
-  "existing_owner_calibration_available": true,
-  "true_prospect_feature_backtest": {
-    "available": false,
-    "required_file": "data/gm3_prospect_history.json",
-    "status": "DATA_GAP",
-    "why_it_matters": "Prospect feature weights should not be optimized against retention proxies."
-  },
-  "calibration_policy": {
-    "allowed_now": [
-      "owner behavior priors",
-      "pick-location priors",
-      "waiver aggression priors",
-      "retention/roster survival sanity checks"
-    ],
-    "not_claimed_without_true_history": [
-      "causal prospect hit rates",
-      "Puka-style sleeper precision",
-      "college metric coefficients"
-    ],
-    "future_metrics": [
-      "precision_at_k",
-      "recall_of_breakouts",
-      "false_positive_rate",
-      "market_value_gain_30_90_365d",
-      "Brier/log-loss where probabilistic labels exist"
-    ]
-  }
+  "top_historical_true_positives": [
+    {
+      "player": "Jonnu Smith",
+      "position": "TE",
+      "season": 2019,
+      "score": 3.542,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Pat Freiermuth",
+      "position": "TE",
+      "season": 2023,
+      "score": 3.154,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Drake London",
+      "position": "WR",
+      "season": 2023,
+      "score": 3.07,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Zach Ertz",
+      "position": "TE",
+      "season": 2020,
+      "score": 2.482,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_29_PLUS",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_6_PLUS"
+      }
+    },
+    {
+      "player": "Austin Hooper",
+      "position": "TE",
+      "season": 2018,
+      "score": 2.468,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Brandon Aiyuk",
+      "position": "WR",
+      "season": 2021,
+      "score": 2.273,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Chris Godwin",
+      "position": "WR",
+      "season": 2018,
+      "score": 2.258,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_UNKNOWN",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Dawson Knox",
+      "position": "TE",
+      "season": 2020,
+      "score": 2.231,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Josh Jacobs",
+      "position": "RB",
+      "season": 2021,
+      "score": 2.21,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Mike Williams",
+      "position": "WR",
+      "season": 2020,
+      "score": 2.14,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_25_26",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_UNKNOWN",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_4_5"
+      }
+    },
+    {
+      "player": "Zach Ertz",
+      "position": "TE",
+      "season": 2023,
+      "score": 2.119,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_29_PLUS",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_6_PLUS"
+      }
+    },
+    {
+      "player": "Mark Andrews",
+      "position": "TE",
+      "season": 2020,
+      "score": 2.105,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "JuJu Smith-Schuster",
+      "position": "WR",
+      "season": 2019,
+      "score": 2.094,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Nico Collins",
+      "position": "WR",
+      "season": 2022,
+      "score": 2.046,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Cade Otton",
+      "position": "TE",
+      "season": 2023,
+      "score": 1.831,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_4_PLUS",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Josh Jacobs",
+      "position": "RB",
+      "season": 2023,
+      "score": 1.825,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_25_26",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_4_5"
+      }
+    },
+    {
+      "player": "Tua Tagovailoa",
+      "position": "QB",
+      "season": 2021,
+      "score": 1.792,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Travis Etienne",
+      "position": "RB",
+      "season": 2022,
+      "score": 1.757,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Saquon Barkley",
+      "position": "RB",
+      "season": 2021,
+      "score": 1.752,
+      "breakout": true,
+      "major_breakout": true,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_4_5"
+      }
+    },
+    {
+      "player": "Daniel Jones",
+      "position": "QB",
+      "season": 2021,
+      "score": 1.719,
+      "breakout": true,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    }
+  ],
+  "top_historical_false_positives": [
+    {
+      "player": "Josh Palmer",
+      "position": "WR",
+      "season": 2022,
+      "score": 2.843,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Rashod Bateman",
+      "position": "WR",
+      "season": 2022,
+      "score": 2.695,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Jimmy Graham",
+      "position": "TE",
+      "season": 2018,
+      "score": 2.507,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_29_PLUS",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_6_PLUS"
+      }
+    },
+    {
+      "player": "Justin Jefferson",
+      "position": "WR",
+      "season": 2021,
+      "score": 2.485,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_UNKNOWN",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Kyle Rudolph",
+      "position": "TE",
+      "season": 2019,
+      "score": 2.482,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_29_PLUS",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_6_PLUS"
+      }
+    },
+    {
+      "player": "Dawson Knox",
+      "position": "TE",
+      "season": 2021,
+      "score": 2.468,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_3",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "D.J. Moore",
+      "position": "WR",
+      "season": 2019,
+      "score": 2.457,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "CeeDee Lamb",
+      "position": "WR",
+      "season": 2021,
+      "score": 2.457,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Ja'Marr Chase",
+      "position": "WR",
+      "season": 2022,
+      "score": 2.457,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Cole Kmet",
+      "position": "TE",
+      "season": 2022,
+      "score": 2.443,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Foster Moreau",
+      "position": "TE",
+      "season": 2021,
+      "score": 2.416,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_4_PLUS",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Ezekiel Elliott",
+      "position": "RB",
+      "season": 2018,
+      "score": 2.371,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Leonard Fournette",
+      "position": "RB",
+      "season": 2019,
+      "score": 2.371,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Travis Etienne",
+      "position": "RB",
+      "season": 2023,
+      "score": 2.371,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Gerald Everett",
+      "position": "TE",
+      "season": 2019,
+      "score": 2.301,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_25_26",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Corey Davis",
+      "position": "WR",
+      "season": 2018,
+      "score": 2.273,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Rondale Moore",
+      "position": "WR",
+      "season": 2022,
+      "score": 2.212,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_70_PLUS",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_2"
+      }
+    },
+    {
+      "player": "Mike Williams",
+      "position": "WR",
+      "season": 2019,
+      "score": 2.183,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_23_24",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_UNKNOWN",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Najee Harris",
+      "position": "RB",
+      "season": 2023,
+      "score": 2.122,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_25_26",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_3"
+      }
+    },
+    {
+      "player": "Gerald Everett",
+      "position": "TE",
+      "season": 2023,
+      "score": 2.119,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_29_PLUS",
+        "draft_capital": "ROUND_2",
+        "prior_snap": "SNAP_45_69",
+        "prior_ppg": "PPG_NEAR_BREAKOUT",
+        "experience": "EXP_YEAR_6_PLUS"
+      }
+    }
+  ],
+  "limitations": [
+    "Historical camp-report text is not available in a standardized training set.",
+    "Historical dynasty market values are not used, so this calibrates breakout probability rather than market mispricing.",
+    "Preseason usage is not yet part of the historical training set.",
+    "Current-catalyst parameters must remain conservative until those datasets are added."
+  ],
+  "warnings": []
 }
