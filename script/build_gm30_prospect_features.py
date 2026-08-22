@@ -114,11 +114,18 @@ def first_col(df, *names):
 
 
 def pct_rank(values, higher_better=True):
-    ser = pd.Series(values, dtype="float64")
+    """
+    Return a float64 NumPy array with np.nan for missing values.
+
+    pandas 2.x/3.x will reject assigning Python None values into an existing
+    float64 column via .loc because that would require a lossy dtype change.
+    Keeping the result numeric avoids that failure and preserves missingness.
+    """
+    ser = pd.to_numeric(pd.Series(values), errors="coerce").astype("float64")
     if ser.notna().sum() <= 1:
-        return [None if pd.isna(x) else 0.5 for x in ser]
+        return np.where(ser.notna().to_numpy(), 0.5, np.nan).astype("float64")
     ranks = ser.rank(method="average", pct=True, ascending=higher_better)
-    return [None if pd.isna(x) else float(x) for x in ranks]
+    return ranks.to_numpy(dtype="float64")
 
 
 def safe_div(a, b):
@@ -401,7 +408,7 @@ def combine_map(df, season):
             continue
         raw = pd.to_numeric(sub[col], errors="coerce")
         dest = f"__{key}_pct"
-        sub[dest] = np.nan
+        sub[dest] = pd.Series(np.nan, index=sub.index, dtype="float64")
         for pos in sub["__position"].fillna("UNKNOWN").unique():
             idx = sub.index[sub["__position"] == pos]
             # Lower is better for timed drills.
