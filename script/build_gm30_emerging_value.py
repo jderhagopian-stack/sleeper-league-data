@@ -17,7 +17,7 @@ from pathlib import Path
 
 DATA=Path("data")
 OUT=DATA/"gm"
-MODEL="FSFFL-GM-3.0-Emerging-Value-v2-Phase-Aware"
+MODEL="FSFFL-GM-3.0-Emerging-Value-v3-Baseline-Catalyst"
 POSITIONS={"QB","RB","WR","TE"}
 
 def load(path, default):
@@ -186,7 +186,8 @@ def classify(row):
     # or multiple independent structural priors. Age-only candidates are monitor-only.
     if gap is not None and gap>=0.25 and latent>=0.65 and (has_real_football or has_structural_depth):
         tags.append("HIDDEN_GEM")
-    if usage is not None and usage>=0.58 and young is not None and young>=0.65 and gap is not None and gap>=0.08:
+    if (row.get("current_catalyst") and usage is not None and usage>=0.58
+            and young is not None and young>=0.65 and gap is not None and gap>=0.08):
         tags.append("BREAKOUT_CANDIDATE")
     if not rostered and gap is not None and gap>=0.20 and latent>=0.62 and (has_real_football or has_structural_depth):
         tags.append("WAIVER_TARGET")
@@ -194,7 +195,8 @@ def classify(row):
         tags.append("BUY_LOW")
     if young is not None and young>=0.72 and ped is not None and ped>=0.48 and (price is None or price<=0.40):
         tags.append("DYNASTY_STASH")
-    if intel is not None and intel>=0.68 and (price is None or price<=0.55):
+    if (row.get("current_catalyst") and intel is not None and intel>=0.68
+            and (price is None or price<=0.55)):
         tags.append("ROLE_INFLECTION")
     if price is not None and price>=0.72 and latent<=0.50 and price-latent>=0.18:
         tags.append("FRAGILE_VALUE")
@@ -268,6 +270,11 @@ def main():
             [row["age_curve"],row["pedigree"],row["market_score"],row["usage_score"],row["manual_score"]])
         row["evidence_coverage"]=round(evidence_fields/5,2)
         row["football_evidence_coverage"]=round((usage_n+manual_n)/max(usage_n+manual_n,4),2) if (usage_n+manual_n) else 0.0
+        row["current_catalyst"] = bool(pre) or bool(manual_evidence)
+        row["current_catalyst_sources"] = (
+            (["PRESEASON_USAGE"] if pre else []) +
+            (["CAMP_NEWS"] if manual_evidence else [])
+        )
         tags,direction=classify(row)
         row["signals"]=tags
         row["direction"]=direction
@@ -314,6 +321,9 @@ def main():
             "hidden_gem_requires":"market gap + phase-appropriate football evidence OR multiple structural priors",
             "market_normalization":"percentile_rank",
             "phase_aware":True,
+            "breakout_requires_current_catalyst":True,
+            "role_inflection_requires_current_catalyst":True,
+            "prior_year_usage_is_baseline_not_catalyst":True,
         },
         "candidates":rows,
     }
