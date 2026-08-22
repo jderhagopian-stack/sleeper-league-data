@@ -1,7 +1,22 @@
 {
+  "features": {
+    "deterministic_season_config_seed": true,
+    "fast_exact_fsffl_lineup_optimizer": true,
+    "opponent_adjustment_source": "file",
+    "same_nfl_team_correlation": true,
+    "simulation_time_bench_substitution": true
+  },
   "generated_at_utc": "2026-08-22T02:00:41.152812+00:00",
   "model_version": "FSFFL-Season-Simulator-1.0",
+  "rng_seed": 2617884895,
+  "runtime": {
+    "lineup_build_seconds": 0.588,
+    "score_generation_seconds": 4.016,
+    "total_seconds": 6.209
+  },
   "season": "2026",
+  "simulations": 50000,
+  "snapshot_date_utc": "2026-08-22",
   "teams": [
     {
       "bye_probability": 0.71618,
@@ -339,5 +354,100 @@
       "team_name": "The Associate ",
       "user_id": "676939933792964608"
     }
-  ]
+  ],
+  "validation": {
+    "dynamic_projection_summary": {
+      "availability_rows_changed": 0,
+      "current_week": 2,
+      "players_with_actual_samples": 0,
+      "players_with_future_mean_changes": 0,
+      "season_type": "pre"
+    },
+    "opponent_adjustments": {
+      "checks": [
+        {
+          "code": "NFL_REGULAR_SEASON_GAMES",
+          "minimum": 270,
+          "passed": true,
+          "value": 272
+        },
+        {
+          "code": "NFL_TEAMS",
+          "passed": true,
+          "target": 32,
+          "value": 32
+        },
+        {
+          "code": "MATCHUP_TEAM_WEEKS",
+          "minimum": 540,
+          "passed": true,
+          "value": 544
+        },
+        {
+          "code": "DEFENSE_POSITION_CALIBRATION",
+          "passed": true,
+          "positions": [
+            "QB",
+            "RB",
+            "WR",
+            "TE"
+          ]
+        }
+      ],
+      "current_season_completed_week_limit": 0,
+      "generated_at_utc": "2026-08-22T02:00:21.257728+00:00",
+      "history_files_used": [
+        "data/stats/nfl/2023/player_weekly_normalized.json",
+        "data/stats/nfl/2024/player_weekly_normalized.json",
+        "data/stats/nfl/2025/player_weekly_normalized.json"
+      ],
+      "league_position_team_week_means": {
+        "QB": 19.005,
+        "RB": 18.229,
+        "TE": 9.306,
+        "WR": 22.898
+      },
+      "passed": true,
+      "scored_player_rows": 11215,
+      "season": 2026,
+      "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
+    },
+    "preproduction": {
+      "checks": [
+        {
+          "code": "WIN_SUM",
+          "passed": true,
+          "target": 84.0,
+          "value": 84.001
+        },
+        {
+          "code": "PLAYOFF_PROB_SUM",
+          "passed": true,
+          "target": 6,
+          "value": 6.0
+        },
+        {
+          "code": "BYE_PROB_SUM",
+          "passed": true,
+          "target": 2,
+          "value": 2.0
+        },
+        {
+          "code": "TITLE_PROB_SUM",
+          "passed": true,
+          "target": 1,
+          "value": 1.0
+        },
+        {
+          "code": "RUNTIME_RECORDED",
+          "passed": true,
+          "value": 6.209
+        }
+      ],
+      "generated_at_utc": "2026-08-22T02:00:41.152812+00:00",
+      "model_version": "FSFFL-Season-Simulator-1.0-preproduction",
+      "passed": true,
+      "season": "2026"
+    }
+  }
 }

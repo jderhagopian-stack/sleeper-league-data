@@ -1,0 +1,49 @@
+{
+  "checks": [
+    {
+      "code": "NFL_REGULAR_SEASON_GAMES",
+      "minimum": 270,
+      "passed": true,
+      "value": 272
+    },
+    {
+      "code": "NFL_TEAMS",
+      "passed": true,
+      "target": 32,
+      "value": 32
+    },
+    {
+      "code": "MATCHUP_TEAM_WEEKS",
+      "minimum": 540,
+      "passed": true,
+      "value": 544
+    },
+    {
+      "code": "DEFENSE_POSITION_CALIBRATION",
+      "passed": true,
+      "positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE"
+      ]
+    }
+  ],
+  "current_season_completed_week_limit": 0,
+  "generated_at_utc": "2026-08-22T02:00:21.257728+00:00",
+  "history_files_used": [
+    "data/stats/nfl/2023/player_weekly_normalized.json",
+    "data/stats/nfl/2024/player_weekly_normalized.json",
+    "data/stats/nfl/2025/player_weekly_normalized.json"
+  ],
+  "league_position_team_week_means": {
+    "QB": 19.005,
+    "RB": 18.229,
+    "TE": 9.306,
+    "WR": 22.898
+  },
+  "passed": true,
+  "scored_player_rows": 11215,
+  "season": 2026,
+  "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
+}
