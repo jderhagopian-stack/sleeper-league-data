@@ -1,85 +1,139 @@
 #!/usr/bin/env python3
-"""GM 3.0 production architecture validation gate."""
+"""FSFFL GM 3.0 consolidated validation gate."""
 from __future__ import annotations
-import ast, json, re, sys
+
+import ast
+import json
+import re
+import sys
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]
-DATA=ROOT/"data"
-ENGINE=ROOT/"script"/"build_fsffl_gm30.py"
-CONFIG=DATA/"gm3_config.json"
-GM=DATA/"gm"
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+GM = DATA / "gm"
+ENGINE = ROOT / "script" / "build_fsffl_gm30.py"
+REFERENCE = DATA / "gm22_reference"
 
-def load(p):
-    with Path(p).open("r",encoding="utf-8") as f:
+
+def load(path, default=None):
+    p = Path(path)
+    if not p.exists():
+        return default
+    with p.open("r", encoding="utf-8") as f:
         return json.load(f)
 
-def add(rows,name,passed,detail=None):
-    row={"check":name,"passed":bool(passed)}
+
+def add(checks, name, passed, detail=None):
+    row = {"check": name, "passed": bool(passed)}
     if detail is not None:
-        row["detail"]=detail
-    rows.append(row)
+        row["detail"] = detail
+    checks.append(row)
+
 
 def main():
-    checks=[]
-    engine=ENGINE.read_text(encoding="utf-8") if ENGINE.exists() else ""
-    cfg=load(CONFIG) if CONFIG.exists() else {}
-    league=load(DATA/"league.json") if (DATA/"league.json").exists() else {}
-    season=str(league.get("season") or "")
+    checks = []
+    warnings = []
 
-    add(checks,"engine_exists",ENGINE.exists())
-    add(checks,"config_exists",CONFIG.exists())
+    league = load(DATA / "league.json", {}) or {}
+    season = str(league.get("season") or "")
+    total_rosters = int(league.get("total_rosters") or 0)
+
+    engine = ENGINE.read_text(encoding="utf-8") if ENGINE.exists() else ""
+    add(checks, "engine_exists", ENGINE.exists())
     try:
         ast.parse(engine)
-        add(checks,"engine_python_syntax",True)
+        add(checks, "engine_python_syntax", True)
     except SyntaxError as exc:
-        add(checks,"engine_python_syntax",False,str(exc))
+        add(checks, "engine_python_syntax", False, str(exc))
 
-    add(checks,"league_metadata_has_season",bool(season),season or "missing")
-    add(checks,"engine_resolves_season","def resolve_season(" in engine)
-    add(checks,"no_current_season_literal_in_engine",
-        not bool(season and re.search(r"(?<!\\d)"+re.escape(season)+r"(?!\\d)",engine)))
+    add(checks, "league_metadata_has_season", bool(season), season or "missing")
+    add(checks, "engine_uses_active_season_metadata", "def active_season(" in engine)
+    add(checks, "engine_inherits_gm22_core", "import build_fsffl_gm_engine as core" in engine)
+    add(checks, "no_compiled_user_identity",
+        all(x not in engine for x in ("GM30_USER_ID", "jimmygoodjob", "Hurts So Good")))
+    add(checks, "no_fixed_future_pick_list",
+        "FUTURE_PICK_YEARS = [2027" not in engine)
 
-    fixed=sorted(set(re.findall(r'["\\\'](20\\d{2})_first_(?:expected_slot|band)["\\\']',engine)))
-    add(checks,"future_pick_schema_dynamic",not fixed,fixed or "none")
+    manifest = load(GM / "manifest.json", {}) or {}
+    franchise = load(GM / "franchise_index.json", {}) or {}
+    gm_validation = load(GM / "validation_report.json", {}) or {}
 
-    add(checks,"production_build_has_no_team_prompt_or_env",
-        "GM30_USER_ID" not in engine and "resolve_perspective_user_id" not in engine)
-    add(checks,"config_build_scope_all_teams",
-        cfg.get("build_scope",{}).get("mode")=="ALL_TEAMS_EVERY_RUN")
-    add(checks,"engine_builds_team_command_centers",
-        "team_command_centers" in engine and 'for team in sim["teams"]' in engine)
-    add(checks,"gm_output_root_is_data_gm",'OUT = DATA / "gm"' in engine)
-    add(checks,"no_legacy_gm3_output_root",'OUT = DATA / "gm3"' not in engine)
-    add(checks,"not_gm22_downstream",
-        "downstream_only" not in engine.lower() and "downstream decision layer" not in engine.lower())
+    add(checks, "manifest_is_gm30",
+        manifest.get("model_version") == "FSFFL-GM-3.0",
+        manifest.get("model_version"))
+    add(checks, "architecture_is_evolved_gm22",
+        manifest.get("architecture") == "GM_2_2_CORE_EVOLVED_TO_GM_3_0",
+        manifest.get("architecture"))
+    add(checks, "manifest_season_matches",
+        str(manifest.get("season") or "") == season,
+        {"manifest": manifest.get("season"), "league": season})
+    add(checks, "manifest_scope_all_teams",
+        manifest.get("scope") == "ALL_TEAMS")
+    add(checks, "gm22_capabilities_declared_preserved",
+        set([
+            "universal_franchise_mode",
+            "optimized_legal_lineups",
+            "dynamic_hold_and_break_glass_values",
+            "nonlinear_package_economics",
+            "bilateral_trade_economics",
+            "owner_specific_sell_leverage",
+            "hold_wait_benchmark",
+            "mutual_trade_map",
+            "strategic_asset_profiles",
+        ]).issubset(set(
+            (manifest.get("core_inheritance") or {}).get("preserved_capabilities") or []
+        )))
 
-    sim_paths={k:v for k,v in cfg.get("paths",{}).items()
-               if k.startswith("sim_") and isinstance(v,str)}
-    add(checks,"simulator_paths_dynamic",
-        bool(sim_paths) and all("{season}" in v for v in sim_paths.values()),sim_paths)
+    teams = franchise.get("teams") or []
+    expected = total_rosters or 12
+    add(checks, "franchise_views_cover_league",
+        len(teams) == expected,
+        {"views": len(teams), "expected": expected})
 
-    manifest=GM/"manifest.json"
-    centers=GM/"team_command_centers.json"
-    if manifest.exists():
-        m=load(manifest)
-        add(checks,"manifest_league_wide",m.get("scope")=="ALL_TEAMS",m.get("scope"))
-        add(checks,"manifest_season_matches",str(m.get("season") or "")==season)
-    else:
-        add(checks,"manifest_runtime_check_deferred",True,"first run pending")
+    required_team_files = []
+    for team in teams:
+        for key in ("command_center", "strategic_asset_profiles",
+                    "trade_opportunities", "sell_leverage"):
+            rel = (team.get("paths") or {}).get(key)
+            if rel:
+                required_team_files.append(ROOT / rel)
+    missing = [str(p.relative_to(ROOT)) for p in required_team_files if not p.exists()]
+    add(checks, "all_team_gm22_capability_files_preserved",
+        not missing, missing or "none")
 
-    if centers.exists():
-        c=load(centers)
-        expected=int(league.get("total_rosters") or 0)
-        add(checks,"runtime_team_views_cover_league",
-            isinstance(c,dict) and len(c)==expected,
-            {"views":len(c) if isinstance(c,dict) else None,"expected":expected})
-    else:
-        add(checks,"team_views_runtime_check_deferred",True,"first run pending")
+    add(checks, "mutual_trade_map_present",
+        (GM / "league" / "mutual_trade_map.json").exists())
+    add(checks, "trade_analysis_context_present",
+        (GM / "league" / "trade_analysis_context.json").exists())
+    add(checks, "simulator_context_present",
+        (GM / "league" / "simulator_context.json").exists())
 
-    passed=all(x["passed"] for x in checks)
-    print(json.dumps({"validator":"FSFFL-GM-3.0-LEAGUE-WIDE-GATE","passed":passed,"checks":checks},indent=2))
+    add(checks, "internal_gm30_validation_passed",
+        bool(gm_validation.get("passed")),
+        gm_validation.get("checks"))
+
+    # Frozen pre-migration GM 2.2 reference must remain available for regression auditing.
+    add(checks, "gm22_reference_preserved",
+        (REFERENCE / "franchise_index.json").exists()
+        and (REFERENCE / "league" / "mutual_trade_map.json").exists())
+
+    coverage = manifest.get("evidence_coverage") or {}
+    if int(coverage.get("prospect_count") or 0) == 0:
+        warnings.append("PROSPECT_INTELLIGENCE_EMPTY")
+    if (int(coverage.get("usage_records") or 0) == 0
+            and int(coverage.get("snap_records") or 0) == 0):
+        warnings.append("FOOTBALL_INTELLIGENCE_EMPTY")
+
+    passed = all(x["passed"] for x in checks)
+    payload = {
+        "validator": "FSFFL-GM-3.0-CONSOLIDATED-GATE",
+        "passed": passed,
+        "checks": checks,
+        "warnings": warnings,
+    }
+    print(json.dumps(payload, indent=2))
     sys.exit(0 if passed else 1)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
