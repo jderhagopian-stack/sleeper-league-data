@@ -1,51 +1,45 @@
 {
-  "model_version": "FSFFL-GM-3.0-Prospect-Engine-v1",
+  "model_version": "FSFFL-GM-3.0-Prospect-Engine-v1.2-Public-Data-Features",
   "input_file": "data/gm3_prospect_inputs.json",
   "market_rank_field": "market_rookie_rank",
+  "signal_min_feature_coverage": 0.55,
+  "rank_min_feature_coverage": 0.35,
   "weights": {
     "WR": {
-      "draft_capital": 0.24,
-      "yards_per_route_run": 0.2,
-      "breakout_age": 0.14,
-      "target_share": 0.12,
-      "early_declare": 0.08,
-      "dominator": 0.08,
-      "single_coverage": 0.06,
-      "competition": 0.04,
-      "athleticism": 0.04
+      "draft_capital": 0.3,
+      "receiving_yards_share": 0.18,
+      "dominator": 0.18,
+      "target_share": 0.1,
+      "receiving_efficiency": 0.09,
+      "athleticism": 0.08,
+      "age": 0.07
     },
     "RB": {
-      "draft_capital": 0.28,
-      "rushing_grade": 0.12,
-      "missed_tackles_forced_per_attempt": 0.15,
-      "yards_after_contact_per_attempt": 0.13,
-      "receiving_yprr": 0.11,
-      "target_rate": 0.07,
-      "pass_block": 0.04,
-      "age": 0.05,
-      "competition": 0.05
+      "draft_capital": 0.3,
+      "rushing_yards_share": 0.18,
+      "scrimmage_yards_share": 0.16,
+      "rushing_efficiency": 0.13,
+      "receiving_yards_share": 0.08,
+      "athleticism": 0.08,
+      "age": 0.07
     },
     "QB": {
-      "draft_capital": 0.27,
-      "passing_grade": 0.12,
+      "draft_capital": 0.3,
+      "passing_efficiency": 0.17,
+      "td_int_efficiency": 0.14,
       "sack_rate_inverse": 0.12,
-      "rushing_value": 0.13,
-      "deep_accuracy": 0.08,
-      "epa_per_play": 0.08,
-      "big_time_throw_rate": 0.06,
-      "turnover_worthy_inverse": 0.06,
-      "competition": 0.04,
-      "age": 0.04
+      "rushing_value": 0.12,
+      "completion_efficiency": 0.08,
+      "age": 0.07
     },
     "TE": {
-      "draft_capital": 0.24,
-      "yards_per_route_run": 0.18,
-      "receiving_grade": 0.14,
+      "draft_capital": 0.28,
+      "receiving_yards_share": 0.18,
+      "dominator": 0.16,
       "target_share": 0.1,
-      "athleticism": 0.1,
-      "age": 0.08,
-      "route_role": 0.08,
-      "competition": 0.08
+      "receiving_efficiency": 0.1,
+      "athleticism": 0.11,
+      "age": 0.07
     }
   },
   "thresholds": {
@@ -54,10 +48,11 @@
     "BUST_RISK": 72
   },
   "research_basis": [
-    "Draft capital is treated as a primary prior across positions.",
-    "WR: YPRR, early production/breakout age, market share, early declare and competition context.",
-    "RB: draft capital, elusive/rushing efficiency, receiving ability and role-supporting skills.",
-    "QB: draft capital, passing quality, stable sack/scramble tendencies and rushing fantasy value.",
-    "Weights are transparent priors until historical prospect-feature backtesting is available."
+    "NFL draft capital from nflverse/PFR is the strongest cross-position prior.",
+    "College production comes from SportsDataverse/cfbfastR and is transformed into within-position team-share and efficiency percentiles.",
+    "Combine athleticism comes from nflverse/PFR and is normalized within position.",
+    "Market rookie rank is comparison context only; it is not included in prospect quality score.",
+    "Signal labels require at least 55% feature coverage; missing data never counts as negative evidence.",
+    "FSFFL rookie draft position is never used as NFL draft capital."
   ]
 }
