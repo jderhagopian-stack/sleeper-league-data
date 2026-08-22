@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:12.066692+00:00",
+  "generated_at_utc": "2026-08-22T22:54:24.049040+00:00",
   "model_version": "GM-2.2",
   "user_id": "840356119955251200",
   "manager": "ddersimon",
@@ -633,57 +633,6 @@
       }
     },
     {
-      "asset_id": "player:12533",
-      "asset_type": "player",
-      "player_id": "12533",
-      "name": "Jacory Croskey-Merritt",
-      "position": "RB",
-      "age": 25,
-      "base_franchise_value": 1845.7,
-      "market_dynasty": 1698.0,
-      "market_redraft": 604.0,
-      "is_current_optimal_starter": false,
-      "single_absence_dependency_drop": 0.0,
-      "depth_insurance_drop": 0.0,
-      "strategic_score": 0.3804,
-      "core_status": "liquid_asset",
-      "liquidity_score": 0.5527,
-      "scarcity": {
-        "percentile": 0.5145,
-        "tier_gap": 0.1133,
-        "scarcity_score": 0.3741
-      },
-      "future_distribution": {
-        "upside_optionality": 0.5166,
-        "downside_risk": 0.4055,
-        "hold_appreciation_pct": 0.0724,
-        "distribution_floor": 1117.9,
-        "distribution_median": 1698.0,
-        "distribution_ceiling": 2437.9,
-        "years_exp": 1.0,
-        "pedigree_score": 0.0
-      },
-      "objective_state": "rebuild",
-      "objective_weights": {
-        "current": 0.1,
-        "future": 0.6,
-        "liquidity": 0.2,
-        "resilience": 0.1
-      },
-      "hold_premium_pct": 0.3261,
-      "hold_premium_value": 601.8,
-      "break_glass_value": 2447.5,
-      "trade_elasticity": 0.7981,
-      "premium_components": {
-        "core": 0.1009,
-        "tier_scarcity": 0.0221,
-        "optionality": 0.1137,
-        "liquidity": 0.0387,
-        "expected_hold_appreciation": 0.0507,
-        "resilience": 0.0
-      }
-    },
-    {
       "asset_id": "pick:2029:R2:orig5",
       "asset_type": "pick",
       "name": "2029 Early 2nd \u2014 original Ball Knower",
@@ -721,6 +670,57 @@
         "optionality": 0.0831,
         "liquidity": 0.0616,
         "own_pick_control": 0.1
+      }
+    },
+    {
+      "asset_id": "player:12533",
+      "asset_type": "player",
+      "player_id": "12533",
+      "name": "Jacory Croskey-Merritt",
+      "position": "RB",
+      "age": 25,
+      "base_franchise_value": 1790.9,
+      "market_dynasty": 1698.0,
+      "market_redraft": 604.0,
+      "is_current_optimal_starter": false,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 0.0,
+      "strategic_score": 0.3804,
+      "core_status": "liquid_asset",
+      "liquidity_score": 0.5527,
+      "scarcity": {
+        "percentile": 0.5145,
+        "tier_gap": 0.1133,
+        "scarcity_score": 0.3741
+      },
+      "future_distribution": {
+        "upside_optionality": 0.5166,
+        "downside_risk": 0.4955,
+        "hold_appreciation_pct": 0.0634,
+        "distribution_floor": 1072.0,
+        "distribution_median": 1698.0,
+        "distribution_ceiling": 2437.9,
+        "years_exp": 1.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "rebuild",
+      "objective_weights": {
+        "current": 0.1,
+        "future": 0.6,
+        "liquidity": 0.2,
+        "resilience": 0.1
+      },
+      "hold_premium_pct": 0.3198,
+      "hold_premium_value": 572.7,
+      "break_glass_value": 2363.6,
+      "trade_elasticity": 0.7981,
+      "premium_components": {
+        "core": 0.1009,
+        "tier_scarcity": 0.0221,
+        "optionality": 0.1137,
+        "liquidity": 0.0387,
+        "expected_hold_appreciation": 0.0444,
+        "resilience": 0.0
       }
     },
     {
@@ -1861,7 +1861,7 @@
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "age": 25,
-      "base_franchise_value": 1845.7,
+      "base_franchise_value": 1790.9,
       "market_dynasty": 1698.0,
       "market_redraft": 604.0,
       "is_current_optimal_starter": false,
@@ -1877,9 +1877,9 @@
       },
       "future_distribution": {
         "upside_optionality": 0.5166,
-        "downside_risk": 0.4055,
-        "hold_appreciation_pct": 0.0724,
-        "distribution_floor": 1117.9,
+        "downside_risk": 0.4955,
+        "hold_appreciation_pct": 0.0634,
+        "distribution_floor": 1072.0,
         "distribution_median": 1698.0,
         "distribution_ceiling": 2437.9,
         "years_exp": 1.0,
@@ -1892,16 +1892,16 @@
         "liquidity": 0.2,
         "resilience": 0.1
       },
-      "hold_premium_pct": 0.3261,
-      "hold_premium_value": 601.8,
-      "break_glass_value": 2447.5,
+      "hold_premium_pct": 0.3198,
+      "hold_premium_value": 572.7,
+      "break_glass_value": 2363.6,
       "trade_elasticity": 0.7981,
       "premium_components": {
         "core": 0.1009,
         "tier_scarcity": 0.0221,
         "optionality": 0.1137,
         "liquidity": 0.0387,
-        "expected_hold_appreciation": 0.0507,
+        "expected_hold_appreciation": 0.0444,
         "resilience": 0.0
       }
     },

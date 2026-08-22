@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:42.284684+00:00",
+  "generated_at_utc": "2026-08-22T22:54:45.555166+00:00",
   "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "725401251478605824",
@@ -1223,6 +1223,18 @@
   ],
   "best_assets_to_shop": [
     {
+      "asset": "Adam Randall",
+      "asset_type": "player",
+      "core_status": "core_high_hold",
+      "strategic_score": 0.3369,
+      "hold_value": 493.9,
+      "break_glass_value": 690.8,
+      "best_buyer_team": "Trash Incessant Talkers",
+      "best_buyer_value": 564.6,
+      "premium_vs_break_glass": -126.2,
+      "market_should_be_tested": false
+    },
+    {
       "asset": "Tez Johnson",
       "asset_type": "player",
       "core_status": "liquid_asset",
@@ -1232,18 +1244,6 @@
       "best_buyer_team": "Trash Incessant Talkers",
       "best_buyer_value": 357.1,
       "premium_vs_break_glass": -130.9,
-      "market_should_be_tested": false
-    },
-    {
-      "asset": "Adam Randall",
-      "asset_type": "player",
-      "core_status": "core_high_hold",
-      "strategic_score": 0.3369,
-      "hold_value": 509.2,
-      "break_glass_value": 715.4,
-      "best_buyer_team": "Trash Incessant Talkers",
-      "best_buyer_value": 582.1,
-      "premium_vs_break_glass": -133.3,
       "market_should_be_tested": false
     },
     {
@@ -1480,7 +1480,7 @@
       "snap_records": 0,
       "prior_snap_records": 419,
       "preseason_usage_records": 51,
-      "manual_intelligence_records": 82,
+      "manual_intelligence_records": 90,
       "prospect_count": 47
     }
   }

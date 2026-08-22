@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:22.659999+00:00",
+  "generated_at_utc": "2026-08-22T22:54:31.625607+00:00",
   "model_version": "FSFFL-GM-3.0",
   "mode": "universal_franchise_strategic",
   "focal_user_id": "833709164739014656",
@@ -668,7 +668,7 @@
       "name": "J.J. McCarthy",
       "position": "QB",
       "age": 23,
-      "base_franchise_value": 1725.2,
+      "base_franchise_value": 1673.1,
       "market_dynasty": 1508.0,
       "market_redraft": 0.0,
       "is_current_optimal_starter": true,
@@ -684,9 +684,9 @@
       },
       "future_distribution": {
         "upside_optionality": 0.621,
-        "downside_risk": 0.28,
-        "hold_appreciation_pct": 0.1038,
-        "distribution_floor": 1049.6,
+        "downside_risk": 0.37,
+        "hold_appreciation_pct": 0.0948,
+        "distribution_floor": 1008.9,
         "distribution_median": 1508.0,
         "distribution_ceiling": 2267.5,
         "years_exp": 2.0,
@@ -699,16 +699,16 @@
         "liquidity": 0.2,
         "resilience": 0.1
       },
-      "hold_premium_pct": 0.3644,
-      "hold_premium_value": 628.6,
-      "break_glass_value": 2353.8,
+      "hold_premium_pct": 0.3581,
+      "hold_premium_value": 599.1,
+      "break_glass_value": 2272.2,
       "trade_elasticity": 0.8,
       "premium_components": {
         "core": 0.1005,
         "tier_scarcity": 0.0133,
         "optionality": 0.1366,
         "liquidity": 0.0413,
-        "expected_hold_appreciation": 0.0727,
+        "expected_hold_appreciation": 0.0664,
         "resilience": 0.0
       }
     }
@@ -1087,15 +1087,15 @@
         "Pat Bryant"
       ],
       "recommendation_band": "focal_overpay_or_bad_timing",
-      "surplus_after_wait_benchmark": -5145.7,
+      "surplus_after_wait_benchmark": -5061.2,
       "focal_lineup_gain": -277.0,
-      "focal_strategic_utility": -0.22458,
-      "seller_surplus": -2015.4,
+      "focal_strategic_utility": -0.22237,
+      "seller_surplus": -2037.6,
       "seller_lineup_gain": -465.0,
-      "seller_strategic_utility": -0.07956,
+      "seller_strategic_utility": -0.08051,
       "seller_motivation_score": 0.502,
-      "acceptance_fit_score": 0.44,
-      "decision_score": -0.14402
+      "acceptance_fit_score": 0.436,
+      "decision_score": -0.14036
     },
     {
       "target_player": "Christian McCaffrey",
@@ -1303,6 +1303,18 @@
       "market_should_be_tested": false
     },
     {
+      "asset": "J.J. McCarthy",
+      "asset_type": "player",
+      "core_status": "liquid_asset",
+      "strategic_score": 0.3788,
+      "hold_value": 1673.1,
+      "break_glass_value": 2272.2,
+      "best_buyer_team": "The Associate ",
+      "best_buyer_value": 1576.7,
+      "premium_vs_break_glass": -695.5,
+      "market_should_be_tested": false
+    },
+    {
       "asset": "2027 Early 2nd \u2014 original HUNGRY DAWGS",
       "asset_type": "pick",
       "core_status": "liquid_pick",
@@ -1312,18 +1324,6 @@
       "best_buyer_team": "MochaSmevs",
       "best_buyer_value": 2059.1,
       "premium_vs_break_glass": -718.8,
-      "market_should_be_tested": false
-    },
-    {
-      "asset": "J.J. McCarthy",
-      "asset_type": "player",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.3788,
-      "hold_value": 1725.2,
-      "break_glass_value": 2353.8,
-      "best_buyer_team": "The Associate ",
-      "best_buyer_value": 1625.8,
-      "premium_vs_break_glass": -728.0,
       "market_should_be_tested": false
     },
     {
@@ -1452,7 +1452,7 @@
       "snap_records": 0,
       "prior_snap_records": 419,
       "preseason_usage_records": 51,
-      "manual_intelligence_records": 82,
+      "manual_intelligence_records": 90,
       "prospect_count": 47
     }
   }

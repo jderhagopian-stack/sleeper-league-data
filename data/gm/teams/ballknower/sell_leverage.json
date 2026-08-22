@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:15:03.118740+00:00",
+  "generated_at_utc": "2026-08-22T22:55:00.287681+00:00",
   "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "840356119955251200",
   "focal_manager": "ddersimon",
@@ -846,6 +846,66 @@
       "market_should_be_tested": false
     },
     {
+      "asset_id": "player:12533",
+      "asset_type": "player",
+      "asset": "Jacory Croskey-Merritt",
+      "core_status": "liquid_asset",
+      "strategic_score": 0.3804,
+      "hold_value": 1790.9,
+      "break_glass_value": 2363.6,
+      "best_buyer": {
+        "buyer_user_id": "833709164739014656",
+        "buyer_manager": "jaco057",
+        "buyer_team": "HUNGRY DAWGS",
+        "buyer_perceived_value": 1692.6,
+        "premium_vs_focal_hold": -98.3,
+        "premium_vs_break_glass": -671.0
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1692.6,
+          "premium_vs_focal_hold": -98.3,
+          "premium_vs_break_glass": -671.0
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1684.2,
+          "premium_vs_focal_hold": -106.7,
+          "premium_vs_break_glass": -679.4
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1666.5,
+          "premium_vs_focal_hold": -124.4,
+          "premium_vs_break_glass": -697.1
+        },
+        {
+          "buyer_user_id": "846634401482792960",
+          "buyer_manager": "jimmygoodjob",
+          "buyer_team": "Hurts So Good",
+          "buyer_perceived_value": 1597.2,
+          "premium_vs_focal_hold": -193.7,
+          "premium_vs_break_glass": -766.4
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1590.7,
+          "premium_vs_focal_hold": -200.2,
+          "premium_vs_break_glass": -772.9
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
       "asset_id": "player:2133",
       "asset_type": "player",
       "asset": "Davante Adams",
@@ -961,66 +1021,6 @@
           "buyer_perceived_value": 2020.1,
           "premium_vs_focal_hold": -177.0,
           "premium_vs_break_glass": -896.7
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:12533",
-      "asset_type": "player",
-      "asset": "Jacory Croskey-Merritt",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.3804,
-      "hold_value": 1845.7,
-      "break_glass_value": 2447.5,
-      "best_buyer": {
-        "buyer_user_id": "833709164739014656",
-        "buyer_manager": "jaco057",
-        "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1744.5,
-        "premium_vs_focal_hold": -101.2,
-        "premium_vs_break_glass": -703.0
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1744.5,
-          "premium_vs_focal_hold": -101.2,
-          "premium_vs_break_glass": -703.0
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1735.8,
-          "premium_vs_focal_hold": -109.9,
-          "premium_vs_break_glass": -711.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1717.6,
-          "premium_vs_focal_hold": -128.1,
-          "premium_vs_break_glass": -729.9
-        },
-        {
-          "buyer_user_id": "846634401482792960",
-          "buyer_manager": "jimmygoodjob",
-          "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1646.1,
-          "premium_vs_focal_hold": -199.6,
-          "premium_vs_break_glass": -801.4
-        },
-        {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1639.4,
-          "premium_vs_focal_hold": -206.3,
-          "premium_vs_break_glass": -808.1
         }
       ],
       "market_should_be_tested": false
@@ -2348,6 +2348,66 @@
       "market_should_be_tested": false
     },
     {
+      "asset_id": "player:12533",
+      "asset_type": "player",
+      "asset": "Jacory Croskey-Merritt",
+      "core_status": "liquid_asset",
+      "strategic_score": 0.3804,
+      "hold_value": 1790.9,
+      "break_glass_value": 2363.6,
+      "best_buyer": {
+        "buyer_user_id": "833709164739014656",
+        "buyer_manager": "jaco057",
+        "buyer_team": "HUNGRY DAWGS",
+        "buyer_perceived_value": 1692.6,
+        "premium_vs_focal_hold": -98.3,
+        "premium_vs_break_glass": -671.0
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1692.6,
+          "premium_vs_focal_hold": -98.3,
+          "premium_vs_break_glass": -671.0
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1684.2,
+          "premium_vs_focal_hold": -106.7,
+          "premium_vs_break_glass": -679.4
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1666.5,
+          "premium_vs_focal_hold": -124.4,
+          "premium_vs_break_glass": -697.1
+        },
+        {
+          "buyer_user_id": "846634401482792960",
+          "buyer_manager": "jimmygoodjob",
+          "buyer_team": "Hurts So Good",
+          "buyer_perceived_value": 1597.2,
+          "premium_vs_focal_hold": -193.7,
+          "premium_vs_break_glass": -766.4
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1590.7,
+          "premium_vs_focal_hold": -200.2,
+          "premium_vs_break_glass": -772.9
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
       "asset_id": "player:2133",
       "asset_type": "player",
       "asset": "Davante Adams",
@@ -2463,66 +2523,6 @@
           "buyer_perceived_value": 2020.1,
           "premium_vs_focal_hold": -177.0,
           "premium_vs_break_glass": -896.7
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:12533",
-      "asset_type": "player",
-      "asset": "Jacory Croskey-Merritt",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.3804,
-      "hold_value": 1845.7,
-      "break_glass_value": 2447.5,
-      "best_buyer": {
-        "buyer_user_id": "833709164739014656",
-        "buyer_manager": "jaco057",
-        "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1744.5,
-        "premium_vs_focal_hold": -101.2,
-        "premium_vs_break_glass": -703.0
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1744.5,
-          "premium_vs_focal_hold": -101.2,
-          "premium_vs_break_glass": -703.0
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1735.8,
-          "premium_vs_focal_hold": -109.9,
-          "premium_vs_break_glass": -711.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1717.6,
-          "premium_vs_focal_hold": -128.1,
-          "premium_vs_break_glass": -729.9
-        },
-        {
-          "buyer_user_id": "846634401482792960",
-          "buyer_manager": "jimmygoodjob",
-          "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1646.1,
-          "premium_vs_focal_hold": -199.6,
-          "premium_vs_break_glass": -801.4
-        },
-        {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1639.4,
-          "premium_vs_focal_hold": -206.3,
-          "premium_vs_break_glass": -808.1
         }
       ],
       "market_should_be_tested": false
@@ -3506,7 +3506,7 @@
       "snap_records": 0,
       "prior_snap_records": 419,
       "preseason_usage_records": 51,
-      "manual_intelligence_records": 82,
+      "manual_intelligence_records": 90,
       "prospect_count": 47
     }
   }

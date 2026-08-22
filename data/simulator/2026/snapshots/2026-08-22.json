@@ -6,13 +6,13 @@
     "same_nfl_team_correlation": true,
     "simulation_time_bench_substitution": true
   },
-  "generated_at_utc": "2026-08-22T11:00:32.212556+00:00",
+  "generated_at_utc": "2026-08-22T22:54:07.769350+00:00",
   "model_version": "FSFFL-Season-Simulator-1.0",
   "rng_seed": 2617884895,
   "runtime": {
-    "lineup_build_seconds": 0.582,
-    "score_generation_seconds": 4.011,
-    "total_seconds": 6.203
+    "lineup_build_seconds": 0.444,
+    "score_generation_seconds": 3.566,
+    "total_seconds": 5.193
   },
   "season": "2026",
   "simulations": 50000,
@@ -395,7 +395,7 @@
         }
       ],
       "current_season_completed_week_limit": 0,
-      "generated_at_utc": "2026-08-22T11:00:09.801889+00:00",
+      "generated_at_utc": "2026-08-22T22:53:56.540751+00:00",
       "history_files_used": [
         "data/stats/nfl/2023/player_weekly_normalized.json",
         "data/stats/nfl/2024/player_weekly_normalized.json",
@@ -441,10 +441,10 @@
         {
           "code": "RUNTIME_RECORDED",
           "passed": true,
-          "value": 6.203
+          "value": 5.193
         }
       ],
-      "generated_at_utc": "2026-08-22T11:00:32.212556+00:00",
+      "generated_at_utc": "2026-08-22T22:54:07.769350+00:00",
       "model_version": "FSFFL-Season-Simulator-1.0-preproduction",
       "passed": true,
       "season": "2026"

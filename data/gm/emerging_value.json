@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:08.655834+00:00",
+  "generated_at_utc": "2026-08-22T22:54:21.004976+00:00",
   "model_version": "FSFFL-GM-3.0-Emerging-Value-v5.2-Stash-Action-Gate",
   "scope": "POST_ROOKIE_DEVELOPMENTAL_YEARS_1_TO_4_PLUS_EXTRAORDINARY_VETERANS",
   "player_universe_count": 482,
@@ -18,7 +18,7 @@
     "fsffl_market_players": 244,
     "prior_snap_records": 419,
     "preseason_usage_records": 51,
-    "manual_intelligence_records": 82,
+    "manual_intelligence_records": 90,
     "prior_ppg_players": 610,
     "prior_ppg_diagnostics": {
       "target_season": 2025,
@@ -193,8 +193,9 @@
       "market_value": 1424.2,
       "market_score": 0.37037037037037035,
       "usage_score": 0.916,
-      "manual_score": 0.3,
+      "manual_score": 0.15999999999999998,
       "manual_evidence": [
+        "injury_concern",
         "role_loss"
       ],
       "season_phase": "PRESEASON",
@@ -241,14 +242,14 @@
         "structured_preseason_usage": false,
         "preseason_signal_strength": 0.0,
         "preseason_signal_reasons": [],
-        "evidence_count": 1,
+        "evidence_count": 2,
         "positive_evidence_count": 0,
-        "negative_evidence_count": 1,
+        "negative_evidence_count": 2,
         "strong_positive_evidence_count": 0,
         "positive_independent_sources": 0,
         "max_positive_strength": 0.0,
-        "max_negative_strength": 0.45,
-        "negative_veto": false,
+        "max_negative_strength": 0.9,
+        "negative_veto": true,
         "strong": false,
         "corroborated": false
       },
@@ -256,8 +257,8 @@
       "extraordinary_veteran_circumstance": false,
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 62.7,
-      "latent_value_score": 74.6,
-      "market_mispricing_score": 37.5,
+      "latent_value_score": 71.4,
+      "market_mispricing_score": 34.4,
       "signals": [
         "DEVELOPMENTAL_WATCH",
         "BUY_LOW_WATCH",

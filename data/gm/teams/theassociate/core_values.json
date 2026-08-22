@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:12.056921+00:00",
+  "generated_at_utc": "2026-08-22T22:54:24.042336+00:00",
   "model_version": "GM-2.2",
   "user_id": "676939933792964608",
   "manager": "chuckthegoat77",
@@ -156,57 +156,6 @@
       }
     },
     {
-      "asset_id": "player:13417",
-      "asset_type": "player",
-      "player_id": "13417",
-      "name": "De'Zhaun Stribling",
-      "position": "WR",
-      "age": 23,
-      "base_franchise_value": 3107.2,
-      "market_dynasty": 2338.0,
-      "market_redraft": 518.0,
-      "is_current_optimal_starter": true,
-      "single_absence_dependency_drop": 0.0,
-      "depth_insurance_drop": 443.0,
-      "strategic_score": 0.5212,
-      "core_status": "core_high_hold",
-      "liquidity_score": 0.6175,
-      "scarcity": {
-        "percentile": 0.6649,
-        "tier_gap": 0.1536,
-        "scarcity_score": 0.486
-      },
-      "future_distribution": {
-        "upside_optionality": 0.8101,
-        "downside_risk": 0.2725,
-        "hold_appreciation_pct": 0.1386,
-        "distribution_floor": 1632.5,
-        "distribution_median": 2338.0,
-        "distribution_ceiling": 3802.9,
-        "years_exp": 0.0,
-        "pedigree_score": 0.0
-      },
-      "objective_state": "rebuild",
-      "objective_weights": {
-        "current": 0.1,
-        "future": 0.6,
-        "liquidity": 0.2,
-        "resilience": 0.1
-      },
-      "hold_premium_pct": 0.5041,
-      "hold_premium_value": 1566.4,
-      "break_glass_value": 4673.6,
-      "trade_elasticity": 0.7546,
-      "premium_components": {
-        "core": 0.1424,
-        "tier_scarcity": 0.0355,
-        "optionality": 0.1782,
-        "liquidity": 0.0432,
-        "expected_hold_appreciation": 0.097,
-        "resilience": 0.0078
-      }
-    },
-    {
       "asset_id": "player:7543",
       "asset_type": "player",
       "player_id": "7543",
@@ -255,6 +204,57 @@
         "liquidity": 0.0465,
         "expected_hold_appreciation": 0.003,
         "resilience": 0.1
+      }
+    },
+    {
+      "asset_id": "player:13417",
+      "asset_type": "player",
+      "player_id": "13417",
+      "name": "De'Zhaun Stribling",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 3017.7,
+      "market_dynasty": 2338.0,
+      "market_redraft": 518.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 443.0,
+      "strategic_score": 0.5212,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.6175,
+      "scarcity": {
+        "percentile": 0.6649,
+        "tier_gap": 0.1536,
+        "scarcity_score": 0.486
+      },
+      "future_distribution": {
+        "upside_optionality": 0.8101,
+        "downside_risk": 0.3625,
+        "hold_appreciation_pct": 0.1296,
+        "distribution_floor": 1569.4,
+        "distribution_median": 2338.0,
+        "distribution_ceiling": 3802.9,
+        "years_exp": 0.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "rebuild",
+      "objective_weights": {
+        "current": 0.1,
+        "future": 0.6,
+        "liquidity": 0.2,
+        "resilience": 0.1
+      },
+      "hold_premium_pct": 0.4978,
+      "hold_premium_value": 1502.3,
+      "break_glass_value": 4520.0,
+      "trade_elasticity": 0.7546,
+      "premium_components": {
+        "core": 0.1424,
+        "tier_scarcity": 0.0355,
+        "optionality": 0.1782,
+        "liquidity": 0.0432,
+        "expected_hold_appreciation": 0.0907,
+        "resilience": 0.0078
       }
     },
     {
@@ -1589,57 +1589,6 @@
       }
     },
     {
-      "asset_id": "player:13417",
-      "asset_type": "player",
-      "player_id": "13417",
-      "name": "De'Zhaun Stribling",
-      "position": "WR",
-      "age": 23,
-      "base_franchise_value": 3107.2,
-      "market_dynasty": 2338.0,
-      "market_redraft": 518.0,
-      "is_current_optimal_starter": true,
-      "single_absence_dependency_drop": 0.0,
-      "depth_insurance_drop": 443.0,
-      "strategic_score": 0.5212,
-      "core_status": "core_high_hold",
-      "liquidity_score": 0.6175,
-      "scarcity": {
-        "percentile": 0.6649,
-        "tier_gap": 0.1536,
-        "scarcity_score": 0.486
-      },
-      "future_distribution": {
-        "upside_optionality": 0.8101,
-        "downside_risk": 0.2725,
-        "hold_appreciation_pct": 0.1386,
-        "distribution_floor": 1632.5,
-        "distribution_median": 2338.0,
-        "distribution_ceiling": 3802.9,
-        "years_exp": 0.0,
-        "pedigree_score": 0.0
-      },
-      "objective_state": "rebuild",
-      "objective_weights": {
-        "current": 0.1,
-        "future": 0.6,
-        "liquidity": 0.2,
-        "resilience": 0.1
-      },
-      "hold_premium_pct": 0.5041,
-      "hold_premium_value": 1566.4,
-      "break_glass_value": 4673.6,
-      "trade_elasticity": 0.7546,
-      "premium_components": {
-        "core": 0.1424,
-        "tier_scarcity": 0.0355,
-        "optionality": 0.1782,
-        "liquidity": 0.0432,
-        "expected_hold_appreciation": 0.097,
-        "resilience": 0.0078
-      }
-    },
-    {
       "asset_id": "player:7543",
       "asset_type": "player",
       "player_id": "7543",
@@ -1688,6 +1637,57 @@
         "liquidity": 0.0465,
         "expected_hold_appreciation": 0.003,
         "resilience": 0.1
+      }
+    },
+    {
+      "asset_id": "player:13417",
+      "asset_type": "player",
+      "player_id": "13417",
+      "name": "De'Zhaun Stribling",
+      "position": "WR",
+      "age": 23,
+      "base_franchise_value": 3017.7,
+      "market_dynasty": 2338.0,
+      "market_redraft": 518.0,
+      "is_current_optimal_starter": true,
+      "single_absence_dependency_drop": 0.0,
+      "depth_insurance_drop": 443.0,
+      "strategic_score": 0.5212,
+      "core_status": "core_high_hold",
+      "liquidity_score": 0.6175,
+      "scarcity": {
+        "percentile": 0.6649,
+        "tier_gap": 0.1536,
+        "scarcity_score": 0.486
+      },
+      "future_distribution": {
+        "upside_optionality": 0.8101,
+        "downside_risk": 0.3625,
+        "hold_appreciation_pct": 0.1296,
+        "distribution_floor": 1569.4,
+        "distribution_median": 2338.0,
+        "distribution_ceiling": 3802.9,
+        "years_exp": 0.0,
+        "pedigree_score": 0.0
+      },
+      "objective_state": "rebuild",
+      "objective_weights": {
+        "current": 0.1,
+        "future": 0.6,
+        "liquidity": 0.2,
+        "resilience": 0.1
+      },
+      "hold_premium_pct": 0.4978,
+      "hold_premium_value": 1502.3,
+      "break_glass_value": 4520.0,
+      "trade_elasticity": 0.7546,
+      "premium_components": {
+        "core": 0.1424,
+        "tier_scarcity": 0.0355,
+        "optionality": 0.1782,
+        "liquidity": 0.0432,
+        "expected_hold_appreciation": 0.0907,
+        "resilience": 0.0078
       }
     },
     {

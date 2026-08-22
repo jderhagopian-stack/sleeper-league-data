@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:14:49.625368+00:00",
+  "generated_at_utc": "2026-08-22T22:54:50.633462+00:00",
   "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "676939933792964608",
   "focal_manager": "chuckthegoat77",
@@ -1999,46 +1999,46 @@
         },
         {
           "focal_outgoing_asset_ids": [
-            "pick:2029:R1:orig4",
-            "player:9480",
-            "pick:2027:R2:orig4"
+            "pick:2028:R1:orig4",
+            "player:7594",
+            "player:9480"
           ],
           "focal_outgoing_assets": [
-            "2029 Early 1st \u2014 original The Associate ",
-            "Brenton Strange",
-            "2027 Early 2nd \u2014 original The Associate "
+            "2028 Early 1st \u2014 original The Associate ",
+            "Chuba Hubbard",
+            "Brenton Strange"
           ],
           "target_asset_id": "player:3294",
           "target_player": "Dak Prescott",
           "focal_receive_effective_value": 4634.6,
-          "focal_adjusted_exit_cost": 7514.6,
-          "focal_raw_surplus": -2880.0,
+          "focal_adjusted_exit_cost": 7543.9,
+          "focal_raw_surplus": -2909.3,
           "hold_wait_benchmark": 117.5,
-          "focal_surplus_after_wait_benchmark": -2997.5,
-          "focal_lineup_gain": 4459.0,
-          "focal_strategic_utility": -0.07205,
-          "seller_effective_incoming_value": 4478.3,
-          "seller_adjusted_exit_threshold": 6170.8,
-          "seller_surplus": -1692.5,
-          "seller_value_ratio": 0.726,
-          "seller_lineup_gain": -1633.0,
-          "seller_strategic_utility": -0.15794,
+          "focal_surplus_after_wait_benchmark": -3026.8,
+          "focal_lineup_gain": 3532.0,
+          "focal_strategic_utility": -0.09712,
+          "seller_effective_incoming_value": 4570.5,
+          "seller_adjusted_exit_threshold": 6154.6,
+          "seller_surplus": -1584.1,
+          "seller_value_ratio": 0.743,
+          "seller_lineup_gain": -1600.0,
+          "seller_strategic_utility": -0.15061,
           "seller_motivation_score": 0.655,
-          "acceptance_fit_score": 0.337,
-          "decision_score": -0.11993,
+          "acceptance_fit_score": 0.364,
+          "decision_score": -0.12404,
           "recommendation_band": "focal_overpay_or_bad_timing",
           "focal_exit_detail": {
-            "base_hold_cost": 6216.7,
-            "static_hold_premium": 2994.3,
-            "static_break_glass_cost": 9211.0,
-            "replacement_relief_pct": 0.567,
-            "protected_premium_share": 0.303,
-            "adjusted_exit_cost": 7514.6,
+            "base_hold_cost": 6416.2,
+            "static_hold_premium": 2731.8,
+            "static_break_glass_cost": 9148.0,
+            "replacement_relief_pct": 0.587,
+            "protected_premium_share": 0.248,
+            "adjusted_exit_cost": 7543.9,
             "lineup": {
               "before_total": 10771.0,
-              "after_total": 15230.0,
-              "lineup_gain": 4459.0,
-              "dependency_drop_without_return": 113.0,
+              "after_total": 14303.0,
+              "lineup_gain": 3532.0,
+              "dependency_drop_without_return": 1058.0,
               "replacement_fraction": 1.0,
               "after_lineup": [
                 {
@@ -2057,10 +2057,10 @@
                 },
                 {
                   "slot": "RB",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
+                  "player_id": "4035",
+                  "name": "Alvin Kamara",
                   "position": "RB",
-                  "value": 1034.0
+                  "value": 107.0
                 },
                 {
                   "slot": "WR",
@@ -2112,15 +2112,15 @@
             "base_hold_cost": 5011.3,
             "static_hold_premium": 1159.5,
             "static_break_glass_cost": 6170.8,
-            "replacement_relief_pct": 0.0,
+            "replacement_relief_pct": 0.014,
             "protected_premium_share": 0.118,
-            "adjusted_exit_cost": 6170.8,
+            "adjusted_exit_cost": 6154.6,
             "lineup": {
               "before_total": 38275.0,
-              "after_total": 36642.0,
-              "lineup_gain": -1633.0,
+              "after_total": 36675.0,
+              "lineup_gain": -1600.0,
               "dependency_drop_without_return": 1633.0,
-              "replacement_fraction": 0.0,
+              "replacement_fraction": 0.02,
               "after_lineup": [
                 {
                   "slot": "QB",
@@ -2138,10 +2138,10 @@
                 },
                 {
                   "slot": "RB",
-                  "player_id": "5967",
-                  "name": "Tony Pollard",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
                   "position": "RB",
-                  "value": 1001.0
+                  "value": 1034.0
                 },
                 {
                   "slot": "WR",
@@ -2192,16 +2192,16 @@
           "seller_package_quality": {
             "parts": [
               {
-                "asset_id": "pick:2029:R1:orig4",
-                "raw_value": 2259.2,
+                "asset_id": "pick:2028:R1:orig4",
+                "raw_value": 2541.3,
                 "weight": 1.0,
-                "effective_value": 2259.2
+                "effective_value": 2541.3
               },
               {
-                "asset_id": "pick:2027:R2:orig4",
-                "raw_value": 1916.6,
+                "asset_id": "player:7594",
+                "raw_value": 1661.7,
                 "weight": 0.78,
-                "effective_value": 1494.9
+                "effective_value": 1296.1
               },
               {
                 "asset_id": "player:9480",
@@ -2210,10 +2210,10 @@
                 "effective_value": 838.5
               }
             ],
-            "roster_slot_cost": 114.4,
-            "effective_value": 4478.3
+            "roster_slot_cost": 105.5,
+            "effective_value": 4570.5
           },
-          "gm22_decision_score": -0.11993,
+          "gm22_decision_score": -0.12404,
           "counterfactual_simulation_status": "NOT_SCREENED"
         }
       ],
@@ -3174,6 +3174,225 @@
         },
         {
           "focal_outgoing_asset_ids": [
+            "player:7543",
+            "pick:2027:R1:orig12",
+            "player:13417"
+          ],
+          "focal_outgoing_assets": [
+            "Travis Etienne",
+            "2027 Mid 1st \u2014 original King B",
+            "De'Zhaun Stribling"
+          ],
+          "target_asset_id": "player:12508",
+          "target_player": "Jaxson Dart",
+          "focal_receive_effective_value": 6130.9,
+          "focal_adjusted_exit_cost": 11612.3,
+          "focal_raw_surplus": -5481.4,
+          "hold_wait_benchmark": 405.4,
+          "focal_surplus_after_wait_benchmark": -5886.8,
+          "focal_lineup_gain": 1591.0,
+          "focal_strategic_utility": -0.21789,
+          "seller_effective_incoming_value": 6161.9,
+          "seller_adjusted_exit_threshold": 7168.8,
+          "seller_surplus": -1006.9,
+          "seller_value_ratio": 0.86,
+          "seller_lineup_gain": 473.0,
+          "seller_strategic_utility": -0.06555,
+          "seller_motivation_score": 0.755,
+          "acceptance_fit_score": 0.601,
+          "decision_score": -0.21352,
+          "recommendation_band": "focal_overpay_or_bad_timing",
+          "focal_exit_detail": {
+            "base_hold_cost": 9479.7,
+            "static_hold_premium": 4396.5,
+            "static_break_glass_cost": 13876.2,
+            "replacement_relief_pct": 0.515,
+            "protected_premium_share": 0.255,
+            "adjusted_exit_cost": 11612.3,
+            "lineup": {
+              "before_total": 10771.0,
+              "after_total": 12362.0,
+              "lineup_gain": 1591.0,
+              "dependency_drop_without_return": 2879.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "12508",
+                  "name": "Jaxson Dart",
+                  "position": "QB",
+                  "value": 4559.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
+                  "position": "RB",
+                  "value": 1034.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "4035",
+                  "name": "Alvin Kamara",
+                  "position": "RB",
+                  "value": 107.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11620",
+                  "name": "Rome Odunze",
+                  "position": "WR",
+                  "value": 1653.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8142",
+                  "name": "Alec Pierce",
+                  "position": "WR",
+                  "value": 853.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11624",
+                  "name": "Xavier Worthy",
+                  "position": "WR",
+                  "value": 350.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "8131",
+                  "name": "Isaiah Likely",
+                  "position": "TE",
+                  "value": 721.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "9480",
+                  "name": "Brenton Strange",
+                  "position": "TE",
+                  "value": 220.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9758",
+                  "name": "C.J. Stroud",
+                  "position": "QB",
+                  "value": 2865.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_exit_detail": {
+            "base_hold_cost": 6030.5,
+            "static_hold_premium": 2744.8,
+            "static_break_glass_cost": 8775.3,
+            "replacement_relief_pct": 0.585,
+            "protected_premium_share": 0.253,
+            "adjusted_exit_cost": 7168.8,
+            "lineup": {
+              "before_total": 46317.0,
+              "after_total": 46790.0,
+              "lineup_gain": 473.0,
+              "dependency_drop_without_return": 350.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "11564",
+                  "name": "Drake Maye",
+                  "position": "QB",
+                  "value": 8363.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "4034",
+                  "name": "Christian McCaffrey",
+                  "position": "RB",
+                  "value": 8015.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "3198",
+                  "name": "Derrick Henry",
+                  "position": "RB",
+                  "value": 4778.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "9493",
+                  "name": "Puka Nacua",
+                  "position": "WR",
+                  "value": 8561.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "5859",
+                  "name": "A.J. Brown",
+                  "position": "WR",
+                  "value": 5482.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8146",
+                  "name": "Garrett Wilson",
+                  "position": "WR",
+                  "value": 2888.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "10859",
+                  "name": "Sam LaPorta",
+                  "position": "TE",
+                  "value": 1937.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
+                  "position": "RB",
+                  "value": 2557.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "421",
+                  "name": "Matthew Stafford",
+                  "position": "QB",
+                  "value": 4209.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_package_quality": {
+            "parts": [
+              {
+                "asset_id": "player:7543",
+                "raw_value": 2829.2,
+                "weight": 1.0,
+                "effective_value": 2829.2
+              },
+              {
+                "asset_id": "pick:2027:R1:orig12",
+                "raw_value": 2800.6,
+                "weight": 0.78,
+                "effective_value": 2184.5
+              },
+              {
+                "asset_id": "player:13417",
+                "raw_value": 2130.4,
+                "weight": 0.62,
+                "effective_value": 1320.8
+              }
+            ],
+            "roster_slot_cost": 172.6,
+            "effective_value": 6161.9
+          },
+          "gm22_decision_score": -0.21352,
+          "counterfactual_simulation_status": "NOT_SCREENED"
+        },
+        {
+          "focal_outgoing_asset_ids": [
             "player:11620",
             "player:7543",
             "player:7594"
@@ -3389,225 +3608,6 @@
             "effective_value": 6093.1
           },
           "gm22_decision_score": -0.21977,
-          "counterfactual_simulation_status": "NOT_SCREENED"
-        },
-        {
-          "focal_outgoing_asset_ids": [
-            "player:7543",
-            "pick:2027:R1:orig12",
-            "player:13417"
-          ],
-          "focal_outgoing_assets": [
-            "Travis Etienne",
-            "2027 Mid 1st \u2014 original King B",
-            "De'Zhaun Stribling"
-          ],
-          "target_asset_id": "player:12508",
-          "target_player": "Jaxson Dart",
-          "focal_receive_effective_value": 6130.9,
-          "focal_adjusted_exit_cost": 11732.9,
-          "focal_raw_surplus": -5602.0,
-          "hold_wait_benchmark": 444.9,
-          "focal_surplus_after_wait_benchmark": -6046.9,
-          "focal_lineup_gain": 1591.0,
-          "focal_strategic_utility": -0.22127,
-          "seller_effective_incoming_value": 6198.8,
-          "seller_adjusted_exit_threshold": 7168.8,
-          "seller_surplus": -970.0,
-          "seller_value_ratio": 0.865,
-          "seller_lineup_gain": 473.0,
-          "seller_strategic_utility": -0.06402,
-          "seller_motivation_score": 0.755,
-          "acceptance_fit_score": 0.609,
-          "decision_score": -0.22186,
-          "recommendation_band": "focal_overpay_or_bad_timing",
-          "focal_exit_detail": {
-            "base_hold_cost": 9569.2,
-            "static_hold_premium": 4460.6,
-            "static_break_glass_cost": 14029.8,
-            "replacement_relief_pct": 0.515,
-            "protected_premium_share": 0.255,
-            "adjusted_exit_cost": 11732.9,
-            "lineup": {
-              "before_total": 10771.0,
-              "after_total": 12362.0,
-              "lineup_gain": 1591.0,
-              "dependency_drop_without_return": 2879.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "12508",
-                  "name": "Jaxson Dart",
-                  "position": "QB",
-                  "value": 4559.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
-                  "position": "RB",
-                  "value": 1034.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "4035",
-                  "name": "Alvin Kamara",
-                  "position": "RB",
-                  "value": 107.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11620",
-                  "name": "Rome Odunze",
-                  "position": "WR",
-                  "value": 1653.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8142",
-                  "name": "Alec Pierce",
-                  "position": "WR",
-                  "value": 853.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11624",
-                  "name": "Xavier Worthy",
-                  "position": "WR",
-                  "value": 350.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "8131",
-                  "name": "Isaiah Likely",
-                  "position": "TE",
-                  "value": 721.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "9480",
-                  "name": "Brenton Strange",
-                  "position": "TE",
-                  "value": 220.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9758",
-                  "name": "C.J. Stroud",
-                  "position": "QB",
-                  "value": 2865.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_exit_detail": {
-            "base_hold_cost": 6030.5,
-            "static_hold_premium": 2744.8,
-            "static_break_glass_cost": 8775.3,
-            "replacement_relief_pct": 0.585,
-            "protected_premium_share": 0.253,
-            "adjusted_exit_cost": 7168.8,
-            "lineup": {
-              "before_total": 46317.0,
-              "after_total": 46790.0,
-              "lineup_gain": 473.0,
-              "dependency_drop_without_return": 350.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "11564",
-                  "name": "Drake Maye",
-                  "position": "QB",
-                  "value": 8363.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "4034",
-                  "name": "Christian McCaffrey",
-                  "position": "RB",
-                  "value": 8015.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "3198",
-                  "name": "Derrick Henry",
-                  "position": "RB",
-                  "value": 4778.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "9493",
-                  "name": "Puka Nacua",
-                  "position": "WR",
-                  "value": 8561.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "5859",
-                  "name": "A.J. Brown",
-                  "position": "WR",
-                  "value": 5482.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8146",
-                  "name": "Garrett Wilson",
-                  "position": "WR",
-                  "value": 2888.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "10859",
-                  "name": "Sam LaPorta",
-                  "position": "TE",
-                  "value": 1937.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "421",
-                  "name": "Matthew Stafford",
-                  "position": "QB",
-                  "value": 4209.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_package_quality": {
-            "parts": [
-              {
-                "asset_id": "player:7543",
-                "raw_value": 2829.2,
-                "weight": 1.0,
-                "effective_value": 2829.2
-              },
-              {
-                "asset_id": "pick:2027:R1:orig12",
-                "raw_value": 2800.6,
-                "weight": 0.78,
-                "effective_value": 2184.5
-              },
-              {
-                "asset_id": "player:13417",
-                "raw_value": 2193.5,
-                "weight": 0.62,
-                "effective_value": 1360.0
-              }
-            ],
-            "roster_slot_cost": 174.8,
-            "effective_value": 6198.8
-          },
-          "gm22_decision_score": -0.22186,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -10521,6 +10521,225 @@
         },
         {
           "focal_outgoing_asset_ids": [
+            "player:11620",
+            "pick:2027:R1:orig12",
+            "player:13417"
+          ],
+          "focal_outgoing_assets": [
+            "Rome Odunze",
+            "2027 Mid 1st \u2014 original King B",
+            "De'Zhaun Stribling"
+          ],
+          "target_asset_id": "player:6797",
+          "target_player": "Justin Herbert",
+          "focal_receive_effective_value": 6727.5,
+          "focal_adjusted_exit_cost": 12529.1,
+          "focal_raw_surplus": -5801.6,
+          "hold_wait_benchmark": 754.5,
+          "focal_surplus_after_wait_benchmark": -6556.1,
+          "focal_lineup_gain": 3719.0,
+          "focal_strategic_utility": -0.15871,
+          "seller_effective_incoming_value": 6472.9,
+          "seller_adjusted_exit_threshold": 9379.4,
+          "seller_surplus": -2906.5,
+          "seller_value_ratio": 0.69,
+          "seller_lineup_gain": -2850.0,
+          "seller_strategic_utility": -0.18628,
+          "seller_motivation_score": 0.56,
+          "acceptance_fit_score": 0.245,
+          "decision_score": -0.27677,
+          "recommendation_band": "focal_overpay_or_bad_timing",
+          "focal_exit_detail": {
+            "base_hold_cost": 10284.4,
+            "static_hold_premium": 5134.6,
+            "static_break_glass_cost": 15419.0,
+            "replacement_relief_pct": 0.563,
+            "protected_premium_share": 0.279,
+            "adjusted_exit_cost": 12529.1,
+            "lineup": {
+              "before_total": 10771.0,
+              "after_total": 14490.0,
+              "lineup_gain": 3719.0,
+              "dependency_drop_without_return": 1989.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "6797",
+                  "name": "Justin Herbert",
+                  "position": "QB",
+                  "value": 5815.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
+                  "position": "RB",
+                  "value": 2557.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
+                  "position": "RB",
+                  "value": 1034.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8142",
+                  "name": "Alec Pierce",
+                  "position": "WR",
+                  "value": 853.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11624",
+                  "name": "Xavier Worthy",
+                  "position": "WR",
+                  "value": 350.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "13276",
+                  "name": "Omar Cooper",
+                  "position": "WR",
+                  "value": 75.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "8131",
+                  "name": "Isaiah Likely",
+                  "position": "TE",
+                  "value": 721.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "9480",
+                  "name": "Brenton Strange",
+                  "position": "TE",
+                  "value": 220.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9758",
+                  "name": "C.J. Stroud",
+                  "position": "QB",
+                  "value": 2865.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_exit_detail": {
+            "base_hold_cost": 6941.8,
+            "static_hold_premium": 2437.6,
+            "static_break_glass_cost": 9379.4,
+            "replacement_relief_pct": 0.0,
+            "protected_premium_share": 0.174,
+            "adjusted_exit_cost": 9379.4,
+            "lineup": {
+              "before_total": 42918.0,
+              "after_total": 40068.0,
+              "lineup_gain": -2850.0,
+              "dependency_drop_without_return": 2850.0,
+              "replacement_fraction": 0.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "11560",
+                  "name": "Caleb Williams",
+                  "position": "QB",
+                  "value": 7044.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "8138",
+                  "name": "James Cook",
+                  "position": "RB",
+                  "value": 6592.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "12481",
+                  "name": "Cam Skattebo",
+                  "position": "RB",
+                  "value": 2994.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "9488",
+                  "name": "Jaxon Smith-Njigba",
+                  "position": "WR",
+                  "value": 8466.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8144",
+                  "name": "Chris Olave",
+                  "position": "WR",
+                  "value": 4108.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "12526",
+                  "name": "Tetairoa McMillan",
+                  "position": "WR",
+                  "value": 3202.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "9484",
+                  "name": "Tucker Kraft",
+                  "position": "TE",
+                  "value": 2045.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "12514",
+                  "name": "Emeka Egbuka",
+                  "position": "WR",
+                  "value": 2652.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "5849",
+                  "name": "Kyler Murray",
+                  "position": "QB",
+                  "value": 2965.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_package_quality": {
+            "parts": [
+              {
+                "asset_id": "player:11620",
+                "raw_value": 3092.4,
+                "weight": 1.0,
+                "effective_value": 3092.4
+              },
+              {
+                "asset_id": "pick:2027:R1:orig12",
+                "raw_value": 2832.9,
+                "weight": 0.78,
+                "effective_value": 2209.7
+              },
+              {
+                "asset_id": "player:13417",
+                "raw_value": 2171.0,
+                "weight": 0.62,
+                "effective_value": 1346.0
+              }
+            ],
+            "roster_slot_cost": 175.1,
+            "effective_value": 6472.9
+          },
+          "gm22_decision_score": -0.27677,
+          "counterfactual_simulation_status": "NOT_SCREENED"
+        },
+        {
+          "focal_outgoing_asset_ids": [
             "player:9758",
             "pick:2027:R1:orig12",
             "player:8131"
@@ -10736,225 +10955,6 @@
             "effective_value": 6486.2
           },
           "gm22_decision_score": -0.28022,
-          "counterfactual_simulation_status": "NOT_SCREENED"
-        },
-        {
-          "focal_outgoing_asset_ids": [
-            "player:11620",
-            "pick:2027:R1:orig12",
-            "player:13417"
-          ],
-          "focal_outgoing_assets": [
-            "Rome Odunze",
-            "2027 Mid 1st \u2014 original King B",
-            "De'Zhaun Stribling"
-          ],
-          "target_asset_id": "player:6797",
-          "target_player": "Justin Herbert",
-          "focal_receive_effective_value": 6727.5,
-          "focal_adjusted_exit_cost": 12646.6,
-          "focal_raw_surplus": -5919.1,
-          "hold_wait_benchmark": 794.1,
-          "focal_surplus_after_wait_benchmark": -6713.2,
-          "focal_lineup_gain": 3719.0,
-          "focal_strategic_utility": -0.16174,
-          "seller_effective_incoming_value": 6510.6,
-          "seller_adjusted_exit_threshold": 9379.4,
-          "seller_surplus": -2868.8,
-          "seller_value_ratio": 0.694,
-          "seller_lineup_gain": -2850.0,
-          "seller_strategic_utility": -0.18493,
-          "seller_motivation_score": 0.56,
-          "acceptance_fit_score": 0.251,
-          "decision_score": -0.28449,
-          "recommendation_band": "focal_overpay_or_bad_timing",
-          "focal_exit_detail": {
-            "base_hold_cost": 10373.9,
-            "static_hold_premium": 5198.7,
-            "static_break_glass_cost": 15572.6,
-            "replacement_relief_pct": 0.563,
-            "protected_premium_share": 0.279,
-            "adjusted_exit_cost": 12646.6,
-            "lineup": {
-              "before_total": 10771.0,
-              "after_total": 14490.0,
-              "lineup_gain": 3719.0,
-              "dependency_drop_without_return": 1989.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "6797",
-                  "name": "Justin Herbert",
-                  "position": "QB",
-                  "value": 5815.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
-                  "position": "RB",
-                  "value": 1034.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8142",
-                  "name": "Alec Pierce",
-                  "position": "WR",
-                  "value": 853.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11624",
-                  "name": "Xavier Worthy",
-                  "position": "WR",
-                  "value": 350.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "13276",
-                  "name": "Omar Cooper",
-                  "position": "WR",
-                  "value": 75.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "8131",
-                  "name": "Isaiah Likely",
-                  "position": "TE",
-                  "value": 721.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "9480",
-                  "name": "Brenton Strange",
-                  "position": "TE",
-                  "value": 220.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9758",
-                  "name": "C.J. Stroud",
-                  "position": "QB",
-                  "value": 2865.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_exit_detail": {
-            "base_hold_cost": 6941.8,
-            "static_hold_premium": 2437.6,
-            "static_break_glass_cost": 9379.4,
-            "replacement_relief_pct": 0.0,
-            "protected_premium_share": 0.174,
-            "adjusted_exit_cost": 9379.4,
-            "lineup": {
-              "before_total": 42918.0,
-              "after_total": 40068.0,
-              "lineup_gain": -2850.0,
-              "dependency_drop_without_return": 2850.0,
-              "replacement_fraction": 0.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "11560",
-                  "name": "Caleb Williams",
-                  "position": "QB",
-                  "value": 7044.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "8138",
-                  "name": "James Cook",
-                  "position": "RB",
-                  "value": 6592.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "12481",
-                  "name": "Cam Skattebo",
-                  "position": "RB",
-                  "value": 2994.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "9488",
-                  "name": "Jaxon Smith-Njigba",
-                  "position": "WR",
-                  "value": 8466.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8144",
-                  "name": "Chris Olave",
-                  "position": "WR",
-                  "value": 4108.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "12526",
-                  "name": "Tetairoa McMillan",
-                  "position": "WR",
-                  "value": 3202.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "9484",
-                  "name": "Tucker Kraft",
-                  "position": "TE",
-                  "value": 2045.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "12514",
-                  "name": "Emeka Egbuka",
-                  "position": "WR",
-                  "value": 2652.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "5849",
-                  "name": "Kyler Murray",
-                  "position": "QB",
-                  "value": 2965.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_package_quality": {
-            "parts": [
-              {
-                "asset_id": "player:11620",
-                "raw_value": 3092.4,
-                "weight": 1.0,
-                "effective_value": 3092.4
-              },
-              {
-                "asset_id": "pick:2027:R1:orig12",
-                "raw_value": 2832.9,
-                "weight": 0.78,
-                "effective_value": 2209.7
-              },
-              {
-                "asset_id": "player:13417",
-                "raw_value": 2235.3,
-                "weight": 0.62,
-                "effective_value": 1385.9
-              }
-            ],
-            "roster_slot_cost": 177.4,
-            "effective_value": 6510.6
-          },
-          "gm22_decision_score": -0.28449,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -14718,29 +14718,29 @@
           "target_asset_id": "player:12507",
           "target_player": "Omarion Hampton",
           "focal_receive_effective_value": 6590.8,
-          "focal_adjusted_exit_cost": 12272.0,
-          "focal_raw_surplus": -5681.2,
-          "hold_wait_benchmark": 794.1,
-          "focal_surplus_after_wait_benchmark": -6475.3,
+          "focal_adjusted_exit_cost": 12154.4,
+          "focal_raw_surplus": -5563.6,
+          "hold_wait_benchmark": 754.5,
+          "focal_surplus_after_wait_benchmark": -6318.1,
           "focal_lineup_gain": 3024.0,
-          "focal_strategic_utility": -0.17702,
-          "seller_effective_incoming_value": 7048.2,
+          "focal_strategic_utility": -0.17298,
+          "seller_effective_incoming_value": 7004.2,
           "seller_adjusted_exit_threshold": 9852.8,
-          "seller_surplus": -2804.6,
-          "seller_value_ratio": 0.715,
+          "seller_surplus": -2848.6,
+          "seller_value_ratio": 0.711,
           "seller_lineup_gain": -3467.0,
-          "seller_strategic_utility": -0.15815,
+          "seller_strategic_utility": -0.16134,
           "seller_motivation_score": 0.573,
-          "acceptance_fit_score": 0.295,
-          "decision_score": -0.28846,
+          "acceptance_fit_score": 0.288,
+          "decision_score": -0.28085,
           "recommendation_band": "focal_overpay_or_bad_timing",
           "focal_exit_detail": {
-            "base_hold_cost": 9960.7,
-            "static_hold_premium": 5282.5,
-            "static_break_glass_cost": 15243.2,
+            "base_hold_cost": 9871.2,
+            "static_hold_premium": 5218.4,
+            "static_break_glass_cost": 15089.6,
             "replacement_relief_pct": 0.562,
             "protected_premium_share": 0.314,
-            "adjusted_exit_cost": 12272.0,
+            "adjusted_exit_cost": 12154.4,
             "lineup": {
               "before_total": 10771.0,
               "after_total": 13795.0,
@@ -14912,15 +14912,15 @@
               },
               {
                 "asset_id": "player:13417",
-                "raw_value": 2613.3,
+                "raw_value": 2538.0,
                 "weight": 0.62,
-                "effective_value": 1620.2
+                "effective_value": 1573.6
               }
             ],
-            "roster_slot_cost": 185.4,
-            "effective_value": 7048.2
+            "roster_slot_cost": 182.7,
+            "effective_value": 7004.2
           },
-          "gm22_decision_score": -0.28846,
+          "gm22_decision_score": -0.28085,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -15144,6 +15144,225 @@
         },
         {
           "focal_outgoing_asset_ids": [
+            "player:11620",
+            "pick:2027:R1:orig12",
+            "player:13417"
+          ],
+          "focal_outgoing_assets": [
+            "Rome Odunze",
+            "2027 Mid 1st \u2014 original King B",
+            "De'Zhaun Stribling"
+          ],
+          "target_asset_id": "player:12507",
+          "target_player": "Omarion Hampton",
+          "focal_receive_effective_value": 6590.8,
+          "focal_adjusted_exit_cost": 12529.1,
+          "focal_raw_surplus": -5938.3,
+          "hold_wait_benchmark": 754.5,
+          "focal_surplus_after_wait_benchmark": -6692.8,
+          "focal_lineup_gain": 3024.0,
+          "focal_strategic_utility": -0.18914,
+          "seller_effective_incoming_value": 7306.8,
+          "seller_adjusted_exit_threshold": 9852.8,
+          "seller_surplus": -2546.0,
+          "seller_value_ratio": 0.742,
+          "seller_lineup_gain": -3467.0,
+          "seller_strategic_utility": -0.13947,
+          "seller_motivation_score": 0.573,
+          "acceptance_fit_score": 0.341,
+          "decision_score": -0.29329,
+          "recommendation_band": "focal_overpay_or_bad_timing",
+          "focal_exit_detail": {
+            "base_hold_cost": 10284.4,
+            "static_hold_premium": 5134.6,
+            "static_break_glass_cost": 15419.0,
+            "replacement_relief_pct": 0.563,
+            "protected_premium_share": 0.279,
+            "adjusted_exit_cost": 12529.1,
+            "lineup": {
+              "before_total": 10771.0,
+              "after_total": 13795.0,
+              "lineup_gain": 3024.0,
+              "dependency_drop_without_return": 1989.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "9758",
+                  "name": "C.J. Stroud",
+                  "position": "QB",
+                  "value": 2865.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "12507",
+                  "name": "Omarion Hampton",
+                  "position": "RB",
+                  "value": 5120.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
+                  "position": "RB",
+                  "value": 2557.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8142",
+                  "name": "Alec Pierce",
+                  "position": "WR",
+                  "value": 853.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11624",
+                  "name": "Xavier Worthy",
+                  "position": "WR",
+                  "value": 350.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "13276",
+                  "name": "Omar Cooper",
+                  "position": "WR",
+                  "value": 75.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "8131",
+                  "name": "Isaiah Likely",
+                  "position": "TE",
+                  "value": 721.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
+                  "position": "RB",
+                  "value": 1034.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9480",
+                  "name": "Brenton Strange",
+                  "position": "TE",
+                  "value": 220.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_exit_detail": {
+            "base_hold_cost": 6504.8,
+            "static_hold_premium": 3756.2,
+            "static_break_glass_cost": 10261.0,
+            "replacement_relief_pct": 0.109,
+            "protected_premium_share": 0.248,
+            "adjusted_exit_cost": 9852.8,
+            "lineup": {
+              "before_total": 30636.0,
+              "after_total": 27169.0,
+              "lineup_gain": -3467.0,
+              "dependency_drop_without_return": 4682.0,
+              "replacement_fraction": 0.26,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "7523",
+                  "name": "Trevor Lawrence",
+                  "position": "QB",
+                  "value": 5603.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "9221",
+                  "name": "Jahmyr Gibbs",
+                  "position": "RB",
+                  "value": 10223.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "13287",
+                  "name": "Jeremiyah Love",
+                  "position": "RB",
+                  "value": 3874.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11620",
+                  "name": "Rome Odunze",
+                  "position": "WR",
+                  "value": 1653.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "9487",
+                  "name": "Parker Washington",
+                  "position": "WR",
+                  "value": 1249.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "13294",
+                  "name": "Makai Lemon",
+                  "position": "WR",
+                  "value": 887.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "12506",
+                  "name": "Harold Fannin",
+                  "position": "TE",
+                  "value": 1553.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "9754",
+                  "name": "Quentin Johnston",
+                  "position": "WR",
+                  "value": 660.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "8161",
+                  "name": "Malik Willis",
+                  "position": "QB",
+                  "value": 1467.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_package_quality": {
+            "parts": [
+              {
+                "asset_id": "player:11620",
+                "raw_value": 3520.6,
+                "weight": 1.0,
+                "effective_value": 3520.6
+              },
+              {
+                "asset_id": "pick:2027:R1:orig12",
+                "raw_value": 3089.2,
+                "weight": 0.78,
+                "effective_value": 2409.6
+              },
+              {
+                "asset_id": "player:13417",
+                "raw_value": 2538.0,
+                "weight": 0.62,
+                "effective_value": 1573.6
+              }
+            ],
+            "roster_slot_cost": 197.0,
+            "effective_value": 7306.8
+          },
+          "gm22_decision_score": -0.29329,
+          "counterfactual_simulation_status": "NOT_SCREENED"
+        },
+        {
+          "focal_outgoing_asset_ids": [
             "player:9758",
             "pick:2027:R1:orig12",
             "player:8131"
@@ -15359,225 +15578,6 @@
             "effective_value": 7207.1
           },
           "gm22_decision_score": -0.29698,
-          "counterfactual_simulation_status": "NOT_SCREENED"
-        },
-        {
-          "focal_outgoing_asset_ids": [
-            "player:11620",
-            "pick:2027:R1:orig12",
-            "player:13417"
-          ],
-          "focal_outgoing_assets": [
-            "Rome Odunze",
-            "2027 Mid 1st \u2014 original King B",
-            "De'Zhaun Stribling"
-          ],
-          "target_asset_id": "player:12507",
-          "target_player": "Omarion Hampton",
-          "focal_receive_effective_value": 6590.8,
-          "focal_adjusted_exit_cost": 12646.6,
-          "focal_raw_surplus": -6055.8,
-          "hold_wait_benchmark": 794.1,
-          "focal_surplus_after_wait_benchmark": -6849.9,
-          "focal_lineup_gain": 3024.0,
-          "focal_strategic_utility": -0.19212,
-          "seller_effective_incoming_value": 7350.8,
-          "seller_adjusted_exit_threshold": 9852.8,
-          "seller_surplus": -2502.0,
-          "seller_value_ratio": 0.746,
-          "seller_lineup_gain": -3467.0,
-          "seller_strategic_utility": -0.13629,
-          "seller_motivation_score": 0.573,
-          "acceptance_fit_score": 0.348,
-          "decision_score": -0.30058,
-          "recommendation_band": "focal_overpay_or_bad_timing",
-          "focal_exit_detail": {
-            "base_hold_cost": 10373.9,
-            "static_hold_premium": 5198.7,
-            "static_break_glass_cost": 15572.6,
-            "replacement_relief_pct": 0.563,
-            "protected_premium_share": 0.279,
-            "adjusted_exit_cost": 12646.6,
-            "lineup": {
-              "before_total": 10771.0,
-              "after_total": 13795.0,
-              "lineup_gain": 3024.0,
-              "dependency_drop_without_return": 1989.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "9758",
-                  "name": "C.J. Stroud",
-                  "position": "QB",
-                  "value": 2865.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "12507",
-                  "name": "Omarion Hampton",
-                  "position": "RB",
-                  "value": 5120.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8142",
-                  "name": "Alec Pierce",
-                  "position": "WR",
-                  "value": 853.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11624",
-                  "name": "Xavier Worthy",
-                  "position": "WR",
-                  "value": 350.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "13276",
-                  "name": "Omar Cooper",
-                  "position": "WR",
-                  "value": 75.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "8131",
-                  "name": "Isaiah Likely",
-                  "position": "TE",
-                  "value": 721.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
-                  "position": "RB",
-                  "value": 1034.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9480",
-                  "name": "Brenton Strange",
-                  "position": "TE",
-                  "value": 220.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_exit_detail": {
-            "base_hold_cost": 6504.8,
-            "static_hold_premium": 3756.2,
-            "static_break_glass_cost": 10261.0,
-            "replacement_relief_pct": 0.109,
-            "protected_premium_share": 0.248,
-            "adjusted_exit_cost": 9852.8,
-            "lineup": {
-              "before_total": 30636.0,
-              "after_total": 27169.0,
-              "lineup_gain": -3467.0,
-              "dependency_drop_without_return": 4682.0,
-              "replacement_fraction": 0.26,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "7523",
-                  "name": "Trevor Lawrence",
-                  "position": "QB",
-                  "value": 5603.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "9221",
-                  "name": "Jahmyr Gibbs",
-                  "position": "RB",
-                  "value": 10223.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "13287",
-                  "name": "Jeremiyah Love",
-                  "position": "RB",
-                  "value": 3874.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11620",
-                  "name": "Rome Odunze",
-                  "position": "WR",
-                  "value": 1653.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "9487",
-                  "name": "Parker Washington",
-                  "position": "WR",
-                  "value": 1249.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "13294",
-                  "name": "Makai Lemon",
-                  "position": "WR",
-                  "value": 887.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "12506",
-                  "name": "Harold Fannin",
-                  "position": "TE",
-                  "value": 1553.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "9754",
-                  "name": "Quentin Johnston",
-                  "position": "WR",
-                  "value": 660.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "8161",
-                  "name": "Malik Willis",
-                  "position": "QB",
-                  "value": 1467.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_package_quality": {
-            "parts": [
-              {
-                "asset_id": "player:11620",
-                "raw_value": 3520.6,
-                "weight": 1.0,
-                "effective_value": 3520.6
-              },
-              {
-                "asset_id": "pick:2027:R1:orig12",
-                "raw_value": 3089.2,
-                "weight": 0.78,
-                "effective_value": 2409.6
-              },
-              {
-                "asset_id": "player:13417",
-                "raw_value": 2613.3,
-                "weight": 0.62,
-                "effective_value": 1620.2
-              }
-            ],
-            "roster_slot_cost": 199.6,
-            "effective_value": 7350.8
-          },
-          "gm22_decision_score": -0.30058,
           "counterfactual_simulation_status": "NOT_SCREENED"
         }
       ],
@@ -20242,6 +20242,225 @@
         {
           "focal_outgoing_asset_ids": [
             "player:9758",
+            "pick:2027:R1:orig12",
+            "player:13417"
+          ],
+          "focal_outgoing_assets": [
+            "C.J. Stroud",
+            "2027 Mid 1st \u2014 original King B",
+            "De'Zhaun Stribling"
+          ],
+          "target_asset_id": "player:8130",
+          "target_player": "Trey McBride",
+          "focal_receive_effective_value": 6922.2,
+          "focal_adjusted_exit_cost": 13088.7,
+          "focal_raw_surplus": -6166.5,
+          "hold_wait_benchmark": 844.1,
+          "focal_surplus_after_wait_benchmark": -7010.6,
+          "focal_lineup_gain": 2446.0,
+          "focal_strategic_utility": -0.2011,
+          "seller_effective_incoming_value": 7150.9,
+          "seller_adjusted_exit_threshold": 9908.6,
+          "seller_surplus": -2757.7,
+          "seller_value_ratio": 0.722,
+          "seller_lineup_gain": -2446.0,
+          "seller_strategic_utility": -0.1859,
+          "seller_motivation_score": 0.569,
+          "acceptance_fit_score": 0.292,
+          "decision_score": -0.30508,
+          "recommendation_band": "focal_overpay_or_bad_timing",
+          "focal_exit_detail": {
+            "base_hold_cost": 10540.3,
+            "static_hold_premium": 5296.3,
+            "static_break_glass_cost": 15836.6,
+            "replacement_relief_pct": 0.519,
+            "protected_premium_share": 0.279,
+            "adjusted_exit_cost": 13088.7,
+            "lineup": {
+              "before_total": 10771.0,
+              "after_total": 13217.0,
+              "lineup_gain": 2446.0,
+              "dependency_drop_without_return": 3276.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "12510",
+                  "name": "Jalen Milroe",
+                  "position": "QB",
+                  "value": 0.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
+                  "position": "RB",
+                  "value": 2557.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
+                  "position": "RB",
+                  "value": 1034.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11620",
+                  "name": "Rome Odunze",
+                  "position": "WR",
+                  "value": 1653.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8142",
+                  "name": "Alec Pierce",
+                  "position": "WR",
+                  "value": 853.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11624",
+                  "name": "Xavier Worthy",
+                  "position": "WR",
+                  "value": 350.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "8130",
+                  "name": "Trey McBride",
+                  "position": "TE",
+                  "value": 5829.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "8131",
+                  "name": "Isaiah Likely",
+                  "position": "TE",
+                  "value": 721.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9480",
+                  "name": "Brenton Strange",
+                  "position": "TE",
+                  "value": 220.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_exit_detail": {
+            "base_hold_cost": 6869.4,
+            "static_hold_premium": 3596.3,
+            "static_break_glass_cost": 10465.7,
+            "replacement_relief_pct": 0.155,
+            "protected_premium_share": 0.235,
+            "adjusted_exit_cost": 9908.6,
+            "lineup": {
+              "before_total": 27670.0,
+              "after_total": 25224.0,
+              "lineup_gain": -2446.0,
+              "dependency_drop_without_return": 5829.0,
+              "replacement_fraction": 0.58,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "4984",
+                  "name": "Josh Allen",
+                  "position": "QB",
+                  "value": 10566.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "8155",
+                  "name": "Breece Hall",
+                  "position": "RB",
+                  "value": 2910.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "12467",
+                  "name": "Jordan James",
+                  "position": "RB",
+                  "value": 0.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8137",
+                  "name": "George Pickens",
+                  "position": "WR",
+                  "value": 4854.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "12519",
+                  "name": "Luther Burden",
+                  "position": "WR",
+                  "value": 1960.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "13279",
+                  "name": "Carnell Tate",
+                  "position": "WR",
+                  "value": 1551.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "13421",
+                  "name": "Eli Raridon",
+                  "position": "TE",
+                  "value": 0.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "13417",
+                  "name": "De'Zhaun Stribling",
+                  "position": "WR",
+                  "value": 518.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9758",
+                  "name": "C.J. Stroud",
+                  "position": "QB",
+                  "value": 2865.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_package_quality": {
+            "parts": [
+              {
+                "asset_id": "player:9758",
+                "raw_value": 3556.2,
+                "weight": 1.0,
+                "effective_value": 3556.2
+              },
+              {
+                "asset_id": "pick:2027:R1:orig12",
+                "raw_value": 2886.4,
+                "weight": 0.78,
+                "effective_value": 2251.4
+              },
+              {
+                "asset_id": "player:13417",
+                "raw_value": 2469.0,
+                "weight": 0.62,
+                "effective_value": 1530.8
+              }
+            ],
+            "roster_slot_cost": 187.4,
+            "effective_value": 7150.9
+          },
+          "gm22_decision_score": -0.30508,
+          "counterfactual_simulation_status": "NOT_SCREENED"
+        },
+        {
+          "focal_outgoing_asset_ids": [
+            "player:9758",
             "player:11620",
             "player:13276"
           ],
@@ -21118,46 +21337,46 @@
         {
           "focal_outgoing_asset_ids": [
             "player:9758",
-            "pick:2027:R1:orig12",
+            "player:7543",
             "player:13417"
           ],
           "focal_outgoing_assets": [
             "C.J. Stroud",
-            "2027 Mid 1st \u2014 original King B",
+            "Travis Etienne",
             "De'Zhaun Stribling"
           ],
           "target_asset_id": "player:8130",
           "target_player": "Trey McBride",
           "focal_receive_effective_value": 6922.2,
-          "focal_adjusted_exit_cost": 13209.0,
-          "focal_raw_surplus": -6286.8,
-          "hold_wait_benchmark": 883.7,
-          "focal_surplus_after_wait_benchmark": -7170.5,
-          "focal_lineup_gain": 2446.0,
-          "focal_strategic_utility": -0.20405,
-          "seller_effective_incoming_value": 7193.8,
-          "seller_adjusted_exit_threshold": 9908.6,
-          "seller_surplus": -2714.8,
-          "seller_value_ratio": 0.726,
-          "seller_lineup_gain": -2446.0,
-          "seller_strategic_utility": -0.18216,
+          "focal_adjusted_exit_cost": 13212.4,
+          "focal_raw_surplus": -6290.2,
+          "hold_wait_benchmark": 858.4,
+          "focal_surplus_after_wait_benchmark": -7148.6,
+          "focal_lineup_gain": -4.0,
+          "focal_strategic_utility": -0.25592,
+          "seller_effective_incoming_value": 7215.0,
+          "seller_adjusted_exit_threshold": 9505.1,
+          "seller_surplus": -2290.1,
+          "seller_value_ratio": 0.759,
+          "seller_lineup_gain": 111.0,
+          "seller_strategic_utility": -0.15073,
           "seller_motivation_score": 0.569,
-          "acceptance_fit_score": 0.298,
-          "decision_score": -0.31237,
+          "acceptance_fit_score": 0.358,
+          "decision_score": -0.31292,
           "recommendation_band": "focal_overpay_or_bad_timing",
           "focal_exit_detail": {
-            "base_hold_cost": 10629.8,
-            "static_hold_premium": 5360.4,
-            "static_break_glass_cost": 15990.2,
-            "replacement_relief_pct": 0.519,
-            "protected_premium_share": 0.279,
-            "adjusted_exit_cost": 13209.0,
+            "base_hold_cost": 10719.1,
+            "static_hold_premium": 4811.1,
+            "static_break_glass_cost": 15530.2,
+            "replacement_relief_pct": 0.482,
+            "protected_premium_share": 0.19,
+            "adjusted_exit_cost": 13212.4,
             "lineup": {
               "before_total": 10771.0,
-              "after_total": 13217.0,
-              "lineup_gain": 2446.0,
-              "dependency_drop_without_return": 3276.0,
-              "replacement_fraction": 1.0,
+              "after_total": 10767.0,
+              "lineup_gain": -4.0,
+              "dependency_drop_without_return": 5744.0,
+              "replacement_fraction": 0.999,
               "after_lineup": [
                 {
                   "slot": "QB",
@@ -21168,17 +21387,17 @@
                 },
                 {
                   "slot": "RB",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "RB",
                   "player_id": "7594",
                   "name": "Chuba Hubbard",
                   "position": "RB",
                   "value": 1034.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "4035",
+                  "name": "Alvin Kamara",
+                  "position": "RB",
+                  "value": 107.0
                 },
                 {
                   "slot": "WR",
@@ -21230,15 +21449,15 @@
             "base_hold_cost": 6869.4,
             "static_hold_premium": 3596.3,
             "static_break_glass_cost": 10465.7,
-            "replacement_relief_pct": 0.155,
+            "replacement_relief_pct": 0.267,
             "protected_premium_share": 0.235,
-            "adjusted_exit_cost": 9908.6,
+            "adjusted_exit_cost": 9505.1,
             "lineup": {
               "before_total": 27670.0,
-              "after_total": 25224.0,
-              "lineup_gain": -2446.0,
+              "after_total": 27781.0,
+              "lineup_gain": 111.0,
               "dependency_drop_without_return": 5829.0,
-              "replacement_fraction": 0.58,
+              "replacement_fraction": 1.0,
               "after_lineup": [
                 {
                   "slot": "QB",
@@ -21256,10 +21475,10 @@
                 },
                 {
                   "slot": "RB",
-                  "player_id": "12467",
-                  "name": "Jordan James",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
                   "position": "RB",
-                  "value": 0.0
+                  "value": 2557.0
                 },
                 {
                   "slot": "WR",
@@ -21316,22 +21535,22 @@
                 "effective_value": 3556.2
               },
               {
-                "asset_id": "pick:2027:R1:orig12",
-                "raw_value": 2886.4,
+                "asset_id": "player:7543",
+                "raw_value": 2972.4,
                 "weight": 0.78,
-                "effective_value": 2251.4
+                "effective_value": 2318.5
               },
               {
                 "asset_id": "player:13417",
-                "raw_value": 2542.2,
+                "raw_value": 2469.0,
                 "weight": 0.62,
-                "effective_value": 1576.2
+                "effective_value": 1530.8
               }
             ],
-            "roster_slot_cost": 190.0,
-            "effective_value": 7193.8
+            "roster_slot_cost": 190.4,
+            "effective_value": 7215.0
           },
-          "gm22_decision_score": -0.31237,
+          "gm22_decision_score": -0.31292,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -21551,225 +21770,6 @@
             "effective_value": 7237.1
           },
           "gm22_decision_score": -0.3162,
-          "counterfactual_simulation_status": "NOT_SCREENED"
-        },
-        {
-          "focal_outgoing_asset_ids": [
-            "player:9758",
-            "player:7543",
-            "player:13417"
-          ],
-          "focal_outgoing_assets": [
-            "C.J. Stroud",
-            "Travis Etienne",
-            "De'Zhaun Stribling"
-          ],
-          "target_asset_id": "player:8130",
-          "target_player": "Trey McBride",
-          "focal_receive_effective_value": 6922.2,
-          "focal_adjusted_exit_cost": 13335.2,
-          "focal_raw_surplus": -6413.0,
-          "hold_wait_benchmark": 897.9,
-          "focal_surplus_after_wait_benchmark": -7310.9,
-          "focal_lineup_gain": -4.0,
-          "focal_strategic_utility": -0.25882,
-          "seller_effective_incoming_value": 7257.8,
-          "seller_adjusted_exit_threshold": 9505.1,
-          "seller_surplus": -2247.3,
-          "seller_value_ratio": 0.764,
-          "seller_lineup_gain": 111.0,
-          "seller_strategic_utility": -0.14699,
-          "seller_motivation_score": 0.569,
-          "acceptance_fit_score": 0.366,
-          "decision_score": -0.31994,
-          "recommendation_band": "focal_overpay_or_bad_timing",
-          "focal_exit_detail": {
-            "base_hold_cost": 10808.6,
-            "static_hold_premium": 4875.2,
-            "static_break_glass_cost": 15683.8,
-            "replacement_relief_pct": 0.482,
-            "protected_premium_share": 0.19,
-            "adjusted_exit_cost": 13335.2,
-            "lineup": {
-              "before_total": 10771.0,
-              "after_total": 10767.0,
-              "lineup_gain": -4.0,
-              "dependency_drop_without_return": 5744.0,
-              "replacement_fraction": 0.999,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "12510",
-                  "name": "Jalen Milroe",
-                  "position": "QB",
-                  "value": 0.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
-                  "position": "RB",
-                  "value": 1034.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "4035",
-                  "name": "Alvin Kamara",
-                  "position": "RB",
-                  "value": 107.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11620",
-                  "name": "Rome Odunze",
-                  "position": "WR",
-                  "value": 1653.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8142",
-                  "name": "Alec Pierce",
-                  "position": "WR",
-                  "value": 853.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11624",
-                  "name": "Xavier Worthy",
-                  "position": "WR",
-                  "value": 350.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "8130",
-                  "name": "Trey McBride",
-                  "position": "TE",
-                  "value": 5829.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "8131",
-                  "name": "Isaiah Likely",
-                  "position": "TE",
-                  "value": 721.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9480",
-                  "name": "Brenton Strange",
-                  "position": "TE",
-                  "value": 220.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_exit_detail": {
-            "base_hold_cost": 6869.4,
-            "static_hold_premium": 3596.3,
-            "static_break_glass_cost": 10465.7,
-            "replacement_relief_pct": 0.267,
-            "protected_premium_share": 0.235,
-            "adjusted_exit_cost": 9505.1,
-            "lineup": {
-              "before_total": 27670.0,
-              "after_total": 27781.0,
-              "lineup_gain": 111.0,
-              "dependency_drop_without_return": 5829.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "4984",
-                  "name": "Josh Allen",
-                  "position": "QB",
-                  "value": 10566.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "8155",
-                  "name": "Breece Hall",
-                  "position": "RB",
-                  "value": 2910.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8137",
-                  "name": "George Pickens",
-                  "position": "WR",
-                  "value": 4854.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "12519",
-                  "name": "Luther Burden",
-                  "position": "WR",
-                  "value": 1960.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "13279",
-                  "name": "Carnell Tate",
-                  "position": "WR",
-                  "value": 1551.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "13421",
-                  "name": "Eli Raridon",
-                  "position": "TE",
-                  "value": 0.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "13417",
-                  "name": "De'Zhaun Stribling",
-                  "position": "WR",
-                  "value": 518.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9758",
-                  "name": "C.J. Stroud",
-                  "position": "QB",
-                  "value": 2865.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_package_quality": {
-            "parts": [
-              {
-                "asset_id": "player:9758",
-                "raw_value": 3556.2,
-                "weight": 1.0,
-                "effective_value": 3556.2
-              },
-              {
-                "asset_id": "player:7543",
-                "raw_value": 2972.4,
-                "weight": 0.78,
-                "effective_value": 2318.5
-              },
-              {
-                "asset_id": "player:13417",
-                "raw_value": 2542.2,
-                "weight": 0.62,
-                "effective_value": 1576.2
-              }
-            ],
-            "roster_slot_cost": 193.0,
-            "effective_value": 7257.8
-          },
-          "gm22_decision_score": -0.31994,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -22901,29 +22901,29 @@
           "target_asset_id": "player:8138",
           "target_player": "James Cook",
           "focal_receive_effective_value": 5718.3,
-          "focal_adjusted_exit_cost": 11732.9,
-          "focal_raw_surplus": -6014.6,
-          "hold_wait_benchmark": 444.9,
-          "focal_surplus_after_wait_benchmark": -6459.5,
+          "focal_adjusted_exit_cost": 11612.3,
+          "focal_raw_surplus": -5894.0,
+          "hold_wait_benchmark": 405.4,
+          "focal_surplus_after_wait_benchmark": -6299.4,
           "focal_lineup_gain": 3624.0,
-          "focal_strategic_utility": -0.19333,
-          "seller_effective_incoming_value": 6313.9,
+          "focal_strategic_utility": -0.19017,
+          "seller_effective_incoming_value": 6276.2,
           "seller_adjusted_exit_threshold": 9133.7,
-          "seller_surplus": -2819.8,
-          "seller_value_ratio": 0.691,
+          "seller_surplus": -2857.5,
+          "seller_value_ratio": 0.687,
           "seller_lineup_gain": -4035.0,
-          "seller_strategic_utility": -0.21295,
+          "seller_strategic_utility": -0.21436,
           "seller_motivation_score": 0.539,
-          "acceptance_fit_score": 0.24,
-          "decision_score": -0.3588,
+          "acceptance_fit_score": 0.234,
+          "decision_score": -0.34949,
           "recommendation_band": "focal_overpay_or_bad_timing",
           "focal_exit_detail": {
-            "base_hold_cost": 9569.2,
-            "static_hold_premium": 4460.6,
-            "static_break_glass_cost": 14029.8,
+            "base_hold_cost": 9479.7,
+            "static_hold_premium": 4396.5,
+            "static_break_glass_cost": 13876.2,
             "replacement_relief_pct": 0.515,
             "protected_premium_share": 0.255,
-            "adjusted_exit_cost": 11732.9,
+            "adjusted_exit_cost": 11612.3,
             "lineup": {
               "before_total": 10771.0,
               "after_total": 14395.0,
@@ -23095,15 +23095,15 @@
               },
               {
                 "asset_id": "player:13417",
-                "raw_value": 2235.3,
+                "raw_value": 2171.0,
                 "weight": 0.62,
-                "effective_value": 1385.9
+                "effective_value": 1346.0
               }
             ],
-            "roster_slot_cost": 177.4,
-            "effective_value": 6313.9
+            "roster_slot_cost": 175.1,
+            "effective_value": 6276.2
           },
-          "gm22_decision_score": -0.3588,
+          "gm22_decision_score": -0.34949,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -25997,6 +25997,225 @@
           "focal_outgoing_asset_ids": [
             "player:9758",
             "player:11620",
+            "player:13417"
+          ],
+          "focal_outgoing_assets": [
+            "C.J. Stroud",
+            "Rome Odunze",
+            "De'Zhaun Stribling"
+          ],
+          "target_asset_id": "player:6904",
+          "target_player": "Jalen Hurts",
+          "focal_receive_effective_value": 6638.9,
+          "focal_adjusted_exit_cost": 14131.2,
+          "focal_raw_surplus": -7492.3,
+          "hold_wait_benchmark": 1207.5,
+          "focal_surplus_after_wait_benchmark": -8699.8,
+          "focal_lineup_gain": 2005.0,
+          "focal_strategic_utility": -0.246,
+          "seller_effective_incoming_value": 7135.5,
+          "seller_adjusted_exit_threshold": 9694.3,
+          "seller_surplus": -2558.8,
+          "seller_value_ratio": 0.736,
+          "seller_lineup_gain": -3407.0,
+          "seller_strategic_utility": -0.17157,
+          "seller_motivation_score": 0.747,
+          "acceptance_fit_score": 0.376,
+          "decision_score": -0.39213,
+          "recommendation_band": "focal_overpay_or_bad_timing",
+          "focal_exit_detail": {
+            "base_hold_cost": 11523.8,
+            "static_hold_premium": 5549.2,
+            "static_break_glass_cost": 17073.0,
+            "replacement_relief_pct": 0.53,
+            "protected_premium_share": 0.214,
+            "adjusted_exit_cost": 14131.2,
+            "lineup": {
+              "before_total": 10771.0,
+              "after_total": 12776.0,
+              "lineup_gain": 2005.0,
+              "dependency_drop_without_return": 4854.0,
+              "replacement_fraction": 1.0,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "6904",
+                  "name": "Jalen Hurts",
+                  "position": "QB",
+                  "value": 6859.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7543",
+                  "name": "Travis Etienne",
+                  "position": "RB",
+                  "value": 2557.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "7594",
+                  "name": "Chuba Hubbard",
+                  "position": "RB",
+                  "value": 1034.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8142",
+                  "name": "Alec Pierce",
+                  "position": "WR",
+                  "value": 853.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "11624",
+                  "name": "Xavier Worthy",
+                  "position": "WR",
+                  "value": 350.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "13276",
+                  "name": "Omar Cooper",
+                  "position": "WR",
+                  "value": 75.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "8131",
+                  "name": "Isaiah Likely",
+                  "position": "TE",
+                  "value": 721.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "4035",
+                  "name": "Alvin Kamara",
+                  "position": "RB",
+                  "value": 107.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9480",
+                  "name": "Brenton Strange",
+                  "position": "TE",
+                  "value": 220.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_exit_detail": {
+            "base_hold_cost": 6991.4,
+            "static_hold_premium": 3271.4,
+            "static_break_glass_cost": 10262.8,
+            "replacement_relief_pct": 0.174,
+            "protected_premium_share": 0.181,
+            "adjusted_exit_cost": 9694.3,
+            "lineup": {
+              "before_total": 34699.0,
+              "after_total": 31292.0,
+              "lineup_gain": -3407.0,
+              "dependency_drop_without_return": 5894.0,
+              "replacement_fraction": 0.422,
+              "after_lineup": [
+                {
+                  "slot": "QB",
+                  "player_id": "4046",
+                  "name": "Patrick Mahomes",
+                  "position": "QB",
+                  "value": 4868.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "8151",
+                  "name": "Kenneth Walker",
+                  "position": "RB",
+                  "value": 4819.0
+                },
+                {
+                  "slot": "RB",
+                  "player_id": "5850",
+                  "name": "Josh Jacobs",
+                  "position": "RB",
+                  "value": 3490.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "6794",
+                  "name": "Justin Jefferson",
+                  "position": "WR",
+                  "value": 7209.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "10229",
+                  "name": "Rashee Rice",
+                  "position": "WR",
+                  "value": 3788.0
+                },
+                {
+                  "slot": "WR",
+                  "player_id": "8148",
+                  "name": "Jameson Williams",
+                  "position": "WR",
+                  "value": 1788.0
+                },
+                {
+                  "slot": "TE",
+                  "player_id": "5012",
+                  "name": "Mark Andrews",
+                  "position": "TE",
+                  "value": 812.0
+                },
+                {
+                  "slot": "FLEX",
+                  "player_id": "11620",
+                  "name": "Rome Odunze",
+                  "position": "WR",
+                  "value": 1653.0
+                },
+                {
+                  "slot": "SUPER_FLEX",
+                  "player_id": "9758",
+                  "name": "C.J. Stroud",
+                  "position": "QB",
+                  "value": 2865.0
+                }
+              ],
+              "complete": true
+            }
+          },
+          "seller_package_quality": {
+            "parts": [
+              {
+                "asset_id": "player:9758",
+                "raw_value": 3369.1,
+                "weight": 1.0,
+                "effective_value": 3369.1
+              },
+              {
+                "asset_id": "player:11620",
+                "raw_value": 3233.5,
+                "weight": 0.78,
+                "effective_value": 2522.1
+              },
+              {
+                "asset_id": "player:13417",
+                "raw_value": 2320.5,
+                "weight": 0.62,
+                "effective_value": 1438.7
+              }
+            ],
+            "roster_slot_cost": 194.4,
+            "effective_value": 7135.5
+          },
+          "gm22_decision_score": -0.39213,
+          "counterfactual_simulation_status": "NOT_SCREENED"
+        },
+        {
+          "focal_outgoing_asset_ids": [
+            "player:9758",
+            "player:11620",
             "pick:2028:R1:orig4"
           ],
           "focal_outgoing_assets": [
@@ -26210,225 +26429,6 @@
             "effective_value": 7192.2
           },
           "gm22_decision_score": -0.39384,
-          "counterfactual_simulation_status": "NOT_SCREENED"
-        },
-        {
-          "focal_outgoing_asset_ids": [
-            "player:9758",
-            "player:11620",
-            "player:13417"
-          ],
-          "focal_outgoing_assets": [
-            "C.J. Stroud",
-            "Rome Odunze",
-            "De'Zhaun Stribling"
-          ],
-          "target_asset_id": "player:6904",
-          "target_player": "Jalen Hurts",
-          "focal_receive_effective_value": 6638.9,
-          "focal_adjusted_exit_cost": 14250.8,
-          "focal_raw_surplus": -7611.9,
-          "hold_wait_benchmark": 1247.1,
-          "focal_surplus_after_wait_benchmark": -8859.0,
-          "focal_lineup_gain": 2005.0,
-          "focal_strategic_utility": -0.24843,
-          "seller_effective_incoming_value": 7175.8,
-          "seller_adjusted_exit_threshold": 9694.3,
-          "seller_surplus": -2518.5,
-          "seller_value_ratio": 0.74,
-          "seller_lineup_gain": -3407.0,
-          "seller_strategic_utility": -0.16858,
-          "seller_motivation_score": 0.747,
-          "acceptance_fit_score": 0.383,
-          "decision_score": -0.39942,
-          "recommendation_band": "focal_overpay_or_bad_timing",
-          "focal_exit_detail": {
-            "base_hold_cost": 11613.3,
-            "static_hold_premium": 5613.3,
-            "static_break_glass_cost": 17226.6,
-            "replacement_relief_pct": 0.53,
-            "protected_premium_share": 0.214,
-            "adjusted_exit_cost": 14250.8,
-            "lineup": {
-              "before_total": 10771.0,
-              "after_total": 12776.0,
-              "lineup_gain": 2005.0,
-              "dependency_drop_without_return": 4854.0,
-              "replacement_fraction": 1.0,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "6904",
-                  "name": "Jalen Hurts",
-                  "position": "QB",
-                  "value": 6859.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7543",
-                  "name": "Travis Etienne",
-                  "position": "RB",
-                  "value": 2557.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "7594",
-                  "name": "Chuba Hubbard",
-                  "position": "RB",
-                  "value": 1034.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8142",
-                  "name": "Alec Pierce",
-                  "position": "WR",
-                  "value": 853.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "11624",
-                  "name": "Xavier Worthy",
-                  "position": "WR",
-                  "value": 350.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "13276",
-                  "name": "Omar Cooper",
-                  "position": "WR",
-                  "value": 75.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "8131",
-                  "name": "Isaiah Likely",
-                  "position": "TE",
-                  "value": 721.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "4035",
-                  "name": "Alvin Kamara",
-                  "position": "RB",
-                  "value": 107.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9480",
-                  "name": "Brenton Strange",
-                  "position": "TE",
-                  "value": 220.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_exit_detail": {
-            "base_hold_cost": 6991.4,
-            "static_hold_premium": 3271.4,
-            "static_break_glass_cost": 10262.8,
-            "replacement_relief_pct": 0.174,
-            "protected_premium_share": 0.181,
-            "adjusted_exit_cost": 9694.3,
-            "lineup": {
-              "before_total": 34699.0,
-              "after_total": 31292.0,
-              "lineup_gain": -3407.0,
-              "dependency_drop_without_return": 5894.0,
-              "replacement_fraction": 0.422,
-              "after_lineup": [
-                {
-                  "slot": "QB",
-                  "player_id": "4046",
-                  "name": "Patrick Mahomes",
-                  "position": "QB",
-                  "value": 4868.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "8151",
-                  "name": "Kenneth Walker",
-                  "position": "RB",
-                  "value": 4819.0
-                },
-                {
-                  "slot": "RB",
-                  "player_id": "5850",
-                  "name": "Josh Jacobs",
-                  "position": "RB",
-                  "value": 3490.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "6794",
-                  "name": "Justin Jefferson",
-                  "position": "WR",
-                  "value": 7209.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "10229",
-                  "name": "Rashee Rice",
-                  "position": "WR",
-                  "value": 3788.0
-                },
-                {
-                  "slot": "WR",
-                  "player_id": "8148",
-                  "name": "Jameson Williams",
-                  "position": "WR",
-                  "value": 1788.0
-                },
-                {
-                  "slot": "TE",
-                  "player_id": "5012",
-                  "name": "Mark Andrews",
-                  "position": "TE",
-                  "value": 812.0
-                },
-                {
-                  "slot": "FLEX",
-                  "player_id": "11620",
-                  "name": "Rome Odunze",
-                  "position": "WR",
-                  "value": 1653.0
-                },
-                {
-                  "slot": "SUPER_FLEX",
-                  "player_id": "9758",
-                  "name": "C.J. Stroud",
-                  "position": "QB",
-                  "value": 2865.0
-                }
-              ],
-              "complete": true
-            }
-          },
-          "seller_package_quality": {
-            "parts": [
-              {
-                "asset_id": "player:9758",
-                "raw_value": 3369.1,
-                "weight": 1.0,
-                "effective_value": 3369.1
-              },
-              {
-                "asset_id": "player:11620",
-                "raw_value": 3233.5,
-                "weight": 0.78,
-                "effective_value": 2522.1
-              },
-              {
-                "asset_id": "player:13417",
-                "raw_value": 2389.3,
-                "weight": 0.62,
-                "effective_value": 1481.4
-              }
-            ],
-            "roster_slot_cost": 196.8,
-            "effective_value": 7175.8
-          },
-          "gm22_decision_score": -0.39942,
           "counterfactual_simulation_status": "NOT_SCREENED"
         },
         {
@@ -27664,7 +27664,7 @@
       "snap_records": 0,
       "prior_snap_records": 419,
       "preseason_usage_records": 51,
-      "manual_intelligence_records": 82,
+      "manual_intelligence_records": 90,
       "prospect_count": 47
     }
   }
