@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.5-Semantic-Hygiene"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v5.0-Developmental-Emergence"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -110,6 +110,119 @@ def dynasty_stash_eligible(pos, age, exp):
     if age > age_limits.get(pos, 25):
         return False
     return exp is None or exp <= 4
+
+
+def developmental_experience(exp):
+    """Emerging Value is for post-rookie players in NFL Years 2-5.
+
+    Sleeper years_exp=1 means one completed NFL season / entering Year 2.
+    Rookies (0) belong to the separate prospect/rookie model.
+    """
+    return exp is not None and 1 <= exp <= 4
+
+def extraordinary_veteran_circumstance(exp, catalyst):
+    """Year-5+ players only enter Emerging Value on exceptional new evidence."""
+    if exp is None or exp <= 4:
+        return False
+    return bool(
+        catalyst.get("strong")
+        and catalyst.get("corroborated")
+        and catalyst.get("positive_independent_sources", 0) >= 2
+        and catalyst.get("max_positive_strength", 0) >= 0.80
+    )
+
+def positive_signal_types_from_manual(m):
+    if not isinstance(m, dict):
+        return set()
+    evidence = m.get("evidence") if isinstance(m.get("evidence"), list) else []
+    out = set()
+    for x in evidence:
+        if not isinstance(x, dict):
+            continue
+        sig = str(
+            x.get("signal_type")
+            or x.get("type")
+            or x.get("signal")
+            or ""
+        )
+        if sig:
+            out.add(sig)
+    # Also support boolean-style manual-intelligence records.
+    for sig in (
+        "depth_chart_rise",
+        "starter_reps",
+        "camp_buzz",
+        "preseason_role",
+        "injury_opportunity",
+        "coach_praise",
+    ):
+        if m.get(sig):
+            out.add(sig)
+    return out
+
+def credible_path_to_relevance(pos, catalyst, pre, m):
+    """Require a plausible near-term route to fantasy-relevant opportunity.
+
+    This deliberately avoids treating prior-year snap share as current depth-chart
+    evidence. For QBs, generic injury opportunity alone is not enough to turn a
+    QB3/QB4 profile into an ADD.
+    """
+    sigs = positive_signal_types_from_manual(m)
+    pre_strong = bool(
+        isinstance(pre, dict)
+        and pre.get("meaningful_role_signal")
+        and num(pre.get("signal_strength"), 0) >= 0.75
+    )
+
+    if pos == "QB":
+        direct_qb_path = bool(
+            {"starter_reps", "depth_chart_rise"} & sigs
+        )
+        corroborated_qb_path = bool(
+            pre_strong
+            and (
+                "preseason_role" in sigs
+                or "injury_opportunity" in sigs
+            )
+            and catalyst.get("corroborated")
+        )
+        return direct_qb_path or corroborated_qb_path
+
+    direct_skill_path = bool(
+        {"starter_reps", "depth_chart_rise", "preseason_role"} & sigs
+    )
+    injury_path = bool(
+        "injury_opportunity" in sigs
+        and (
+            catalyst.get("corroborated")
+            or pre_strong
+        )
+    )
+    return direct_skill_path or injury_path or pre_strong
+
+def developmental_trajectory_score(hist, catalyst, uscore, exp):
+    """0-1 summary used for young-player developmental ranking."""
+    hist_score = 0.5
+    cutoff = hist.get("cutoff")
+    if cutoff is not None:
+        hist_score = clamp((num(hist.get("score"), 0) - float(cutoff)) / 3 + 0.5)
+
+    experience_bonus = {
+        1: 1.00,  # entering Year 2
+        2: 0.95,  # entering Year 3
+        3: 0.80,  # entering Year 4
+        4: 0.65,  # entering Year 5 / final normal-eligibility band
+    }.get(int(exp) if exp is not None else -1, 0.0)
+
+    current = num(catalyst.get("max_positive_strength"), 0)
+    usage = uscore if uscore is not None else 0.5
+
+    return clamp(
+        0.38 * hist_score
+        + 0.24 * experience_bonus
+        + 0.23 * current
+        + 0.15 * usage
+    )
 
 def age_curve(pos, age):
     if age is None:
@@ -598,6 +711,7 @@ def catalyst_profile(m, pre):
 def classify(row):
     tags = []
     direction = "MONITOR"
+
     hist = row["historical_breakout_profile"]
     catalyst = row["current_catalyst_profile"]
     mkt = row["market_score"]
@@ -605,62 +719,123 @@ def classify(row):
     gap = row["market_mispricing_score"]
     gap = (gap / 100.0) if gap is not None else None
     rostered = row["fsffl_rostered"]
+    exp = row["years_exp"]
 
     hist_ok = bool(hist.get("clears_cutoff"))
     hist_coverage = float(hist.get("feature_coverage") or 0)
     strong_now = bool(catalyst.get("strong"))
     corroborated_now = bool(catalyst.get("corroborated"))
+    credible_path = bool(row.get("credible_path_to_relevance"))
+    developmental = bool(row.get("developmental_eligible"))
+    extraordinary_veteran = bool(row.get("extraordinary_veteran_circumstance"))
+    trajectory = num(row.get("developmental_trajectory_score"), 0)
+
     negative_now = (
         int(catalyst.get("negative_evidence_count") or 0) > 0
         or bool(catalyst.get("negative_veto"))
     )
 
-    # Historical profile alone creates WATCHLIST status, never a breakout alert.
-    if hist_ok:
-        tags.append("HISTORICAL_BREAKOUT_PROFILE")
+    # Core v5.0 watchlist: young post-rookie players whose historical/developmental
+    # shape is interesting. This is NOT an acquisition recommendation by itself.
+    if developmental and hist_ok:
+        tags.append("DEVELOPMENTAL_WATCH")
 
-    # Structural market mispricing: require history or broad football evidence,
-    # and do not label a player a hidden gem while current evidence is negative.
+    # Stronger developmental emergence requires a credible current opportunity path,
+    # but does not yet require the market-dislocation threshold for a breakout call.
+    if (
+        developmental
+        and hist_ok
+        and credible_path
+        and trajectory >= 0.62
+        and not negative_now
+    ):
+        tags.append("DEVELOPMENTAL_EMERGING")
+
+    # Hidden gem remains a market/value label but is restricted to the intended
+    # young-player universe unless a veteran has an extraordinary circumstance.
     if (
         gap is not None
         and gap >= 0.25
         and latent >= 0.62
-        and (hist_ok or row["usage_score"] is not None)
         and not negative_now
+        and (developmental or extraordinary_veteran)
+        and credible_path
     ):
         tags.append("HIDDEN_GEM")
 
-    # Empirically calibrated breakout gate:
-    # 1) clear position/cohort historical cutoff
-    # 2) meaningful current catalyst
-    # 3) market is not already fully pricing it
-    if hist_ok and strong_now and gap is not None and gap >= 0.08:
+    # Breakout = developmental profile + strong present evidence + actual path +
+    # market lag. No credible path means no breakout recommendation.
+    if (
+        developmental
+        and hist_ok
+        and strong_now
+        and credible_path
+        and gap is not None
+        and gap >= 0.08
+        and not negative_now
+    ):
         tags.append("BREAKOUT_CANDIDATE")
 
-    # Highest urgency requires corroboration, not one signal.
-    if hist_ok and corroborated_now and gap is not None and gap >= 0.15:
+    if (
+        developmental
+        and hist_ok
+        and corroborated_now
+        and credible_path
+        and gap is not None
+        and gap >= 0.15
+        and not negative_now
+    ):
         tags.append("HIGH_PRIORITY_BREAKOUT_ALERT")
 
-    if not rostered and hist_ok and strong_now:
+    # Waiver recommendations require real opportunity. This is the Brady Cook fix.
+    if (
+        not rostered
+        and developmental
+        and hist_ok
+        and strong_now
+        and credible_path
+        and not negative_now
+    ):
         tags.append("WAIVER_TARGET")
 
-    if rostered and gap is not None and gap >= 0.18 and hist_ok:
+    # Young-player buy-low only; older-player value dislocations belong in the
+    # broader GM/trade model unless the veteran exception is truly extraordinary.
+    if (
+        rostered
+        and gap is not None
+        and gap >= 0.18
+        and hist_ok
+        and developmental
+    ):
         tags.append("BUY_LOW")
 
     if (
-        hist_ok
+        developmental
+        and hist_ok
         and hist_coverage >= 0.67
         and mkt is not None
         and mkt <= 0.40
-        and dynasty_stash_eligible(row["position"], row["age"], row["years_exp"])
+        and dynasty_stash_eligible(row["position"], row["age"], exp)
     ):
         tags.append("DYNASTY_STASH")
 
-    # Role inflection requires a strong current signal; history is useful but not mandatory.
-    if strong_now and row["manual_score"] is not None and row["manual_score"] >= 0.68:
+    # Role inflection is allowed for developmental players, or for Year-5+ players
+    # only if the extraordinary-circumstance gate is satisfied.
+    if (
+        credible_path
+        and strong_now
+        and row["manual_score"] is not None
+        and row["manual_score"] >= 0.68
+        and (developmental or extraordinary_veteran)
+        and not negative_now
+    ):
         tags.append("ROLE_INFLECTION")
 
-    # Negative market-risk tags remain conservative.
+    if extraordinary_veteran and credible_path and strong_now and not negative_now:
+        tags.append("EXTRAORDINARY_VETERAN_EVENT")
+
+    # Negative market-risk tags remain conservative and league-wide. These are not
+    # "emerging value" recommendations but remain useful risk outputs.
     if mkt is not None and mkt >= 0.72 and latent <= 0.50 and mkt - latent >= 0.18:
         tags.append("FRAGILE_VALUE")
     if mkt is not None and mkt >= 0.60 and latent <= 0.42:
@@ -673,10 +848,21 @@ def classify(row):
         direction = "ADD"
     elif "HIGH_PRIORITY_BREAKOUT_ALERT" in tags:
         direction = "PRIORITY_ACQUIRE"
-    elif any(x in tags for x in {"BREAKOUT_CANDIDATE", "HIDDEN_GEM", "BUY_LOW", "DYNASTY_STASH", "ROLE_INFLECTION"}):
+    elif any(
+        x in tags for x in {
+            "BREAKOUT_CANDIDATE",
+            "DEVELOPMENTAL_EMERGING",
+            "HIDDEN_GEM",
+            "BUY_LOW",
+            "DYNASTY_STASH",
+            "ROLE_INFLECTION",
+            "EXTRAORDINARY_VETERAN_EVENT",
+        }
+    ):
         direction = "ACQUIRE"
-    elif "HISTORICAL_BREAKOUT_PROFILE" in tags:
+    elif "DEVELOPMENTAL_WATCH" in tags:
         direction = "WATCHLIST"
+
     return tags, direction
 
 def main():
@@ -708,6 +894,11 @@ def main():
 
         age = num(p.get("age"))
         exp = num(first(p, "years_exp", "experience"))
+
+        # Rookies are owned by the separate Prospect/Rookie Intelligence layer.
+        if exp is not None and exp <= 0:
+            continue
+
         u = usage.get(str(pid), {}) if isinstance(usage, dict) else {}
         s = snaps.get(str(pid), {}) if isinstance(snaps, dict) else {}
         prior = prior_snaps.get(str(pid), {}) if isinstance(prior_snaps, dict) else {}
@@ -731,6 +922,12 @@ def main():
             ppg,
         )
         catalyst = catalyst_profile(m, pre)
+        credible_path = credible_path_to_relevance(pos, catalyst, pre, m)
+        developmental = developmental_experience(exp)
+        extraordinary_veteran = extraordinary_veteran_circumstance(exp, catalyst)
+        trajectory = developmental_trajectory_score(
+            hist, catalyst, uscore, exp
+        ) if developmental else 0.0
 
         # Keep latent score for market-mispricing context, but breakout classification
         # no longer comes from this hand-built score.
@@ -771,6 +968,10 @@ def main():
             "preseason_usage_evidence": pre if pre else None,
             "historical_breakout_profile": hist,
             "current_catalyst_profile": catalyst,
+            "developmental_eligible": developmental,
+            "extraordinary_veteran_circumstance": extraordinary_veteran,
+            "credible_path_to_relevance": credible_path,
+            "developmental_trajectory_score": round(trajectory * 100, 1),
             "latent_value_score": round(latent * 100, 1),
             "market_mispricing_score": round(gap * 100, 1) if gap is not None else None,
         }
@@ -798,13 +999,15 @@ def main():
             rows.append(row)
 
     priority = {
-        "HIGH_PRIORITY_BREAKOUT_ALERT": 7,
-        "BREAKOUT_CANDIDATE": 6,
-        "WAIVER_TARGET": 5,
-        "ROLE_INFLECTION": 4,
-        "BUY_LOW": 3,
-        "HIDDEN_GEM": 2,
-        "HISTORICAL_BREAKOUT_PROFILE": 1,
+        "HIGH_PRIORITY_BREAKOUT_ALERT": 9,
+        "BREAKOUT_CANDIDATE": 8,
+        "WAIVER_TARGET": 7,
+        "DEVELOPMENTAL_EMERGING": 6,
+        "ROLE_INFLECTION": 5,
+        "BUY_LOW": 4,
+        "HIDDEN_GEM": 3,
+        "EXTRAORDINARY_VETERAN_EVENT": 2,
+        "DEVELOPMENTAL_WATCH": 1,
     }
     def rank_key(r):
         signal_rank = max((priority.get(x, 0) for x in r["signals"]), default=0)
@@ -831,7 +1034,7 @@ def main():
     payload = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_version": MODEL,
-        "scope": "ALL_CURRENT_NFL_QB_RB_WR_TE",
+        "scope": "POST_ROOKIE_DEVELOPMENTAL_YEARS_1_TO_4_PLUS_EXTRAORDINARY_VETERANS",
         "player_universe_count": sum(
             1
             for pid, p in players.items()
@@ -843,11 +1046,19 @@ def main():
         "candidate_count": len(rows),
         "season_phase": phase,
         "decision_sequence": [
-            "HISTORICAL_BREAKOUT_PROFILE",
+            "DEVELOPMENTAL_ELIGIBILITY",
+            "HISTORICAL_BREAKOUT_CALIBRATION",
             "CURRENT_CATALYST",
+            "CREDIBLE_PATH_TO_RELEVANCE",
             "MARKET_LAG",
         ],
         "historical_calibration_model": calibration.get("model_version"),
+        "methodology_note": (
+            "Emerging Value v5.0 targets post-rookie NFL development. "
+            "Years-exp 1-4 are the normal universe; rookies belong to the separate "
+            "prospect model; Year-5+ players require extraordinary corroborated "
+            "circumstances. Historical profile is an input, not an action signal."
+        ),
         "source_coverage": {
             "fsffl_market_players": len(vals),
             "prior_snap_records": int(fi.get("prior_snap_records") or 0),
@@ -870,6 +1081,12 @@ def main():
             "hidden_gem_blocked_by_negative_current_evidence": True,
             "actionable_candidates_require_current_nfl_team": True,
             "dynasty_stash_requires_developmental_age_profile": True,
+            "rookies_excluded_use_prospect_model": True,
+            "normal_emerging_value_universe_years_exp_1_to_4": True,
+            "year_5_plus_requires_extraordinary_circumstance": True,
+            "action_recommendations_require_credible_path_to_relevance": True,
+            "qb_injury_opportunity_alone_not_sufficient_for_add": True,
+            "developmental_trajectory_is_core_signal": True,
         },
         "candidates": rows,
     }
