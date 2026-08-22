@@ -4,8 +4,8 @@ FSFFL GM 3.0 — Prospect Feature Enrichment v1
 
 Reliable automated sources
 --------------------------
-1) Pro-Football-Reference current NFL draft table:
-   https://www.pro-football-reference.com/years/<season>/draft.htm
+1) Wikipedia MediaWiki API current NFL draft table:
+   https://en.wikipedia.org/w/api.php?action=parse&page=<season>_NFL_draft&prop=wikitext
 2) nflverse combine dataset (PFR-backed):
    https://github.com/nflverse/nflverse-data/releases/download/combine/combine.csv
 3) SportsDataverse season-summary releases:
@@ -42,7 +42,10 @@ DATA = Path("data")
 INPUTS = DATA / "gm3_prospect_inputs.json"
 AUDIT = DATA / "gm3_prospect_feature_audit.json"
 
-PFR_DRAFT_URL = "https://www.pro-football-reference.com/years/{season}/draft.htm"
+WIKIPEDIA_DRAFT_API = (
+    "https://en.wikipedia.org/w/api.php?action=parse&page={season}_NFL_draft"
+    "&prop=wikitext&format=json&formatversion=2"
+)
 COMBINE_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
     "combine/combine.csv"
@@ -132,36 +135,85 @@ def strip_html(value):
     return html.unescape(value).strip()
 
 
-def read_pfr_draft(season):
+def read_wikipedia_draft(season):
     """
-    Parse Pro-Football-Reference's current-year draft table using only the
-    standard library. PFR table cells expose stable data-stat attributes.
-    """
-    url = PFR_DRAFT_URL.format(season=season)
-    text = fetch_text(url)
+    Load the complete NFL draft from Wikipedia's MediaWiki API.
 
+    The NFL draft article stores each selection as an NFLDraft-row template:
+      {{NFLDraft-row |draftyear=2026 |round=1 |picknum=1
+        |first=Fernando |last=Mendoza |position=QB ... }}
+
+    We parse only explicit template parameters (round, overall pick, first,
+    last, position). Notes/trades/markup are ignored.
+
+    This avoids scraping rendered HTML and avoids Pro-Football-Reference's
+    automated-request blocking in GitHub Actions.
+    """
+    url = WIKIPEDIA_DRAFT_API.format(season=season)
+    payload = json.loads(
+        fetch_bytes(
+            url,
+            accept="application/json",
+        ).decode("utf-8")
+    )
+
+    parse_obj = payload.get("parse") or {}
+    wikitext_obj = parse_obj.get("wikitext")
+    if isinstance(wikitext_obj, dict):
+        text = wikitext_obj.get("*") or ""
+    else:
+        text = wikitext_obj or ""
+
+    if not text:
+        raise RuntimeError(
+            f"Wikipedia MediaWiki API returned no wikitext for {season} NFL draft"
+        )
+
+    # Splitting on the template start is safer than matching balanced braces
+    # because note fields can contain nested templates/refn markup.
+    chunks = text.split("{{NFLDraft-row")
     rows = []
-    for tr in re.findall(r"<tr\b[^>]*>(.*?)</tr>", text, flags=re.I | re.S):
-        cells = {}
-        for stat, body in re.findall(
-            r"<t[dh]\b[^>]*data-stat=[\"']([^\"']+)[\"'][^>]*>(.*?)</t[dh]>",
-            tr,
-            flags=re.I | re.S,
-        ):
-            cells[stat] = strip_html(body)
 
-        round_raw = cells.get("draft_round") or cells.get("round")
-        pick_raw = cells.get("draft_pick") or cells.get("pick")
-        name = cells.get("player") or cells.get("player_name")
-        pos = cells.get("pos") or cells.get("position")
+    def field(chunk, key):
+        m = re.search(
+            rf"\|{re.escape(key)}\s*=\s*([^|\n}}]+)",
+            chunk,
+            flags=re.I,
+        )
+        return strip_html(m.group(1)).strip() if m else None
+
+    for chunk in chunks[1:]:
+        # Stop before the next unrelated major template if present. Field regex
+        # reads only pipe parameters and is not affected by notes after them.
+        round_raw = field(chunk, "round")
+        pick_raw = field(chunk, "picknum")
+        first = field(chunk, "first")
+        last = field(chunk, "last")
+        pos = field(chunk, "position")
+        draftyear = field(chunk, "draftyear")
 
         try:
             rnd = int(str(round_raw).strip())
             pick = int(str(pick_raw).strip())
+            yr = int(str(draftyear or season).strip())
         except (TypeError, ValueError):
             continue
 
-        if not name or not (1 <= pick <= 300):
+        if yr != int(season) or not (1 <= pick <= 300):
+            continue
+
+        # Remove simple wiki links/templates that may appear in name parameters.
+        def clean_wiki_name(x):
+            x = str(x or "").strip()
+            x = re.sub(r"\[\[(?:[^|\]]+\|)?([^\]]+)\]\]", r"\1", x)
+            x = re.sub(r"\{\{[^{}]*\}\}", "", x)
+            x = re.sub(r"<[^>]+>", "", x)
+            return html.unescape(x).strip()
+
+        first = clean_wiki_name(first)
+        last = clean_wiki_name(last)
+        name = " ".join(x for x in (first, last) if x).strip()
+        if not name:
             continue
 
         rows.append(
@@ -174,12 +226,23 @@ def read_pfr_draft(season):
             }
         )
 
-    if len(rows) < 100:
+    # Full modern drafts should have ~250 selections. Keep threshold lower to
+    # tolerate unusual forfeitures while still failing loudly on a partial page.
+    if len(rows) < 200:
         raise RuntimeError(
-            f"PFR draft parse returned only {len(rows)} drafted players for {season}"
+            f"Wikipedia draft parse returned only {len(rows)} selections for {season}"
         )
 
-    return pd.DataFrame(rows), url
+    # Overall pick should be unique. De-duplicate defensively by overall pick.
+    df = pd.DataFrame(rows)
+    df = df.sort_values("pick").drop_duplicates("pick", keep="first").reset_index(drop=True)
+
+    if len(df) < 200:
+        raise RuntimeError(
+            f"Wikipedia draft de-duplication left only {len(df)} selections for {season}"
+        )
+
+    return df, url
 
 
 def release_asset_url(tag, season):
@@ -852,17 +915,21 @@ def main():
 
     # Load sources independently. One source failure must not destroy all prospect data.
     try:
-        draft_df, draft_url = read_pfr_draft(season)
-        audit["sources"]["pfr_draft"] = {
+        draft_df, draft_url = read_wikipedia_draft(season)
+        audit["sources"]["wikipedia_draft_api"] = {
             "available": True,
             "url": draft_url,
             "rows": int(len(draft_df)),
+            "provenance": (
+                "Wikipedia NFL draft selection table; article states selections "
+                "are listed according to the NFL official draft tracker."
+            ),
         }
     except Exception as e:
         draft_df = pd.DataFrame()
-        audit["sources"]["pfr_draft"] = {
+        audit["sources"]["wikipedia_draft_api"] = {
             "available": False,
-            "url": PFR_DRAFT_URL.format(season=season),
+            "url": WIKIPEDIA_DRAFT_API.format(season=season),
             "error": str(e),
         }
 
@@ -934,7 +1001,7 @@ def main():
         if d:
             row["draft_capital_pick"] = d.get("draft_capital_pick")
             row["nfl_draft_round"] = d.get("nfl_draft_round")
-            row["draft_capital_source"] = "Pro-Football-Reference 2026 draft table"
+            row["draft_capital_source"] = "Wikipedia MediaWiki NFL draft table (NFL tracker-referenced)"
             audit["matched"]["draft"] += 1
         else:
             audit["unmatched"]["draft"].append(name)
