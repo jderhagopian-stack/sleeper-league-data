@@ -1,11 +1,5 @@
 {
   "model_version": "FSFFL-GM-3.0",
-  "perspective": {
-    "mode": "runtime_selectable",
-    "runtime_variable": "GM30_USER_ID",
-    "fallback": "LEAGUE_VIEW",
-    "note": "The workflow may set a preferred default team. The engine itself contains no manager identity."
-  },
   "season_resolution": {
     "mode": "dynamic_from_league_metadata",
     "source": "data/league.json",
@@ -14,8 +8,8 @@
   },
   "architecture": {
     "role": "primary_gm_engine",
-    "league_scope": "all_teams",
-    "perspective_scope": "any_team_or_league_view",
+    "league_scope": "all_teams_every_run",
+    "perspective_scope": "outputs_generated_for_every_team",
     "simulator": "Simulator",
     "output_root": "data/gm",
     "writes_to_simulator_directory": false
@@ -107,5 +101,10 @@
     "inputs": "data/gm_prospect_inputs.json",
     "output": "data/gm/prospect_board.json",
     "missing_data_policy": "do_not_fabricate"
+  },
+  "build_scope": {
+    "mode": "ALL_TEAMS_EVERY_RUN",
+    "team_selection": "downstream_consumer_only",
+    "note": "GM 3.0 always computes every team. The consumer selects which team view to present."
   }
 }
