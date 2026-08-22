@@ -217,37 +217,61 @@ def owner_profiles_v3(cfg, owners, sim, trade_summary):
     return rows
 
 def build_pick_forecast(cfg, sim, fragility, pick_quality):
+    """
+    Forecast first-round pick location for a rolling future horizon.
+
+    Calendar years are derived from the active league season at runtime.
+    No future draft year is compiled into the engine.
+    """
     fragrows=resolve_owner_rows(fragility)
     frag_by_uid={str(x.get("user_id")):x for x in fragrows}
     wins=[sf(x.get("expected_wins")) for x in sim["teams"]]
     pts=[sf(x.get("expected_points_for")) for x in sim["teams"]]
+    current_season=int(cfg["_runtime_season"])
+    future_years=[current_season+i for i in range(1,4)]
+    shrink_weights=[1.0,.72,.56]
     rows=[]
-    for t in sim["teams"]:
-        uid=str(t.get("user_id"))
+    for team in sim["teams"]:
+        uid=str(team.get("user_id"))
         f=frag_by_uid.get(uid,{})
-        frag=sf(f.get("fragility_score"), sf(f.get("roster_fragility"), .5))
-        if frag>1: frag=frag/100
+        frag=sf(f.get("fragility_score"),sf(f.get("roster_fragility"),.5))
+        if frag>1:
+            frag=frag/100
         strength=weighted([
-            (sf(t.get("championship_probability")),.28),
-            (sf(t.get("playoff_probability")),.24),
-            (pct_rank(sf(t.get("expected_wins")),wins),.24),
-            (pct_rank(sf(t.get("expected_points_for")),pts),.14),
+            (sf(team.get("championship_probability")),.28),
+            (sf(team.get("playoff_probability")),.24),
+            (pct_rank(sf(team.get("expected_wins")),wins),.24),
+            (pct_rank(sf(team.get("expected_points_for")),pts),.14),
             (1-clamp(frag),.10)
         ])[0]
-        expected_slot=1+11*strength
-        # wider range farther out; baseline is current competitive quality.
+
+        forecasts={}
+        for horizon,(year,retain) in enumerate(zip(future_years,shrink_weights),start=1):
+            horizon_strength=retain*strength+(1-retain)*.5
+            expected_slot=1+11*horizon_strength
+            forecasts[str(year)]={
+                "horizon_seasons":horizon,
+                "expected_slot":round(expected_slot,1),
+                "band":"early" if expected_slot<=4.5 else "mid" if expected_slot<=8.5 else "late",
+                "strength_retention_weight":round(retain,2)
+            }
+
         rows.append({
-            "user_id":uid,"manager":t.get("manager"),"team_name":t.get("team_name"),
-            "2027_first_expected_slot":round(expected_slot,1),
-            "2027_first_band":"early" if expected_slot<=4.5 else "mid" if expected_slot<=8.5 else "late",
-            "2028_first_expected_slot":round(1+11*(.72*strength+.28*.5),1),
-            "2029_first_expected_slot":round(1+11*(.56*strength+.44*.5),1),
-            "current_strength_index":t.get("simulator_strength_index"),
+            "user_id":uid,
+            "manager":team.get("manager"),
+            "team_name":team.get("team_name"),
+            "future_firsts":forecasts,
+            "current_strength_index":team.get("simulator_strength_index"),
             "fragility_input":round(frag,3),
             "confidence":round(.76 if frag_by_uid.get(uid) else .67,2),
             "note":"Future pick location is a distribution; farther-year estimates shrink toward league average."
         })
-    return sorted(rows,key=lambda x:x["2027_first_expected_slot"])
+
+    nearest_year=str(future_years[0])
+    return sorted(
+        rows,
+        key=lambda row:sf((row.get("future_firsts") or {}).get(nearest_year,{}).get("expected_slot"),99)
+    )
 
 def opportunity_radar(cfg, assets, projections, owner_v3, sim, football_intel):
     pf=projection_features(projections)
