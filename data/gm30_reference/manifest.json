@@ -1,0 +1,41 @@
+{
+  "release": "GM-3.0.0",
+  "status": "FROZEN_PRODUCTION_BASELINE",
+  "frozen_at_utc": "2026-08-22T22:16:37Z",
+  "source_branch": "main",
+  "source_commit": "5e235574d4ff41e8c8075dc02aeea20c3488c210",
+  "source_tree": "374d18d6c629af511412cd8be1d90cd1af140790",
+  "season": 2026,
+  "validation": {
+    "gm30_passed": true,
+    "warnings": 0,
+    "simulator_passed": true,
+    "prospect_count": 47,
+    "prospect_signal_eligible": 46,
+    "prospect_sparse_prior": 1
+  },
+  "frozen_outputs": {
+    "data/gm/validation_report.json": "acd48878ab6ba242fe8235d404e1576e4a3a8a17",
+    "data/gm/franchise_index.json": "a3198ec8acaa4f3857ad6c914dc04c981258e0c2",
+    "data/gm/gm30_prospect_radar.json": "286af772981bd25efa14b340d90066e9d9ba9a3a",
+    "data/gm/calibration_report.json": "cb4aa110966ae1bb9a496356a0ac0ac6a0327ee0",
+    "data/gm/breakout_calibration.json": "4c316dbcbc4fd21a73d5a6feff540ebc38217c8a",
+    "data/gm/emerging_value.json": "bada8bad442a5c515af338c953cdd61e6cb9fc37",
+    "data/gm/manifest.json": "361b92e33b27423764ec806f15a25f65ef999072",
+    "data/gm3_prospect_feature_audit.json": "f9a781a59de422e5492fb64371096f7fde1a4017"
+  },
+  "critical_model_components": {
+    "script/run_fsffl_gm30_counterfactual.py": "01471d47b442f03aff7ba0a6212e2529eded5e6f",
+    "script/build_gm30_prospect_inputs.py": "8f1c81eeb87b9966a9df57bd0fea53588497dba1",
+    "script/build_gm30_prospect_features.py": "1c47b6a6fa9f5947b8aad02bb733cacc0d9fb783",
+    "script/build_gm30_prospect_engine.py": "dcab021f800f34f68c34c453db90099c151355e2",
+    "data/gm3_prospect_config.json": "afe6c32ef879f961b1ce7a201ebf54bb1c516524",
+    ".github/workflows/build-gm30.yml": "007c7f8e8edf66aa9a9e9daa7a92bca7c1acff7e"
+  },
+  "version_policy": {
+    "3.0.x": "bug fixes that do not materially change decision architecture",
+    "3.x": "model improvements or new calibrated components",
+    "4.0": "fundamental decision-architecture change"
+  },
+  "note": "This freezes the GM 3.0.0 decision architecture and validated reference state. Live league, market, injury, usage, prospect and simulator data remain dynamic."
+}

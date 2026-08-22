@@ -1,0 +1,88 @@
+{
+  "generated_at_utc": "2026-08-22T22:13:54.418611+00:00",
+  "model_version": "FSFFL-GM-3.0-Prospect-Feature-Enrichment-v1",
+  "season": 2026,
+  "college_season": 2025,
+  "sources": {
+    "wikipedia_draft_api": {
+      "available": true,
+      "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2026_NFL_draft&prop=wikitext&format=json&formatversion=2",
+      "rows": 257,
+      "provenance": "Wikipedia NFL draft selection table; article states selections are listed according to the NFL official draft tracker."
+    },
+    "nflverse_combine": {
+      "available": true,
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/combine/combine.csv"
+    },
+    "sportsdataverse_season_summaries": {
+      "available": true,
+      "college_season": 2025,
+      "datasets": {
+        "receiving": {
+          "available": true,
+          "tag": "espn_cfb_receiving",
+          "asset": "cfb_receiving_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_receiving/cfb_receiving_2025.parquet",
+          "rows": 2330
+        },
+        "rushing": {
+          "available": true,
+          "tag": "espn_cfb_rushing",
+          "asset": "cfb_rushing_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_rushing/cfb_rushing_2025.parquet",
+          "rows": 1609
+        },
+        "passing": {
+          "available": true,
+          "tag": "espn_cfb_passing",
+          "asset": "cfb_passing_2025.parquet",
+          "url": "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_cfb_passing/cfb_passing_2025.parquet",
+          "rows": 567
+        }
+      },
+      "aggregated_players": 2934
+    }
+  },
+  "matched": {
+    "draft": 46,
+    "combine": 26,
+    "college": 46
+  },
+  "unmatched": {
+    "draft": [
+      "Matt Hibner"
+    ],
+    "combine": [
+      "Elijah Sarratt",
+      "Fernando Mendoza",
+      "CJ Daniels",
+      "Carson Beck",
+      "Ty Simpson",
+      "Max Klare",
+      "Jordyn Tyson",
+      "Nicholas Singleton",
+      "Drew Allar",
+      "Makai Lemon",
+      "KC Concepcion",
+      "Cade Klubnik",
+      "Chris Bell",
+      "Matt Hibner",
+      "Jonah Coleman",
+      "Garrett Nussmeier",
+      "Kaytron Allen",
+      "Cyrus Allen",
+      "Kaelon Black",
+      "De'Zhaun Stribling",
+      "Eli Raridon"
+    ],
+    "college": [
+      "Matt Hibner"
+    ]
+  },
+  "prospect_count": 47,
+  "match_rates": {
+    "draft": 0.9787,
+    "combine": 0.5532,
+    "college": 0.9787
+  }
+}
