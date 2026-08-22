@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FSFFL GM 3.0 — Current Catalyst Ingestion v3
+FSFFL GM 3.0 — Current Catalyst Ingestion v3.1
 
 Current-season evidence:
 - Sleeper add/drop velocity as market context only
@@ -136,51 +136,165 @@ def materially_unavailable(status):
     return any(token == s or token in s for token in MATERIALLY_UNAVAILABLE)
 
 
-class ArticleExtractor(HTMLParser):
-    """Collect text inside individual <article> elements.
+class NewsBlockExtractor(HTMLParser):
+    """Extract bounded, news-like DOM blocks without flattening the whole page.
 
-    This prevents keywords from neighboring FantasyPros cards/articles from
-    bleeding into the player whose name happened to be nearby on the page.
+    FantasyPros may render news cards as <div>, <section>, <li>, or <a> rather
+    than literal <article> elements. We capture only semantically news-like
+    containers and individual links, then later require the player's own name
+    and the signal phrase to occur locally inside the same bounded block.
     """
+
+    BLOCK_TAGS = {"article", "section", "li", "div"}
+    HINTS = (
+        "news",
+        "article",
+        "story",
+        "post",
+        "card",
+        "player",
+        "headline",
+        "update",
+        "feed",
+        "analysis",
+    )
 
     def __init__(self):
         super().__init__()
-        self.article_depth = 0
-        self.current = []
-        self.articles = []
+        self.stack = []
+        self.blocks = []
+        self.anchor_stack = []
+
+    @staticmethod
+    def attrs_text(attrs):
+        vals = []
+        for k, v in attrs:
+            if k in {"class", "id", "role", "data-testid", "data-cy"} and v:
+                vals.append(str(v).lower())
+        return " ".join(vals)
+
+    @classmethod
+    def news_like_container(cls, tag, attrs):
+        if tag == "article":
+            return True
+        attr_text = cls.attrs_text(attrs)
+        return any(h in attr_text for h in cls.HINTS)
 
     def handle_starttag(self, tag, attrs):
-        if tag.lower() == "article":
-            if self.article_depth == 0:
-                self.current = []
-            self.article_depth += 1
+        tag = tag.lower()
+
+        # Advance nesting depth of already-open captured blocks.
+        for block in self.stack:
+            block["depth"] += 1
+
+        if tag in self.BLOCK_TAGS and self.news_like_container(tag, attrs):
+            self.stack.append({"tag": tag, "depth": 1, "parts": []})
+
+        if tag == "a":
+            href = ""
+            for k, v in attrs:
+                if k == "href" and v:
+                    href = str(v)
+                    break
+            self.anchor_stack.append(
+                {
+                    "href": href,
+                    "parts": [],
+                }
+            )
 
     def handle_endtag(self, tag):
-        if tag.lower() == "article" and self.article_depth:
-            self.article_depth -= 1
-            if self.article_depth == 0 and self.current:
-                text = " ".join(self.current).strip()
-                if text:
-                    self.articles.append(text)
-                self.current = []
+        tag = tag.lower()
+
+        if tag == "a" and self.anchor_stack:
+            anchor = self.anchor_stack.pop()
+            txt = " ".join(anchor["parts"]).strip()
+            href = anchor["href"].lower()
+            if txt and (
+                "/nfl/" in href
+                or "news" in href
+                or "player" in href
+                or "fantasy" in href
+            ):
+                self.blocks.append(txt)
+
+        closing = []
+        for i, block in enumerate(self.stack):
+            block["depth"] -= 1
+            if block["depth"] == 0:
+                closing.append(i)
+
+        for i in reversed(closing):
+            block = self.stack.pop(i)
+            txt = " ".join(block["parts"]).strip()
+            if txt:
+                self.blocks.append(txt)
 
     def handle_data(self, data):
-        if self.article_depth and data and data.strip():
-            self.current.append(data.strip())
+        if not data or not data.strip():
+            return
+        s = data.strip()
+
+        for block in self.stack:
+            block["parts"].append(s)
+
+        for anchor in self.anchor_stack:
+            anchor["parts"].append(s)
 
 
-def public_news_articles():
+def dedupe_news_blocks(blocks):
+    """Normalize, bound, and de-duplicate extracted news chunks."""
+    seen = set()
+    out = []
+
+    for raw in blocks:
+        norm = norm_name(raw)
+        if not norm:
+            continue
+
+        # Reject giant page/feed containers and tiny navigation fragments.
+        if len(norm) < 25 or len(norm) > 1800:
+            continue
+
+        if norm in seen:
+            continue
+        seen.add(norm)
+        out.append(norm)
+
+    return out
+
+
+def public_news_blocks():
     try:
         raw = fetch_bytes(FANTASYPROS_NEWS, 30).decode("utf-8", "ignore")
-        p = ArticleExtractor()
+        p = NewsBlockExtractor()
         p.feed(raw)
-        articles = [norm_name(x) for x in p.articles if norm_name(x)]
-        if not articles:
-            return [], "NO_ARTICLE_BOUNDED_PUBLIC_NEWS_FOUND"
-        return articles, None
+        blocks = dedupe_news_blocks(p.blocks)
+
+        if not blocks:
+            return [], "NO_BOUNDED_PUBLIC_NEWS_BLOCKS_FOUND"
+
+        return blocks, None
     except Exception as e:
         return [], str(e)
 
+
+def player_local_windows(block, player_name, radius=260):
+    """Return only local context around this player's own name inside a block."""
+    out = []
+    start = 0
+
+    while True:
+        idx = block.find(player_name, start)
+        if idx < 0:
+            break
+
+        lo = max(0, idx - radius)
+        hi = min(len(block), idx + len(player_name) + radius)
+        out.append(block[lo:hi])
+        start = idx + len(player_name)
+
+    return out
 
 def sleeper_trends():
     adds, drops, errors = {}, {}, []
@@ -322,7 +436,7 @@ def main():
 
     adds, drops, trend_errors = sleeper_trends()
     depth, depth_error = latest_depth_rows(season)
-    news_articles, news_error = public_news_articles()
+    news_blocks, news_error = public_news_blocks()
 
     manual = {}
     preseason_usage = dict(intel.get("preseason_usage") or {})
@@ -489,43 +603,51 @@ def main():
                 0.45,
             )
 
-        # Public-news evidence must come from the SAME article containing the
-        # player's name. Never use a flat page-wide proximity window.
+        # Public-news evidence must be inside a bounded news-like DOM block,
+        # and the signal phrase must also be local to THIS player's own name.
+        # This is much stricter than page-wide proximity, but robust to sites
+        # that render cards as div/section/li/a instead of literal article tags.
         if len(nn.split()) >= 2:
-            player_articles = [
-                article
-                for article in news_articles
-                if nn in article
+            player_blocks = [
+                block
+                for block in news_blocks
+                if nn in block
             ]
 
-            for article_idx, article in enumerate(player_articles):
-                source = f"fantasypros_article_{article_idx + 1}"
+            for block_idx, block in enumerate(player_blocks):
+                local_windows = player_local_windows(block, nn)
 
-                for phrase, signal in POSITIVE_NEWS.items():
-                    if norm_name(phrase) in article:
-                        add_evidence(
-                            rec,
-                            signal,
-                            source,
-                            (
-                                "player-specific article matched "
-                                f"positive signal keyword: {phrase}"
-                            ),
-                            0.55,
-                        )
+                for window_idx, window in enumerate(local_windows):
+                    source = (
+                        f"fantasypros_player_block_"
+                        f"{block_idx + 1}_{window_idx + 1}"
+                    )
 
-                for phrase, signal in NEGATIVE_NEWS.items():
-                    if norm_name(phrase) in article:
-                        add_evidence(
-                            rec,
-                            signal,
-                            source,
-                            (
-                                "player-specific article matched "
-                                f"negative signal keyword: {phrase}"
-                            ),
-                            0.55,
-                        )
+                    for phrase, signal in POSITIVE_NEWS.items():
+                        if norm_name(phrase) in window:
+                            add_evidence(
+                                rec,
+                                signal,
+                                source,
+                                (
+                                    "player-local bounded news block matched "
+                                    f"positive signal keyword: {phrase}"
+                                ),
+                                0.55,
+                            )
+
+                    for phrase, signal in NEGATIVE_NEWS.items():
+                        if norm_name(phrase) in window:
+                            add_evidence(
+                                rec,
+                                signal,
+                                source,
+                                (
+                                    "player-local bounded news block matched "
+                                    f"negative signal keyword: {phrase}"
+                                ),
+                                0.55,
+                            )
 
         if rec["evidence"]:
             rec.update(
@@ -585,15 +707,15 @@ def main():
 
     intel["current_catalyst_ingestion"] = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v3-Audited-Evidence",
+        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v3.1-Bounded-News-Blocks",
         "season": season,
         "season_phase": phase,
         "automatic_catalyst_records": len(manual),
         "sleeper_trending_add_players": len(adds),
         "sleeper_trending_drop_players": len(drops),
         "depth_chart_players_matched": len(depth),
-        "public_news_articles": len(news_articles),
-        "public_news_available": bool(news_articles),
+        "public_news_blocks": len(news_blocks),
+        "public_news_available": bool(news_blocks),
         "injury_opportunity_policy": (
             "DIRECT_NEXT_MAN_UP_AND_MATERIALLY_UNAVAILABLE_ONLY"
         ),
@@ -603,7 +725,7 @@ def main():
         "injury_clearance_policy": (
             "HEALTH_UPDATE_ONLY_NOT_ROLE_EVIDENCE"
         ),
-        "public_news_policy": "SAME_ARTICLE_PLAYER_ASSOCIATION_ONLY",
+        "public_news_policy": "BOUNDED_DOM_BLOCK_PLUS_PLAYER_LOCAL_WINDOW",
     }
 
     warnings = [
@@ -640,7 +762,7 @@ def main():
     )
 
     print(
-        f"Current Catalyst v3: {len(manual)} records; "
+        f"Current Catalyst v3.1: {len(manual)} records; "
         "audited evidence rules active."
     )
     if intel["warnings"]:
