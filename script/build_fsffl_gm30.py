@@ -67,14 +67,6 @@ def resolve_season():
         raise SystemExit("GM 3.0 cannot resolve season from data/league.json")
     return str(season)
 
-def resolve_perspective_user_id():
-    """
-    Select any team at runtime with GM30_USER_ID.
-    If unset, GM 3.0 runs in league-view mode.
-    """
-    import os
-    value=os.environ.get("GM30_USER_ID")
-    return str(value).strip() if value else None
 
 def resolve_path(path_template, season):
     return str(path_template).replace("{season}", str(season))
@@ -495,7 +487,7 @@ def decision_journal_snapshot(decisions):
     for bucket in ("act_now","sell_fade"):
         for d in decisions.get(bucket,[])[:20]:
             sig=(d.get("signal") or {}).get("type")
-            raw=f"{bucket}|{d.get('player_id')}|{sig}"
+            raw=f"{d.get('perspective_user_id')}|{bucket}|{d.get('player_id')}|{sig}"
             import hashlib
             did=hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
             current_ids.add(did)
@@ -538,7 +530,12 @@ def validation(cfg, inputs, outputs):
     checks.append({"check":"simulator_teams_12","passed":len(sim.get("teams",[]))==12,"value":len(sim.get("teams",[]))})
     champs=sum(sf(x.get("championship_probability")) for x in sim.get("teams",[]))
     checks.append({"check":"championship_probabilities_sum_near_1","passed":abs(champs-1)<.03,"value":round(champs,5)})
-    checks.append({"check":"gm3_does_not_write_simulator_paths","passed":True})
+    checks.append({"check":"gm30_does_not_write_simulator_paths","passed":True})
+    if "team_command_centers" in outputs:
+        team_count=len(outputs["team_command_centers"])
+        checks.append({"check":"team_command_centers_cover_all_simulator_teams",
+                       "passed":team_count==len(sim.get("teams",[])),
+                       "value":team_count})
     return {"model_version":cfg["model_version"],"generated_at_utc":datetime.now(timezone.utc).isoformat(),
             "passed":all(x["passed"] for x in checks),"checks":checks}
 
@@ -546,7 +543,6 @@ def main():
     cfg=load(CFG_PATH)
     if not cfg: raise SystemExit("Missing GM 3.0 configuration")
     season=resolve_season()
-    perspective_user_id=resolve_perspective_user_id()
     cfg["_runtime_season"]=season
     p={k:resolve_path(v,season) for k,v in cfg["paths"].items()}
     inputs={k:load(v) for k,v in p.items()}
@@ -558,39 +554,78 @@ def main():
     picks=build_pick_forecast(cfg,sim,inputs.get("roster_fragility"),inputs.get("pick_quality"))
     radar=opportunity_radar(cfg,inputs["asset_values"],inputs["sim_projections"],owners,sim,inputs.get("football_intelligence"))
     rosterarb=roster_arbitrage(cfg,inputs["asset_values"],inputs["sim_projections"],inputs["rosters"],inputs["players"])
-    routes=trade_routes(cfg,radar,owners,sim,perspective_user_id)
-    decisions=decision_center(cfg,radar,routes,rosterarb,sim,perspective_user_id)
-    journal=decision_journal_snapshot(decisions)
+    team_command_centers={}
+    team_trade_routes={}
+    for team in sim["teams"]:
+        uid=str(team.get("user_id"))
+        routes=trade_routes(cfg,radar,owners,sim,uid)
+        decisions=decision_center(cfg,radar,routes,rosterarb,sim,uid)
+        decisions["manager"]=team.get("manager")
+        decisions["team_name"]=team.get("team_name")
+        decisions["competitive_window"]=team.get("competitive_window")
+        decisions["playoff_probability"]=team.get("playoff_probability")
+        decisions["championship_probability"]=team.get("championship_probability")
+        team_command_centers[uid]=decisions
+        team_trade_routes[uid]=routes
+
+    league_routes=[]
+    for uid,routes in team_trade_routes.items():
+        for route in routes[:40]:
+            league_routes.append({"perspective_user_id":uid, **route})
+    league_routes.sort(key=lambda x:sf(x.get("route_priority")),reverse=True)
 
     leagueintel={
-        "generated_at_utc":datetime.now(timezone.utc).isoformat(),"model_version":cfg["model_version"],
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":cfg["model_version"],
+        "season":season,
+        "scope":"ALL_TEAMS",
         "simulator_competitive_landscape":sim["teams"],
         "owner_profiles":owners,
         "pick_forecast":picks,
         "top_market_opportunities":radar[:50],
-        "top_trade_routes":routes[:40]
+        "team_command_centers":team_command_centers,
+        "top_league_trade_routes":league_routes[:100]
     }
+
+    journal_payload={"act_now":[],"sell_fade":[]}
+    for uid,center in team_command_centers.items():
+        for bucket in ("act_now","sell_fade"):
+            for item in center.get(bucket,[]):
+                journal_payload[bucket].append({"perspective_user_id":uid, **item})
+    journal=decision_journal_snapshot(journal_payload)
+
     manifest={
-        "generated_at_utc":datetime.now(timezone.utc).isoformat(),"model_version":cfg["model_version"],
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "model_version":cfg["model_version"],
         "season":season,
-        "active_perspective_user_id":perspective_user_id,
-        "perspective_mode":"team" if perspective_user_id else "league",
+        "scope":"ALL_TEAMS",
+        "team_view_count":len(team_command_centers),
         "inputs":{"valuation":"dynasty valuation datasets","simulator":inputs["sim_standings"].get("model_version")},
-        "architecture":"primary_gm_engine",
+        "architecture":"primary_gm_engine_league_wide",
         "features":["live_league_intelligence","dynamic_player_signal_layer","owner_specific_market_model",
-                    "trade_routing","championship_utility_bridge","opportunity_radar","confidence_evidence",
-                    "roster_arbitrage","pick_forecasting","decision_journal","counterfactual_fast_trade_utility"],
-        "outputs":[str(x) for x in ["simulator_bridge.json","owner_profiles_v3.json","pick_forecast.json","opportunity_radar.json",
-                                    "roster_arbitrage.json","trade_routes.json","league_intelligence.json","decision_center.json",
+                    "all_team_command_centers","trade_routing","championship_utility_bridge","opportunity_radar",
+                    "confidence_evidence","roster_arbitrage","pick_forecasting","decision_journal",
+                    "counterfactual_fast_trade_utility"],
+        "outputs":[str(x) for x in ["simulator_bridge.json","owner_profiles_v3.json","pick_forecast.json",
+                                    "opportunity_radar.json","roster_arbitrage.json","team_trade_routes.json",
+                                    "team_command_centers.json","league_intelligence.json",
                                     "decision_journal_snapshot.json","validation_report.json"]]
     }
-    outs={"sim":sim}
+    outs={"sim":sim,"team_command_centers":team_command_centers}
     val=validation(cfg,inputs,outs)
-    dump("manifest.json",manifest); dump("simulator_bridge.json",sim); dump("owner_profiles_v3.json",owners)
-    dump("pick_forecast.json",picks); dump("opportunity_radar.json",radar); dump("roster_arbitrage.json",rosterarb)
-    dump("trade_routes.json",routes); dump("league_intelligence.json",leagueintel); dump("decision_center.json",decisions)
-    dump("decision_journal.json",journal); dump("decision_journal_snapshot.json",journal); dump("validation_report.json",val)
-    print(f"GM 3.0 built: {len(radar)} players, {len(routes)} trade routes, validation={'PASS' if val['passed'] else 'FAIL'}")
+    dump("manifest.json",manifest)
+    dump("simulator_bridge.json",sim)
+    dump("owner_profiles_v3.json",owners)
+    dump("pick_forecast.json",picks)
+    dump("opportunity_radar.json",radar)
+    dump("roster_arbitrage.json",rosterarb)
+    dump("team_trade_routes.json",team_trade_routes)
+    dump("team_command_centers.json",team_command_centers)
+    dump("league_intelligence.json",leagueintel)
+    dump("decision_journal.json",journal)
+    dump("decision_journal_snapshot.json",journal)
+    dump("validation_report.json",val)
+    print(f"GM 3.0 built league-wide: {len(team_command_centers)} team views, {len(radar)} players, validation={'PASS' if val['passed'] else 'FAIL'}")
 
 if __name__=="__main__":
     main()
