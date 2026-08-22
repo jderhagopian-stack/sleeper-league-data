@@ -54,6 +54,9 @@ jobs:
       - name: Build phase-aware football intelligence
         run: python script/build_gm30_football_intelligence.py
 
+      - name: Build current GM 3.0 catalysts
+        run: python script/build_gm30_current_catalysts.py
+
       - name: Build GM 3.0 emerging value intelligence
         run: python script/build_gm30_emerging_value.py
 
@@ -71,13 +74,30 @@ jobs:
           echo "=============================="
           find data/gm -type f -print | sort
 
+          echo ""
+          echo "=============================="
+          echo "FOOTBALL INTELLIGENCE"
+          echo "=============================="
+          test -f data/football_intelligence_signals.json
+          echo "data/football_intelligence_signals.json"
+
+          echo ""
+          echo "=============================="
+          echo "CURRENT CATALYST STATE"
+          echo "=============================="
+          test -f data/gm3_current_catalyst_state.json
+          echo "data/gm3_current_catalyst_state.json"
+
       - name: Commit validated GM 3.0 outputs
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -A data/gm/ data/football_intelligence_signals.json
+          git add -A \
+            data/gm/ \
+            data/football_intelligence_signals.json \
+            data/gm3_current_catalyst_state.json
 
           if git diff --cached --quiet; then
             echo "No GM 3.0 output changes to commit."
