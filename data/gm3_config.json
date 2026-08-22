@@ -1,0 +1,101 @@
+{
+  "model_version": "FSFFL-GM-3.0",
+  "season": 2026,
+  "user_manager": "jimmygoodjob",
+  "user_team": "Hurts So Good",
+  "user_user_id": "846634401482792960",
+  "paths": {
+    "asset_values": "data/fsffl_asset_values.json",
+    "owner_behavior": "data/owner_behavior_profiles.json",
+    "owner_perceived_values": "data/owner_perceived_values.json",
+    "pick_quality": "data/pick_quality_model.json",
+    "roster_fragility": "data/roster_fragility_index.json",
+    "contender_profiles": "data/team_contender_profiles.json",
+    "strategic_arbitrage": "data/strategic_arbitrage_board.json",
+    "league_arbitrage": "data/league_arbitrage_matrix.json",
+    "rosters": "data/rosters.json",
+    "players": "data/players.json",
+    "traded_picks": "data/traded_picks.json",
+    "draft_proxy": "data/draft_outcome_proxy_ledger.json",
+    "waiver_proxy": "data/waiver_outcome_proxy_ledger.json",
+    "trade_summary": "data/owner_trade_summary.json",
+    "transactions": "data/transactions.json",
+    "football_intelligence": "data/football_intelligence_signals.json",
+    "sim_standings": "data/simulator/2026/outputs/standings_projection.json",
+    "sim_lineups": "data/simulator/2026/outputs/weekly_optimized_lineups.json",
+    "sim_projections": "data/simulator/2026/inputs/player_weekly_projections.json",
+    "sim_validation": "data/simulator/2026/outputs/validation_report.json",
+    "prospect_board": "data/gm3/prospect_board.json"
+  },
+  "decision_weights": {
+    "dynasty_value": 0.38,
+    "championship_utility": 0.3,
+    "market_edge": 0.12,
+    "roster_fit": 0.08,
+    "liquidity_optionality": 0.07,
+    "risk": 0.05
+  },
+  "signal_weights": {
+    "market_disagreement": 0.22,
+    "usage_opportunity": 0.18,
+    "projection_strength": 0.18,
+    "projection_uncertainty_asymmetry": 0.08,
+    "market_momentum": 0.08,
+    "age_curve": 0.1,
+    "role_news": 0.1,
+    "roster_accessibility": 0.06
+  },
+  "alert_thresholds": {
+    "act_now": 78,
+    "watch": 66,
+    "hidden_gem": 72,
+    "breakout": 70,
+    "buy_low": 68,
+    "bust_risk": 72,
+    "early_not_yet": 67
+  },
+  "trade": {
+    "minimum_counterparty_acceptance_proxy": 0.34,
+    "championship_elasticity_per_100_points": 0.22,
+    "playoff_elasticity_per_100_points": 0.16,
+    "max_probability_delta_per_trade": 0.12,
+    "max_assets_each_side_for_routing": 2
+  },
+  "pick_forecast": {
+    "championship_weight": 0.28,
+    "playoff_weight": 0.24,
+    "expected_wins_weight": 0.24,
+    "expected_points_weight": 0.14,
+    "fragility_weight": 0.1
+  },
+  "evidence": {
+    "hard_data_weight": 1.0,
+    "derived_model_weight": 0.82,
+    "manual_news_weight": 0.62,
+    "single_source_news_weight": 0.42
+  },
+  "notes": [
+    "GM 3.0 is downstream of GM 2.2 and Simulator 1.0 and never writes into simulator directories.",
+    "Simulator title/playoff probabilities measure 2026 utility, not dynasty asset value.",
+    "Counterfactual trade probability deltas are fast approximations unless the full simulator is explicitly rerun with altered rosters.",
+    "Missing optional inputs lower confidence rather than silently counting as negative evidence."
+  ],
+  "counterfactual_simulator": {
+    "mode": "in_memory_same_simulator_1_0_engine",
+    "default_simulations": 20000,
+    "important_trade_simulations": 50000,
+    "writes_to_simulator_directory": false,
+    "output_directory": "data/gm3/counterfactuals"
+  },
+  "self_audit": {
+    "persistent_journal": "data/gm3/decision_journal.json",
+    "calibration_report": "data/gm3/calibration_report.json",
+    "true_prospect_history_optional": "data/gm3_prospect_history.json"
+  },
+  "prospect_engine": {
+    "config": "data/gm3_prospect_config.json",
+    "inputs": "data/gm3_prospect_inputs.json",
+    "output": "data/gm3/prospect_board.json",
+    "missing_data_policy": "do not fabricate; report DATA_INPUT_REQUIRED"
+  }
+}
