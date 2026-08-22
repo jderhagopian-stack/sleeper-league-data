@@ -51,6 +51,9 @@ jobs:
       - name: Build GM 3.0 calibration audit
         run: python script/build_gm30_calibration.py
 
+      - name: Build GM 3.0 emerging value intelligence
+        run: python script/build_gm30_emerging_value.py
+
       - name: Build consolidated GM 3.0
         run: python script/build_fsffl_gm30.py
 
