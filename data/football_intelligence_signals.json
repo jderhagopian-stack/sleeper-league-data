@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T15:27:53.555359+00:00",
+  "generated_at_utc": "2026-08-22T15:44:47.286933+00:00",
   "model_version": "FSFFL-GM-3.0-Football-Intelligence-v2-Preseason-Usage",
   "active_season": 2026,
   "season_phase": "PRESEASON",
@@ -19,7 +19,7 @@
   "usage_records": 0,
   "snap_records": 0,
   "prior_snap_records": 419,
-  "manual_intelligence_records": 81,
+  "manual_intelligence_records": 79,
   "preseason_usage_records": 50,
   "preseason_usage_diagnostics": {
     "events_found": 49,
@@ -2980,7 +2980,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13018.1",
+          "detail": "strong drop velocity score 12742.7",
           "strength": 0.45
         }
       ],
@@ -2989,8 +2989,8 @@
       "team": "CIN",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 7077.6,
-      "trending_drop_score": 13018.05,
+      "trending_add_score": 6947.1,
+      "trending_drop_score": 12742.65,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3010,7 +3010,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7348.8",
+          "detail": "strong drop velocity score 7265.6",
           "strength": 0.45
         }
       ],
@@ -3020,41 +3020,11 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7348.8,
+      "trending_drop_score": 7265.55,
       "depth_rank": 4,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "11370": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Luke Musgrave) is materially unavailable: PUP",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "11370",
-      "name": "Chris Brooks",
-      "team": "GB",
-      "position": "RB",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 3,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
     },
     "11435": {
       "depth_chart_rise": false,
@@ -3070,7 +3040,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 28111.5",
+          "detail": "strong drop velocity score 27487.4",
           "strength": 0.45
         }
       ],
@@ -3080,7 +3050,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 28111.5,
+      "trending_drop_score": 27487.35,
       "depth_rank": 4,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3100,7 +3070,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7487.2",
+          "detail": "strong drop velocity score 7463.6",
           "strength": 0.45
         }
       ],
@@ -3110,7 +3080,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7487.2,
+      "trending_drop_score": 7463.6,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3130,7 +3100,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 16547.0",
+          "detail": "strong drop velocity score 16092.9",
           "strength": 0.45
         }
       ],
@@ -3139,8 +3109,8 @@
       "team": "NYJ",
       "position": "RB",
       "fsffl_rostered": false,
-      "trending_add_score": 5700.6,
-      "trending_drop_score": 16546.95,
+      "trending_add_score": 5525.1,
+      "trending_drop_score": 16092.9,
       "depth_rank": 3,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3160,7 +3130,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 20643.0",
+          "detail": "strong drop velocity score 20166.3",
           "strength": 0.45
         }
       ],
@@ -3170,7 +3140,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 20643.0,
+      "trending_drop_score": 20166.3,
       "depth_rank": 4,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3190,7 +3160,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14505.3",
+          "detail": "strong drop velocity score 14218.7",
           "strength": 0.45
         }
       ],
@@ -3200,7 +3170,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 14505.3,
+      "trending_drop_score": 14218.65,
       "depth_rank": 5,
       "injury_status": "NA",
       "evidence_count": 1,
@@ -3220,7 +3190,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7175.7",
+          "detail": "strong drop velocity score 7090.2",
           "strength": 0.45
         }
       ],
@@ -3230,7 +3200,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7175.7,
+      "trending_drop_score": 7090.2,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3250,7 +3220,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 16683.8",
+          "detail": "strong drop velocity score 16395.3",
           "strength": 0.45
         }
       ],
@@ -3260,7 +3230,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 16683.75,
+      "trending_drop_score": 16395.3,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3280,7 +3250,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13127.0",
+          "detail": "strong drop velocity score 12859.2",
           "strength": 0.45
         }
       ],
@@ -3289,8 +3259,8 @@
       "team": "BUF",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 5008.5,
-      "trending_drop_score": 13126.95,
+      "trending_add_score": 4955.85,
+      "trending_drop_score": 12859.2,
       "depth_rank": 3,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3310,7 +3280,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13351.8",
+          "detail": "strong drop velocity score 13167.2",
           "strength": 0.45
         }
       ],
@@ -3320,7 +3290,7 @@
       "position": "RB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13351.75,
+      "trending_drop_score": 13167.25,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3340,7 +3310,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11658.5",
+          "detail": "strong drop velocity score 11425.8",
           "strength": 0.45
         }
       ],
@@ -3350,11 +3320,41 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11658.5,
+      "trending_drop_score": 11425.75,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "11834": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": true,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "injury_opportunity",
+          "source": "direct_next_man_up",
+          "detail": "direct player ahead (Jordyn Tyson) is materially unavailable: Doubtful",
+          "strength": 0.88
+        }
+      ],
+      "player_id": "11834",
+      "name": "Devaughn Vele",
+      "team": "NO",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 58322.95,
+      "trending_drop_score": 4219.6,
+      "depth_rank": 3,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.88
     },
     "12455": {
       "depth_chart_rise": false,
@@ -3370,7 +3370,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 18074.7",
+          "detail": "strong drop velocity score 17730.7",
           "strength": 0.45
         }
       ],
@@ -3380,7 +3380,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 18074.7,
+      "trending_drop_score": 17730.65,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3400,7 +3400,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15161.6",
+          "detail": "strong drop velocity score 14950.4",
           "strength": 0.45
         }
       ],
@@ -3409,8 +3409,8 @@
       "team": "DAL",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 4362.0,
-      "trending_drop_score": 15161.6,
+      "trending_add_score": 4269.2,
+      "trending_drop_score": 14950.4,
       "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3421,22 +3421,16 @@
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
-      "injury_opportunity": true,
+      "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
       "injury_concern": false,
       "role_loss": true,
       "evidence": [
         {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Alec Pierce) is materially unavailable: PUP",
-          "strength": 0.88
-        },
-        {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9304.2",
+          "detail": "strong drop velocity score 9057.0",
           "strength": 0.45
         }
       ],
@@ -3446,11 +3440,11 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9304.25,
+      "trending_drop_score": 9057.0,
       "depth_rank": 2,
       "injury_status": "Questionable",
-      "evidence_count": 2,
-      "max_evidence_strength": 0.88
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
     },
     "12472": {
       "depth_chart_rise": false,
@@ -3466,7 +3460,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7066.0",
+          "detail": "strong drop velocity score 6953.6",
           "strength": 0.45
         }
       ],
@@ -3476,7 +3470,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7066.0,
+      "trending_drop_score": 6953.6,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3496,7 +3490,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 65439.3",
+          "detail": "strong drop velocity score 65145.3",
           "strength": 0.45
         }
       ],
@@ -3506,7 +3500,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 3253.8,
-      "trending_drop_score": 65439.3,
+      "trending_drop_score": 65145.3,
       "depth_rank": 15,
       "injury_status": "IR",
       "evidence_count": 1,
@@ -3526,7 +3520,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10322.9",
+          "detail": "strong drop velocity score 10129.4",
           "strength": 0.45
         }
       ],
@@ -3536,7 +3530,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 10322.9,
+      "trending_drop_score": 10129.35,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3556,7 +3550,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9078.5",
+          "detail": "strong drop velocity score 8849.0",
           "strength": 0.45
         }
       ],
@@ -3566,7 +3560,7 @@
       "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9078.5,
+      "trending_drop_score": 8849.0,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
@@ -3586,7 +3580,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8927.1",
+          "detail": "strong drop velocity score 8766.8",
           "strength": 0.45
         }
       ],
@@ -3596,9 +3590,39 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8927.1,
+      "trending_drop_score": 8766.8,
       "depth_rank": null,
       "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "12497": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 2344.0",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "12497",
+      "name": "Tory Horton",
+      "team": "SEA",
+      "position": "WR",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 2344.0,
+      "depth_rank": 4,
+      "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
@@ -3616,7 +3640,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7042.0",
+          "detail": "strong drop velocity score 6872.0",
           "strength": 0.45
         }
       ],
@@ -3626,7 +3650,7 @@
       "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7042.0,
+      "trending_drop_score": 6872.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3646,7 +3670,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 4250.4",
+          "detail": "strong drop velocity score 4173.4",
           "strength": 0.45
         }
       ],
@@ -3656,7 +3680,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 4250.4,
+      "trending_drop_score": 4173.4,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
@@ -3676,7 +3700,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15426.0",
+          "detail": "strong drop velocity score 15178.1",
           "strength": 0.45
         }
       ],
@@ -3686,7 +3710,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15426.0,
+      "trending_drop_score": 15178.05,
       "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3706,7 +3730,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9945.2",
+          "detail": "strong drop velocity score 9748.8",
           "strength": 0.45
         }
       ],
@@ -3716,7 +3740,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9945.25,
+      "trending_drop_score": 9748.75,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
@@ -3736,7 +3760,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9521.7",
+          "detail": "strong drop velocity score 9277.8",
           "strength": 0.45
         }
       ],
@@ -3746,7 +3770,7 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9521.7,
+      "trending_drop_score": 9277.8,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3766,7 +3790,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8148.0",
+          "detail": "strong drop velocity score 8130.2",
           "strength": 0.45
         }
       ],
@@ -3776,41 +3800,11 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8148.0,
+      "trending_drop_score": 8130.25,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "12521": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Zach Charbonnet) is materially unavailable: PUP",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "12521",
-      "name": "Elijah Arroyo",
-      "team": "SEA",
-      "position": "TE",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 2,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
     },
     "12524": {
       "depth_chart_rise": false,
@@ -3826,7 +3820,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12847.2",
+          "detail": "strong drop velocity score 12577.2",
           "strength": 0.45
         }
       ],
@@ -3836,7 +3830,7 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12847.2,
+      "trending_drop_score": 12577.2,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3856,7 +3850,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9241.2",
+          "detail": "strong drop velocity score 9090.3",
           "strength": 0.45
         }
       ],
@@ -3866,7 +3860,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9241.2,
+      "trending_drop_score": 9090.3,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3886,7 +3880,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11270.0",
+          "detail": "strong drop velocity score 10999.2",
           "strength": 0.45
         }
       ],
@@ -3896,7 +3890,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11270.0,
+      "trending_drop_score": 10999.2,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3916,7 +3910,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 25845.8",
+          "detail": "strong drop velocity score 25444.4",
           "strength": 0.45
         }
       ],
@@ -3926,7 +3920,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 25845.75,
+      "trending_drop_score": 25444.35,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3946,7 +3940,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8457.8",
+          "detail": "strong drop velocity score 8240.5",
           "strength": 0.45
         }
       ],
@@ -3956,7 +3950,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8457.75,
+      "trending_drop_score": 8240.5,
       "depth_rank": 6,
       "injury_status": null,
       "evidence_count": 1,
@@ -3976,7 +3970,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15467.2",
+          "detail": "strong drop velocity score 15144.8",
           "strength": 0.45
         }
       ],
@@ -3986,7 +3980,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15467.2,
+      "trending_drop_score": 15144.8,
       "depth_rank": 7,
       "injury_status": null,
       "evidence_count": 1,
@@ -4006,7 +4000,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8089.7",
+          "detail": "strong drop velocity score 7976.2",
           "strength": 0.45
         }
       ],
@@ -4016,7 +4010,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8089.65,
+      "trending_drop_score": 7976.25,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
@@ -4036,7 +4030,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 2816.0",
+          "detail": "strong drop velocity score 2696.0",
           "strength": 0.45
         }
       ],
@@ -4046,7 +4040,7 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 2816.0,
+      "trending_drop_score": 2696.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4066,7 +4060,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12798.4",
+          "detail": "strong drop velocity score 12519.2",
           "strength": 0.45
         }
       ],
@@ -4075,12 +4069,42 @@
       "team": "NO",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 5007.6,
-      "trending_drop_score": 12798.4,
+      "trending_add_score": 4993.6,
+      "trending_drop_score": 12519.2,
       "depth_rank": 2,
       "injury_status": "Doubtful",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "13286": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": true,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "injury_opportunity",
+          "source": "direct_next_man_up",
+          "detail": "direct player ahead (Zach Charbonnet) is materially unavailable: PUP",
+          "strength": 0.88
+        }
+      ],
+      "player_id": "13286",
+      "name": "Jadarian Price",
+      "team": "SEA",
+      "position": "RB",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.88
     },
     "13320": {
       "depth_chart_rise": false,
@@ -4096,7 +4120,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7957.6",
+          "detail": "strong drop velocity score 7771.2",
           "strength": 0.45
         }
       ],
@@ -4105,8 +4129,8 @@
       "team": "ATL",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 1504.0,
-      "trending_drop_score": 7957.6,
+      "trending_add_score": 1472.0,
+      "trending_drop_score": 7771.2,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -4126,7 +4150,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8071.2",
+          "detail": "strong drop velocity score 7983.5",
           "strength": 0.45
         }
       ],
@@ -4136,7 +4160,7 @@
       "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8071.2,
+      "trending_drop_score": 7983.45,
       "depth_rank": 1,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -4156,7 +4180,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 24137.6",
+          "detail": "strong drop velocity score 23687.6",
           "strength": 0.45
         }
       ],
@@ -4166,41 +4190,11 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 24137.55,
+      "trending_drop_score": 23687.55,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "13417": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Isaac Guerendo) is materially unavailable: PUP",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "13417",
-      "name": "De'Zhaun Stribling",
-      "team": "SF",
-      "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 4,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
     },
     "19": {
       "depth_chart_rise": false,
@@ -4216,7 +4210,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10012.5",
+          "detail": "strong drop velocity score 9798.8",
           "strength": 0.45
         }
       ],
@@ -4225,8 +4219,8 @@
       "team": "CIN",
       "position": "QB",
       "fsffl_rostered": false,
-      "trending_add_score": 2900.7,
-      "trending_drop_score": 10012.5,
+      "trending_add_score": 2880.9,
+      "trending_drop_score": 9798.75,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4246,7 +4240,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10358.6",
+          "detail": "strong drop velocity score 10069.5",
           "strength": 0.45
         }
       ],
@@ -4255,8 +4249,8 @@
       "team": "NYG",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 5916.75,
-      "trending_drop_score": 10358.6,
+      "trending_add_score": 5901.35,
+      "trending_drop_score": 10069.5,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4276,7 +4270,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 6748.6",
+          "detail": "strong drop velocity score 6583.2",
           "strength": 0.45
         }
       ],
@@ -4286,69 +4280,9 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 6748.6,
+      "trending_drop_score": 6583.2,
       "depth_rank": 2,
       "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "3269": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Skylar Thompson) is materially unavailable: IR",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "3269",
-      "name": "Chris Moore",
-      "team": "BAL",
-      "position": "WR",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 7,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
-    },
-    "3271": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 2394.0",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "3271",
-      "name": "Tyler Higbee",
-      "team": "LAR",
-      "position": "TE",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 2394.0,
-      "depth_rank": 2,
-      "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
@@ -4366,7 +4300,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 22904.0",
+          "detail": "strong drop velocity score 22622.0",
           "strength": 0.45
         }
       ],
@@ -4375,8 +4309,8 @@
       "team": null,
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 12951.6,
-      "trending_drop_score": 22904.0,
+      "trending_add_score": 12825.2,
+      "trending_drop_score": 22622.0,
       "depth_rank": null,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -4396,7 +4330,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8658.0",
+          "detail": "strong drop velocity score 8470.6",
           "strength": 0.45
         }
       ],
@@ -4406,7 +4340,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8658.0,
+      "trending_drop_score": 8470.6,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4417,22 +4351,16 @@
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
-      "injury_opportunity": true,
+      "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
       "injury_concern": false,
       "role_loss": true,
       "evidence": [
         {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Jordyn Tyson) is materially unavailable: Doubtful",
-          "strength": 0.88
-        },
-        {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 25051.6",
+          "detail": "strong drop velocity score 23996.4",
           "strength": 0.45
         }
       ],
@@ -4441,12 +4369,12 @@
       "team": "NO",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 4834.8,
-      "trending_drop_score": 25051.6,
+      "trending_add_score": 4658.8,
+      "trending_drop_score": 23996.4,
       "depth_rank": 2,
       "injury_status": "Questionable",
-      "evidence_count": 2,
-      "max_evidence_strength": 0.88
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
     },
     "4039": {
       "depth_chart_rise": false,
@@ -4462,7 +4390,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7728.0",
+          "detail": "strong drop velocity score 7719.0",
           "strength": 0.45
         }
       ],
@@ -4471,8 +4399,8 @@
       "team": "SEA",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 4269.0,
-      "trending_drop_score": 7728.0,
+      "trending_add_score": 4180.8,
+      "trending_drop_score": 7719.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -4492,7 +4420,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11587.6",
+          "detail": "strong drop velocity score 11399.6",
           "strength": 0.45
         }
       ],
@@ -4502,7 +4430,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11587.6,
+      "trending_drop_score": 11399.6,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
@@ -4522,7 +4450,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13145.6",
+          "detail": "strong drop velocity score 12903.4",
           "strength": 0.45
         }
       ],
@@ -4532,7 +4460,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13145.6,
+      "trending_drop_score": 12903.4,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4552,7 +4480,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15920.5",
+          "detail": "strong drop velocity score 15567.3",
           "strength": 0.45
         }
       ],
@@ -4562,7 +4490,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15920.45,
+      "trending_drop_score": 15567.3,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4582,7 +4510,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9968.4",
+          "detail": "strong drop velocity score 9661.8",
           "strength": 0.45
         }
       ],
@@ -4592,7 +4520,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 9968.35,
+      "trending_drop_score": 9661.75,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4612,7 +4540,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8672.6",
+          "detail": "strong drop velocity score 8500.2",
           "strength": 0.45
         }
       ],
@@ -4622,7 +4550,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8672.6,
+      "trending_drop_score": 8500.2,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4642,7 +4570,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 2556.0",
+          "detail": "strong drop velocity score 2478.0",
           "strength": 0.45
         }
       ],
@@ -4652,7 +4580,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 2556.0,
+      "trending_drop_score": 2478.0,
       "depth_rank": 3,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -4672,7 +4600,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 22206.6",
+          "detail": "strong drop velocity score 21792.2",
           "strength": 0.45
         }
       ],
@@ -4682,7 +4610,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 22206.6,
+      "trending_drop_score": 21792.15,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -4702,7 +4630,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7737.0",
+          "detail": "strong drop velocity score 7571.7",
           "strength": 0.45
         }
       ],
@@ -4711,8 +4639,8 @@
       "team": "NYG",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 4670.7,
-      "trending_drop_score": 7737.0,
+      "trending_add_score": 4574.4,
+      "trending_drop_score": 7571.7,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4732,7 +4660,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7994.7",
+          "detail": "strong drop velocity score 7860.6",
           "strength": 0.45
         }
       ],
@@ -4742,7 +4670,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7994.7,
+      "trending_drop_score": 7860.6,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4762,7 +4690,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14277.6",
+          "detail": "strong drop velocity score 14038.7",
           "strength": 0.45
         }
       ],
@@ -4771,8 +4699,8 @@
       "team": "CLE",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 7157.25,
-      "trending_drop_score": 14277.6,
+      "trending_add_score": 7032.6,
+      "trending_drop_score": 14038.65,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
@@ -4792,7 +4720,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7421.0",
+          "detail": "strong drop velocity score 7301.2",
           "strength": 0.45
         }
       ],
@@ -4802,41 +4730,11 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7420.95,
+      "trending_drop_score": 7301.25,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "6853": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Jerome Ford) is materially unavailable: IR",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "6853",
-      "name": "Van Jefferson",
-      "team": "WAS",
-      "position": "WR",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 8,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
     },
     "6865": {
       "depth_chart_rise": false,
@@ -4852,7 +4750,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11359.2",
+          "detail": "strong drop velocity score 11060.7",
           "strength": 0.45
         }
       ],
@@ -4862,7 +4760,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11359.2,
+      "trending_drop_score": 11060.7,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
@@ -4882,7 +4780,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8833.3",
+          "detail": "strong drop velocity score 8677.5",
           "strength": 0.45
         }
       ],
@@ -4892,7 +4790,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8833.3,
+      "trending_drop_score": 8677.55,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -4912,7 +4810,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14418.0",
+          "detail": "strong drop velocity score 14062.1",
           "strength": 0.45
         }
       ],
@@ -4922,7 +4820,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 14418.0,
+      "trending_drop_score": 14062.05,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -4942,7 +4840,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10113.6",
+          "detail": "strong drop velocity score 10000.5",
           "strength": 0.45
         }
       ],
@@ -4952,7 +4850,7 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 10113.6,
+      "trending_drop_score": 10000.5,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4972,7 +4870,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8381.6",
+          "detail": "strong drop velocity score 8192.2",
           "strength": 0.45
         }
       ],
@@ -4982,7 +4880,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 8381.6,
+      "trending_drop_score": 8192.2,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -5002,7 +4900,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 21020.4",
+          "detail": "strong drop velocity score 20346.8",
           "strength": 0.45
         }
       ],
@@ -5012,7 +4910,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 21020.4,
+      "trending_drop_score": 20346.75,
       "depth_rank": 7,
       "injury_status": null,
       "evidence_count": 1,
@@ -5032,7 +4930,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10799.2",
+          "detail": "strong drop velocity score 10599.6",
           "strength": 0.45
         }
       ],
@@ -5042,7 +4940,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 10799.2,
+      "trending_drop_score": 10599.6,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -5062,7 +4960,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14285.2",
+          "detail": "strong drop velocity score 13991.4",
           "strength": 0.45
         }
       ],
@@ -5072,7 +4970,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 14285.25,
+      "trending_drop_score": 13991.4,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -5092,7 +4990,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12312.3",
+          "detail": "strong drop velocity score 12046.3",
           "strength": 0.45
         }
       ],
@@ -5102,7 +5000,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12312.3,
+      "trending_drop_score": 12046.3,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
@@ -5122,7 +5020,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12142.2",
+          "detail": "strong drop velocity score 11889.9",
           "strength": 0.45
         }
       ],
@@ -5131,8 +5029,8 @@
       "team": "CAR",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 3059.0,
-      "trending_drop_score": 12142.2,
+      "trending_add_score": 5636.4,
+      "trending_drop_score": 11889.85,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -5152,7 +5050,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 10437.3",
+          "detail": "strong drop velocity score 10339.5",
           "strength": 0.45
         }
       ],
@@ -5161,42 +5059,12 @@
       "team": "ATL",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 1392.0,
-      "trending_drop_score": 10437.3,
+      "trending_add_score": 1350.0,
+      "trending_drop_score": 10339.5,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "8183": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": true,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (George Kittle) is materially unavailable: PUP",
-          "strength": 0.88
-        }
-      ],
-      "player_id": "8183",
-      "name": "Brock Purdy",
-      "team": "SF",
-      "position": "QB",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 1,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
     },
     "8188": {
       "depth_chart_rise": false,
@@ -5212,7 +5080,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7863.5",
+          "detail": "strong drop velocity score 7725.6",
           "strength": 0.45
         }
       ],
@@ -5222,7 +5090,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 7863.45,
+      "trending_drop_score": 7725.55,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -5242,7 +5110,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13333.2",
+          "detail": "strong drop velocity score 13173.6",
           "strength": 0.45
         }
       ],
@@ -5252,13 +5120,109 @@
       "position": "RB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13333.2,
+      "trending_drop_score": 13173.6,
       "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "8230": {
+    "8220": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": true,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "injury_opportunity",
+          "source": "direct_next_man_up",
+          "detail": "direct player ahead (Isaac Guerendo) is materially unavailable: PUP",
+          "strength": 0.88
+        }
+      ],
+      "player_id": "8220",
+      "name": "Sincere McCormick",
+      "team": "SF",
+      "position": "RB",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 5,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.88
+    },
+    "8698": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": true,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "injury_opportunity",
+          "source": "direct_next_man_up",
+          "detail": "direct player ahead (George Kittle) is materially unavailable: PUP",
+          "strength": 0.88
+        },
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 9186.2",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "8698",
+      "name": "Jake Tonges",
+      "team": "SF",
+      "position": "TE",
+      "fsffl_rostered": false,
+      "trending_add_score": 4517.0,
+      "trending_drop_score": 9186.25,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 2,
+      "max_evidence_strength": 0.88
+    },
+    "9482": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 7990.2",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "9482",
+      "name": "Michael Mayer",
+      "team": "LV",
+      "position": "TE",
+      "fsffl_rostered": false,
+      "trending_add_score": 4265.1,
+      "trending_drop_score": 7990.2,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "9492": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
@@ -5276,77 +5240,17 @@
           "strength": 0.88
         }
       ],
-      "player_id": "8230",
-      "name": "Ty Chandler",
+      "player_id": "9492",
+      "name": "Trey Palmer",
       "team": "NO",
-      "position": "RB",
+      "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
       "trending_drop_score": 0.0,
-      "depth_rank": 6,
+      "depth_rank": 8,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.88
-    },
-    "8698": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9343.2",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "8698",
-      "name": "Jake Tonges",
-      "team": "SF",
-      "position": "TE",
-      "fsffl_rostered": false,
-      "trending_add_score": 4641.5,
-      "trending_drop_score": 9343.25,
-      "depth_rank": 2,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "9482": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 8179.7",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "9482",
-      "name": "Michael Mayer",
-      "team": "LV",
-      "position": "TE",
-      "fsffl_rostered": false,
-      "trending_add_score": 4313.7,
-      "trending_drop_score": 8179.65,
-      "depth_rank": 2,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
     },
     "9494": {
       "depth_chart_rise": false,
@@ -5362,7 +5266,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15123.2",
+          "detail": "strong drop velocity score 14838.8",
           "strength": 0.45
         }
       ],
@@ -5372,11 +5276,41 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15123.15,
+      "trending_drop_score": 14838.75,
       "depth_rank": null,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "9500": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": true,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "injury_opportunity",
+          "source": "direct_next_man_up",
+          "detail": "direct player ahead (Alec Pierce) is materially unavailable: PUP",
+          "strength": 0.88
+        }
+      ],
+      "player_id": "9500",
+      "name": "Josh Downs",
+      "team": "IND",
+      "position": "WR",
+      "fsffl_rostered": true,
+      "trending_add_score": 1550.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.88
     },
     "9506": {
       "depth_chart_rise": false,
@@ -5392,7 +5326,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14871.2",
+          "detail": "strong drop velocity score 14500.4",
           "strength": 0.45
         }
       ],
@@ -5402,7 +5336,7 @@
       "position": "RB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 14871.15,
+      "trending_drop_score": 14500.35,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -6815,18 +6749,19 @@
     "CURRENT_REGULAR_SEASON_USAGE_NOT_EXPECTED"
   ],
   "current_catalyst_ingestion": {
-    "generated_at_utc": "2026-08-22T15:27:58.540663+00:00",
-    "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4-CBS-Player-News",
+    "generated_at_utc": "2026-08-22T15:44:51.800954+00:00",
+    "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4.1-Position-Safe-Depth",
     "season": 2026,
     "season_phase": "PRESEASON",
-    "automatic_catalyst_records": 81,
-    "sleeper_trending_add_players": 109,
-    "sleeper_trending_drop_players": 107,
+    "automatic_catalyst_records": 79,
+    "sleeper_trending_add_players": 108,
+    "sleeper_trending_drop_players": 106,
     "depth_chart_players_matched": 3280,
     "public_news_entries": 10,
     "public_news_available": true,
     "public_news_source": "https://www.cbssports.com/fantasy/football/players/news/all/",
     "injury_opportunity_policy": "DIRECT_NEXT_MAN_UP_AND_MATERIALLY_UNAVAILABLE_ONLY",
+    "depth_grouping_policy": "SAME_TEAM_AND_SAME_FANTASY_POSITION_QB_RB_WR_TE",
     "sleeper_add_velocity_policy": "MARKET_CONTEXT_ONLY_NOT_ROLE_EVIDENCE",
     "injury_clearance_policy": "HEALTH_UPDATE_ONLY_NOT_ROLE_EVIDENCE",
     "public_news_policy": "CBS_PLAYER_ENTRY_PLUS_PLAYER_LOCAL_WINDOW"
