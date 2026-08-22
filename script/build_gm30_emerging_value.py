@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4-Historical-Calibrated"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.1-PPG-Schema-Tolerant"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -185,51 +185,137 @@ def manual_features(m):
     return clamp(score), evidence, n
 
 def fetch_prior_ppg(active_season):
-    """Fetch prior completed regular-season PPG by normalized player name."""
+    """Fetch prior completed regular-season half-PPR PPG by normalized player name.
+
+    nflverse schemas can vary slightly by vintage, so this reader is intentionally
+    tolerant about season-type labels, position columns, and interception fields.
+    """
+    diagnostics = {
+        "target_season": int(active_season) - 1,
+        "rows_seen": 0,
+        "target_season_rows": 0,
+        "regular_season_rows": 0,
+        "fantasy_position_rows": 0,
+        "players_aggregated": 0,
+    }
     try:
         req = urllib.request.Request(
             PLAYER_STATS_URL,
             headers={"User-Agent": "FSFFL-GM30-Emerging/1.0"},
         )
         with urllib.request.urlopen(req, timeout=60) as r:
-            raw = gzip.decompress(r.read())
+            payload = r.read()
+        try:
+            raw = gzip.decompress(payload)
+        except OSError:
+            # Be tolerant if the endpoint/runtime already provides decoded bytes.
+            raw = payload
         rows = csv.DictReader(io.StringIO(raw.decode("utf-8")))
-    except Exception:
-        return {}, "PRIOR_PPG_FETCH_FAILED"
+    except Exception as e:
+        diagnostics["error"] = str(e)
+        return {}, "PRIOR_PPG_FETCH_FAILED", diagnostics
 
-    prior = active_season - 1
+    prior = int(active_season) - 1
     agg = {}
     games = {}
+
+    regular_labels = {
+        "", "REG", "REGULAR", "REGULAR_SEASON", "REGULAR SEASON", "RS"
+    }
+
     for r in rows:
+        diagnostics["rows_seen"] += 1
+
         try:
             season = int(float(r.get("season") or 0))
         except Exception:
             continue
         if season != prior:
             continue
-        if str(r.get("season_type") or r.get("game_type") or "REG").upper() not in {"REG", "REGULAR"}:
+        diagnostics["target_season_rows"] += 1
+
+        season_type = str(
+            r.get("season_type")
+            or r.get("game_type")
+            or r.get("season_phase")
+            or ""
+        ).strip().upper()
+        if season_type not in regular_labels:
             continue
-        pos = str(r.get("position") or r.get("position_group") or "").upper()
-        if pos not in POSITIONS:
+        diagnostics["regular_season_rows"] += 1
+
+        # Position is used only as a relevance filter. Accept all common field names.
+        pos = str(
+            r.get("position")
+            or r.get("position_group")
+            or r.get("fantasy_position")
+            or ""
+        ).strip().upper()
+        if pos and pos not in POSITIONS:
             continue
-        name = norm_name(r.get("player_display_name") or r.get("player_name") or r.get("name"))
+
+        name = norm_name(
+            r.get("player_display_name")
+            or r.get("player_name")
+            or r.get("display_name")
+            or r.get("name")
+        )
         if not name:
             continue
+
+        # If position is missing entirely, include the row; current Sleeper-player
+        # matching later prevents non-fantasy positions from affecting live players.
+        diagnostics["fantasy_position_rows"] += 1
+
         fp = (
             0.04 * num(r.get("passing_yards"), 0)
             + 4.0 * num(r.get("passing_tds"), 0)
-            - 1.0 * num(r.get("interceptions"), 0)
+            - 1.0 * num(
+                r.get("passing_interceptions")
+                if r.get("passing_interceptions") is not None
+                else r.get("interceptions"),
+                0,
+            )
             + 0.10 * num(r.get("rushing_yards"), 0)
             + 6.0 * num(r.get("rushing_tds"), 0)
             + 0.50 * num(r.get("receptions"), 0)
             + 0.10 * num(r.get("receiving_yards"), 0)
             + 6.0 * num(r.get("receiving_tds"), 0)
-            - 1.0 * num(r.get("rushing_fumbles_lost") or r.get("fumbles_lost"), 0)
+            - 1.0 * num(
+                r.get("rushing_fumbles_lost")
+                or r.get("receiving_fumbles_lost")
+                or r.get("fumbles_lost"),
+                0,
+            )
         )
+
         agg[name] = agg.get(name, 0.0) + fp
-        game_key = str(r.get("game_id") or r.get("week") or "")
-        games.setdefault(name, set()).add(game_key or f"row-{len(games.get(name, set()))}")
-    return {n: agg[n] / max(len(games.get(n, set())), 1) for n in agg}, None
+
+        game_key = str(
+            r.get("game_id")
+            or r.get("week")
+            or r.get("game_week")
+            or ""
+        )
+        if not game_key:
+            game_key = f"row-{diagnostics['fantasy_position_rows']}"
+        games.setdefault(name, set()).add(game_key)
+
+    result = {
+        name: agg[name] / max(len(games.get(name, set())), 1)
+        for name in agg
+    }
+    diagnostics["players_aggregated"] = len(result)
+
+    warning = None
+    if diagnostics["target_season_rows"] == 0:
+        warning = "PRIOR_PPG_TARGET_SEASON_NOT_FOUND"
+    elif diagnostics["regular_season_rows"] == 0:
+        warning = "PRIOR_PPG_REGULAR_SEASON_FILTER_EMPTY"
+    elif not result:
+        warning = "PRIOR_PPG_NO_PLAYERS_AGGREGATED"
+
+    return result, warning, diagnostics
 
 def bin_age(age):
     if age is None:
@@ -449,7 +535,7 @@ def main():
     phase = str(fi.get("season_phase") or "UNKNOWN")
     active_season = int(fi.get("active_season") or (load(DATA / "league.json", {}) or {}).get("season"))
     calibration = load(OUT / "breakout_calibration.json", {}) or {}
-    prior_ppg, prior_ppg_warning = fetch_prior_ppg(active_season)
+    prior_ppg, prior_ppg_warning, prior_ppg_diagnostics = fetch_prior_ppg(active_season)
     rows = []
 
     for pid, p in players.items():
@@ -609,6 +695,7 @@ def main():
             "preseason_usage_records": int(fi.get("preseason_usage_records") or 0),
             "manual_intelligence_records": int(fi.get("manual_intelligence_records") or 0),
             "prior_ppg_players": len(prior_ppg),
+            "prior_ppg_diagnostics": prior_ppg_diagnostics,
         },
         "warnings": sorted(set(warnings)),
         "signal_counts": {k: len(v) for k, v in buckets.items()},
