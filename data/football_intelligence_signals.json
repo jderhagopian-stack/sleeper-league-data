@@ -1,15 +1,2947 @@
 {
-  "generated_at_utc": "2026-08-22T04:35:00.036268+00:00",
+  "generated_at_utc": "2026-08-22T04:41:15.644049+00:00",
+  "model_version": "FSFFL-GM-3.0-Football-Intelligence-v1",
   "active_season": 2026,
+  "season_phase": "PRESEASON",
+  "phase_weights": {
+    "prior_nfl": 0.3,
+    "structural": 0.2,
+    "news_role": 0.3,
+    "preseason_usage": 0.2,
+    "current_usage": 0
+  },
+  "phase_interpretation": {
+    "current_regular_season_usage_expected": false,
+    "prior_season_evidence_expected": true,
+    "camp_news_priority": true,
+    "preseason_usage_priority": true
+  },
   "usage_records": 0,
   "snap_records": 0,
+  "prior_snap_records": 416,
   "manual_intelligence_records": 0,
+  "preseason_usage_records": 0,
   "usage": {},
   "snaps": {},
+  "prior_snaps": {
+    "11562": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 490.0,
+      "offense_snap_pct": 0.8167,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7002": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 850.0,
+      "offense_snap_pct": 0.75,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8676": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 806.0,
+      "offense_snap_pct": 0.5962,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8144": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 887.0,
+      "offense_snap_pct": 0.8431,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4035": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 457.0,
+      "offense_snap_pct": 0.6373,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2197": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 612.0,
+      "offense_snap_pct": 0.5435,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11834": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 437.0,
+      "offense_snap_pct": 0.5015,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9757": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 113.0,
+      "offense_snap_pct": 0.2429,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12476": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 268.0,
+      "offense_snap_pct": 0.4,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11895": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 297.0,
+      "offense_snap_pct": 0.3021,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5849": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 318.0,
+      "offense_snap_pct": 0.988,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8130": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1033.0,
+      "offense_snap_pct": 0.9135,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10232": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 923.0,
+      "offense_snap_pct": 0.8135,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4137": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 93.0,
+      "offense_snap_pct": 0.5,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4080": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 271.0,
+      "offense_snap_pct": 0.4963,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11589": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 123.0,
+      "offense_snap_pct": 0.4825,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5970": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 292.0,
+      "offense_snap_pct": 0.3358,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11199": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 196.0,
+      "offense_snap_pct": 0.2323,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4984": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 1175.0,
+      "offense_snap_pct": 0.93,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11637": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 638.0,
+      "offense_snap_pct": 0.624,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8134": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 730.0,
+      "offense_snap_pct": 0.6061,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8138": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 727.0,
+      "offense_snap_pct": 0.5768,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5906": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 733.0,
+      "offense_snap_pct": 0.5805,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10236": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 368.0,
+      "offense_snap_pct": 0.3871,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6039": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 335.0,
+      "offense_snap_pct": 0.2959,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7596": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 193.0,
+      "offense_snap_pct": 0.295,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11575": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 215.0,
+      "offense_snap_pct": 0.1632,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4881": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 702.0,
+      "offense_snap_pct": 0.9223,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9997": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 878.0,
+      "offense_snap_pct": 0.8647,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5012": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 630.0,
+      "offense_snap_pct": 0.6171,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7571": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 550.0,
+      "offense_snap_pct": 0.6931,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3198": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 555.0,
+      "offense_snap_pct": 0.5453,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5995": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 219.0,
+      "offense_snap_pct": 0.371,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1426": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 334.0,
+      "offense_snap_pct": 0.33,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11570": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 119.0,
+      "offense_snap_pct": 0.13,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11629": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 163.0,
+      "offense_snap_pct": 0.2467,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7523": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 1170.0,
+      "offense_snap_pct": 0.9689,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11631": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 784.0,
+      "offense_snap_pct": 0.776,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9480": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 640.0,
+      "offense_snap_pct": 0.7585,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7587": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 356.0,
+      "offense_snap_pct": 0.3664,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12530": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 324.0,
+      "offense_snap_pct": 0.6629,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7543": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 721.0,
+      "offense_snap_pct": 0.5978,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9487": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 712.0,
+      "offense_snap_pct": 0.6194,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9225": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 147.0,
+      "offense_snap_pct": 0.1256,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12544": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 270.0,
+      "offense_snap_pct": 0.2244,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4351": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 351.0,
+      "offense_snap_pct": 0.3147,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12490": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 231.0,
+      "offense_snap_pct": 0.2162,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9228": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1031.0,
+      "offense_snap_pct": 0.9694,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12526": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 985.0,
+      "offense_snap_pct": 0.8733,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11626": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 669.0,
+      "offense_snap_pct": 0.6613,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7594": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 473.0,
+      "offense_snap_pct": 0.4675,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5955": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 210.0,
+      "offense_snap_pct": 0.4917,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11600": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 393.0,
+      "offense_snap_pct": 0.4831,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7021": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 615.0,
+      "offense_snap_pct": 0.5494,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4274": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 81.0,
+      "offense_snap_pct": 0.3275,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12531": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 66.0,
+      "offense_snap_pct": 0.055,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "19": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 690.0,
+      "offense_snap_pct": 0.7785,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10444": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 515.0,
+      "offense_snap_pct": 0.6185,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6783": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 921.0,
+      "offense_snap_pct": 0.8453,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4033": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 514.0,
+      "offense_snap_pct": 0.6392,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12506": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 786.0,
+      "offense_snap_pct": 0.7594,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8143": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 269.0,
+      "offense_snap_pct": 0.3046,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12469": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 249.0,
+      "offense_snap_pct": 0.2647,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12503": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 494.0,
+      "offense_snap_pct": 0.4806,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11633": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 216.0,
+      "offense_snap_pct": 0.3511,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12472": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 59.0,
+      "offense_snap_pct": 0.2575,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2750": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 0.0,
+      "offense_snap_pct": 0.0,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6770": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 478.0,
+      "offense_snap_pct": 0.8775,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7564": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 987.0,
+      "offense_snap_pct": 0.9438,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6801": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 769.0,
+      "offense_snap_pct": 0.8087,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9224": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 738.0,
+      "offense_snap_pct": 0.6659,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10226": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 851.0,
+      "offense_snap_pct": 0.7618,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5857": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 379.0,
+      "offense_snap_pct": 0.3793,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4993": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 321.0,
+      "offense_snap_pct": 0.3854,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4147": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 346.0,
+      "offense_snap_pct": 0.3507,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12543": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 47.0,
+      "offense_snap_pct": 0.045,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6904": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1038.0,
+      "offense_snap_pct": 0.9776,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7525": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 955.0,
+      "offense_snap_pct": 0.8483,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5859": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 916.0,
+      "offense_snap_pct": 0.9125,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5022": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 854.0,
+      "offense_snap_pct": 0.8506,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4866": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 835.0,
+      "offense_snap_pct": 0.7871,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8177": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 400.0,
+      "offense_snap_pct": 0.3944,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8119": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 637.0,
+      "offense_snap_pct": 0.5661,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7602": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 249.0,
+      "offense_snap_pct": 0.225,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6828": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 50.0,
+      "offense_snap_pct": 0.1186,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11577": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 119.0,
+      "offense_snap_pct": 0.1194,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "13150": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 233.0,
+      "offense_snap_pct": 0.2607,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8147": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 445.0,
+      "offense_snap_pct": 0.4612,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3294": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1135.0,
+      "offense_snap_pct": 0.9506,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6786": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 732.0,
+      "offense_snap_pct": 0.7286,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8137": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 968.0,
+      "offense_snap_pct": 0.8112,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7588": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 769.0,
+      "offense_snap_pct": 0.69,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8110": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 786.0,
+      "offense_snap_pct": 0.6671,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8917": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 380.0,
+      "offense_snap_pct": 0.3547,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8117": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 464.0,
+      "offense_snap_pct": 0.5131,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10871": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 391.0,
+      "offense_snap_pct": 0.3294,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6151": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 65.0,
+      "offense_snap_pct": 0.215,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11783": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 479.0,
+      "offense_snap_pct": 0.4475,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6804": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 965.0,
+      "offense_snap_pct": 0.9462,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9484": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 439.0,
+      "offense_snap_pct": 0.86,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5850": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 599.0,
+      "offense_snap_pct": 0.5931,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8121": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 832.0,
+      "offense_snap_pct": 0.7729,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12501": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 487.0,
+      "offense_snap_pct": 0.5293,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9486": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 408.0,
+      "offense_snap_pct": 0.4464,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10222": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 217.0,
+      "offense_snap_pct": 0.445,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9481": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 485.0,
+      "offense_snap_pct": 0.4228,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11370": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 222.0,
+      "offense_snap_pct": 0.2044,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11435": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 339.0,
+      "offense_snap_pct": 0.3039,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3163": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1083.0,
+      "offense_snap_pct": 0.9853,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8148": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 992.0,
+      "offense_snap_pct": 0.9018,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7547": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 939.0,
+      "offense_snap_pct": 0.8524,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10859": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 517.0,
+      "offense_snap_pct": 0.9067,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3634": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 358.0,
+      "offense_snap_pct": 0.366,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9221": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 737.0,
+      "offense_snap_pct": 0.67,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5892": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 408.0,
+      "offense_snap_pct": 0.3706,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7891": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 401.0,
+      "offense_snap_pct": 0.5764,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12535": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 436.0,
+      "offense_snap_pct": 0.3965,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "421": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 1332.0,
+      "offense_snap_pct": 0.9875,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2133": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 788.0,
+      "offense_snap_pct": 0.7124,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8150": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 900.0,
+      "offense_snap_pct": 0.669,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9493": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 905.0,
+      "offense_snap_pct": 0.7053,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3271": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 425.0,
+      "offense_snap_pct": 0.4892,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11623": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 493.0,
+      "offense_snap_pct": 0.3995,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6865": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 778.0,
+      "offense_snap_pct": 0.6256,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7562": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 202.0,
+      "offense_snap_pct": 0.2718,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10214": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 665.0,
+      "offense_snap_pct": 0.486,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11586": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 412.0,
+      "offense_snap_pct": 0.3035,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12487": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 415.0,
+      "offense_snap_pct": 0.3763,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9758": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 1011.0,
+      "offense_snap_pct": 0.9231,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7569": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 816.0,
+      "offense_snap_pct": 0.7588,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10218": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 780.0,
+      "offense_snap_pct": 0.5932,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11599": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 349.0,
+      "offense_snap_pct": 0.4691,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5374": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 68.0,
+      "offense_snap_pct": 0.29,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5001": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 893.0,
+      "offense_snap_pct": 0.6858,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4988": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 368.0,
+      "offense_snap_pct": 0.3182,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12484": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 768.0,
+      "offense_snap_pct": 0.5826,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4718": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 129.0,
+      "offense_snap_pct": 0.1,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12536": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 316.0,
+      "offense_snap_pct": 0.2416,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8129": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 28.0,
+      "offense_snap_pct": 0.084,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12474": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 670.0,
+      "offense_snap_pct": 0.535,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6797": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1103.0,
+      "offense_snap_pct": 0.97,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11635": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 890.0,
+      "offense_snap_pct": 0.7812,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9754": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 769.0,
+      "offense_snap_pct": 0.7687,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12507": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 386.0,
+      "offense_snap_pct": 0.574,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1479": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 666.0,
+      "offense_snap_pct": 0.5572,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5010": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 194.0,
+      "offense_snap_pct": 0.295,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5133": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 169.0,
+      "offense_snap_pct": 0.1923,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12670": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 123.0,
+      "offense_snap_pct": 0.188,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7528": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 43.0,
+      "offense_snap_pct": 0.2167,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8123": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 83.0,
+      "offense_snap_pct": 0.0923,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4046": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 934.0,
+      "offense_snap_pct": 0.9743,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5848": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 551.0,
+      "offense_snap_pct": 0.535,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1466": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 902.0,
+      "offense_snap_pct": 0.8188,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4040": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 620.0,
+      "offense_snap_pct": 0.5724,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8188": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 368.0,
+      "offense_snap_pct": 0.39,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8205": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 424.0,
+      "offense_snap_pct": 0.5169,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7828": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 545.0,
+      "offense_snap_pct": 0.5212,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4098": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 529.0,
+      "offense_snap_pct": 0.4706,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12455": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 191.0,
+      "offense_snap_pct": 0.1671,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4602": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 133.0,
+      "offense_snap_pct": 0.1106,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11624": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 645.0,
+      "offense_snap_pct": 0.7057,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11564": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 1314.0,
+      "offense_snap_pct": 0.9657,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3214": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 1067.0,
+      "offense_snap_pct": 0.7862,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9504": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 787.0,
+      "offense_snap_pct": 0.6756,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7611": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 718.0,
+      "offense_snap_pct": 0.6178,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9501": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 367.0,
+      "offense_snap_pct": 0.2662,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4177": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 749.0,
+      "offense_snap_pct": 0.6759,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2449": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 738.0,
+      "offense_snap_pct": 0.5433,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12529": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 584.0,
+      "offense_snap_pct": 0.4305,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3202": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 629.0,
+      "offense_snap_pct": 0.489,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12547": {
+      "source_season": 2025,
+      "games": 21,
+      "offense_snaps": 411.0,
+      "offense_snap_pct": 0.3038,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6945": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 52.0,
+      "offense_snap_pct": 0.166,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1373": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 863.0,
+      "offense_snap_pct": 0.9647,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5947": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 926.0,
+      "offense_snap_pct": 0.8565,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10213": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 942.0,
+      "offense_snap_pct": 0.9482,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12527": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 771.0,
+      "offense_snap_pct": 0.7788,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9482": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 465.0,
+      "offense_snap_pct": 0.6177,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12541": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 399.0,
+      "offense_snap_pct": 0.4533,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11604": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 605.0,
+      "offense_snap_pct": 0.8592,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8139": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 62.0,
+      "offense_snap_pct": 0.1583,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12483": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 343.0,
+      "offense_snap_pct": 0.3975,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11574": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 27.0,
+      "offense_snap_pct": 0.0288,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5870": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 756.0,
+      "offense_snap_pct": 0.9146,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8142": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 813.0,
+      "offense_snap_pct": 0.8593,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12518": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 899.0,
+      "offense_snap_pct": 0.8382,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6813": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 883.0,
+      "offense_snap_pct": 0.8259,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9500": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 594.0,
+      "offense_snap_pct": 0.5869,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12471": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 70.0,
+      "offense_snap_pct": 0.12,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11625": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 498.0,
+      "offense_snap_pct": 0.5062,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6427": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 163.0,
+      "offense_snap_pct": 0.2133,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6768": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 776.0,
+      "offense_snap_pct": 0.9543,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9226": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 694.0,
+      "offense_snap_pct": 0.7538,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7526": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 722.0,
+      "offense_snap_pct": 0.7762,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3321": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 155.0,
+      "offense_snap_pct": 0.685,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11610": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 562.0,
+      "offense_snap_pct": 0.57,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7496": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 386.0,
+      "offense_snap_pct": 0.442,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12495": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 222.0,
+      "offense_snap_pct": 0.2241,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7538": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 26.0,
+      "offense_snap_pct": 0.1125,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5284": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 8.0,
+      "offense_snap_pct": 0.05,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11560": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 1302.0,
+      "offense_snap_pct": 0.9916,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11620": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 849.0,
+      "offense_snap_pct": 0.8593,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6826": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 873.0,
+      "offense_snap_pct": 0.7083,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6790": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 710.0,
+      "offense_snap_pct": 0.5767,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12517": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 817.0,
+      "offense_snap_pct": 0.6544,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6271": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 617.0,
+      "offense_snap_pct": 0.5028,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12519": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 494.0,
+      "offense_snap_pct": 0.4182,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12534": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 544.0,
+      "offense_snap_pct": 0.4095,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6847": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 41.0,
+      "offense_snap_pct": 0.0321,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11565": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 523.0,
+      "offense_snap_pct": 0.916,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6794": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 941.0,
+      "offense_snap_pct": 0.9418,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8180": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 653.0,
+      "offense_snap_pct": 0.6535,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5844": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 691.0,
+      "offense_snap_pct": 0.7793,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1689": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 404.0,
+      "offense_snap_pct": 0.3888,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8408": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 413.0,
+      "offense_snap_pct": 0.4275,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4199": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 366.0,
+      "offense_snap_pct": 0.5508,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12496": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 46.0,
+      "offense_snap_pct": 0.0441,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8230": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 42.0,
+      "offense_snap_pct": 0.2233,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11566": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 405.0,
+      "offense_snap_pct": 0.9029,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5927": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 433.0,
+      "offense_snap_pct": 0.704,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5872": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 713.0,
+      "offense_snap_pct": 0.7225,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1339": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 551.0,
+      "offense_snap_pct": 0.6646,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4234": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 102.0,
+      "offense_snap_pct": 0.41,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4663": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 69.0,
+      "offense_snap_pct": 0.495,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12533": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 406.0,
+      "offense_snap_pct": 0.3947,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12641": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 348.0,
+      "offense_snap_pct": 0.362,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3269": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 429.0,
+      "offense_snap_pct": 0.4857,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4219": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 337.0,
+      "offense_snap_pct": 0.3194,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11596": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 341.0,
+      "offense_snap_pct": 0.3606,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11650": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 174.0,
+      "offense_snap_pct": 0.3167,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1234": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 220.0,
+      "offense_snap_pct": 0.5433,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6149": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 755.0,
+      "offense_snap_pct": 0.8129,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11632": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 216.0,
+      "offense_snap_pct": 0.795,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11597": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 872.0,
+      "offense_snap_pct": 0.8673,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8126": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 973.0,
+      "offense_snap_pct": 0.9075,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8225": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 555.0,
+      "offense_snap_pct": 0.4994,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6130": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 311.0,
+      "offense_snap_pct": 0.2765,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12481": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 295.0,
+      "offense_snap_pct": 0.5225,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8146": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 383.0,
+      "offense_snap_pct": 0.87,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7591": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 501.0,
+      "offense_snap_pct": 0.8978,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4171": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 273.0,
+      "offense_snap_pct": 0.842,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12498": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 654.0,
+      "offense_snap_pct": 0.8108,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8155": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 640.0,
+      "offense_snap_pct": 0.6438,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6960": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 292.0,
+      "offense_snap_pct": 0.41,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11576": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 58.0,
+      "offense_snap_pct": 0.2325,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11571": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 285.0,
+      "offense_snap_pct": 0.28,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11306": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 9.0,
+      "offense_snap_pct": 0.0214,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "96": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 969.0,
+      "offense_snap_pct": 0.9529,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4144": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 566.0,
+      "offense_snap_pct": 0.5272,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7600": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 561.0,
+      "offense_snap_pct": 0.5133,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9479": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 546.0,
+      "offense_snap_pct": 0.5725,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8228": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 515.0,
+      "offense_snap_pct": 0.5047,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7757": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 167.0,
+      "offense_snap_pct": 0.1533,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11630": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 253.0,
+      "offense_snap_pct": 0.3308,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12504": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 51.0,
+      "offense_snap_pct": 0.091,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4943": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 1212.0,
+      "offense_snap_pct": 0.962,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4039": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 915.0,
+      "offense_snap_pct": 0.7574,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11603": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 998.0,
+      "offense_snap_pct": 0.7895,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9488": {
+      "source_season": 2025,
+      "games": 20,
+      "offense_snaps": 972.0,
+      "offense_snap_pct": 0.7695,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9753": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 497.0,
+      "offense_snap_pct": 0.4641,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12497": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 226.0,
+      "offense_snap_pct": 0.4813,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12521": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 335.0,
+      "offense_snap_pct": 0.3857,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12510": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 3.0,
+      "offense_snap_pct": 0.02,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8183": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 686.0,
+      "offense_snap_pct": 0.9682,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11638": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 522.0,
+      "offense_snap_pct": 0.773,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4034": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 1015.0,
+      "offense_snap_pct": 0.8174,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7049": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 899.0,
+      "offense_snap_pct": 0.8271,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8698": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 471.0,
+      "offense_snap_pct": 0.3605,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5110": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 28.0,
+      "offense_snap_pct": 0.37,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5086": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 372.0,
+      "offense_snap_pct": 0.4891,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4217": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 567.0,
+      "offense_snap_pct": 0.7625,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8168": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 129.0,
+      "offense_snap_pct": 0.1074,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11651": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 0.0,
+      "offense_snap_pct": 0.0,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11559": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 553.0,
+      "offense_snap_pct": 0.9322,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8112": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 709.0,
+      "offense_snap_pct": 0.9067,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9509": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 860.0,
+      "offense_snap_pct": 0.7818,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7553": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 961.0,
+      "offense_snap_pct": 0.88,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5096": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 211.0,
+      "offense_snap_pct": 0.53,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8132": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 328.0,
+      "offense_snap_pct": 0.3024,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4892": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1099.0,
+      "offense_snap_pct": 0.9712,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12514": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 886.0,
+      "offense_snap_pct": 0.7765,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8111": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 993.0,
+      "offense_snap_pct": 0.935,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2216": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 357.0,
+      "offense_snap_pct": 0.6562,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11584": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 421.0,
+      "offense_snap_pct": 0.616,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3200": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 495.0,
+      "offense_snap_pct": 0.5615,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8136": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 574.0,
+      "offense_snap_pct": 0.5106,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12485": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 495.0,
+      "offense_snap_pct": 0.4706,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9506": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 177.0,
+      "offense_snap_pct": 0.1582,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11994": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 105.0,
+      "offense_snap_pct": 0.0971,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11563": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 1208.0,
+      "offense_snap_pct": 0.9967,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5045": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 1090.0,
+      "offense_snap_pct": 0.8574,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11627": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 683.0,
+      "offense_snap_pct": 0.5728,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6869": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 722.0,
+      "offense_snap_pct": 0.57,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9494": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 464.0,
+      "offense_snap_pct": 0.4024,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6806": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 340.0,
+      "offense_snap_pct": 0.511,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4066": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 511.0,
+      "offense_snap_pct": 0.4189,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12489": {
+      "source_season": 2025,
+      "games": 19,
+      "offense_snaps": 557.0,
+      "offense_snap_pct": 0.4374,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8249": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 53.0,
+      "offense_snap_pct": 0.29,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8208": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 222.0,
+      "offense_snap_pct": 0.1817,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12492": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 487.0,
+      "offense_snap_pct": 0.4324,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12522": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 1007.0,
+      "offense_snap_pct": 0.9465,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4981": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 250.0,
+      "offense_snap_pct": 0.5714,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5967": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 657.0,
+      "offense_snap_pct": 0.6247,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12499": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 787.0,
+      "offense_snap_pct": 0.8056,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2374": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 498.0,
+      "offense_snap_pct": 0.5,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12502": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 533.0,
+      "offense_snap_pct": 0.5256,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12540": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 631.0,
+      "offense_snap_pct": 0.5929,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6853": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 583.0,
+      "offense_snap_pct": 0.5856,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8254": {
+      "source_season": 2025,
+      "games": 17,
+      "offense_snaps": 40.0,
+      "offense_snap_pct": 0.0388,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11299": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 105.0,
+      "offense_snap_pct": 0.1019,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7090": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 778.0,
+      "offense_snap_pct": 0.8193,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5185": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 250.0,
+      "offense_snap_pct": 0.39,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "827": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 251.0,
+      "offense_snap_pct": 0.67,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3976": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 98.0,
+      "offense_snap_pct": 0.3325,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3257": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 812.0,
+      "offense_snap_pct": 0.8571,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8122": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 283.0,
+      "offense_snap_pct": 0.3308,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5127": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 16.0,
+      "offense_snap_pct": 0.0833,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11256": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 14.0,
+      "offense_snap_pct": 0.0667,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10235": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 4.0,
+      "offense_snap_pct": 0.0086,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4574": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 115.0,
+      "offense_snap_pct": 0.505,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12512": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 452.0,
+      "offense_snap_pct": 0.505,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12486": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 372.0,
+      "offense_snap_pct": 0.562,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6111": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 212.0,
+      "offense_snap_pct": 0.734,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11569": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 0.0,
+      "offense_snap_pct": 0.0,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12508": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 774.0,
+      "offense_snap_pct": 0.8364,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4972": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 119.0,
+      "offense_snap_pct": 0.3,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10867": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 159.0,
+      "offense_snap_pct": 0.1807,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7527": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 555.0,
+      "offense_snap_pct": 0.6942,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4454": {
+      "source_season": 2025,
+      "games": 18,
+      "offense_snaps": 640.0,
+      "offense_snap_pct": 0.5467,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6850": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 204.0,
+      "offense_snap_pct": 0.2121,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "829": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 97.0,
+      "offense_snap_pct": 0.38,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1166": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 543.0,
+      "offense_snap_pct": 0.861,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3161": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 300.0,
+      "offense_snap_pct": 0.932,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12775": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 178.0,
+      "offense_snap_pct": 0.4543,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6938": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 10.0,
+      "offense_snap_pct": 0.02,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11557": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 51.0,
+      "offense_snap_pct": 0.21,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11729": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 1.0,
+      "offense_snap_pct": 0.0009,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4950": {
+      "source_season": 2025,
+      "games": 15,
+      "offense_snaps": 523.0,
+      "offense_snap_pct": 0.5047,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9229": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 14.0,
+      "offense_snap_pct": 0.115,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8207": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 35.0,
+      "offense_snap_pct": 0.05,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9497": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 171.0,
+      "offense_snap_pct": 0.2938,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2307": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 510.0,
+      "offense_snap_pct": 0.7455,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10219": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 255.0,
+      "offense_snap_pct": 0.3123,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5854": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 44.0,
+      "offense_snap_pct": 0.1267,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12545": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 605.0,
+      "offense_snap_pct": 0.8345,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7593": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 1.0,
+      "offense_snap_pct": 0.005,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12505": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 86.0,
+      "offense_snap_pct": 0.19,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8131": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 487.0,
+      "offense_snap_pct": 0.5593,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4179": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 44.0,
+      "offense_snap_pct": 0.18,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2749": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 137.0,
+      "offense_snap_pct": 0.2,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3286": {
+      "source_season": 2025,
+      "games": 16,
+      "offense_snaps": 484.0,
+      "offense_snap_pct": 0.4769,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11647": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 537.0,
+      "offense_snap_pct": 0.5721,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9756": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 714.0,
+      "offense_snap_pct": 0.8514,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4082": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 185.0,
+      "offense_snap_pct": 0.4043,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2505": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 232.0,
+      "offense_snap_pct": 0.45,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4037": {
+      "source_season": 2025,
+      "games": 9,
+      "offense_snaps": 428.0,
+      "offense_snap_pct": 0.7089,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7607": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 393.0,
+      "offense_snap_pct": 0.4523,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7608": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 50.0,
+      "offense_snap_pct": 0.1357,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12457": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 78.0,
+      "offense_snap_pct": 0.256,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9511": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 132.0,
+      "offense_snap_pct": 0.1746,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7585": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 292.0,
+      "offense_snap_pct": 0.705,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2359": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 86.0,
+      "offense_snap_pct": 0.1054,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6843": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 31.0,
+      "offense_snap_pct": 0.46,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12523": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 167.0,
+      "offense_snap_pct": 0.1986,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6931": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 26.0,
+      "offense_snap_pct": 0.0617,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11617": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 194.0,
+      "offense_snap_pct": 0.2492,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5985": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 253.0,
+      "offense_snap_pct": 0.3573,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4381": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 210.0,
+      "offense_snap_pct": 0.2462,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9508": {
+      "source_season": 2025,
+      "games": 13,
+      "offense_snaps": 374.0,
+      "offense_snap_pct": 0.4592,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7610": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 100.0,
+      "offense_snap_pct": 0.3775,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5880": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 2.0,
+      "offense_snap_pct": 0.04,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11439": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 105.0,
+      "offense_snap_pct": 0.159,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7083": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 197.0,
+      "offense_snap_pct": 0.594,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "830": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 0.0,
+      "offense_snap_pct": 0.0,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11646": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 498.0,
+      "offense_snap_pct": 0.7092,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6694": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 46.0,
+      "offense_snap_pct": 0.0567,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "1837": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 18.0,
+      "offense_snap_pct": 0.0833,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8195": {
+      "source_season": 2025,
+      "games": 14,
+      "offense_snaps": 26.0,
+      "offense_snap_pct": 0.0271,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10229": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 415.0,
+      "offense_snap_pct": 0.7487,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8160": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 79.0,
+      "offense_snap_pct": 0.285,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12500": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 179.0,
+      "offense_snap_pct": 0.79,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11643": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 127.0,
+      "offense_snap_pct": 0.215,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6012": {
+      "source_season": 2025,
+      "games": 12,
+      "offense_snaps": 6.0,
+      "offense_snap_pct": 0.0058,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2152": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 35.0,
+      "offense_snap_pct": 0.1225,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8800": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 155.0,
+      "offense_snap_pct": 0.207,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3423": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 72.0,
+      "offense_snap_pct": 0.3767,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6136": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 62.0,
+      "offense_snap_pct": 0.53,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8167": {
+      "source_season": 2025,
+      "games": 11,
+      "offense_snaps": 475.0,
+      "offense_snap_pct": 0.6882,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8172": {
+      "source_season": 2025,
+      "games": 10,
+      "offense_snaps": 245.0,
+      "offense_snap_pct": 0.422,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9230": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 89.0,
+      "offense_snap_pct": 0.345,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8219": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 60.0,
+      "offense_snap_pct": 0.2275,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6820": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 19.0,
+      "offense_snap_pct": 0.105,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8135": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 292.0,
+      "offense_snap_pct": 0.6012,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11579": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 181.0,
+      "offense_snap_pct": 0.3929,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12524": {
+      "source_season": 2025,
+      "games": 8,
+      "offense_snaps": 428.0,
+      "offense_snap_pct": 0.9163,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "2306": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 156.0,
+      "offense_snap_pct": 0.6767,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "6920": {
+      "source_season": 2025,
+      "games": 7,
+      "offense_snaps": 363.0,
+      "offense_snap_pct": 0.7629,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8161": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 98.0,
+      "offense_snap_pct": 0.4225,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "7561": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 7.0,
+      "offense_snap_pct": 0.1,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "4464": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 36.0,
+      "offense_snap_pct": 0.112,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5917": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 22.0,
+      "offense_snap_pct": 0.1,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "5000": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 1.0,
+      "offense_snap_pct": 0.0067,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10223": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 3.0,
+      "offense_snap_pct": 0.0125,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10225": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 80.0,
+      "offense_snap_pct": 0.2067,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12520": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 30.0,
+      "offense_snap_pct": 0.22,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "9220": {
+      "source_season": 2025,
+      "games": 6,
+      "offense_snaps": 77.0,
+      "offense_snap_pct": 0.1917,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10860": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 1.0,
+      "offense_snap_pct": 0.02,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12538": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 296.0,
+      "offense_snap_pct": 0.98,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11588": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 79.0,
+      "offense_snap_pct": 0.3,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11618": {
+      "source_season": 2025,
+      "games": 4,
+      "offense_snaps": 138.0,
+      "offense_snap_pct": 0.515,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "331": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 172.0,
+      "offense_snap_pct": 0.97,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "8756": {
+      "source_season": 2025,
+      "games": 3,
+      "offense_snaps": 0.0,
+      "offense_snap_pct": 0.0,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "12467": {
+      "source_season": 2025,
+      "games": 5,
+      "offense_snaps": 17.0,
+      "offense_snap_pct": 0.056,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10217": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 59.0,
+      "offense_snap_pct": 0.585,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "10866": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 51.0,
+      "offense_snap_pct": 0.82,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "3357": {
+      "source_season": 2025,
+      "games": 1,
+      "offense_snaps": 49.0,
+      "offense_snap_pct": 0.91,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    },
+    "11573": {
+      "source_season": 2025,
+      "games": 2,
+      "offense_snaps": 4.0,
+      "offense_snap_pct": 0.03,
+      "evidence_type": "PRIOR_REGULAR_SEASON"
+    }
+  },
   "manual_intelligence": {},
-  "sources": {
-    "nflverse_player_stats": "https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv.gz",
-    "nflverse_snap_counts": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2026.csv",
-    "manual_overrides": "data/football_intelligence_overrides.json"
-  }
+  "preseason_usage": {},
+  "warnings": [
+    "CURRENT_REGULAR_SEASON_USAGE_NOT_EXPECTED",
+    "CAMP_NEWS_INTELLIGENCE_NOT_YET_INGESTED",
+    "PRESEASON_USAGE_NOT_YET_INGESTED"
+  ]
 }
