@@ -30,12 +30,13 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check numpy pandas pyarrow
 
-      - name: Verify frozen GM 2.2 reference exists
+      - name: Verify frozen baselines exist
         shell: bash
         run: |
           test -f data/gm22_reference/franchise_index.json
           test -f data/gm22_reference/league/mutual_trade_map.json
-          echo "Frozen GM 2.2 regression baseline found."
+          test -f data/gm30_reference/manifest.json
+          echo "Frozen GM 2.2 and GM 3.0.0 references found."
 
       # Rebuild simulator inputs from the SAME checked-out league snapshot.
       # Do not refresh Sleeper in the middle of this workflow.
@@ -83,45 +84,7 @@ jobs:
           print("Fresh baseline simulator: PASS")
           PY
 
-      - name: Clean GM 3.0 production output
-        shell: bash
-        run: |
-          rm -rf data/gm
-          mkdir -p data/gm
-
-      - name: Build automatic GM 3.0 prospect inputs
-        run: python script/build_gm30_prospect_inputs.py
-
-      - name: Enrich GM 3.0 prospect features
-        run: python script/build_gm30_prospect_features.py
-
-      - name: Build GM 3.0 prospect intelligence
-        run: python script/build_gm30_prospect_engine.py
-
-      - name: Normalize prospect-board contract
-        shell: bash
-        run: |
-          if [ -f data/gm/gm30_prospect_radar.json ]; then
-            cp data/gm/gm30_prospect_radar.json data/gm/prospect_board.json
-          fi
-
-      - name: Build GM 3.0 calibration audit
-        run: python script/build_gm30_calibration.py
-
-      - name: Build phase-aware football intelligence
-        run: python script/build_gm30_football_intelligence.py
-
-      - name: Build current GM 3.0 catalysts
-        run: python script/build_gm30_current_catalysts.py
-
-      - name: Build GM 3.0 emerging value intelligence
-        run: python script/build_gm30_emerging_value.py
-
-      # Counterfactual GM 3.0:
-      # GM 2.2 screens economically plausible packages, then the same season
-      # simulator re-runs the actual league with the proposed bilateral roster
-      # change and feeds points/wins/playoff/bye/title deltas back into ranking.
-      - name: Build counterfactual simulator-integrated GM 3.0
+      - name: Run canonical GM 3.0.0 production pipeline
         env:
           GM30_FOCAL_MANAGER: "jimmygoodjob"
           GM30_CF_SCREEN_SIMS: "2500"
@@ -132,75 +95,14 @@ jobs:
           GM30_CF_FOCAL_TARGETS: "6"
           GM30_CF_FOCAL_PACKAGES: "2"
           GM30_CF_FOCAL_FINALISTS: "3"
-        run: python script/run_fsffl_gm30_counterfactual.py
+        run: bash script/run_gm300_production_pipeline.sh
 
-      - name: Run consolidated GM 3.0 validation gate
-        run: python script/validate_gm30.py
-
-      - name: Verify counterfactual trade simulation exists
+      - name: Show fresh baseline simulator output
         shell: bash
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          idx = json.load(open("data/gm/franchise_index.json"))
-          focal = next(
-              x for x in idx["teams"]
-              if x.get("manager") == "jimmygoodjob"
-          )
-          trade_path = Path(focal["paths"]["trade_opportunities"])
-          trade = json.load(trade_path.open())
-
-          simulated = []
-          for opp in trade.get("opportunities") or []:
-              for pkg in opp.get("best_candidate_packages") or []:
-                  if pkg.get("counterfactual_simulation_status") in {
-                      "SCREENED",
-                      "FINAL_CONFIRMED",
-                  }:
-                      simulated.append(pkg)
-
-          if not simulated:
-              raise SystemExit(
-                  "No counterfactual-simulated focal trade packages found"
-              )
-
-          sample = simulated[0]
-          summary = sample.get("gm30_simulation_summary") or {}
-          required = {
-              "expected_points_delta",
-              "expected_wins_delta",
-              "playoff_probability_delta",
-              "bye_probability_delta",
-              "championship_probability_delta",
-          }
-          if not required.issubset(summary):
-              raise SystemExit(
-                  "Counterfactual simulation missing required outcome deltas"
-              )
-
-          print(
-              "Counterfactual GM 3.0: PASS — "
-              f"{len(simulated)} focal packages simulated."
-          )
-          PY
-
-      - name: Show validated GM 3.0 output tree
-        shell: bash
-        run: |
-          echo "=============================="
-          echo "GM 3.0 PRODUCTION"
-          echo "=============================="
-          find data/gm -type f -print | sort
-
-          echo ""
-          echo "=============================="
-          echo "FRESH BASELINE SIMULATOR"
-          echo "=============================="
           find data/simulator -path "*/outputs/standings_projection.json" -print
 
-      - name: Commit validated GM 3.0 outputs
+      - name: Commit validated GM 3.0.0 outputs
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -216,8 +118,8 @@ jobs:
             data/gm3_prospect_feature_audit.json
 
           if git diff --cached --quiet; then
-            echo "No GM 3.0 output changes to commit."
+            echo "No GM 3.0.0 output changes to commit."
           else
-            git commit -m "Build counterfactual simulator-integrated GM 3.0"
+            git commit -m "Build validated GM 3.0.0 production state"
             git push origin HEAD:main
           fi
