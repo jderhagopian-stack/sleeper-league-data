@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "code": "LEAGUE_SEASON",
+      "message": "Detected season: 2026",
+      "passed": true,
+      "severity": "error"
+    },
+    {
+      "code": "ROSTERS_12",
+      "message": "Roster count: 12",
+      "passed": true,
+      "severity": "error"
+    },
+    {
+      "code": "FULL_REGULAR_SCHEDULE",
+      "message": "Expected 14 weeks with 6 matchups each.",
+      "passed": true,
+      "severity": "error"
+    },
+    {
+      "code": "PROJECTION_FEED",
+      "message": "Player weekly projection feed is present.",
+      "passed": true,
+      "severity": "error"
+    },
+    {
+      "code": "ROSTER_PROJECTION_COVERAGE",
+      "message": "Regular-season projection coverage: 95.9% of rostered players.",
+      "passed": true,
+      "severity": "error"
+    },
+    {
+      "code": "PLAYOFF_PROJECTION_COVERAGE",
+      "message": "Weeks 15-17 projection coverage: 95.9%.",
+      "passed": true,
+      "severity": "warning"
+    },
+    {
+      "code": "DISTRIBUTION_WIDTHS",
+      "message": "0 projection rows require generic SD fallback.",
+      "passed": true,
+      "severity": "warning"
+    }
+  ],
+  "generated_at_utc": "2026-08-22T00:52:02.426303+00:00",
+  "model_version": "FSFFL-Season-Simulator-1.0",
+  "season": "2026",
+  "validation_passed": true
+}
