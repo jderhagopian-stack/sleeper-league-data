@@ -28,7 +28,7 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v5.0-Developmental-Emergence"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v5.1-Buy-Low-Action-Gate"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
@@ -798,8 +798,9 @@ def classify(row):
     ):
         tags.append("WAIVER_TARGET")
 
-    # Young-player buy-low only; older-player value dislocations belong in the
-    # broader GM/trade model unless the veteran exception is truly extraordinary.
+    # Young-player buy-low detection is separated from action.
+    # Market dislocation alone creates BUY_LOW_WATCH; an actionable BUY_LOW
+    # additionally requires a credible current path to fantasy relevance.
     if (
         rostered
         and gap is not None
@@ -807,7 +808,10 @@ def classify(row):
         and hist_ok
         and developmental
     ):
-        tags.append("BUY_LOW")
+        if credible_path and not negative_now:
+            tags.append("BUY_LOW")
+        else:
+            tags.append("BUY_LOW_WATCH")
 
     if (
         developmental
@@ -860,7 +864,7 @@ def classify(row):
         }
     ):
         direction = "ACQUIRE"
-    elif "DEVELOPMENTAL_WATCH" in tags:
+    elif "DEVELOPMENTAL_WATCH" in tags or "BUY_LOW_WATCH" in tags:
         direction = "WATCHLIST"
 
     return tags, direction
@@ -1006,6 +1010,7 @@ def main():
         "ROLE_INFLECTION": 5,
         "BUY_LOW": 4,
         "HIDDEN_GEM": 3,
+        "BUY_LOW_WATCH": 2,
         "EXTRAORDINARY_VETERAN_EVENT": 2,
         "DEVELOPMENTAL_WATCH": 1,
     }
@@ -1057,7 +1062,8 @@ def main():
             "Emerging Value v5.0 targets post-rookie NFL development. "
             "Years-exp 1-4 are the normal universe; rookies belong to the separate "
             "prospect model; Year-5+ players require extraordinary corroborated "
-            "circumstances. Historical profile is an input, not an action signal."
+            "circumstances. Historical profile is an input, not an action signal. "
+            "Buy-low market dislocation without a credible current path is WATCHLIST only."
         ),
         "source_coverage": {
             "fsffl_market_players": len(vals),
@@ -1087,6 +1093,7 @@ def main():
             "action_recommendations_require_credible_path_to_relevance": True,
             "qb_injury_opportunity_alone_not_sufficient_for_add": True,
             "developmental_trajectory_is_core_signal": True,
+            "buy_low_watch_separated_from_actionable_buy_low": True,
         },
         "candidates": rows,
     }
