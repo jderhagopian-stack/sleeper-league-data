@@ -24,6 +24,9 @@ jobs:
       - name: Install simulator dependency
         run: python -m pip install --disable-pip-version-check numpy
 
+      - name: Build NFL schedule and matchup layer
+        run: python script/build_fsffl_nfl_schedule_matchups.py
+
       - name: Build FSFFL projection sources
         run: python script/build_fsffl_player_projections.py
 
@@ -33,13 +36,16 @@ jobs:
       - name: Build FSFFL weekly projections
         run: python script/build_fsffl_weekly_projections.py
 
-      - name: Apply corrected dynamic updates
+      - name: Apply dynamic in-season updates
         run: python script/apply_fsffl_dynamic_updates.py
 
-      - name: Run pre-production FSFFL Season Simulator
+      - name: Run launch-validation FSFFL Season Simulator
         env:
-          FSFFL_SIMULATIONS: "3000"
+          FSFFL_SIMULATIONS: "50000"
         run: python script/run_fsffl_season_simulator_preproduction.py
+
+      - name: Archive launch-validation snapshot
+        run: python script/archive_fsffl_simulator_snapshot.py
 
       - name: Commit simulator test outputs
         run: |
@@ -51,6 +57,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No simulator changes to commit."
           else
-            git commit -m "Update FSFFL simulator pre-production data"
+            git commit -m "Validate FSFFL Simulator 1.0 production launch"
             git push origin HEAD:main
           fi
