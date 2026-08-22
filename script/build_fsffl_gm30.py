@@ -3,25 +3,25 @@
 FSFFL GM 3.0
 =============
 
-Downstream decision layer over:
-- GM 2.2 strategic/market outputs
+Primary FSFFL dynasty general-manager engine using:
+- dynasty valuation and market datasets
 - FSFFL Simulator 1.0 projections and season probabilities
 - historical owner/trade/draft/waiver behavior
 
 GM 3.0 does not mutate Simulator 1.0 files.
 
 Outputs:
-  data/gm3/manifest.json
-  data/gm3/simulator_bridge.json
-  data/gm3/owner_profiles_v3.json
-  data/gm3/pick_forecast.json
-  data/gm3/opportunity_radar.json
-  data/gm3/roster_arbitrage.json
-  data/gm3/trade_routes.json
-  data/gm3/league_intelligence.json
-  data/gm3/decision_center.json
-  data/gm3/decision_journal_snapshot.json
-  data/gm3/validation_report.json
+  data/gm/manifest.json
+  data/gm/simulator_bridge.json
+  data/gm/owner_profiles_v3.json
+  data/gm/pick_forecast.json
+  data/gm/opportunity_radar.json
+  data/gm/roster_arbitrage.json
+  data/gm/trade_routes.json
+  data/gm/league_intelligence.json
+  data/gm/decision_center.json
+  data/gm/decision_journal_snapshot.json
+  data/gm/validation_report.json
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 DATA = Path("data")
 CFG_PATH = DATA / "gm3_config.json"
-OUT = DATA / "gm3"
+OUT = DATA / "gm"
 OUT.mkdir(parents=True, exist_ok=True)
 
 def load(path, default=None):
@@ -58,6 +58,26 @@ def clamp(x, lo=0.0, hi=1.0): return max(lo, min(hi, x))
 
 def norm(s):
     return re.sub(r"[^a-z0-9]+","",str(s or "").lower())
+
+def resolve_season():
+    """Resolve the active season from synchronized Sleeper league metadata."""
+    league=load(DATA/"league.json",{}) or {}
+    season=league.get("season")
+    if season in (None,""):
+        raise SystemExit("GM 3.0 cannot resolve season from data/league.json")
+    return str(season)
+
+def resolve_perspective_user_id():
+    """
+    Select any team at runtime with GM30_USER_ID.
+    If unset, GM 3.0 runs in league-view mode.
+    """
+    import os
+    value=os.environ.get("GM30_USER_ID")
+    return str(value).strip() if value else None
+
+def resolve_path(path_template, season):
+    return str(path_template).replace("{season}", str(season))
 
 def pct_rank(v, vals):
     vals=[sf(x,None) for x in vals]
@@ -114,7 +134,7 @@ def sim_bridge(cfg, standings, lineups, projections):
     return {
         "model_version":"FSFFL-GM-3.0",
         "simulator_model_version":standings.get("model_version") if isinstance(standings,dict) else None,
-        "season":standings.get("season") if isinstance(standings,dict) else cfg["season"],
+        "season":standings.get("season") if isinstance(standings,dict) else cfg.get("_runtime_season"),
         "teams":sorted(rows,key=lambda x:sf(x.get("championship_probability")),reverse=True),
         "projection_player_count":len((projections or {}).get("players",{})) if isinstance(projections,dict) else 0,
         "lineup_roster_count":len((lineups or {}).get("lineups",{})) if isinstance(lineups,dict) else 0
@@ -167,7 +187,8 @@ def owner_profiles_v3(cfg, owners, sim, trade_summary):
         rp=o.get("rookie_draft_profile") or {}
         st=sim_by_uid.get(uid,{})
         total=sf(tp.get("total_trades"))
-        recent=sf(tp.get("recent_trades_2025_2026"))
+        recent_key=next((k for k in tp if str(k).startswith("recent_trades_")),None)
+        recent=sf(tp.get("recent_trades", tp.get(recent_key) if recent_key else 0))
         multi=sf(tp.get("multi_asset_rate"))
         initiation=sf(tp.get("initiation_rate"))
         first_net=sf(tp.get("firsts_acquired"))-sf(tp.get("firsts_sent"))
@@ -398,7 +419,7 @@ def championship_marginal_value(cfg, radar, sim, user_uid):
         playoff_delta=min(cfg["trade"]["max_probability_delta_per_trade"],
                           (season_pts/100)*cfg["trade"]["playoff_elasticity_per_100_points"]*max(.12,1-base_playoff))
         out[p["player_id"]]={
-            "approx_added_2026_points_vs_generic_flex":round(season_pts,1),
+            "approx_added_season_points_vs_generic_flex":round(season_pts,1),
             "approx_championship_probability_delta":round(champ_delta,4),
             "approx_playoff_probability_delta":round(playoff_delta,4),
             "method":"fast marginal approximation; rerun Simulator 1.0 for trade-specific exact estimate"
@@ -416,7 +437,7 @@ def decision_center(cfg, radar, routes, rosterarb, sim, user_uid):
             "player_id":p["player_id"],"name":p["name"],"position":p["position"],"signal":best,
             "confidence":p["confidence"],"owner_manager":p.get("owner_manager"),
             "market_dynasty":p.get("market_dynasty"),"fsffl_value":p.get("fsffl_value"),
-            "simulator_2026_utility":marg.get(p["player_id"]),
+            "simulator_season_utility":marg.get(p["player_id"]),
             "trade_route":route_by_pid.get(p["player_id"])
         }
         score=best["score"]*(.78+.22*p["confidence"])
@@ -435,7 +456,7 @@ def decision_center(cfg, radar, routes, rosterarb, sim, user_uid):
         "act_now":acts[:20],"watch":watches[:40],"sell_fade":fades[:20],
         "no_action":no_action,
         "roster_arbitrage":rosterarb,
-        "governing_principle":"Optimize expected franchise outcomes: dynasty value + 2026 title equity + market edge + optionality, not prediction accuracy alone."
+        "governing_principle":"Optimize expected franchise outcomes: dynasty value + current-season title equity + market edge + optionality, not prediction accuracy alone."
     }
 
 def decision_journal_snapshot(decisions):
@@ -462,7 +483,7 @@ def decision_journal_snapshot(decisions):
                 row["latest_confidence"]=d.get("confidence")
                 row["latest_market_value"]=d.get("market_dynasty")
                 row["latest_fsffl_value"]=d.get("fsffl_value")
-                row["latest_simulator_utility"]=d.get("simulator_2026_utility")
+                row["latest_simulator_utility"]=d.get("simulator_season_utility")
             else:
                 old_by_id[did]={
                     "decision_id":did,"created_at_utc":now,"last_seen_at_utc":now,"times_seen":1,
@@ -472,8 +493,8 @@ def decision_journal_snapshot(decisions):
                     "initial_confidence":d.get("confidence"),"latest_confidence":d.get("confidence"),
                     "market_value_at_decision":d.get("market_dynasty"),"latest_market_value":d.get("market_dynasty"),
                     "fsffl_value_at_decision":d.get("fsffl_value"),"latest_fsffl_value":d.get("fsffl_value"),
-                    "simulator_utility_at_decision":d.get("simulator_2026_utility"),
-                    "latest_simulator_utility":d.get("simulator_2026_utility"),
+                    "simulator_utility_at_decision":d.get("simulator_season_utility"),
+                    "latest_simulator_utility":d.get("simulator_season_utility"),
                     "future_review_fields":{"review_date":None,"outcome":None,"process_grade":None,"notes":None}
                 }
     # Recommendations that disappear are not deleted; mark them inactive unless reviewed/closed.
@@ -499,8 +520,11 @@ def validation(cfg, inputs, outputs):
 
 def main():
     cfg=load(CFG_PATH)
-    if not cfg: raise SystemExit("Missing data/gm3_config.json")
-    p=cfg["paths"]
+    if not cfg: raise SystemExit("Missing GM 3.0 configuration")
+    season=resolve_season()
+    perspective_user_id=resolve_perspective_user_id()
+    cfg["_runtime_season"]=season
+    p={k:resolve_path(v,season) for k,v in cfg["paths"].items()}
     inputs={k:load(v) for k,v in p.items()}
     missing=[k for k in ["asset_values","owner_behavior","rosters","players","sim_standings","sim_lineups","sim_projections"] if inputs.get(k) is None]
     if missing: raise SystemExit("Missing required GM 3.0 inputs: "+", ".join(missing))
@@ -510,8 +534,8 @@ def main():
     picks=build_pick_forecast(cfg,sim,inputs.get("roster_fragility"),inputs.get("pick_quality"))
     radar=opportunity_radar(cfg,inputs["asset_values"],inputs["sim_projections"],owners,sim,inputs.get("football_intelligence"))
     rosterarb=roster_arbitrage(cfg,inputs["asset_values"],inputs["sim_projections"],inputs["rosters"],inputs["players"])
-    routes=trade_routes(cfg,radar,owners,sim,cfg["user_user_id"])
-    decisions=decision_center(cfg,radar,routes,rosterarb,sim,cfg["user_user_id"])
+    routes=trade_routes(cfg,radar,owners,sim,perspective_user_id)
+    decisions=decision_center(cfg,radar,routes,rosterarb,sim,perspective_user_id)
     journal=decision_journal_snapshot(decisions)
 
     leagueintel={
@@ -524,8 +548,11 @@ def main():
     }
     manifest={
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),"model_version":cfg["model_version"],
-        "upstream":{"gm":"GM 2.2 / fsffl_asset_values","simulator":inputs["sim_standings"].get("model_version")},
-        "architecture":"downstream_only",
+        "season":season,
+        "active_perspective_user_id":perspective_user_id,
+        "perspective_mode":"team" if perspective_user_id else "league",
+        "inputs":{"valuation":"dynasty valuation datasets","simulator":inputs["sim_standings"].get("model_version")},
+        "architecture":"primary_gm_engine",
         "features":["live_league_intelligence","dynamic_player_signal_layer","owner_specific_market_model",
                     "trade_routing","championship_utility_bridge","opportunity_radar","confidence_evidence",
                     "roster_arbitrage","pick_forecasting","decision_journal","counterfactual_fast_trade_utility"],
