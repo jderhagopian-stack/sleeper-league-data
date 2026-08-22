@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FSFFL GM 3.0 — dedicated prospect intelligence engine."""
+"""FSFFL GM 3.0 — dedicated prospect intelligence engine v1.1."""
 from __future__ import annotations
 import json, math
 from pathlib import Path
@@ -9,6 +9,10 @@ CONFIG = DATA / 'gm3_prospect_config.json'
 INPUTS = DATA / 'gm3_prospect_inputs.json'
 OUT = DATA / 'gm'
 OUTPUT = OUT / 'gm30_prospect_radar.json'
+
+# Prevent sparse automatic rows from receiving strong scouting labels.
+DEFAULT_SIGNAL_MIN_COVERAGE = 0.55
+DEFAULT_RANK_MIN_COVERAGE = 0.20
 
 
 def load(path, default):
@@ -35,15 +39,12 @@ def number(x):
 def normalize_metric(field, raw):
     v = number(raw)
     if v is None: return None
-    # Inputs should normally be 0..1. These transforms support raw contract fields.
     if field == 'draft_capital':
-        # Accept either a normalized score or an overall NFL draft pick.
+        # Accept normalized score or explicit overall NFL draft pick.
         return clamp(v) if 0 <= v <= 1 else clamp(1.0 - (v - 1.0) / 256.0)
     if field in ('age', 'breakout_age'):
-        # Younger is generally better; deliberately broad rather than pretending precision.
         return clamp((24.0 - v) / 5.0)
     if field.endswith('_inverse'):
-        # If supplied raw, convert a percentage/rate where lower is better.
         if 0 <= v <= 1: return clamp(1.0 - v)
         if 0 <= v <= 100: return clamp(1.0 - v / 100.0)
     return clamp(v)
@@ -71,17 +72,32 @@ def market_rank(prospect):
     return int(v) if v is not None and v > 0 else None
 
 
-def classify(row, thresholds):
+def classify(row, thresholds, signal_min_coverage):
     tags = []
     score = row['prospect_score']
-    if score is None: return tags
-    if score >= thresholds.get('BLUE_CHIP', 82): tags.append('BLUE_CHIP')
+    if score is None:
+        return tags
+
+    # Critical sparse-data gate.
+    if row.get('feature_coverage', 0.0) < signal_min_coverage:
+        return tags
+
+    if score >= thresholds.get('BLUE_CHIP', 82):
+        tags.append('BLUE_CHIP')
+
     mr, model_rank = row.get('market_rookie_rank'), row.get('model_rookie_rank')
-    if score >= thresholds.get('DRAFT_SLEEPER', 70) and mr and model_rank and mr - model_rank >= 4:
+    if (
+        score >= thresholds.get('DRAFT_SLEEPER', 70)
+        and mr and model_rank and mr - model_rank >= 4
+    ):
         tags.append('DRAFT_SLEEPER')
-    # Bust risk requires an expensive market price plus materially weaker model profile.
-    if mr and model_rank and mr <= 18 and model_rank - mr >= 5 and score <= 100 - thresholds.get('BUST_RISK', 72) / 2:
+
+    if (
+        mr and model_rank and mr <= 18 and model_rank - mr >= 5
+        and score <= 100 - thresholds.get('BUST_RISK', 72) / 2
+    ):
         tags.append('BUST_RISK')
+
     return tags
 
 
@@ -90,43 +106,108 @@ def main():
     payload = load(INPUTS, {'prospects': []})
     prospects = payload.get('prospects', []) if isinstance(payload, dict) else []
     weights_by_pos = cfg.get('weights', {})
+
+    signal_min_coverage = float(
+        cfg.get('signal_min_feature_coverage', DEFAULT_SIGNAL_MIN_COVERAGE)
+    )
+    rank_min_coverage = float(
+        cfg.get('rank_min_feature_coverage', DEFAULT_RANK_MIN_COVERAGE)
+    )
+
     rows = []
     for p in prospects:
         if not isinstance(p, dict): continue
         pos = str(p.get('position', '')).upper()
         weights = weights_by_pos.get(pos)
         if not weights: continue
+
         score, coverage, components = weighted_score(p, weights)
         rows.append({
             'player_id': p.get('player_id') or p.get('sleeper_id'),
-            'name': p.get('name'), 'position': pos, 'class': p.get('class'),
-            'prospect_score': score, 'feature_coverage': coverage,
-            'market_rookie_rank': market_rank(p), 'components': components,
+            'name': p.get('name'),
+            'position': pos,
+            'class': p.get('class'),
+            'prospect_stage': p.get('prospect_stage'),
+            'nfl_team': p.get('nfl_team'),
+            'prospect_score': score,
+            'feature_coverage': coverage,
+            'signal_eligible': bool(
+                score is not None and coverage >= signal_min_coverage
+            ),
+            'rank_eligible': bool(
+                score is not None and coverage >= rank_min_coverage
+            ),
+            'market_rookie_rank': market_rank(p),
+            'market_dynasty': p.get('market_dynasty'),
+            'draft_capital_pick': p.get('draft_capital_pick'),
+            'components': components,
         })
 
-    # Rank within position so QB/RB/WR/TE are not distorted by different feature sets.
+    # Position rank only among rows with enough evidence to support a model rank.
     by_pos = {}
-    for row in rows: by_pos.setdefault(row['position'], []).append(row)
+    for row in rows:
+        if row['rank_eligible']:
+            by_pos.setdefault(row['position'], []).append(row)
     for group in by_pos.values():
-        group.sort(key=lambda r: (-1 if r['prospect_score'] is None else r['prospect_score']), reverse=True)
-        for i, row in enumerate(group, 1): row['model_position_rank'] = i
+        group.sort(
+            key=lambda r: (-1 if r['prospect_score'] is None else r['prospect_score']),
+            reverse=True
+        )
+        for i, row in enumerate(group, 1):
+            row['model_position_rank'] = i
 
-    # Overall rookie rank is useful for market disagreement; score is the transparent prior.
-    ranked = sorted(rows, key=lambda r: (-1 if r['prospect_score'] is None else r['prospect_score']), reverse=True)
-    for i, row in enumerate(ranked, 1): row['model_rookie_rank'] = i
+    # Overall model rank likewise requires minimum evidence.
+    ranked_eligible = sorted(
+        [r for r in rows if r['rank_eligible']],
+        key=lambda r: (-1 if r['prospect_score'] is None else r['prospect_score']),
+        reverse=True
+    )
+    for i, row in enumerate(ranked_eligible, 1):
+        row['model_rookie_rank'] = i
+
+    for row in rows:
+        row.setdefault('model_position_rank', None)
+        row.setdefault('model_rookie_rank', None)
+
     thresholds = cfg.get('thresholds', {})
-    for row in ranked: row['signals'] = classify(row, thresholds)
+    for row in rows:
+        row['signals'] = classify(row, thresholds, signal_min_coverage)
+
+    # Display order: signal-eligible/high-coverage first, then sparse priors by
+    # market rookie rank so current rookies remain visible without fake certainty.
+    rows.sort(
+        key=lambda r: (
+            bool(r.get('signal_eligible')),
+            float(r.get('feature_coverage') or 0.0),
+            -int(r.get('market_rookie_rank') or 9999),
+            float(r.get('prospect_score') or -1.0),
+        ),
+        reverse=True,
+    )
 
     OUT.mkdir(parents=True, exist_ok=True)
     output = {
-        'model_version': cfg.get('model_version', 'FSFFL-GM-3.0-Prospect-Engine-v1'),
-        'prospect_count': len(ranked),
-        'note': 'Scores are transparent priors. Missing features reduce coverage rather than count as negative evidence.',
-        'prospects': ranked,
+        'model_version': 'FSFFL-GM-3.0-Prospect-Engine-v1.1-Lifecycle-Coverage-Gated',
+        'prospect_count': len(rows),
+        'signal_eligible_count': sum(1 for r in rows if r['signal_eligible']),
+        'sparse_prior_count': sum(1 for r in rows if not r['signal_eligible']),
+        'signal_min_feature_coverage': signal_min_coverage,
+        'rank_min_feature_coverage': rank_min_coverage,
+        'note': (
+            'Current rookies remain visible as prospect priors. Missing features '
+            'reduce coverage. Strong BLUE_CHIP/DRAFT_SLEEPER/BUST_RISK labels are '
+            'forbidden below the signal coverage threshold.'
+        ),
+        'prospects': rows,
     }
     with OUTPUT.open('w', encoding='utf-8') as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    print(f'GM 3.0 prospect engine: {len(ranked)} prospects -> {OUTPUT}')
+
+    print(
+        f"GM 3.0 prospect engine: {len(rows)} prospects; "
+        f"{output['signal_eligible_count']} signal-eligible; "
+        f"{output['sparse_prior_count']} sparse priors -> {OUTPUT}"
+    )
 
 
 if __name__ == '__main__':
