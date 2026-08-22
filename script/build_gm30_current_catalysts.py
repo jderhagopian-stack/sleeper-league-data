@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-FSFFL GM 3.0 — Current Catalyst Ingestion v3.1
+FSFFL GM 3.0 — Current Catalyst Ingestion v4
 
 Current-season evidence:
 - Sleeper add/drop velocity as market context only
 - Sleeper injury/status and depth-order changes
 - nflverse depth-chart movement
 - DIRECT next-man-up opportunity only when the player ahead is materially unavailable
-- article-bounded public-news corroboration
+- CBS Sports player-specific public-news corroboration
 
 Outputs:
   data/football_intelligence_signals.json
@@ -38,7 +38,10 @@ DEPTH_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
     "depth_charts/depth_charts_{season}.csv"
 )
-FANTASYPROS_NEWS = "https://www.fantasypros.com/nfl/"
+CBS_PLAYER_NEWS_URLS = (
+    "https://www.cbssports.com/fantasy/football/players/news/all/",
+    "https://new.cbssports.com/fantasy/football/players/news/all/",
+)
 
 # Only phrases that can reasonably describe a player's own current role.
 POSITIVE_NEWS = {
@@ -136,162 +139,158 @@ def materially_unavailable(status):
     return any(token == s or token in s for token in MATERIALLY_UNAVAILABLE)
 
 
-class NewsBlockExtractor(HTMLParser):
-    """Extract bounded, news-like DOM blocks without flattening the whole page.
+class CBSPlayerNewsExtractor(HTMLParser):
+    """Extract ordered headings/text from CBS NFL Player News.
 
-    FantasyPros may render news cards as <div>, <section>, <li>, or <a> rather
-    than literal <article> elements. We capture only semantically news-like
-    containers and individual links, then later require the player's own name
-    and the signal phrase to occur locally inside the same bounded block.
+    CBS exposes a player-by-player fantasy news feed. We use heading boundaries
+    to create one local news entry at a time instead of flattening the page.
     """
 
-    BLOCK_TAGS = {"article", "section", "li", "div"}
-    HINTS = (
-        "news",
-        "article",
-        "story",
-        "post",
-        "card",
-        "player",
-        "headline",
-        "update",
-        "feed",
-        "analysis",
-    )
+    HEADING_TAGS = {"h2", "h3", "h4", "h5"}
+    TEXT_TAGS = {"p", "a", "span", "div"}
 
     def __init__(self):
         super().__init__()
-        self.stack = []
-        self.blocks = []
-        self.anchor_stack = []
-
-    @staticmethod
-    def attrs_text(attrs):
-        vals = []
-        for k, v in attrs:
-            if k in {"class", "id", "role", "data-testid", "data-cy"} and v:
-                vals.append(str(v).lower())
-        return " ".join(vals)
-
-    @classmethod
-    def news_like_container(cls, tag, attrs):
-        if tag == "article":
-            return True
-        attr_text = cls.attrs_text(attrs)
-        return any(h in attr_text for h in cls.HINTS)
+        self.heading_depth = 0
+        self.heading_parts = []
+        self.text_depth = 0
+        self.text_parts = []
+        self.items = []
 
     def handle_starttag(self, tag, attrs):
         tag = tag.lower()
-
-        # Advance nesting depth of already-open captured blocks.
-        for block in self.stack:
-            block["depth"] += 1
-
-        if tag in self.BLOCK_TAGS and self.news_like_container(tag, attrs):
-            self.stack.append({"tag": tag, "depth": 1, "parts": []})
-
-        if tag == "a":
-            href = ""
-            for k, v in attrs:
-                if k == "href" and v:
-                    href = str(v)
-                    break
-            self.anchor_stack.append(
-                {
-                    "href": href,
-                    "parts": [],
-                }
-            )
+        if tag in self.HEADING_TAGS:
+            self.heading_depth += 1
+            if self.heading_depth == 1:
+                self.heading_parts = []
+        elif tag in self.TEXT_TAGS:
+            self.text_depth += 1
+            if self.text_depth == 1:
+                self.text_parts = []
 
     def handle_endtag(self, tag):
         tag = tag.lower()
-
-        if tag == "a" and self.anchor_stack:
-            anchor = self.anchor_stack.pop()
-            txt = " ".join(anchor["parts"]).strip()
-            href = anchor["href"].lower()
-            if txt and (
-                "/nfl/" in href
-                or "news" in href
-                or "player" in href
-                or "fantasy" in href
-            ):
-                self.blocks.append(txt)
-
-        closing = []
-        for i, block in enumerate(self.stack):
-            block["depth"] -= 1
-            if block["depth"] == 0:
-                closing.append(i)
-
-        for i in reversed(closing):
-            block = self.stack.pop(i)
-            txt = " ".join(block["parts"]).strip()
-            if txt:
-                self.blocks.append(txt)
+        if tag in self.HEADING_TAGS and self.heading_depth:
+            self.heading_depth -= 1
+            if self.heading_depth == 0:
+                txt = " ".join(self.heading_parts).strip()
+                if txt:
+                    self.items.append(("heading", txt))
+                self.heading_parts = []
+        elif tag in self.TEXT_TAGS and self.text_depth:
+            self.text_depth -= 1
+            if self.text_depth == 0:
+                txt = " ".join(self.text_parts).strip()
+                if txt:
+                    self.items.append(("text", txt))
+                self.text_parts = []
 
     def handle_data(self, data):
         if not data or not data.strip():
             return
         s = data.strip()
-
-        for block in self.stack:
-            block["parts"].append(s)
-
-        for anchor in self.anchor_stack:
-            anchor["parts"].append(s)
+        if self.heading_depth:
+            self.heading_parts.append(s)
+        if self.text_depth:
+            self.text_parts.append(s)
 
 
-def dedupe_news_blocks(blocks):
-    """Normalize, bound, and de-duplicate extracted news chunks."""
-    seen = set()
+def dedupe_ordered_items(items):
     out = []
-
-    for raw in blocks:
+    last = None
+    for kind, raw in items:
         norm = norm_name(raw)
         if not norm:
             continue
-
-        # Reject giant page/feed containers and tiny navigation fragments.
-        if len(norm) < 25 or len(norm) > 1800:
+        if len(norm) < 8 or len(norm) > 1400:
             continue
-
-        if norm in seen:
+        key = (kind, norm)
+        if key == last:
             continue
-        seen.add(norm)
-        out.append(norm)
-
+        out.append(key)
+        last = key
     return out
 
 
-def public_news_blocks():
-    try:
-        raw = fetch_bytes(FANTASYPROS_NEWS, 30).decode("utf-8", "ignore")
-        p = NewsBlockExtractor()
-        p.feed(raw)
-        blocks = dedupe_news_blocks(p.blocks)
+def build_cbs_news_entries(items):
+    """Create heading-bounded player-news entries."""
+    entries = []
+    current = None
 
-        if not blocks:
-            return [], "NO_BOUNDED_PUBLIC_NEWS_BLOCKS_FOUND"
+    for kind, txt in items:
+        if kind == "heading":
+            if current and current["parts"]:
+                entries.append(current)
+            current = {"heading": txt, "parts": [txt]}
+            continue
 
-        return blocks, None
-    except Exception as e:
-        return [], str(e)
+        if current is not None and len(current["parts"]) < 7:
+            current["parts"].append(txt)
+
+    if current and current["parts"]:
+        entries.append(current)
+
+    bounded = []
+    seen = set()
+    for entry in entries:
+        combined = " ".join(entry["parts"])
+        if len(combined) < 25 or len(combined) > 2200:
+            continue
+        if combined in seen:
+            continue
+        seen.add(combined)
+        bounded.append(
+            {
+                "heading": entry["heading"],
+                "text": combined,
+            }
+        )
+    return bounded
 
 
-def player_local_windows(block, player_name, radius=260):
-    """Return only local context around this player's own name inside a block."""
+def public_player_news_entries():
+    errors = []
+    for url in CBS_PLAYER_NEWS_URLS:
+        try:
+            raw = fetch_bytes(url, 30).decode("utf-8", "ignore")
+            p = CBSPlayerNewsExtractor()
+            p.feed(raw)
+            items = dedupe_ordered_items(p.items)
+            entries = build_cbs_news_entries(items)
+            if entries:
+                return entries, None, url
+            errors.append(f"{url}: NO_PLAYER_NEWS_ENTRIES")
+        except Exception as e:
+            errors.append(f"{url}: {e}")
+
+    return [], " | ".join(errors), None
+
+
+def player_news_entries(entries, player_name):
+    """Require the player's full normalized name inside the bounded entry."""
+    return [
+        entry
+        for entry in entries
+        if player_name in entry.get("text", "")
+    ]
+
+
+def player_local_windows(entry_text, player_name, radius=340):
+    """Signal phrases must be local to the named player within the entry."""
     out = []
     start = 0
 
     while True:
-        idx = block.find(player_name, start)
+        idx = entry_text.find(player_name, start)
         if idx < 0:
             break
 
         lo = max(0, idx - radius)
-        hi = min(len(block), idx + len(player_name) + radius)
-        out.append(block[lo:hi])
+        hi = min(
+            len(entry_text),
+            idx + len(player_name) + radius,
+        )
+        out.append(entry_text[lo:hi])
         start = idx + len(player_name)
 
     return out
@@ -436,7 +435,7 @@ def main():
 
     adds, drops, trend_errors = sleeper_trends()
     depth, depth_error = latest_depth_rows(season)
-    news_blocks, news_error = public_news_blocks()
+    news_entries, news_error, news_source_url = public_player_news_entries()
 
     manual = {}
     preseason_usage = dict(intel.get("preseason_usage") or {})
@@ -603,24 +602,22 @@ def main():
                 0.45,
             )
 
-        # Public-news evidence must be inside a bounded news-like DOM block,
-        # and the signal phrase must also be local to THIS player's own name.
-        # This is much stricter than page-wide proximity, but robust to sites
-        # that render cards as div/section/li/a instead of literal article tags.
+        # CBS Player News is organized story-by-story. Require the player's
+        # full name in the bounded entry and a signal phrase in a local window
+        # around that same name.
         if len(nn.split()) >= 2:
-            player_blocks = [
-                block
-                for block in news_blocks
-                if nn in block
-            ]
+            matched_entries = player_news_entries(news_entries, nn)
 
-            for block_idx, block in enumerate(player_blocks):
-                local_windows = player_local_windows(block, nn)
+            for entry_idx, entry in enumerate(matched_entries):
+                local_windows = player_local_windows(
+                    entry["text"],
+                    nn,
+                )
 
                 for window_idx, window in enumerate(local_windows):
                     source = (
-                        f"fantasypros_player_block_"
-                        f"{block_idx + 1}_{window_idx + 1}"
+                        f"cbs_player_news_"
+                        f"{entry_idx + 1}_{window_idx + 1}"
                     )
 
                     for phrase, signal in POSITIVE_NEWS.items():
@@ -630,10 +627,10 @@ def main():
                                 signal,
                                 source,
                                 (
-                                    "player-local bounded news block matched "
+                                    "CBS player-news entry matched "
                                     f"positive signal keyword: {phrase}"
                                 ),
-                                0.55,
+                                0.60,
                             )
 
                     for phrase, signal in NEGATIVE_NEWS.items():
@@ -643,10 +640,10 @@ def main():
                                 signal,
                                 source,
                                 (
-                                    "player-local bounded news block matched "
+                                    "CBS player-news entry matched "
                                     f"negative signal keyword: {phrase}"
                                 ),
-                                0.55,
+                                0.60,
                             )
 
         if rec["evidence"]:
@@ -707,15 +704,16 @@ def main():
 
     intel["current_catalyst_ingestion"] = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v3.1-Bounded-News-Blocks",
+        "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4-CBS-Player-News",
         "season": season,
         "season_phase": phase,
         "automatic_catalyst_records": len(manual),
         "sleeper_trending_add_players": len(adds),
         "sleeper_trending_drop_players": len(drops),
         "depth_chart_players_matched": len(depth),
-        "public_news_blocks": len(news_blocks),
-        "public_news_available": bool(news_blocks),
+        "public_news_entries": len(news_entries),
+        "public_news_available": bool(news_entries),
+        "public_news_source": news_source_url,
         "injury_opportunity_policy": (
             "DIRECT_NEXT_MAN_UP_AND_MATERIALLY_UNAVAILABLE_ONLY"
         ),
@@ -725,7 +723,7 @@ def main():
         "injury_clearance_policy": (
             "HEALTH_UPDATE_ONLY_NOT_ROLE_EVIDENCE"
         ),
-        "public_news_policy": "BOUNDED_DOM_BLOCK_PLUS_PLAYER_LOCAL_WINDOW",
+        "public_news_policy": "CBS_PLAYER_ENTRY_PLUS_PLAYER_LOCAL_WINDOW",
     }
 
     warnings = [
@@ -762,7 +760,7 @@ def main():
     )
 
     print(
-        f"Current Catalyst v3.1: {len(manual)} records; "
+        f"Current Catalyst v4: {len(manual)} records; "
         "audited evidence rules active."
     )
     if intel["warnings"]:
