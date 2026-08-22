@@ -28,11 +28,11 @@ from pathlib import Path
 
 DATA = Path("data")
 OUT = DATA / "gm"
-MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.1-PPG-Schema-Tolerant"
+MODEL = "FSFFL-GM-3.0-Emerging-Value-v4.2-Season-Specific-PPG"
 POSITIONS = {"QB", "RB", "WR", "TE"}
 PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
-    "player_stats/player_stats.csv.gz"
+    "stats_player/stats_player_week_{season}.csv"
 )
 
 def load(path, default):
@@ -199,18 +199,15 @@ def fetch_prior_ppg(active_season):
         "players_aggregated": 0,
     }
     try:
+        source_url = PLAYER_STATS_URL.format(season=int(active_season) - 1)
+        diagnostics["source_url"] = source_url
         req = urllib.request.Request(
-            PLAYER_STATS_URL,
+            source_url,
             headers={"User-Agent": "FSFFL-GM30-Emerging/1.0"},
         )
         with urllib.request.urlopen(req, timeout=60) as r:
             payload = r.read()
-        try:
-            raw = gzip.decompress(payload)
-        except OSError:
-            # Be tolerant if the endpoint/runtime already provides decoded bytes.
-            raw = payload
-        rows = csv.DictReader(io.StringIO(raw.decode("utf-8")))
+        rows = csv.DictReader(io.StringIO(payload.decode("utf-8")))
     except Exception as e:
         diagnostics["error"] = str(e)
         return {}, "PRIOR_PPG_FETCH_FAILED", diagnostics
