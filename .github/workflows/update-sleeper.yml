@@ -73,7 +73,7 @@ jobs:
       - name: Build FSFFL multiverse outliers
         env:
           FSFFL_SIMULATIONS: "50000"
-        run: python script/run_fsffl_multiverse_outliers.py
+        run: python script/run_fsffl_multiverse_outliers_entry.py
 
       - name: Archive production simulator snapshot
         run: python script/archive_fsffl_simulator_snapshot.py
