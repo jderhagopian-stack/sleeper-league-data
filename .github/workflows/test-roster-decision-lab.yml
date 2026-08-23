@@ -1,0 +1,44 @@
+name: Test Roster Decision Lab
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_roster_decision_lab.py'
+      - 'data/roster_decision_lab_architecture.json'
+      - 'data/decision_lab/**'
+      - '.github/workflows/test-roster-decision-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile Decision Lab
+        run: python -m py_compile script/run_roster_decision_lab.py
+
+      - name: Run example scenario
+        run: python script/run_roster_decision_lab.py --scenario data/decision_lab/example_scenario.json --sims 1000 --output /tmp/decision-lab-example.json
+
+      - name: Validate output invariants
+        run: |
+          python - <<'PY'
+          import json
+          p = '/tmp/decision-lab-example.json'
+          d = json.load(open(p))
+          assert d['ephemeral_state'] is True
+          assert d['canonical_state_mutated'] is False
+          assert d['focus_user_id'] in d['team_comparisons']
+          assert d['simulation']['common_random_numbers'] is True
+          print('Roster Decision Lab smoke test passed')
+          PY
