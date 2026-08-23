@@ -11,6 +11,7 @@ on:
       - 'script/run_fsffl_postseason_consequences_v2.py'
       - 'script/run_fsffl_postseason_consequences_v3.py'
       - 'script/infer_fsffl_historical_draft_order.py'
+      - 'script/run_fsffl_alternate_draft_candidates.py'
       - 'script/run_fsffl_downstream_dependencies.py'
       - 'script/run_fsffl_downstream_dependencies_v2.py'
       - 'script/run_fsffl_downstream_dependencies_v3.py'
@@ -49,6 +50,7 @@ jobs:
           python -m py_compile script/run_fsffl_postseason_consequences_v2.py
           python -m py_compile script/run_fsffl_postseason_consequences_v3.py
           python -m py_compile script/infer_fsffl_historical_draft_order.py
+          python -m py_compile script/run_fsffl_alternate_draft_candidates.py
           python -m py_compile script/run_fsffl_downstream_dependencies.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v2.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v3.py
@@ -72,6 +74,8 @@ jobs:
         run: python script/run_fsffl_postseason_consequences_v3.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Infer playoff draft-order component
         run: python script/infer_fsffl_historical_draft_order.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Build 0.6a alternate draft candidate windows
+        run: python script/run_fsffl_alternate_draft_candidates.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Diagnose historical ownership gap
         run: python script/diagnose_alternate_history_event.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.5a relevance-pruned downstream dependency replay
