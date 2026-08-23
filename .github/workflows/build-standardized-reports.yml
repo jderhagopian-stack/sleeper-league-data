@@ -1,0 +1,69 @@
+name: Build Standardized FSFFL Reports
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Build and Validate GM 3.0']
+    types: [completed]
+
+jobs:
+  report-pack:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install report dependencies
+        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+
+      - name: Build all GM and simulator reports
+        run: |
+          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          idx=json.loads(Path('data/gm/franchise_index.json').read_text())
+          manifest={'reporting_layer':'FSFFL Reporting Layer 1.0','delivery_policy':'ChatGPT interprets raw workflow output; PDF is a presentation-only deliverable attached after the conversational answer.','reports':[]}
+          for team in idx.get('teams',[]):
+              uid=str(team['user_id']); slug=team['slug']
+              gm=f'/tmp/fsffl-reports/gm/{slug}-gm-franchise.pdf'
+              sim=f'/tmp/fsffl-reports/simulator/{slug}-season-outlook.pdf'
+              subprocess.run(['python','script/render_gm_franchise_report.py','--user-id',uid,'--output',gm],check=True)
+              subprocess.run(['python','script/render_simulator_report.py','--user-id',uid,'--output',sim],check=True)
+              manifest['reports'].append({'user_id':uid,'team_name':team['team_name'],'slug':slug,'gm_report':gm.split('/tmp/fsffl-reports/')[-1],'simulator_report':sim.split('/tmp/fsffl-reports/')[-1]})
+          Path('/tmp/fsffl-reports/manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Validate report pack
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          root=Path('/tmp/fsffl-reports')
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert len(manifest['reports']) == 12
+          pdfs=list(root.rglob('*.pdf'))
+          assert len(pdfs) == 24
+          for p in pdfs:
+              assert p.stat().st_size > 2500
+              assert len(PdfReader(str(p)).pages) == 1
+          print('Validated 24 standardized one-page reports')
+          PY
+
+      - name: Upload standardized report pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-standardized-reports
+          path: /tmp/fsffl-reports
+          if-no-files-found: error
+          retention-days: 30
