@@ -1,0 +1,29 @@
+{
+  "scenario_id": "example_trade",
+  "description": "Example only. Replace with an incoming roster decision.",
+  "focus_user_id": "846634401482792960",
+  "actions": [
+    {
+      "type": "trade",
+      "from_user_id": "846634401482792960",
+      "to_user_id": "853063390963277824",
+      "players": ["3294", "6786"],
+      "picks": []
+    },
+    {
+      "type": "trade",
+      "from_user_id": "853063390963277824",
+      "to_user_id": "846634401482792960",
+      "players": ["12530", "96"],
+      "picks": [
+        "pick:2027:R1:orig11",
+        "pick:2027:R3:orig11",
+        "pick:2028:R1:orig11",
+        "pick:2028:R2:orig11",
+        "pick:2028:R3:orig11",
+        "pick:2029:R1:orig11",
+        "pick:2029:R2:orig11"
+      ]
+    }
+  ]
+}
