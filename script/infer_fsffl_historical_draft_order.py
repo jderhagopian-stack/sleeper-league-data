@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-"""Infer historical FSFFL rookie draft-order components.
-
-FSFFL uses different ordering rules for playoff and non-playoff teams.
-Backvalidate each component separately from raw Sleeper draft order.
+"""Infer and backvalidate historical FSFFL rookie draft-order components.
 
 Playoff teams:
 - final playoff finish reversed into rookie slots 7-12
 - champion=12, runner-up=11, ... sixth=7
 
 Non-playoff teams:
-- rookie slots 1-6 are ordered by Max Points For ascending
+- rookie slots 1-6 are Max Points For ascending
 - fewest Max PF = slot 1; most Max PF among non-playoff teams = slot 6
 
-An alternate slot should only be emitted when the corresponding component can
-be reconstructed and backvalidated from historical data; do not invent missing
-Max PF values.
+Both components must be historically backvalidated before they are used as
+validated league rules in counterfactual season propagation.
 """
 
 from __future__ import annotations
@@ -27,10 +23,12 @@ from typing import Any, Dict
 import alternate_history_engine as ah
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_postseason_consequences_v3 import run as run_postseason
+from run_fsffl_maxpf_draft_order import run as run_maxpf
 
 
 def run(scenario_path: Path) -> Path:
     post = load(run_postseason(scenario_path))
+    maxpf = load(run_maxpf(scenario_path))
     observed = post.get("actual", {}).get("following_draft_order_observed") or {}
     actual_finish = post.get("actual", {}).get("playoffs", {}).get("finish_by_roster") or {}
     alternate_finish = post.get("alternate", {}).get("playoffs", {}).get("finish_by_roster") or {}
@@ -49,25 +47,22 @@ def run(scenario_path: Path) -> Path:
         }
         playoff_valid = playoff_valid and ok
 
-    playoff_ids = set(actual_finish)
-    nonplay_observed = {rid: slot for rid, slot in observed.items() if rid not in playoff_ids}
-    nonplay_raw_slots_available = len(nonplay_observed) == 6
-
-    # The governing rule is now known from league configuration/history:
-    # non-playoff slots 1-6 are Max PF ascending. Exact alternate slots remain
-    # withheld here until historical and counterfactual Max PF are explicitly
-    # reconstructed and the actual season is backvalidated against Sleeper.
-    nonplay_rule_known = True
-    nonplay_valid = False
+    nonplay = maxpf.get("nonplayoff_backvalidation") or {}
+    nonplay_valid = bool(nonplay.get("validated"))
+    nonplay_checks = nonplay.get("checks") or []
 
     focus = str(post.get("focus_roster_id"))
     focus_alt_finish = alternate_finish.get(focus)
     focus_alt_slot = None
+    focus_alt_slot_basis = None
     if playoff_valid and focus_alt_finish is not None:
         focus_alt_slot = 13 - int(focus_alt_finish)
+        focus_alt_slot_basis = "validated_playoff_finish_rule"
+    # A non-playoff alternate slot cannot be emitted from actual Max PF alone.
+    # It requires branch-specific alternate weekly Max PF, supplied by 0.7d+.
 
     report = {
-        "model_version": "Fantasy-Alternate-History-draft-order-inference-0.4.2",
+        "model_version": "Fantasy-Alternate-History-draft-order-inference-0.4.3",
         "scenario_id": post.get("scenario_id"),
         "season": post.get("season"),
         "following_draft_season": str(int(post.get("season")) + 1),
@@ -78,13 +73,21 @@ def run(scenario_path: Path) -> Path:
                 "checks": playoff_checks,
             },
             "nonplayoff_component": {
-                "raw_slots_available": nonplay_raw_slots_available,
-                "observed_slots": dict(sorted(nonplay_observed.items(), key=lambda kv: int(kv[1]))),
-                "rule_known": nonplay_rule_known,
                 "rule": "sort non-playoff teams by Max Points For ascending; lowest Max PF = rookie slot 1, highest = rookie slot 6",
                 "validated": nonplay_valid,
-                "note": "Rule is confirmed. Exact alternate slots are withheld until Max PF is reconstructed for actual and alternate season states and backvalidated against the observed draft order.",
+                "checks": nonplay_checks,
+                "actual_max_pf_by_roster": maxpf.get("actual_max_pf_by_roster") or {},
+                "observed_slots": {
+                    str(row.get("roster_id")): row.get("observed_slot")
+                    for row in nonplay_checks
+                },
+                "note": "Historical rule is now backvalidated. Counterfactual non-playoff slots require alternate weekly roster states and recomputed Max PF; historical Max PF is never reused for a divergent branch.",
             },
+        },
+        "league_rule_status": {
+            "playoff_draft_order": "VALIDATED",
+            "nonplayoff_maxpf_draft_order": "VALIDATED" if nonplay_valid else "KNOWN_NOT_VALIDATED",
+            "full_rule_validated": bool(playoff_valid and nonplay_valid),
         },
         "focus": {
             "roster_id": focus,
@@ -92,11 +95,12 @@ def run(scenario_path: Path) -> Path:
             "actual_draft_slot": observed.get(focus),
             "alternate_finish": focus_alt_finish,
             "alternate_draft_slot": focus_alt_slot,
+            "alternate_draft_slot_basis": focus_alt_slot_basis,
             "exact_alternate_slot_supported": focus_alt_slot is not None,
         },
     }
     return ah.write_isolated_json(
-        f"results/{post.get('scenario_id')}/draft_order_inference_0_4_2.json", report
+        f"results/{post.get('scenario_id')}/draft_order_inference_0_4_3.json", report
     )
 
 
@@ -109,10 +113,9 @@ def main() -> None:
     print(out)
     print(json.dumps({
         "playoff_rule_validated": report["component_validation"]["playoff_component"]["validated"],
-        "nonplayoff_rule_known": report["component_validation"]["nonplayoff_component"]["rule_known"],
         "nonplayoff_rule_validated": report["component_validation"]["nonplayoff_component"]["validated"],
+        "full_rule_validated": report["league_rule_status"]["full_rule_validated"],
         "focus": report["focus"],
-        "playoff_checks": report["component_validation"]["playoff_component"]["checks"],
     }, indent=2, sort_keys=True))
 
 
