@@ -21,9 +21,6 @@ from typing import Any, Dict
 import alternate_history_engine as ah
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_reference_present_day import run as run_reference
-
-# Import the existing paired current-season simulation engine. We intentionally
-# reuse its validated Simulator 1.0 pathway rather than duplicate simulation.
 from run_fsffl_gm30_counterfactual import CounterfactualEngine
 
 DEFAULT_SIMS = int(os.getenv("ALTERNATE_HISTORY_CURRENT_SIMS", "2500"))
@@ -32,16 +29,12 @@ DEFAULT_SIMS = int(os.getenv("ALTERNATE_HISTORY_CURRENT_SIMS", "2500"))
 def mutate_from_differences(rosters, differences):
     out = copy.deepcopy(rosters)
     by_rid = {str(r.get("roster_id")): r for r in out}
-
     for diff in differences:
         pid = str(diff.get("player_id"))
         target = diff.get("alternate_roster_id")
-        # Remove from every current roster/list first so player ownership remains unique.
         for roster in out:
             for key in ("players", "reserve", "taxi"):
-                roster[key] = [
-                    str(x) for x in (roster.get(key) or []) if str(x) != pid
-                ]
+                roster[key] = [str(x) for x in (roster.get(key) or []) if str(x) != pid]
         if target is not None:
             roster = by_rid.get(str(target))
             if roster is None:
@@ -54,10 +47,7 @@ def mutate_from_differences(rosters, differences):
 
 
 def team(result: Dict[str, Any], uid: str) -> Dict[str, Any]:
-    return next(
-        (x for x in (result.get("teams") or []) if str(x.get("user_id")) == str(uid)),
-        {},
-    )
+    return next((x for x in (result.get("teams") or []) if str(x.get("user_id")) == str(uid)), {})
 
 
 def metric_delta(after: Dict[str, Any], before: Dict[str, Any], key: str):
@@ -68,23 +58,18 @@ def metric_delta(after: Dict[str, Any], before: Dict[str, Any], key: str):
 
 
 def run(scenario_path: Path, n_sims: int = DEFAULT_SIMS) -> Path:
-    reference_path = run_reference(scenario_path)
-    reference = load(reference_path)
-
+    reference = load(run_reference(scenario_path))
     engine = CounterfactualEngine()
     baseline = engine.baseline(int(n_sims))
-    mutated_rosters = mutate_from_differences(
-        engine.rosters,
-        reference.get("player_ownership_differences") or [],
-    )
+    mutated_rosters = mutate_from_differences(engine.rosters, reference.get("player_ownership_differences") or [])
     alternate = engine._run(mutated_rosters, int(n_sims))
 
-    focus_rid = str(load(scenario_path).get("focus_roster_id") or "")
+    payload = load(scenario_path)
+    focus_rid = str(payload.get("focus_roster_id") or "")
     if not focus_rid:
-        # Scenario normally resolves owner name rather than explicit roster ID.
         from run_fsffl_alternate_history import FSFFLHistoricalAdapter
         adapter = FSFFLHistoricalAdapter()
-        scenario = ah.scenario_from_json(adapter, load(scenario_path))
+        scenario = ah.scenario_from_json(adapter, payload)
         focus_rid = str(scenario.focus_roster_id)
 
     focus_uid = engine.roster_id_to_uid.get(int(focus_rid))
@@ -93,14 +78,14 @@ def run(scenario_path: Path, n_sims: int = DEFAULT_SIMS) -> Path:
 
     before = team(baseline, focus_uid)
     after = team(alternate, focus_uid)
-    keys = [
-        "expected_points",
+    fields = [
+        "expected_points_for",
         "expected_wins",
         "playoff_probability",
         "bye_probability",
         "championship_probability",
     ]
-    deltas = {k: metric_delta(after, before, k) for k in keys}
+    deltas = {k: metric_delta(after, before, k) for k in fields}
 
     report = {
         "model_version": "Fantasy-Alternate-History-current-outlook-reference-0.8",
@@ -124,9 +109,7 @@ def run(scenario_path: Path, n_sims: int = DEFAULT_SIMS) -> Path:
             "Behavioral trade/add-drop branches, alternate drafts, and branch weights must be completed before these current-season probabilities are user-facing final estimates."
         ),
     }
-    return ah.write_isolated_json(
-        f"results/{reference.get('scenario_id')}/current_outlook_reference.json", report
-    )
+    return ah.write_isolated_json(f"results/{reference.get('scenario_id')}/current_outlook_reference.json", report)
 
 
 def main() -> None:
