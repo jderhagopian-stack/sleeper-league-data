@@ -3,14 +3,17 @@ name: Build Standardized FSFFL Reports
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['Build and Validate GM 3.0']
+    workflows:
+      - 'Build and Validate GM 3.0'
+      - 'Build FSFFL Competition Records'
+      - 'Test FSFFL Multiverse Outliers'
     types: [completed]
 
 jobs:
   report-pack:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout current main
         uses: actions/checkout@v4
@@ -25,24 +28,42 @@ jobs:
       - name: Install report dependencies
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
-      - name: Build all GM and simulator reports
+      - name: Build standardized report pack
         run: |
-          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator /tmp/fsffl-reports/league
+          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator /tmp/fsffl-reports/draft /tmp/fsffl-reports/league /tmp/fsffl-reports/intelligence /tmp/fsffl-reports/history
           python - <<'PY'
           import json, subprocess
           from pathlib import Path
           idx=json.loads(Path('data/gm/franchise_index.json').read_text())
-          manifest={'reporting_layer':'FSFFL Reporting Layer 1.0','delivery_policy':'ChatGPT interprets raw workflow output; PDF is a presentation-only deliverable attached after the conversational answer.','reports':[]}
+          manifest={
+              'reporting_layer':'FSFFL Reporting Layer 1.0',
+              'delivery_policy':'ChatGPT interprets raw workflow output; PDF is a presentation-only deliverable attached after the conversational answer.',
+              'team_reports':[],
+              'league_reports':{}
+          }
           for team in idx.get('teams',[]):
               uid=str(team['user_id']); slug=team['slug']
               gm=f'/tmp/fsffl-reports/gm/{slug}-gm-franchise.pdf'
               sim=f'/tmp/fsffl-reports/simulator/{slug}-season-outlook.pdf'
+              draft=f'/tmp/fsffl-reports/draft/{slug}-draft-recap.pdf'
               subprocess.run(['python','script/render_gm_franchise_report.py','--user-id',uid,'--output',gm],check=True)
               subprocess.run(['python','script/render_simulator_report.py','--user-id',uid,'--output',sim],check=True)
-              manifest['reports'].append({'user_id':uid,'team_name':team['team_name'],'slug':slug,'gm_report':gm.split('/tmp/fsffl-reports/')[-1],'simulator_report':sim.split('/tmp/fsffl-reports/')[-1]})
-          league='/tmp/fsffl-reports/league/competitive-landscape.pdf'
-          subprocess.run(['python','script/render_league_power_report.py','--output',league],check=True)
-          manifest['league_report']=league.split('/tmp/fsffl-reports/')[-1]
+              subprocess.run(['python','script/render_draft_recap_report.py','--user-id',uid,'--output',draft],check=True)
+              manifest['team_reports'].append({
+                  'user_id':uid,'team_name':team['team_name'],'slug':slug,
+                  'gm_report':gm.split('/tmp/fsffl-reports/')[-1],
+                  'simulator_report':sim.split('/tmp/fsffl-reports/')[-1],
+                  'draft_report':draft.split('/tmp/fsffl-reports/')[-1]
+              })
+          static=[
+              ('competitive_landscape','script/render_league_power_report.py','/tmp/fsffl-reports/league/competitive-landscape.pdf'),
+              ('market_movement','script/render_market_movement_report.py','/tmp/fsffl-reports/intelligence/market-movement.pdf'),
+              ('record_book','script/render_record_book_report.py','/tmp/fsffl-reports/history/record-book.pdf'),
+              ('multiverse_outliers','script/render_multiverse_outliers_report.py','/tmp/fsffl-reports/league/multiverse-outliers.pdf')
+          ]
+          for key,script,out in static:
+              subprocess.run(['python',script,'--output',out],check=True)
+              manifest['league_reports'][key]=out.split('/tmp/fsffl-reports/')[-1]
           Path('/tmp/fsffl-reports/manifest.json').write_text(json.dumps(manifest,indent=2))
           PY
 
@@ -54,13 +75,14 @@ jobs:
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-reports')
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(manifest['reports']) == 12
+          assert len(manifest['team_reports']) == 12
+          assert set(manifest['league_reports']) == {'competitive_landscape','market_movement','record_book','multiverse_outliers'}
           pdfs=list(root.rglob('*.pdf'))
-          assert len(pdfs) == 25
+          assert len(pdfs) == 40
           for p in pdfs:
               assert p.stat().st_size > 2500
               assert len(PdfReader(str(p)).pages) == 1
-          print('Validated 25 standardized one-page reports')
+          print('Validated 40 standardized one-page reports')
           PY
 
       - name: Upload standardized report pack
