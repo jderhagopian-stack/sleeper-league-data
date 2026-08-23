@@ -87,8 +87,6 @@ class FSFFLHistoricalAdapter(ah.SleeperJsonAdapter):
                 )
 
         waiver_budget = []
-        # trade_ledger exposes FAAB sent/received totals per side. Derive a
-        # bilateral transfer only where it is unambiguous.
         sides = row.get("sides") or []
         if len(sides) == 2:
             a, b = sides
@@ -135,15 +133,34 @@ class FSFFLHistoricalAdapter(ah.SleeperJsonAdapter):
         return sorted(by_id.values(), key=lambda x: int(x.get("created") or 0))
 
 
+def _mark_provisional_history(manifest: Dict[str, Any]) -> None:
+    """Do not overstate accuracy until 0.2 no-fork replay is validated."""
+    fork_ms = int((manifest.get("scenario") or {}).get("fork_timestamp_ms") or 0)
+    # Current canonical transaction feed is 2026; older events are reconstructed
+    # from derived historical ledgers and must remain explicitly provisional.
+    if fork_ms < 1767225600000:  # 2026-01-01T00:00:00Z
+        for key in ("historical_state", "alternate_state_at_fork"):
+            reconstruction = (manifest.get(key) or {}).setdefault("reconstruction", {})
+            reconstruction["validation_status"] = "PROVISIONAL_PENDING_NO_FORK_REPLAY"
+            reconstruction["confidence"] = "medium"
+            reconstruction["ownership_coverage"] = min(float(reconstruction.get("ownership_coverage") or 1.0), 0.85)
+            reconstruction["confidence_note"] = (
+                "Pre-2026 ownership reconstructed from merged derived ledgers. "
+                "Do not promote to high confidence until historical no-fork replay reproduces canonical outcomes."
+            )
+
+
 def run(path: Path) -> Path:
     payload = ah.load_json(path, {}) or {}
     adapter = FSFFLHistoricalAdapter()
     scenario = ah.scenario_from_json(adapter, payload)
     manifest = ah.build_manifest(adapter, scenario)
+    _mark_provisional_history(manifest)
     manifest["adapter"] = {
         "name": "FSFFLHistoricalAdapter",
         "profile": "fsffl",
         "event_sources": ["transactions.json", "acquisition_ledger.json", "trade_ledger.json"],
+        "pre_2026_validation_status": "PROVISIONAL_PENDING_NO_FORK_REPLAY",
     }
     out = ah.write_isolated_json(f"results/{scenario.scenario_id}/manifest.json", manifest)
     ah.write_isolated_json(f"cache/{scenario.scenario_id}/fork_state.json", manifest["alternate_state_at_fork"])
