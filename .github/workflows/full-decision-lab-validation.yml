@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
 
+# Artifact-enabled validation workflow. Updating this file triggers a fresh run on main.
 jobs:
   validate-5000:
     runs-on: ubuntu-latest
