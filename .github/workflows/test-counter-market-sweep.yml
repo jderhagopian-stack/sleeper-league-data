@@ -54,7 +54,7 @@ jobs:
           print('Fast exact lineup DP matches legacy optimizer objective')
           PY
 
-      - name: Run five-option market sweep
+      - name: Run owner-aware five-option market sweep
         run: |
           SECONDS=0
           python script/run_trade_market_sweep_v18.py \
@@ -65,7 +65,7 @@ jobs:
             --output /tmp/counter-market-sweep.json \
             > /tmp/counter-market-sweep.log
           elapsed=$SECONDS
-          echo "Five-option market sweep runtime: ${elapsed}s"
+          echo "Owner-aware five-option market sweep runtime: ${elapsed}s"
           test "$elapsed" -le 180
           tail -n 40 /tmp/counter-market-sweep.log
 
@@ -84,7 +84,13 @@ jobs:
           assert d['policy']['each_option_explains_acceptance_and_focus_advantage'] is True
           assert d['policy']['swing_for_fences_slots_max'] == 1
           assert d['policy']['longshots_cannot_drive_recommended_action'] is True
+          assert d['policy']['GM_owner_behavior_integrated'] is True
+          assert d['policy']['owner_behavior_sources'] == ['completed_trades','rookie_drafts','waivers']
+          assert d['policy']['owner_behavior_is_evidence_not_veto'] is True
+          assert d['policy']['acceptance_fit_is_calibrated_probability'] is False
+          assert d['owner_behavior_profiles_available'] > 0
           assert d['current_offer_evaluation']['candidate_type'] == 'CURRENT_OFFER'
+          assert 'owner_behavior' in d['current_offer_evaluation']['buyer_rationality']
           assert d['candidate_counts']['acceptance_frontier_simulated'] >= 30
           assert len(d['top_5_alternatives']) <= 5
           if d['candidate_counts']['buyer_current_state_viable'] >= 5:
@@ -97,8 +103,9 @@ jobs:
           assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM','LOW','VERY_LOW'} for x in d['top_5_alternatives'])
           assert all(x.get('acceptance_explanation') for x in d['top_5_alternatives'])
           assert all(x.get('why_advantageous_for_focus') for x in d['top_5_alternatives'])
+          assert all('owner_behavior' in x['buyer_rationality'] for x in d['top_5_alternatives'])
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep 1.8 five-option smoke test passed')
+          print('Counter & Market Sweep 1.8 owner-aware five-option smoke test passed')
           PY
 
       - name: Upload full counter report
