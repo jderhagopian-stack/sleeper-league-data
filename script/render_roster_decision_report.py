@@ -8,32 +8,54 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 from fsffl_report_style import *
 
-MODEL_VERSION='FSFFL-Roster-Decision-Report-1.0'
+MODEL_VERSION='FSFFL-Roster-Decision-Report-1.1'
+ASSET_VALUES=Path('data/fsffl_asset_values.json')
 
 def load(p): return json.loads(Path(p).read_text(encoding='utf-8'))
 def pct(x): return f'{safe_float(x)*100:+.1f} pts'
 def arr(b,a,percent=False): return f'{safe_float(b)*100:.1f}% -> {safe_float(a)*100:.1f}%' if percent else f'{safe_float(b):.2f} -> {safe_float(a):.2f}'
 
-def action_summary(actions):
+def asset_names():
+    out={}
+    if not ASSET_VALUES.exists(): return out
+    d=load(ASSET_VALUES)
+    for x in d.get('players') or []:
+        pid=str(x.get('player_id'))
+        if pid: out[pid]=x.get('name') or pid; out[f'player:{pid}']=x.get('name') or pid
+    for x in d.get('picks') or []:
+        aid=str(x.get('asset_id') or '')
+        if aid: out[aid]=x.get('name') or aid
+    return out
+
+def action_summary(actions,names):
     parts=[]
     for a in actions or []:
         typ=str(a.get('type') or '').replace('_',' ').title()
-        players=', '.join(str(x) for x in a.get('players') or [])
-        picks=', '.join(str(x) for x in a.get('picks') or [])
-        detail=', '.join(x for x in [players,picks] if x) or 'roster change'
-        parts.append(f'{typ}: {detail}')
-    return ' | '.join(parts)[:360]
+        vals=[]
+        vals += [names.get(str(x),str(x)) for x in a.get('players') or []]
+        vals += [names.get(str(x),str(x)) for x in a.get('picks') or []]
+        detail=', '.join(vals) or 'roster change'
+        direction=''
+        if a.get('from_user_id') or a.get('to_user_id'):
+            direction=f" ({a.get('from_user_id','?')} -> {a.get('to_user_id','?')})"
+        parts.append(f'{typ}{direction}: {detail}')
+    return ' | '.join(parts)[:420]
 
 def render(input_path,output):
     d=load(input_path); uid=str(d.get('focus_user_id')); cmp=(d.get('team_comparisons') or {}).get(uid) or {}
     before=cmp.get('before') or {}; after=cmp.get('after') or {}; delta=cmp.get('delta') or {}; strat=cmp.get('strategic') or {}; rec=d.get('recommendation') or {}; ext=d.get('competitive_externality') or {}
     s=styles(); doc=SimpleDocTemplate(str(output),pagesize=letter,leftMargin=.48*inch,rightMargin=.48*inch,topMargin=.42*inch,bottomMargin=.44*inch)
     story=[P(s,'FSFFL ROSTER DECISION REPORT','FS_Title'),P(s,f"{cmp.get('team_name')} | {d.get('description') or d.get('scenario_id')} | {d.get('model_version')}",'FS_Sub'),Spacer(1,5)]
-    band=str(rec.get('band') or 'needs_context').replace('_',' ').upper(); tone=GREEN if 'ACCEPT' in band else RED if 'REJECT' in band else NAVY
-    banner=Table([[P(s,'MODEL BAND','FS_WhiteLabel'),P(s,f'<b>{band}</b> &nbsp;&nbsp; Team state: {str(rec.get("team_state") or "unknown").replace("_"," ").title()}','FS_Body')]],colWidths=[1.4*inch,6.04*inch]); banner.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),tone),('BACKGROUND',(1,0),(1,0),LIGHT_GRAY),('BOX',(0,0),(-1,-1),.7,MID_GRAY),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)])); story += [banner,Spacer(1,5),P(s,f'<b>Scenario:</b> {action_summary(d.get("actions"))}','FS_Body'),Spacer(1,5)]
+    raw_band=str(rec.get('band') or 'needs_context').replace('_',' ').upper(); team_state=str(rec.get('team_state') or 'unknown')
+    unresolved=team_state.lower()=='unknown'
+    band='UNRESOLVED - TEAM STATE REQUIRED' if unresolved else raw_band
+    tone=GOLD if unresolved else GREEN if 'ACCEPT' in band else RED if 'REJECT' in band else NAVY
+    band_note=f"<b>{band}</b> &nbsp;&nbsp; Team state: {team_state.replace('_',' ').title()}"
+    if unresolved: band_note += f" &nbsp;&nbsp; Raw rule band: {raw_band}"
+    banner=Table([[P(s,'MODEL BAND','FS_WhiteLabel'),P(s,band_note,'FS_Body')]],colWidths=[1.4*inch,6.04*inch]); banner.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),tone),('BACKGROUND',(1,0),(1,0),LIGHT_GOLD if unresolved else LIGHT_GRAY),('BOX',(0,0),(-1,-1),.7,MID_GRAY),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)])); story += [banner,Spacer(1,5),P(s,f'<b>Scenario:</b> {action_summary(d.get("actions"),asset_names())}','FS_Body'),Spacer(1,5)]
     cards=[
         kpi_card(s,'Expected Wins',arr(before.get('expected_wins'),after.get('expected_wins')),'positive' if safe_float(delta.get('expected_wins'))>=0 else 'negative'),
-        kpi_card(s,'Expected PF',f"{safe_float(before.get('expected_points_for')):.0f} -> {safe_float(after.get('expected_points_for')):.0f}",'positive' if safe_float(delta.get('expected_points_for'))>=0 else 'negative'),
+        kpi_card(s,'Expected PF',f"{safe_float(before.get('expected_points_for')):,.0f} -> {safe_float(after.get('expected_points_for')):,.0f}",'positive' if safe_float(delta.get('expected_points_for'))>=0 else 'negative'),
         kpi_card(s,'Playoff Odds',arr(before.get('playoff_probability'),after.get('playoff_probability'),True),'positive' if safe_float(delta.get('playoff_probability'))>=0 else 'negative'),
         kpi_card(s,'Bye Odds',arr(before.get('bye_probability'),after.get('bye_probability'),True),'positive' if safe_float(delta.get('bye_probability'))>=0 else 'negative'),
         kpi_card(s,'Title Odds',arr(before.get('championship_probability'),after.get('championship_probability'),True),'positive' if safe_float(delta.get('championship_probability'))>=0 else 'negative'),
@@ -47,7 +69,9 @@ def render(input_path,output):
     for _,x in touched.items():
         dd=x.get('delta') or {}; rows.append([P(s,x.get('team_name'),'FS_Body'),P(s,f"{safe_float(dd.get('expected_wins')):+.2f}",'FS_Body'),P(s,pct(dd.get('playoff_probability')),'FS_Body'),P(s,pct(dd.get('championship_probability')),'FS_Body')])
     tt=Table(rows,colWidths=[2.1*inch,.65*inch,.78*inch,.7*inch]); tt.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),LIGHT_GRAY),('GRID',(0,0),(-1,-1),.35,MID_GRAY),('LEFTPADDING',(0,0),(-1,-1),4),('RIGHTPADDING',(0,0),(-1,-1),4)]))
-    right=[P(s,'AFFECTED TEAMS','FS_Section'),tt,Spacer(1,5),P(s,'READING GUIDE','FS_Section'),P(s,'This page formats the raw Decision Lab comparison. It does not rerun the simulator, rescore strategic assets, or replace conversational interpretation of the raw JSON.','FS_Small')]
+    guide='This page formats the raw Decision Lab comparison. It does not rerun the simulator, rescore strategic assets, or replace conversational interpretation of the raw JSON.'
+    if unresolved: guide='The upstream Decision Lab did not resolve team state, so its rule-based recommendation is not presented as a final verdict. ' + guide
+    right=[P(s,'AFFECTED TEAMS','FS_Section'),tt,Spacer(1,5),P(s,'READING GUIDE','FS_Section'),P(s,guide,'FS_Small')]
     cols=Table([[left,right]],colWidths=[2.85*inch,4.59*inch]); cols.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('RIGHTPADDING',(0,0),(0,0),9),('LEFTPADDING',(1,0),(1,0),9),('LINEBEFORE',(1,0),(1,0),.7,MID_GRAY),('LEFTPADDING',(0,0),(0,0),0),('RIGHTPADDING',(1,0),(1,0),0)])); story.append(cols)
     doc.build(story,onFirstPage=lambda c,x: footer(c,f'{MODEL_VERSION} | Raw Decision Lab output | Presentation-only'))
 
