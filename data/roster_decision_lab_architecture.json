@@ -1,0 +1,45 @@
+{
+  "name": "FSFFL Roster Decision Lab",
+  "version": "1.0",
+  "purpose": "Ephemeral what-if engine for trades, adds, drops, cuts, and multi-step roster decisions without mutating the canonical Sleeper league state.",
+  "principles": [
+    "Canonical Sleeper data is read-only input.",
+    "Every scenario is applied only in memory.",
+    "Baseline and hypothetical simulations use identical random seeds and projection inputs.",
+    "Weekly legal lineups are re-optimized after every scenario.",
+    "Current-season impact and long-term strategic value are reported separately.",
+    "Opponent-strengthening effects are measured for bilateral trades.",
+    "Future picks remain attached to their original franchise for pick-quality modeling even when ownership changes."
+  ],
+  "supported_decisions": [
+    "trade",
+    "add",
+    "drop",
+    "add_drop",
+    "cut",
+    "multi_step"
+  ],
+  "core_dependencies": [
+    "FSFFL-GM-3.0",
+    "FSFFL-Season-Simulator-1.0",
+    "current Sleeper roster and pick state",
+    "2026 weekly player projection feed"
+  ],
+  "outputs": [
+    "expected wins delta",
+    "expected points delta",
+    "playoff probability delta",
+    "bye probability delta",
+    "division probability delta",
+    "championship probability delta",
+    "starter redraft-value delta",
+    "starter dynasty-value delta",
+    "roster-value delta",
+    "break-glass value sent and received",
+    "liquidity delta",
+    "future-pick optionality",
+    "opponent championship-equity swing",
+    "decision verdict and confidence"
+  ],
+  "state_policy": "Scenario files and outputs may be committed for audit, but hypothetical player/pick ownership must never be written into canonical data/rosters.json, traded_picks.json, or GM daily outputs."
+}
