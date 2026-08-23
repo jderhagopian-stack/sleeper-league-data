@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/alternate_history_engine.py'
+      - 'script/alternate_history_branching.py'
       - 'script/backfill_alternate_history_sleeper.py'
       - 'script/run_fsffl_alternate_history.py'
       - 'script/run_fsffl_counterfactual_replay.py'
@@ -31,6 +32,7 @@ on:
       - 'script/validate_alternate_history.py'
       - 'script/validate_alternate_history_replay.py'
       - 'script/validate_puka_counterfactual_replay.py'
+      - 'script/validate_alternate_history_branching.py'
       - 'data/alternate_history/**'
       - '.github/workflows/alternate-history-validation.yml'
   workflow_dispatch:
@@ -56,6 +58,7 @@ jobs:
       - name: Compile new Python modules
         run: |
           python -m py_compile script/alternate_history_engine.py
+          python -m py_compile script/alternate_history_branching.py
           python -m py_compile script/backfill_alternate_history_sleeper.py
           python -m py_compile script/run_fsffl_alternate_history.py
           python -m py_compile script/run_fsffl_counterfactual_replay.py
@@ -83,6 +86,9 @@ jobs:
           python -m py_compile script/validate_alternate_history.py
           python -m py_compile script/validate_alternate_history_replay.py
           python -m py_compile script/validate_puka_counterfactual_replay.py
+          python -m py_compile script/validate_alternate_history_branching.py
+      - name: Validate 0.7 branch manager invariants
+        run: python script/validate_alternate_history_branching.py
       - name: Backfill authoritative raw Sleeper history (isolated cache)
         run: python script/backfill_alternate_history_sleeper.py
       - name: Run isolated regression validation
