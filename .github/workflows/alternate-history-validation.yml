@@ -10,6 +10,7 @@ on:
       - 'script/run_fsffl_postseason_consequences_v2.py'
       - 'script/run_fsffl_downstream_dependencies.py'
       - 'script/run_fsffl_downstream_dependencies_v2.py'
+      - 'script/diagnose_alternate_history_event.py'
       - 'script/validate_alternate_history.py'
       - 'script/validate_alternate_history_replay.py'
       - 'script/validate_puka_counterfactual_replay.py'
@@ -37,6 +38,7 @@ jobs:
           python -m py_compile script/run_fsffl_postseason_consequences_v2.py
           python -m py_compile script/run_fsffl_downstream_dependencies.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v2.py
+          python -m py_compile script/diagnose_alternate_history_event.py
           python -m py_compile script/validate_alternate_history.py
           python -m py_compile script/validate_alternate_history_replay.py
           python -m py_compile script/validate_puka_counterfactual_replay.py
@@ -48,5 +50,7 @@ jobs:
         run: python script/validate_puka_counterfactual_replay.py
       - name: Run 0.4 postseason and draft-order consequences
         run: python script/run_fsffl_postseason_consequences_v2.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Diagnose historical ownership gap
+        run: python script/diagnose_alternate_history_event.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.5a state-diff downstream dependency replay
         run: python script/run_fsffl_downstream_dependencies_v2.py data/alternate_history/scenarios/puka_vs_van_2023.json
