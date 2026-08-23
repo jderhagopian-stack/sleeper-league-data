@@ -12,6 +12,7 @@ on:
       - 'script/run_fsffl_downstream_dependencies_v2.py'
       - 'script/run_fsffl_downstream_dependencies_v3.py'
       - 'script/run_fsffl_downstream_dependencies_v4.py'
+      - 'script/run_fsffl_historical_policy_triage.py'
       - 'script/diagnose_alternate_history_event.py'
       - 'script/validate_alternate_history.py'
       - 'script/validate_alternate_history_replay.py'
@@ -42,6 +43,7 @@ jobs:
           python -m py_compile script/run_fsffl_downstream_dependencies_v2.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v3.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v4.py
+          python -m py_compile script/run_fsffl_historical_policy_triage.py
           python -m py_compile script/diagnose_alternate_history_event.py
           python -m py_compile script/validate_alternate_history.py
           python -m py_compile script/validate_alternate_history_replay.py
@@ -58,3 +60,5 @@ jobs:
         run: python script/diagnose_alternate_history_event.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.5a relevance-pruned downstream dependency replay
         run: python script/run_fsffl_downstream_dependencies_v4.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Run 0.5b historical policy triage
+        run: python script/run_fsffl_historical_policy_triage.py data/alternate_history/scenarios/puka_vs_van_2023.json
