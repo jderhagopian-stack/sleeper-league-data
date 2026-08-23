@@ -7,6 +7,13 @@ on:
       - 'data/roster_decision_lab_architecture.json'
       - 'data/decision_lab/**'
       - '.github/workflows/test-roster-decision-lab.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'script/run_roster_decision_lab.py'
+      - 'data/roster_decision_lab_architecture.json'
+      - 'data/decision_lab/**'
+      - '.github/workflows/test-roster-decision-lab.yml'
   workflow_dispatch:
 
 permissions:
@@ -40,5 +47,7 @@ jobs:
           assert d['canonical_state_mutated'] is False
           assert d['focus_user_id'] in d['team_comparisons']
           assert d['simulation']['common_random_numbers'] is True
+          assert 'championship_probability' in d['team_comparisons'][d['focus_user_id']]['delta']
+          assert d['recommendation']['band']
           print('Roster Decision Lab smoke test passed')
           PY
