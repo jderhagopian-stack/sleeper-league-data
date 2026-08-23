@@ -1,0 +1,84 @@
+name: Test Automatic Trade PDF Report
+
+on:
+  pull_request:
+    paths:
+      - 'script/render_trade_decision_report.py'
+      - 'script/run_trade_report.py'
+      - 'script/run_trade_market_sweep_v19.py'
+      - '.github/workflows/test-trade-report.yml'
+  workflow_dispatch:
+
+jobs:
+  report-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PDF dependencies
+        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+
+      - name: Compile report pipeline
+        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py
+
+      - name: Run trade query pipeline
+        run: |
+          mkdir -p /tmp/fsffl-trade-report
+          SECONDS=0
+          python script/run_trade_report.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --out-dir /tmp/fsffl-trade-report \
+            --basename validation-trade \
+            --quick-sims 100 \
+            --confirm-sims 0 \
+            --search-depth 60 \
+            > /tmp/fsffl-trade-report/pipeline.log
+          elapsed=$SECONDS
+          echo "Trade report pipeline runtime: ${elapsed}s"
+          test "$elapsed" -le 180
+          tail -n 30 /tmp/fsffl-trade-report/pipeline.log
+
+      - name: Validate JSON PDF and delivery policy
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+
+          root = Path('/tmp/fsffl-trade-report')
+          analysis = json.loads((root/'validation-trade.json').read_text())
+          summary = json.loads((root/'validation-trade-summary.json').read_text())
+          pdf = root/'validation-trade.pdf'
+
+          assert analysis['model_version'] == 'FSFFL-Counter-Market-Sweep-1.11'
+          assert summary['pipeline_model_version'] == 'FSFFL-Trade-Query-Pipeline-1.0'
+          assert summary['analysis_model_version'] == analysis['model_version']
+          assert summary['recommended_next_action'] == analysis['recommended_next_action']
+          assert summary['short_answer']
+          assert summary['pdf_report'].endswith('validation-trade.pdf')
+          assert summary['delivery_policy'] == 'Always return the short answer and attach/share the PDF report for a trade query.'
+          assert pdf.exists() and pdf.stat().st_size > 2000
+          assert pdf.read_bytes()[:4] == b'%PDF'
+          assert len(PdfReader(str(pdf)).pages) == 1
+          print('Automatic trade PDF report smoke test passed')
+          PY
+
+      - name: Upload trade report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-trade-report
+          path: |
+            /tmp/fsffl-trade-report/validation-trade.json
+            /tmp/fsffl-trade-report/validation-trade.pdf
+            /tmp/fsffl-trade-report/validation-trade-summary.json
+            /tmp/fsffl-trade-report/pipeline.log
+          if-no-files-found: error
+          retention-days: 14
