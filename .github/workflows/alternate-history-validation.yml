@@ -13,6 +13,7 @@ on:
       - 'script/infer_fsffl_historical_draft_order.py'
       - 'script/run_fsffl_alternate_draft_candidates.py'
       - 'script/run_fsffl_alternate_draft_policy.py'
+      - 'script/report_fsffl_alternate_draft_policy.py'
       - 'script/run_fsffl_downstream_dependencies.py'
       - 'script/run_fsffl_downstream_dependencies_v2.py'
       - 'script/run_fsffl_downstream_dependencies_v3.py'
@@ -58,6 +59,7 @@ jobs:
           python -m py_compile script/infer_fsffl_historical_draft_order.py
           python -m py_compile script/run_fsffl_alternate_draft_candidates.py
           python -m py_compile script/run_fsffl_alternate_draft_policy.py
+          python -m py_compile script/report_fsffl_alternate_draft_policy.py
           python -m py_compile script/run_fsffl_downstream_dependencies.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v2.py
           python -m py_compile script/run_fsffl_downstream_dependencies_v3.py
@@ -85,6 +87,8 @@ jobs:
         run: python script/run_fsffl_alternate_draft_candidates.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.6b probabilistic historical draft policy
         run: python script/run_fsffl_alternate_draft_policy.py data/alternate_history/scenarios/puka_vs_van_2023.json --sims 3000
+      - name: Report 0.6b per-controlled-pick distributions
+        run: python script/report_fsffl_alternate_draft_policy.py data/alternate_history/scenarios/puka_vs_van_2023.json --sims 3000
       - name: Diagnose historical ownership gap
         run: python script/diagnose_alternate_history_event.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.5a relevance-pruned downstream dependency replay
