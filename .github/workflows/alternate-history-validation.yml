@@ -38,6 +38,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Restore completed-season Sleeper history cache
+        uses: actions/cache@v4
+        with:
+          path: data/alternate_history/source_history/sleeper_history.json
+          key: alternate-history-sleeper-completed-2022-2025-v1
       - name: Install Simulator 1.0 runtime dependency
         run: python -m pip install --disable-pip-version-check numpy
       - name: Compile new Python modules
