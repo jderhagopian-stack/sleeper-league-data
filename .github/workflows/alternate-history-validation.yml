@@ -1,0 +1,30 @@
+name: Alternate History Validation
+
+on:
+  pull_request:
+    paths:
+      - 'script/alternate_history_engine.py'
+      - 'script/run_fsffl_alternate_history.py'
+      - 'script/validate_alternate_history.py'
+      - 'data/alternate_history/**'
+      - '.github/workflows/alternate-history-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile new Python modules
+        run: |
+          python -m py_compile script/alternate_history_engine.py
+          python -m py_compile script/run_fsffl_alternate_history.py
+          python -m py_compile script/validate_alternate_history.py
+      - name: Run isolated regression validation
+        run: python script/validate_alternate_history.py
