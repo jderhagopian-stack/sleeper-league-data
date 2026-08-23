@@ -18,13 +18,14 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import alternate_history_engine as ah
 
 DATA = Path("data")
 SEASONS = ("2022", "2023", "2024", "2025")
 TOL = 0.011
+EMPTY_PLAYER_IDS = {"0", "None", ""}
 
 
 def load(path: Path) -> Any:
@@ -55,6 +56,8 @@ def replay_season(season: str, playoff_start: int) -> Dict[str, Any]:
     )
     regular_games = 0
     postseason_games = 0
+    non_game_rows = 0
+    empty_starter_slots = 0
     rows_checked = 0
     lineup_point_checks = 0
     player_point_checks = 0
@@ -66,8 +69,13 @@ def replay_season(season: str, playoff_start: int) -> Dict[str, Any]:
         for row in rows:
             rows_checked += 1
             rid = str(row.get("roster_id"))
-            matchup_id = str(row.get("matchup_id"))
-            groups[matchup_id].append(row)
+            raw_matchup_id = row.get("matchup_id")
+            if raw_matchup_id is None:
+                # Sleeper retains inactive/consolation rows with no matchup.
+                # They are roster snapshots, not played head-to-head games.
+                non_game_rows += 1
+            else:
+                groups[str(raw_matchup_id)].append(row)
 
             starters = [str(x) for x in (row.get("starters") or [])]
             starter_points = [float(x or 0.0) for x in (row.get("starters_points") or [])]
@@ -86,6 +94,12 @@ def replay_season(season: str, playoff_start: int) -> Dict[str, Any]:
                 lineup_point_checks += 1
 
             for pid, pts in zip(starters, starter_points):
+                # Sleeper uses player id 0 as an explicitly empty starter slot.
+                if pid in EMPTY_PLAYER_IDS:
+                    empty_starter_slots += 1
+                    if not close(pts, 0.0):
+                        errors.append(f"{season} W{week} R{rid}: empty starter slot scored {pts}")
+                    continue
                 if pid not in players:
                     errors.append(f"{season} W{week} R{rid}: starter {pid} absent from rostered players")
                 if pid in players_points and not close(players_points[pid], pts):
@@ -140,6 +154,8 @@ def replay_season(season: str, playoff_start: int) -> Dict[str, Any]:
         "season": season,
         "regular_season_games": regular_games,
         "postseason_games": postseason_games,
+        "non_game_rows": non_game_rows,
+        "empty_starter_slots": empty_starter_slots,
         "rows_checked": rows_checked,
         "lineup_point_checks": lineup_point_checks,
         "player_point_checks": player_point_checks,
@@ -242,6 +258,8 @@ def main() -> None:
         "replay_counts": {
             "regular_season_games": replay_regular,
             "postseason_games": replay_post,
+            "non_game_rows": sum(x["non_game_rows"] for x in season_results),
+            "empty_starter_slots": sum(x["empty_starter_slots"] for x in season_results),
             "rows_checked": sum(x["rows_checked"] for x in season_results),
             "lineup_point_checks": sum(x["lineup_point_checks"] for x in season_results),
             "player_point_checks": sum(x["player_point_checks"] for x in season_results),
