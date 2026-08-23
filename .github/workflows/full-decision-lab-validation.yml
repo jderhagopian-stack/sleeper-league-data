@@ -38,3 +38,10 @@ jobs:
             'team_comparisons': d['team_comparisons'],
           }, indent=2))
           PY
+      - name: Upload Decision Lab report
+        uses: actions/upload-artifact@v4
+        with:
+          name: roster-decision-lab-report-${{ github.run_id }}
+          path: /tmp/decision-lab-full.json
+          if-no-files-found: error
+          retention-days: 30
