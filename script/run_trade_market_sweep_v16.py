@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.6 — deeper bilateral search.
+"""FSFFL Counter & Market Sweep 1.6 — true deep bilateral search.
 
-Builds on 1.5. Rather than simulating a small fixed shortlist and filtering it
-once, 1.6 deliberately searches deeper into the market so buyer-irrational
-packages can be replaced by mutually viable alternatives.
+This version bypasses the v1.3/v1.4 report-level Top-5 truncation and runs the
+base market engine directly with the fast exact lineup optimizer and read caches.
+It can therefore simulate a genuinely deep candidate pool before applying focal
+and buyer-side rationality gates.
 
-The search remains read-only and heuristic on human acceptance: it estimates
-strategic fit, not a calibrated probability that another manager accepts.
+Human acceptance remains a strategic-fit heuristic, not a calibrated
+probability. Canonical Sleeper / GM / Simulator state remains read-only.
 """
 from __future__ import annotations
 
 import argparse
+import functools
 import importlib.util
 import json
-import subprocess
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict
 
-V14_PATH = Path("script/run_trade_market_sweep_v14.py")
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.6"
 DEFAULT_SEARCH_DEPTH = 40
@@ -32,6 +31,17 @@ def load_module(path: Path, name: str):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def install_read_caches(engine):
+    """Memoize immutable GM reads for this process only."""
+    engine.franchise_index = functools.lru_cache(maxsize=1)(engine.franchise_index)
+    engine.asset_catalog = functools.lru_cache(maxsize=1)(engine.asset_catalog)
+    engine.command_center = functools.lru_cache(maxsize=None)(engine.command_center)
+    engine.strategic_assets = functools.lru_cache(maxsize=None)(engine.strategic_assets)
+    engine.need_map = functools.lru_cache(maxsize=None)(engine.need_map)
+    engine.team_state = functools.lru_cache(maxsize=None)(engine.team_state)
+    return engine
 
 
 def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
@@ -98,10 +108,7 @@ def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
 
 
 def focal_viable(row: Dict[str, Any]) -> bool:
-    return (
-        row.get("championship_equity_constraint") == "PASS"
-        and row.get("plausibility") in {"HIGH", "MEDIUM"}
-    )
+    return row.get("championship_equity_constraint") == "PASS" and row.get("plausibility") in {"HIGH", "MEDIUM"}
 
 
 def main():
@@ -113,44 +120,81 @@ def main():
     ap.add_argument("--output", required=True)
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
-
     depth = max(20, args.search_depth)
-    with tempfile.TemporaryDirectory() as td:
-        raw_out = Path(td) / "v14.json"
-        subprocess.run([
-            sys.executable, str(V14_PATH), "--scenario", args.scenario,
-            "--quick-sims", str(args.quick_sims), "--confirm-sims", str(args.confirm_sims),
-            "--shortlist", str(depth), "--finalists", str(depth), "--seed", str(args.seed),
-            "--output", str(raw_out),
-        ], check=True, stdout=subprocess.DEVNULL)
-        report = json.loads(raw_out.read_text(encoding="utf-8"))
 
     v13 = load_module(V13_PATH, "market_sweep_v13_for_v16")
     engine = v13.load_module(v13.BASE_ENGINE, "market_sweep_base_for_v16")
+    install_read_caches(engine)
     dl = engine.import_decision_lab()
+
+    # Preserve the 1.3 exact slot-mask optimizer while allowing the base engine
+    # to retain all requested finalists instead of truncating the report to 5.
+    def patched_simulate_candidate(dl_mod, model_inputs, baseline_lineups, baseline,
+                                   focus_uid, buyer_uid, outgoing, incoming, sims, seed):
+        return v13.fast_simulate_candidate(
+            engine, dl_mod, model_inputs, baseline_lineups, baseline,
+            focus_uid, buyer_uid, outgoing, incoming, sims, seed
+        )
+    engine.simulate_candidate = patched_simulate_candidate
+
+    with tempfile.TemporaryDirectory() as td:
+        raw_out = Path(td) / "deep_base.json"
+        v13.run_base_engine_in_process(engine, [
+            "--scenario", args.scenario,
+            "--quick-sims", str(args.quick_sims),
+            "--confirm-sims", str(args.confirm_sims),
+            "--shortlist", str(depth),
+            "--finalists", str(depth),
+            "--seed", str(args.seed),
+            "--output", str(raw_out),
+        ])
+        report = json.loads(raw_out.read_text(encoding="utf-8"))
+
+    # Evaluate the actual offer on the identical quick-sim baseline so every
+    # alternative retains a direct current-offer comparison.
+    scenario = engine.load_json(Path(args.scenario), {}) or {}
+    focus_uid = str(scenario.get("focus_user_id") or "")
+    sent_ids, received_ids, current_partner = engine.incoming_trade_parts(scenario, focus_uid)
+    model_inputs = dl.load_model_inputs()
+    simmod, league, rosters, users, players, season, projections, raw_schedule = model_inputs
+    baseline_lineups = dl.load_cached_lineups(season)
+    baseline = dl.simulate_from_lineups(
+        simmod, league, rosters, users, raw_schedule, baseline_lineups, args.quick_sims, args.seed
+    )
+    player_catalog, pick_catalog = engine.asset_catalog()
+    catalog = {**player_catalog, **pick_catalog}
+    outgoing = [catalog[x] for x in sent_ids if x in catalog]
+    incoming = [catalog[x] for x in received_ids if x in catalog]
+    missing = [x for x in sent_ids + received_ids if x not in catalog]
+    if missing:
+        raise ValueError(f"Current-offer assets missing from FSFFL asset catalog: {missing}")
+
+    current = engine.score_candidate(focus_uid, current_partner, outgoing, incoming)
+    current["outgoing_assets"] = sent_ids
+    current["outgoing_asset_names"] = [a.get("name") for a in outgoing]
+    current["candidate_type"] = "CURRENT_OFFER"
+    current["outgoing_variant"] = "FULL"
+    current["simulation"] = patched_simulate_candidate(
+        dl, model_inputs, baseline_lineups, baseline, focus_uid, current_partner,
+        outgoing, incoming, args.quick_sims, args.seed
+    )
+    current["post_sim_score"] = engine.post_sim_score(current, engine.team_state(focus_uid))
+    current["buyer_rationality"] = buyer_rationality(current, dl)
 
     rows = list(report.get("ranked_finalists") or [])
     for row in rows:
         row["buyer_rationality"] = buyer_rationality(row, dl)
+        row["comparison_to_current_offer"] = v13.compare_candidate(row, current)
 
-    mutually_viable = [
-        r for r in rows
-        if focal_viable(r) and r["buyer_rationality"]["current_state_viable"]
-    ]
-    mutually_viable.sort(
-        key=lambda r: (
-            float(r.get("post_sim_score") or 0.0),
-            float(r["buyer_rationality"]["heuristic_acceptance_fit_score"]),
-        ),
-        reverse=True,
-    )
+    mutually_viable = [r for r in rows if focal_viable(r) and r["buyer_rationality"]["current_state_viable"]]
+    mutually_viable.sort(key=lambda r: (
+        float(r.get("post_sim_score") or 0.0),
+        float(r["buyer_rationality"]["heuristic_acceptance_fit_score"]),
+    ), reverse=True)
 
-    pivot = [
-        r for r in rows
-        if focal_viable(r)
-        and not r["buyer_rationality"]["current_state_viable"]
-        and r["buyer_rationality"]["state_change_viable"]
-    ]
+    pivot = [r for r in rows if focal_viable(r)
+             and not r["buyer_rationality"]["current_state_viable"]
+             and r["buyer_rationality"]["state_change_viable"]]
     pivot.sort(key=lambda r: float(r.get("post_sim_score") or 0.0), reverse=True)
     rejected = [r for r in rows if r["buyer_rationality"]["current_state_gate"] == "BUYER_IRRATIONAL"]
 
@@ -158,21 +202,17 @@ def main():
     for i, row in enumerate(top5, 1):
         row["actionable_rank"] = i
 
-    current = report.get("current_offer_evaluation") or {}
-    if current:
-        current["buyer_rationality"] = buyer_rationality(current, dl)
-
     if not top5:
         action = "DECLINE"
-    elif current and focal_viable(current) and current["buyer_rationality"]["current_state_viable"]:
-        best = top5[0]
-        action = "SHOP_BEFORE_ACCEPTING" if best.get("post_sim_score", 0) > current.get("post_sim_score", 0) + 750 else "ACCEPT_NOW"
+    elif focal_viable(current) and current["buyer_rationality"]["current_state_viable"]:
+        action = "SHOP_BEFORE_ACCEPTING" if top5[0].get("post_sim_score", 0) > current.get("post_sim_score", 0) + 750 else "ACCEPT_NOW"
     elif any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in top5):
         action = "COUNTER_CURRENT_OFFEROR"
     else:
         action = "SHOP_BEFORE_ACCEPTING"
 
     report["model_version"] = MODEL_VERSION
+    report["current_offer_evaluation"] = current
     report["ranked_finalists"] = top5
     report["top_5_alternatives"] = top5
     report["state_change_dependent_alternatives"] = pivot[:5]
@@ -188,6 +228,8 @@ def main():
     report["policy"]["actionable_top_five_requires_bilateral_utility"] = True
     report["policy"]["deep_search_replaces_filtered_candidates"] = True
     report["policy"]["focal_and_counterparty_must_both_pass"] = True
+    report["policy"]["fast_exact_lineup_dp"] = True
+    report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
 
     Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps(report, indent=2))
