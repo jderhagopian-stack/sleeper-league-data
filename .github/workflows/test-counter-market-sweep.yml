@@ -11,7 +11,7 @@ on:
 jobs:
   smoke-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,8 +30,8 @@ jobs:
             --scenario data/decision_lab/full_validation_scenario.json \
             --quick-sims 100 \
             --confirm-sims 0 \
-            --shortlist 2 \
-            --finalists 2 \
+            --shortlist 3 \
+            --finalists 3 \
             --output /tmp/counter-market-sweep.json
 
       - name: Validate output invariants
@@ -39,12 +39,18 @@ jobs:
           python - <<'PY'
           import json
           d = json.load(open('/tmp/counter-market-sweep.json'))
-          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.0'
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.1'
           assert d['simulation']['canonical_state_mutated'] is False
-          assert d['simulation']['execution_path'] == 'gm_prescreen_then_decision_lab_shortlist'
+          assert d['simulation']['execution_path'] == 'gm_prescreen_then_diversified_decision_lab_shortlist'
           assert d['policy']['acceptance_requires_market_sweep'] is True
+          assert d['policy']['alternate_buyer_shortlist_slot_reserved'] is True
+          assert d['policy']['strict_outgoing_subsets_tested'] is True
+          assert d['policy']['low_plausibility_can_drive_action'] is False
           assert d['focus_team_state'] in {'contender','elite_contender','retool','rebuild','unknown'}
-          assert d['candidate_counts']['simulated_shortlist'] <= 2
+          assert d['candidate_counts']['simulated_shortlist'] <= 3
+          assert d['candidate_counts']['outgoing_variants'] >= 2
+          assert d['best_subset_trade'] is not None
+          assert len(d['alternate_buyer_candidates']) >= 1
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep smoke test passed')
+          print('Counter & Market Sweep 1.1 smoke test passed')
           PY
