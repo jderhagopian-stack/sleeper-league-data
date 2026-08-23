@@ -8,6 +8,7 @@ on:
       - 'script/run_trade_market_sweep_v13.py'
       - 'script/run_trade_market_sweep_v14.py'
       - 'script/run_trade_market_sweep_v15.py'
+      - 'script/run_trade_market_sweep_v16.py'
       - 'data/decision_lab/counter_market_engine_architecture.json'
       - '.github/workflows/test-counter-market-sweep.yml'
   workflow_dispatch:
@@ -26,7 +27,7 @@ jobs:
           python-version: '3.11'
 
       - name: Compile engine
-        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_roster_decision_lab.py
 
       - name: Validate fast optimizer equivalence
         run: |
@@ -51,28 +52,27 @@ jobs:
           print('Fast exact lineup DP matches legacy optimizer objective')
           PY
 
-      - name: Run bilateral-rationality market sweep smoke test
+      - name: Run deep bilateral market sweep smoke test
         run: |
           SECONDS=0
-          python script/run_trade_market_sweep_v15.py \
+          python script/run_trade_market_sweep_v16.py \
             --scenario data/decision_lab/full_validation_scenario.json \
             --quick-sims 100 \
             --confirm-sims 0 \
-            --shortlist 12 \
-            --finalists 12 \
+            --search-depth 40 \
             --output /tmp/counter-market-sweep.json \
             > /tmp/counter-market-sweep.log
           elapsed=$SECONDS
-          echo "Bilateral market sweep runtime: ${elapsed}s"
+          echo "Deep bilateral market sweep runtime: ${elapsed}s"
           test "$elapsed" -le 180
-          tail -n 20 /tmp/counter-market-sweep.log
+          tail -n 30 /tmp/counter-market-sweep.log
 
       - name: Validate output invariants
         run: |
           python - <<'PY'
           import json
           d = json.load(open('/tmp/counter-market-sweep.json'))
-          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.5'
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.6'
           assert d['simulation']['canonical_state_mutated'] is False
           assert d['simulation']['lineup_reoptimization'] == 'exact_slot_mask_dynamic_programming'
           assert d['policy']['fast_exact_lineup_dp'] is True
@@ -80,14 +80,19 @@ jobs:
           assert d['policy']['state_change_dependent_candidates_separated'] is True
           assert d['policy']['heuristic_acceptance_fit_not_probability'] is True
           assert d['policy']['actionable_top_five_requires_bilateral_utility'] is True
+          assert d['policy']['deep_search_replaces_filtered_candidates'] is True
+          assert d['policy']['focal_and_counterparty_must_both_pass'] is True
           assert d['current_offer_evaluation']['candidate_type'] == 'CURRENT_OFFER'
           assert 'buyer_rationality' in d['current_offer_evaluation']
+          assert d['candidate_counts']['deep_search_simulated'] >= 20
           assert len(d['top_5_alternatives']) <= 5
+          assert all(x['championship_equity_constraint'] == 'PASS' for x in d['top_5_alternatives'])
+          assert all(x['plausibility'] in {'HIGH','MEDIUM'} for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['current_state_viable'] is True for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['current_state_gate'] == 'CURRENT_STATE_VIABLE' for x in d['top_5_alternatives'])
           assert all('comparison_to_current_offer' in x for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['heuristic_acceptance_fit'] in {'HIGH','MEDIUM','LOW','VERY_LOW'} for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['current_state_gate'] == 'STATE_CHANGE_DEPENDENT' for x in d['state_change_dependent_alternatives'])
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep 1.5 bilateral rationality smoke test passed')
+          print('Counter & Market Sweep 1.6 deep bilateral search smoke test passed')
           PY
