@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.8 — five-option negotiation report.
+"""FSFFL Counter & Market Sweep 1.8 — owner-behavior-aware acceptance.
 
-Returns up to five useful counters even when none reaches MEDIUM/HIGH heuristic
-acceptance fit. The report distinguishes realistic counters from reasonable
-longshots and permits at most one swing-for-the-fences option. Human acceptance
-is a heuristic fit band, not a calibrated probability. Canonical state is read-only.
+Runs the 1.7 acceptance-frontier engine but injects the owner-behavior intelligence
+already present in the GM model (completed trades, rookie drafts and waivers)
+into both frontier selection and post-simulation acceptance fit.
+
+Behavior is evidence, not a veto and not a calibrated acceptance probability.
+Canonical Sleeper / GM / Simulator state remains read-only.
 """
 from __future__ import annotations
 
 import argparse
 import importlib.util
 import json
-import tempfile
+import sys
 from pathlib import Path
+from typing import Any, Dict, List
 
-V13_PATH = Path("script/run_trade_market_sweep_v13.py")
-V17_PATH = Path("script/run_trade_market_sweep_v16.py")
+V17_PATH = Path("script/run_trade_market_sweep_v17.py")
+OWNER_BEHAVIOR_PATH = Path("data/owner_behavior_profiles.json")
+ASSET_PATH = Path("data/fsffl_asset_values.json")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.8"
-DEFAULT_SEARCH_DEPTH = 60
 
 
 def load_module(path: Path, name: str):
@@ -29,33 +32,162 @@ def load_module(path: Path, name: str):
     return mod
 
 
-def acceptance_note(br):
-    band = br.get("heuristic_acceptance_fit") or "UNKNOWN"
-    state = br.get("buyer_state") or "unknown"
-    title = float(br.get("buyer_title_delta") or 0.0)
-    dyn = float(br.get("buyer_market_dynasty_delta") or 0.0)
-    if band in {"HIGH", "MEDIUM"}:
-        return f"{band}: modeled package is reasonably aligned with this {state} manager's current objective."
-    if band == "LOW":
-        return f"LOW: possible, but the {state} manager is giving up meaningful utility (title delta {title:+.1%}, dynasty delta {dyn:+.0f})."
-    return f"VERY LOW: an aggressive ask; current-state fit is technically viable but the buyer sacrifices substantial modeled utility (title delta {title:+.1%}, dynasty delta {dyn:+.0f})."
+def clamp(x: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, x))
 
 
-def advantage_note(row):
-    comp = row.get("comparison_to_current_offer") or {}
-    md = comp.get("metric_deltas_vs_current_offer") or {}
-    pieces = []
-    champ = float(md.get("championship_probability") or 0.0)
-    wins = float(md.get("expected_wins") or 0.0)
-    dyn = float(md.get("market_dynasty_delta") or 0.0)
-    if champ:
-        pieces.append(f"championship probability {champ:+.1%} vs current offer")
-    if wins:
-        pieces.append(f"expected wins {wins:+.2f}")
-    if dyn:
-        pieces.append(f"dynasty value {dyn:+.0f}")
-    verdict = comp.get("verdict_vs_current_offer") or "MIXED"
-    return f"{verdict} than current offer: " + (", ".join(pieces) if pieces else "better strategic fit under the model")
+def safe_float(x: Any, default: float = 0.0) -> float:
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return default
+
+
+def load_json(path: Path, default=None):
+    if not path.exists():
+        return default
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def build_behavior_index() -> Dict[str, Dict[str, Any]]:
+    """Mirror the transparent GM-2.2/3.0 owner-preference construction."""
+    profiles = load_json(OWNER_BEHAVIOR_PATH, []) or []
+    positions = ("QB", "RB", "WR", "TE")
+    raw_share: Dict[str, Dict[str, float]] = {}
+    raw_pick: Dict[str, float] = {}
+
+    for p in profiles:
+        uid = str(p.get("user_id"))
+        trade = p.get("trade_profile") or {}
+        draft = p.get("rookie_draft_profile") or {}
+        waiver = p.get("waiver_profile") or {}
+        acq = trade.get("player_positions_acquired") or {}
+        drafted = draft.get("positions") or {}
+        added = waiver.get("positions_added") or {}
+        scores = {
+            pos: safe_float(acq.get(pos)) + 0.70 * safe_float(drafted.get(pos)) + 0.20 * safe_float(added.get(pos))
+            for pos in positions
+        }
+        total = sum(scores.values()) or 1.0
+        raw_share[uid] = {pos: scores[pos] / total for pos in positions}
+        acquired = sum(safe_float(trade.get(k)) for k in ("firsts_acquired", "seconds_acquired", "thirds_acquired"))
+        sent = sum(safe_float(trade.get(k)) for k in ("firsts_sent", "seconds_sent", "thirds_sent"))
+        raw_pick[uid] = acquired - sent + 0.15 * safe_float(draft.get("rookie_picks_made_2023_plus"))
+
+    league_avg = {
+        pos: (sum(x[pos] for x in raw_share.values()) / len(raw_share)) if raw_share else 0.25
+        for pos in positions
+    }
+    pick_vals = list(raw_pick.values())
+    pick_mean = sum(pick_vals) / len(pick_vals) if pick_vals else 0.0
+    pick_var = sum((x - pick_mean) ** 2 for x in pick_vals) / len(pick_vals) if pick_vals else 1.0
+    pick_sd = pick_var ** 0.5 or 1.0
+
+    out = {}
+    for p in profiles:
+        uid = str(p.get("user_id"))
+        trade = p.get("trade_profile") or {}
+        shares = raw_share.get(uid, {})
+        pos_pref = {}
+        for pos in positions:
+            avg = league_avg.get(pos) or 0.25
+            ratio = shares.get(pos, 0.0) / avg
+            pos_pref[pos] = round(clamp((ratio - 1.0) / 0.75, -1.0, 1.0), 3)
+        pick_z = (raw_pick.get(uid, 0.0) - pick_mean) / pick_sd
+        total_trades = safe_float(trade.get("total_trades"))
+        recent = safe_float(trade.get("recent_trades_2025_2026"))
+        initiated = safe_float(trade.get("initiated_trades"))
+        multi = safe_float(trade.get("multi_asset_trades"))
+        confidence = "HIGH" if total_trades >= 20 else "MEDIUM" if total_trades >= 8 else "LOW"
+        out[uid] = {
+            "position_preference": pos_pref,
+            "pick_preference": round(clamp(pick_z / 2.0, -1.0, 1.0), 3),
+            "completed_trade_sample": int(total_trades),
+            "recent_trade_sample": int(recent),
+            "initiation_rate": round(initiated / total_trades, 3) if total_trades else None,
+            "multi_asset_rate": round(multi / total_trades, 3) if total_trades else None,
+            "behavior_confidence": confidence,
+            "confidence_weight": {"HIGH": 1.0, "MEDIUM": 0.65, "LOW": 0.35}[confidence],
+        }
+    return out
+
+
+def build_asset_meta() -> Dict[str, Dict[str, Any]]:
+    d = load_json(ASSET_PATH, {}) or {}
+    out = {}
+    for p in d.get("players") or []:
+        aid = p.get("asset_id") or (f"player:{p.get('player_id')}" if p.get("player_id") is not None else None)
+        if aid:
+            out[str(aid)] = {"asset_type": "player", "position": p.get("position"), "name": p.get("name")}
+    for p in d.get("picks") or []:
+        aid = p.get("asset_id")
+        if aid:
+            out[str(aid)] = {"asset_type": "pick", "position": None, "name": p.get("name") or aid}
+    return out
+
+
+def behavior_signal(uid: str, buyer_receives: List[str], buyer_sends: List[str],
+                    behavior: Dict[str, Dict[str, Any]], meta: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    b = behavior.get(str(uid)) or {}
+    if not b:
+        return {"available": False, "behavior_confidence": "NONE", "adjustment": 0.0,
+                "reason": "No owner-behavior profile available; market/state model remains primary."}
+
+    prefs = b.get("position_preference") or {}
+    recv_pos = [meta.get(a, {}).get("position") for a in buyer_receives if meta.get(a, {}).get("asset_type") == "player"]
+    send_pos = [meta.get(a, {}).get("position") for a in buyer_sends if meta.get(a, {}).get("asset_type") == "player"]
+    recv_pos = [x for x in recv_pos if x]
+    send_pos = [x for x in send_pos if x]
+    recv_pref = sum(safe_float(prefs.get(x)) for x in recv_pos) / len(recv_pos) if recv_pos else 0.0
+    send_pref = sum(safe_float(prefs.get(x)) for x in send_pos) / len(send_pos) if send_pos else 0.0
+    position_signal = 0.75 * recv_pref - 0.25 * send_pref
+
+    recv_picks = sum(1 for a in buyer_receives if meta.get(a, {}).get("asset_type") == "pick" or str(a).startswith("pick:"))
+    send_picks = sum(1 for a in buyer_sends if meta.get(a, {}).get("asset_type") == "pick" or str(a).startswith("pick:"))
+    pick_flow = clamp((recv_picks - send_picks) / 2.0, -1.0, 1.0)
+    pick_signal = safe_float(b.get("pick_preference")) * pick_flow
+
+    package_size = len(buyer_receives) + len(buyer_sends)
+    multi_rate = b.get("multi_asset_rate")
+    complexity_signal = 0.0
+    if multi_rate is not None and package_size >= 4:
+        complexity_signal = clamp((safe_float(multi_rate) - 0.45) / 0.45, -1.0, 1.0)
+    activity_signal = clamp((safe_float(b.get("recent_trade_sample")) - 2.0) / 8.0, -0.5, 1.0)
+
+    raw = 0.52 * position_signal + 0.25 * pick_signal + 0.13 * complexity_signal + 0.10 * activity_signal
+    adjustment = round(clamp(raw * safe_float(b.get("confidence_weight"), 0.35) * 0.16, -0.16, 0.16), 4)
+
+    positives, negatives = [], []
+    if position_signal >= 0.20:
+        positives.append("incoming player positions match this manager's historical acquisition tendencies")
+    elif position_signal <= -0.20:
+        negatives.append("incoming player positions run against this manager's historical acquisition tendencies")
+    if pick_signal >= 0.15:
+        positives.append("pick flow matches the manager's historical pick preference")
+    elif pick_signal <= -0.15:
+        negatives.append("pick flow conflicts with the manager's historical pick preference")
+    if complexity_signal >= 0.20:
+        positives.append("the manager has historically participated in multi-asset trades")
+    elif complexity_signal <= -0.20:
+        negatives.append("the package is more complex than this manager's typical completed trades")
+    if activity_signal >= 0.25:
+        positives.append("the manager has been an active recent trader")
+    reason_parts = positives[:2] + negatives[:2]
+
+    return {
+        "available": True,
+        "behavior_confidence": b.get("behavior_confidence"),
+        "completed_trade_sample": b.get("completed_trade_sample"),
+        "recent_trade_sample": b.get("recent_trade_sample"),
+        "initiation_rate": b.get("initiation_rate"),
+        "multi_asset_rate": b.get("multi_asset_rate"),
+        "position_signal": round(position_signal, 4),
+        "pick_signal": round(pick_signal, 4),
+        "complexity_signal": round(complexity_signal, 4),
+        "activity_signal": round(activity_signal, 4),
+        "adjustment": adjustment,
+        "reason": "; ".join(reason_parts) if reason_parts else "Historical behavior is roughly neutral for this package.",
+    }
 
 
 def main():
@@ -63,152 +195,74 @@ def main():
     ap.add_argument("--scenario", required=True)
     ap.add_argument("--quick-sims", type=int, default=100)
     ap.add_argument("--confirm-sims", type=int, default=0)
-    ap.add_argument("--search-depth", type=int, default=DEFAULT_SEARCH_DEPTH)
+    ap.add_argument("--search-depth", type=int, default=60)
     ap.add_argument("--output", required=True)
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
-    depth = max(40, args.search_depth)
 
+    behavior = build_behavior_index()
+    meta = build_asset_meta()
     v17 = load_module(V17_PATH, "market_sweep_v17_for_v18")
-    v13 = load_module(V13_PATH, "market_sweep_v13_for_v18")
-    engine = v13.load_module(v13.BASE_ENGINE, "market_sweep_base_for_v18")
-    v17.install_read_caches(engine)
-    dl = engine.import_decision_lab()
+    original_static = v17.static_buyer_fit
+    original_loader = v17.load_module
 
-    def patched_simulate_candidate(dl_mod, model_inputs, baseline_lineups, baseline,
-                                   focus_uid, buyer_uid, outgoing, incoming, sims, seed):
-        return v13.fast_simulate_candidate(
-            engine, dl_mod, model_inputs, baseline_lineups, baseline,
-            focus_uid, buyer_uid, outgoing, incoming, sims, seed
-        )
-    engine.simulate_candidate = patched_simulate_candidate
+    def behavior_static(engine, focus_uid, buyer_uid, outgoing, incoming):
+        base = original_static(engine, focus_uid, buyer_uid, outgoing, incoming)
+        recv = [engine.asset_id(a) for a in outgoing]
+        send = [engine.asset_id(a) for a in incoming]
+        sig = behavior_signal(str(buyer_uid), recv, send, behavior, meta)
+        adjusted_utility = safe_float(base.get("estimated_buyer_utility")) + safe_float(sig.get("adjustment")) * 3500.0
+        base["owner_behavior_pre_screen"] = sig
+        base["behavior_adjusted_buyer_utility"] = round(adjusted_utility, 2)
+        base["frontier_distance"] = round(abs(adjusted_utility), 2)
+        base["buyer_friendly_bonus"] = round(min(1500.0, max(-1500.0, adjusted_utility)), 2)
+        return base
 
-    with tempfile.TemporaryDirectory() as td:
-        raw_out = Path(td) / "deep_base.json"
-        v13.run_base_engine_in_process(engine, [
-            "--scenario", args.scenario,
-            "--quick-sims", str(args.quick_sims),
-            "--confirm-sims", str(args.confirm_sims),
-            "--shortlist", str(depth),
-            "--finalists", str(depth),
-            "--seed", str(args.seed),
-            "--output", str(raw_out),
-        ])
-        report = json.loads(raw_out.read_text(encoding="utf-8"))
+    def patched_loader(path, name):
+        mod = original_loader(path, name)
+        if Path(path) == Path(v17.V16_PATH):
+            original_br = mod.buyer_rationality
 
-    scenario = engine.load_json(Path(args.scenario), {}) or {}
-    focus_uid = str(scenario.get("focus_user_id") or "")
-    sent_ids, received_ids, current_partner = engine.incoming_trade_parts(scenario, focus_uid)
-    model_inputs = dl.load_model_inputs()
-    simmod, league, rosters, users, players, season, projections, raw_schedule = model_inputs
-    baseline_lineups = dl.load_cached_lineups(season)
-    baseline = dl.simulate_from_lineups(simmod, league, rosters, users, raw_schedule, baseline_lineups, args.quick_sims, args.seed)
-    player_catalog, pick_catalog = engine.asset_catalog()
-    catalog = {**player_catalog, **pick_catalog}
-    outgoing = [catalog[x] for x in sent_ids if x in catalog]
-    incoming = [catalog[x] for x in received_ids if x in catalog]
-    missing = [x for x in sent_ids + received_ids if x not in catalog]
-    if missing:
-        raise ValueError(f"Current-offer assets missing from FSFFL asset catalog: {missing}")
+            def behavior_br(row, dl):
+                out = original_br(row, dl)
+                uid = str(row.get("buyer_user_id") or "")
+                recv = [str(x) for x in (row.get("outgoing_assets") or [])]
+                send = [str(x) for x in (row.get("return_assets") or [])]
+                sig = behavior_signal(uid, recv, send, behavior, meta)
+                base_score = safe_float(out.get("heuristic_acceptance_fit_score"), 0.5)
+                adjusted = round(clamp(base_score + safe_float(sig.get("adjustment")), 0.0, 1.0), 4)
+                band = "HIGH" if adjusted >= 0.68 else "MEDIUM" if adjusted >= 0.48 else "LOW" if adjusted >= 0.28 else "VERY_LOW"
+                out["state_utility_acceptance_fit_score"] = base_score
+                out["owner_behavior"] = sig
+                out["heuristic_acceptance_fit_score"] = adjusted
+                out["heuristic_acceptance_fit"] = band
+                out["acceptance_fit_basis"] = "state_utility_plus_GM_owner_behavior"
+                out["acceptance_fit_is_probability"] = False
+                return out
 
-    current = engine.score_candidate(focus_uid, current_partner, outgoing, incoming)
-    current["outgoing_assets"] = sent_ids
-    current["outgoing_asset_names"] = [a.get("name") for a in outgoing]
-    current["candidate_type"] = "CURRENT_OFFER"
-    current["outgoing_variant"] = "FULL"
-    current["simulation"] = patched_simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, current_partner, outgoing, incoming, args.quick_sims, args.seed)
-    current["post_sim_score"] = engine.post_sim_score(current, engine.team_state(focus_uid))
-    current["buyer_rationality"] = v17.buyer_rationality(current, dl)
+            mod.buyer_rationality = behavior_br
+        return mod
 
-    rows = list(report.get("ranked_finalists") or [])
-    for row in rows:
-        row["buyer_rationality"] = v17.buyer_rationality(row, dl)
-        row["comparison_to_current_offer"] = v13.compare_candidate(row, current)
-        row["acceptance_likelihood"] = row["buyer_rationality"]["heuristic_acceptance_fit"]
-        row["acceptance_explanation"] = acceptance_note(row["buyer_rationality"])
-        row["why_advantageous_for_focus"] = advantage_note(row)
+    v17.static_buyer_fit = behavior_static
+    v17.load_module = patched_loader
 
-    mutually_viable = [r for r in rows if v17.focal_viable(r) and r["buyer_rationality"]["current_state_viable"]]
-    mutually_viable.sort(key=lambda r: (
-        float(r["buyer_rationality"].get("heuristic_acceptance_fit_score") or 0.0),
-        float(r.get("post_sim_score") or 0.0),
-    ), reverse=True)
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = [str(V17_PATH), "--scenario", args.scenario, "--quick-sims", str(args.quick_sims),
+                    "--confirm-sims", str(args.confirm_sims), "--search-depth", str(args.search_depth),
+                    "--output", args.output, "--seed", str(args.seed)]
+        v17.main()
+    finally:
+        sys.argv = old_argv
 
-    realistic = [r for r in mutually_viable if r["acceptance_likelihood"] in {"HIGH", "MEDIUM"}]
-    longshots = [r for r in mutually_viable if r["acceptance_likelihood"] in {"LOW", "VERY_LOW"}]
-
-    # Always try to give the manager five negotiation paths when the market has
-    # at least five bilateral-current-state-viable candidates. Realistic deals
-    # come first; reasonable longshots fill the remaining slots.
-    top5 = list(realistic[:5])
-    remaining = 5 - len(top5)
-    if remaining > 0:
-        top5.extend(longshots[:remaining])
-
-    for row in top5:
-        if row["acceptance_likelihood"] in {"HIGH", "MEDIUM"}:
-            row["report_role"] = "REALISTIC_COUNTER"
-        else:
-            row["report_role"] = "REASONABLE_LONGSHOT"
-
-    # At most one selected VERY_LOW/high-upside deal is explicitly called the
-    # swing. Prefer the best focal post-sim score among selected VERY_LOW rows.
-    very_low = [r for r in top5 if r["acceptance_likelihood"] == "VERY_LOW"]
-    if very_low:
-        swing = max(very_low, key=lambda r: float(r.get("post_sim_score") or 0.0))
-        swing["report_role"] = "SWING_FOR_FENCES"
-        swing["report_note"] = "Aggressive ask with very low heuristic acceptance fit; included because the upside to the focal team is unusually strong."
-    else:
-        swing = None
-
-    # Sort presentation by role quality, then acceptance fit and focal utility.
-    role_rank = {"REALISTIC_COUNTER": 3, "REASONABLE_LONGSHOT": 2, "SWING_FOR_FENCES": 1}
-    top5.sort(key=lambda r: (
-        role_rank.get(r.get("report_role"), 0),
-        float(r["buyer_rationality"].get("heuristic_acceptance_fit_score") or 0.0),
-        float(r.get("post_sim_score") or 0.0),
-    ), reverse=True)
-    for i, row in enumerate(top5, 1):
-        row["actionable_rank"] = i
-
-    pivot = [r for r in rows if v17.focal_viable(r) and not r["buyer_rationality"]["current_state_viable"] and r["buyer_rationality"]["state_change_viable"]]
-    pivot.sort(key=lambda r: float(r.get("post_sim_score") or 0.0), reverse=True)
-
-    # Recommendation semantics remain conservative: LOW/VERY_LOW alternatives
-    # are negotiation ideas, not enough by themselves to turn a bad current
-    # offer into SHOP/COUNTER/ACCEPT.
-    if realistic:
-        if v17.focal_viable(current) and current["buyer_rationality"]["current_state_viable"]:
-            action = "SHOP_BEFORE_ACCEPTING" if realistic[0].get("post_sim_score", 0) > current.get("post_sim_score", 0) + 750 else "ACCEPT_NOW"
-        elif any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in realistic[:5]):
-            action = "COUNTER_CURRENT_OFFEROR"
-        else:
-            action = "SHOP_BEFORE_ACCEPTING"
-    else:
-        action = "DECLINE"
-
+    report = load_json(Path(args.output), {}) or {}
     report["model_version"] = MODEL_VERSION
-    report["current_offer_evaluation"] = current
-    report["ranked_finalists"] = top5
-    report["top_5_alternatives"] = top5
-    report["realistic_counter_alternatives"] = realistic[:5]
-    report["reasonable_longshot_alternatives"] = [r for r in top5 if r.get("report_role") == "REASONABLE_LONGSHOT"]
-    report["swing_for_fences_alternative"] = swing
-    report["state_change_dependent_alternatives"] = pivot[:5]
-    report["recommended_next_action"] = action
-    report.setdefault("candidate_counts", {})["acceptance_frontier_simulated"] = len(rows)
-    report["candidate_counts"]["buyer_current_state_viable"] = len(mutually_viable)
-    report["candidate_counts"]["realistic_acceptance_fit"] = len(realistic)
-    report["candidate_counts"]["reasonable_longshot_pool"] = len(longshots)
-    report.setdefault("policy", {})["five_option_report_when_market_supports_it"] = True
-    report["policy"]["reasonable_longshots_can_fill_report"] = True
-    report["policy"]["acceptance_likelihood_is_heuristic_not_probability"] = True
-    report["policy"]["each_option_explains_acceptance_and_focus_advantage"] = True
-    report["policy"]["swing_for_fences_slots_max"] = 1
-    report["policy"]["longshots_cannot_drive_recommended_action"] = True
-    report["policy"]["fast_exact_lineup_dp"] = True
-    report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
-
+    report.setdefault("policy", {})["GM_owner_behavior_integrated"] = True
+    report["policy"]["owner_behavior_sources"] = ["completed_trades", "rookie_drafts", "waivers"]
+    report["policy"]["owner_behavior_is_evidence_not_veto"] = True
+    report["policy"]["acceptance_fit_is_calibrated_probability"] = False
+    report.setdefault("simulation", {})["execution_path"] = "owner_behavior_acceptance_frontier_then_fast_decision_lab"
+    report["owner_behavior_profiles_available"] = len(behavior)
     Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps(report, indent=2))
 
