@@ -9,6 +9,7 @@ on:
       - 'script/run_trade_market_sweep_v14.py'
       - 'script/run_trade_market_sweep_v15.py'
       - 'script/run_trade_market_sweep_v16.py'
+      - 'script/run_trade_market_sweep_v17.py'
       - 'data/decision_lab/counter_market_engine_architecture.json'
       - '.github/workflows/test-counter-market-sweep.yml'
   workflow_dispatch:
@@ -27,7 +28,7 @@ jobs:
           python-version: '3.11'
 
       - name: Compile engine
-        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_roster_decision_lab.py
 
       - name: Validate fast optimizer equivalence
         run: |
@@ -52,20 +53,20 @@ jobs:
           print('Fast exact lineup DP matches legacy optimizer objective')
           PY
 
-      - name: Run deep bilateral market sweep smoke test
+      - name: Run acceptance-frontier market sweep
         run: |
           SECONDS=0
-          python script/run_trade_market_sweep_v16.py \
+          python script/run_trade_market_sweep_v17.py \
             --scenario data/decision_lab/full_validation_scenario.json \
             --quick-sims 100 \
             --confirm-sims 0 \
-            --search-depth 40 \
+            --search-depth 60 \
             --output /tmp/counter-market-sweep.json \
             > /tmp/counter-market-sweep.log
           elapsed=$SECONDS
-          echo "Deep bilateral market sweep runtime: ${elapsed}s"
+          echo "Acceptance-frontier market sweep runtime: ${elapsed}s"
           test "$elapsed" -le 180
-          tail -n 30 /tmp/counter-market-sweep.log
+          tail -n 40 /tmp/counter-market-sweep.log
 
       - name: Validate output invariants
         run: |
@@ -75,32 +76,31 @@ jobs:
           assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.7'
           assert d['simulation']['canonical_state_mutated'] is False
           assert d['simulation']['lineup_reoptimization'] == 'exact_slot_mask_dynamic_programming'
+          assert d['simulation']['execution_path'] == 'acceptance_frontier_prescreen_then_fast_decision_lab'
           assert d['policy']['fast_exact_lineup_dp'] is True
           assert d['policy']['buyer_current_state_rationality_gate'] is True
+          assert d['policy']['acceptance_frontier_search'] is True
           assert d['policy']['state_change_dependent_candidates_separated'] is True
           assert d['policy']['heuristic_acceptance_fit_not_probability'] is True
-          assert d['policy']['actionable_realistic_counters_require_medium_or_high_acceptance_fit'] is True
-          assert d['policy']['swing_for_fences_slots_max'] == 1
-          assert d['policy']['swing_for_fences_cannot_drive_recommended_action'] is True
-          assert d['policy']['deep_search_replaces_filtered_candidates'] is True
-          assert d['policy']['focal_and_counterparty_must_both_pass'] is True
+          assert d['policy']['actionable_normal_slot_requires_acceptance_fit'] == ['HIGH','MEDIUM']
+          assert d['policy']['swing_for_fences_max_count'] == 1
+          assert d['policy']['swing_for_fences_can_drive_action'] is False
           assert d['current_offer_evaluation']['candidate_type'] == 'CURRENT_OFFER'
           assert 'buyer_rationality' in d['current_offer_evaluation']
-          assert d['candidate_counts']['deep_search_simulated'] >= 20
+          assert d['candidate_counts']['frontier_selected_for_simulation'] >= 30
+          assert d['candidate_counts']['simulated'] >= 30
           assert len(d['top_5_alternatives']) <= 5
           swings = [x for x in d['top_5_alternatives'] if x.get('report_role') == 'SWING_FOR_FENCES']
-          realistic = [x for x in d['top_5_alternatives'] if x.get('report_role') == 'REALISTIC_COUNTER']
+          realistic = [x for x in d['top_5_alternatives'] if x.get('report_role') == 'REALISTIC_BILATERAL']
           assert len(swings) <= 1
           assert all(x['championship_equity_constraint'] == 'PASS' for x in d['top_5_alternatives'])
           assert all(x['plausibility'] in {'HIGH','MEDIUM'} for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['current_state_viable'] is True for x in d['top_5_alternatives'])
-          assert all(x['buyer_rationality']['current_state_gate'] == 'CURRENT_STATE_VIABLE' for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['heuristic_acceptance_fit'] in {'HIGH','MEDIUM'} for x in realistic)
           assert all(x['buyer_rationality']['heuristic_acceptance_fit'] in {'LOW','VERY_LOW'} for x in swings)
           assert all('comparison_to_current_offer' in x for x in d['top_5_alternatives'])
-          assert all(x['buyer_rationality']['current_state_gate'] == 'STATE_CHANGE_DEPENDENT' for x in d['state_change_dependent_alternatives'])
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep 1.7 realistic-plus-swing smoke test passed')
+          print('Counter & Market Sweep 1.7 acceptance-frontier smoke test passed')
           PY
 
       - name: Upload full counter report
