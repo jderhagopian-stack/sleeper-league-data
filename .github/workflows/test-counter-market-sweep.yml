@@ -54,7 +54,7 @@ jobs:
           print('Fast exact lineup DP matches legacy optimizer objective')
           PY
 
-      - name: Run blended owner-aware five-option market sweep
+      - name: Run diversified owner-aware five-option market sweep
         run: |
           SECONDS=0
           python script/run_trade_market_sweep_v18.py \
@@ -65,7 +65,7 @@ jobs:
             --output /tmp/counter-market-sweep.json \
             > /tmp/counter-market-sweep.log
           elapsed=$SECONDS
-          echo "Blended owner-aware five-option market sweep runtime: ${elapsed}s"
+          echo "Diversified owner-aware five-option market sweep runtime: ${elapsed}s"
           test "$elapsed" -le 180
           tail -n 40 /tmp/counter-market-sweep.log
 
@@ -73,8 +73,9 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          from collections import Counter
           d = json.load(open('/tmp/counter-market-sweep.json'))
-          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.9'
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.10'
           assert d['simulation']['canonical_state_mutated'] is False
           assert d['simulation']['lineup_reoptimization'] == 'exact_slot_mask_dynamic_programming'
           assert d['policy']['fast_exact_lineup_dp'] is True
@@ -90,6 +91,9 @@ jobs:
           assert d['policy']['acceptance_fit_is_calibrated_probability'] is False
           assert d['policy']['top_five_blended_ranking'] is True
           assert d['policy']['top_five_blended_ranking_weights'] == {'focal_strategic_gain':0.5,'acceptance_fit':0.3,'owner_behavior_match':0.2}
+          assert d['policy']['buyer_diversity_enabled'] is True
+          assert d['policy']['normal_max_options_per_buyer'] == 2
+          assert d['policy']['buyer_cap_backfills_only_when_needed_for_five'] is True
           assert d['owner_behavior_profiles_available'] > 0
           assert d['current_offer_evaluation']['candidate_type'] == 'CURRENT_OFFER'
           assert 'owner_behavior' in d['current_offer_evaluation']['buyer_rationality']
@@ -107,9 +111,11 @@ jobs:
           assert all(x.get('why_advantageous_for_focus') for x in d['top_5_alternatives'])
           assert all('owner_behavior' in x['buyer_rationality'] for x in d['top_5_alternatives'])
           assert all('negotiation_ranking' in x for x in d['top_5_alternatives'])
-          assert all(set(x['negotiation_ranking']['weights']) == {'focal_strategic_gain','acceptance_fit','owner_behavior_match'} for x in d['top_5_alternatives'])
+          counts = Counter(str(x.get('buyer_user_id') or '') for x in d['top_5_alternatives'])
+          assert d['candidate_counts']['top_five_unique_buyers'] == len(counts)
+          assert d['candidate_counts']['top_five_options_by_buyer'] == dict(counts)
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep 1.9 blended owner-aware five-option smoke test passed')
+          print('Counter & Market Sweep 1.10 diversified owner-aware smoke test passed')
           PY
 
       - name: Upload full counter report
