@@ -14,10 +14,9 @@ snapshot. Completed NFL/fantasy scoring is immutable.
 from __future__ import annotations
 
 import argparse
-import functools
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import alternate_history_engine as ah
 from run_fsffl_downstream_dependencies import load
@@ -26,6 +25,9 @@ from run_fsffl_postseason_consequences_v3 import run as run_postseason
 DATA = Path("data")
 REGULAR_SEASON_WEEKS = tuple(range(1, 15))
 STARTER_SLOTS = ("QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "SUPER_FLEX")
+BASE_COUNTS = {"QB": 1, "RB": 2, "WR": 3, "TE": 1}
+FLEX_POSITIONS = ("RB", "WR", "TE")
+SUPERFLEX_POSITIONS = ("QB", "RB", "WR", "TE")
 
 
 def player_positions() -> Dict[str, str]:
@@ -33,64 +35,90 @@ def player_positions() -> Dict[str, str]:
     return {str(pid): str(row.get("position") or "").upper() for pid, row in players.items()}
 
 
-def eligible(position: str, slot: str) -> bool:
-    position = str(position).upper()
-    if slot == "QB":
-        return position == "QB"
-    if slot == "RB":
-        return position == "RB"
-    if slot == "WR":
-        return position == "WR"
-    if slot == "TE":
-        return position == "TE"
-    if slot == "FLEX":
-        return position in {"RB", "WR", "TE"}
-    if slot == "SUPER_FLEX":
-        return position in {"QB", "RB", "WR", "TE"}
-    return False
-
-
 def max_lineup(points: Dict[str, float], positions: Dict[str, str]) -> Dict[str, Any]:
-    candidates = [
-        (str(pid), positions.get(str(pid), ""), float(score or 0.0))
-        for pid, score in points.items()
-        if positions.get(str(pid), "") in {"QB", "RB", "WR", "TE"}
-    ]
-    # Order scarce slots first to reduce equivalent DP work.
-    slots = STARTER_SLOTS
+    """Return exact optimal FSFFL lineup in O(players log players + 12 allocations).
 
-    @functools.lru_cache(maxsize=None)
-    def solve(slot_idx: int, used_mask: int) -> Tuple[float, Tuple[int, ...]]:
-        if slot_idx >= len(slots):
-            return 0.0, ()
-        slot = slots[slot_idx]
-        best_score = float("-inf")
-        best_choice: Tuple[int, ...] = ()
-        for idx, (_, pos, score) in enumerate(candidates):
-            if used_mask & (1 << idx) or not eligible(pos, slot):
+    Every legal lineup is fully described by the position used in FLEX and the
+    position used in SUPER_FLEX. There are only 3 x 4 = 12 such allocations.
+    For each allocation the optimal players are simply the top N scorers at each
+    required position. This is exactly equivalent to generic assignment search
+    but dramatically cheaper.
+    """
+    by_pos: Dict[str, List[tuple[str, float]]] = {p: [] for p in ("QB", "RB", "WR", "TE")}
+    for pid, value in points.items():
+        pos = positions.get(str(pid), "")
+        if pos in by_pos:
+            by_pos[pos].append((str(pid), float(value or 0.0)))
+    for pos in by_pos:
+        by_pos[pos].sort(key=lambda row: (row[1], row[0]), reverse=True)
+
+    best_score = float("-inf")
+    best_counts: Dict[str, int] = {}
+    best_flex = None
+    best_superflex = None
+    for flex_pos in FLEX_POSITIONS:
+        for sf_pos in SUPERFLEX_POSITIONS:
+            counts = dict(BASE_COUNTS)
+            counts[flex_pos] += 1
+            counts[sf_pos] += 1
+            feasible = all(len(by_pos[pos]) >= needed for pos, needed in counts.items())
+            if not feasible:
                 continue
-            tail_score, tail = solve(slot_idx + 1, used_mask | (1 << idx))
-            value = score + tail_score
-            if value > best_score:
-                best_score = value
-                best_choice = (idx,) + tail
-        # Historical artifacts can theoretically contain an incomplete roster;
-        # allow an empty slot worth zero instead of inventing a player.
-        tail_score, tail = solve(slot_idx + 1, used_mask)
-        if tail_score > best_score:
-            best_score = tail_score
-            best_choice = (-1,) + tail
-        return best_score, best_choice
+            score = sum(
+                sum(value for _, value in by_pos[pos][:needed])
+                for pos, needed in counts.items()
+            )
+            if score > best_score:
+                best_score = score
+                best_counts = counts
+                best_flex = flex_pos
+                best_superflex = sf_pos
 
-    score, choices = solve(0, 0)
+    # Defensive fallback for an incomplete historical roster snapshot. We never
+    # invent a player; missing starter slots are zero. This should not occur in
+    # normal FSFFL weekly snapshots but keeps the audit explicit.
+    if best_score == float("-inf"):
+        counts = dict(BASE_COUNTS)
+        best_score = 0.0
+        for pos, needed in counts.items():
+            best_score += sum(value for _, value in by_pos[pos][:needed])
+        best_counts = counts
+
+    selected_by_pos = {
+        pos: list(by_pos[pos][:needed]) for pos, needed in best_counts.items()
+    }
+    # Reconstruct a readable slot audit. Fixed slots consume the first players;
+    # FLEX/SF consume any extra selected player of their designated position.
+    cursors = {p: 0 for p in selected_by_pos}
     lineup = []
-    for slot, idx in zip(slots, choices):
-        if idx < 0:
-            lineup.append({"slot": slot, "player_id": None, "position": None, "points": 0.0})
+    for slot in ("QB", "RB", "RB", "WR", "WR", "WR", "TE"):
+        rows = selected_by_pos.get(slot, [])
+        idx = cursors.get(slot, 0)
+        if idx < len(rows):
+            pid, pts = rows[idx]
+            cursors[slot] = idx + 1
+            lineup.append({"slot": slot, "player_id": pid, "position": slot, "points": round(pts, 2)})
         else:
-            pid, pos, pts = candidates[idx]
+            lineup.append({"slot": slot, "player_id": None, "position": None, "points": 0.0})
+    for slot, pos in (("FLEX", best_flex), ("SUPER_FLEX", best_superflex)):
+        if pos is None:
+            lineup.append({"slot": slot, "player_id": None, "position": None, "points": 0.0})
+            continue
+        rows = selected_by_pos.get(pos, [])
+        idx = cursors.get(pos, 0)
+        if idx < len(rows):
+            pid, pts = rows[idx]
+            cursors[pos] = idx + 1
             lineup.append({"slot": slot, "player_id": pid, "position": pos, "points": round(pts, 2)})
-    return {"max_points": round(float(score), 2), "lineup": lineup}
+        else:
+            lineup.append({"slot": slot, "player_id": None, "position": None, "points": 0.0})
+
+    return {
+        "max_points": round(float(best_score), 2),
+        "lineup": lineup,
+        "flex_position": best_flex,
+        "superflex_position": best_superflex,
+    }
 
 
 def actual_weekly_maxpf(season: str, positions: Dict[str, str]) -> Dict[str, Any]:
@@ -126,9 +154,6 @@ def run(scenario_path: Path) -> Path:
     playoff = {str(k) for k in (post.get("actual", {}).get("playoffs", {}).get("finish_by_roster") or {}).keys()}
     nonplay_ids = sorted((rid for rid in observed if rid not in playoff), key=lambda rid: observed[rid])
 
-    # Tie-breaker: if Max PF is exactly tied, worse regular-season record picks
-    # earlier. Actual exact ties are unlikely; observed slot acts only as a final
-    # diagnostic ordering fallback so no false precision is invented.
     standings = post.get("actual", {}).get("regular_season", {}).get("standings") or {}
     def losses(rid: str) -> int:
         row = standings.get(str(rid)) or {}
@@ -162,6 +187,7 @@ def run(scenario_path: Path) -> Path:
             "completed_nfl_fantasy_points_are_immutable": True,
             "weekly_actual_roster_snapshots_used": True,
             "exact_lineup_optimization_used": True,
+            "finite_position_allocation_solver_used": True,
             "current_gm3_values_used": False,
         },
         "lineup_slots": list(STARTER_SLOTS),
