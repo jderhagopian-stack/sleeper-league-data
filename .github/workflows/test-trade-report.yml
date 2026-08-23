@@ -30,6 +30,7 @@ jobs:
 
       - name: Run trade query pipeline
         run: |
+          mkdir -p /tmp/fsffl-trade-report
           SECONDS=0
           python script/run_trade_report.py \
             --scenario data/decision_lab/full_validation_scenario.json \
