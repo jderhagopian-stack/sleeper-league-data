@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.8 — owner-aware five-option negotiation report.
+"""FSFFL Counter & Market Sweep 1.9 — owner-aware blended negotiation ranking.
 
 Returns up to five useful counters even when none reaches MEDIUM/HIGH heuristic
 acceptance fit. GM owner behavior from completed trades, rookie drafts and
-waivers directly adjusts acceptance ranking. Behavior is evidence, not a veto
-and not a calibrated probability. Canonical state remains read-only.
+waivers directly informs acceptance and ranking. Top options are ranked on a
+blend of focal strategic gain, modeled acceptance fit, and owner-specific
+behavioral match. Behavior is evidence, not a veto and not a calibrated
+probability. Canonical state remains read-only.
 """
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 V16_PATH = Path("script/run_trade_market_sweep_v16.py")
 OWNER_BEHAVIOR_PATH = Path("data/owner_behavior_profiles.json")
 ASSET_PATH = Path("data/fsffl_asset_values.json")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.8"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.9"
 DEFAULT_SEARCH_DEPTH = 60
 
 
@@ -71,7 +73,7 @@ def behavior_index():
     out = {}
     for p in profiles:
         uid = str(p.get("user_id")); t = p.get("trade_profile") or {}; s = shares.get(uid, {})
-        pref = {pos: round(clamp(((s.get(pos,0)/ (avg.get(pos) or .25))-1)/.75,-1,1),3) for pos in positions}
+        pref = {pos: round(clamp(((s.get(pos,0)/(avg.get(pos) or .25))-1)/.75,-1,1),3) for pos in positions}
         total = sf(t.get("total_trades")); recent = sf(t.get("recent_trades_2025_2026")); initiated = sf(t.get("initiated_trades")); multi = sf(t.get("multi_asset_trades"))
         conf = "HIGH" if total >= 20 else "MEDIUM" if total >= 8 else "LOW"
         out[uid] = {
@@ -155,10 +157,10 @@ def acceptance_note(br):
     title = sf(br.get("buyer_title_delta")); dyn = sf(br.get("buyer_market_dynasty_delta")); ob = br.get("owner_behavior") or {}
     behavioral = ob.get("reason") or "owner behavior neutral/unavailable"
     if band in {"HIGH","MEDIUM"}:
-        return f"{band}: package aligns reasonably with this {state} manager's current objective; behavior: {behavioral}."
+        return f"{band}: package aligns reasonably with this {state} manager's current objective; owner-specific evidence: {behavioral}."
     if band == "LOW":
-        return f"LOW: plausible but demanding for this {state} manager (title {title:+.1%}, dynasty {dyn:+.0f}); behavior: {behavioral}."
-    return f"VERY LOW: aggressive ask (title {title:+.1%}, dynasty {dyn:+.0f}); behavior: {behavioral}."
+        return f"LOW: plausible but demanding for this {state} manager (title {title:+.1%}, dynasty {dyn:+.0f}); owner-specific evidence: {behavioral}."
+    return f"VERY LOW: aggressive ask (title {title:+.1%}, dynasty {dyn:+.0f}); owner-specific evidence: {behavioral}."
 
 
 def advantage_note(row):
@@ -170,10 +172,32 @@ def advantage_note(row):
     return f"{comp.get('verdict_vs_current_offer') or 'MIXED'} than current offer: " + (", ".join(pieces) if pieces else "better strategic fit under the model")
 
 
+def blended_negotiation_score(row):
+    """Balance our upside against actual negotiability and manager-specific behavior."""
+    br = row.get("buyer_rationality") or {}
+    comp = row.get("comparison_to_current_offer") or {}
+    md = comp.get("metric_deltas_vs_current_offer") or {}
+    champ = sf(md.get("championship_probability"))
+    wins = sf(md.get("expected_wins"))
+    dyn = sf(md.get("market_dynasty_delta"))
+    strategic = clamp(.50 + 1.75*champ + .07*wins + dyn/22000.0, 0.0, 1.0)
+    acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0.0, 1.0)
+    ob = br.get("owner_behavior") or {}
+    behavior = clamp(.50 + sf(ob.get("adjustment"))/0.32, 0.0, 1.0)
+    score = .50*strategic + .30*acceptance + .20*behavior
+    return {
+        "score": round(score,4),
+        "focal_strategic_gain_component": round(strategic,4),
+        "acceptance_fit_component": round(acceptance,4),
+        "owner_behavior_match_component": round(behavior,4),
+        "weights": {"focal_strategic_gain":.50,"acceptance_fit":.30,"owner_behavior_match":.20},
+    }
+
+
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--scenario",required=True); ap.add_argument("--quick-sims",type=int,default=100); ap.add_argument("--confirm-sims",type=int,default=0); ap.add_argument("--search-depth",type=int,default=DEFAULT_SEARCH_DEPTH); ap.add_argument("--output",required=True); ap.add_argument("--seed",type=int,default=20260821); args=ap.parse_args(); depth=max(40,args.search_depth)
     beh, meta = behavior_index(), asset_meta()
-    v16=load_module(V16_PATH,"market_sweep_v16_for_v18"); v13=load_module(V13_PATH,"market_sweep_v13_for_v18"); engine=v13.load_module(v13.BASE_ENGINE,"market_sweep_base_for_v18"); v16.install_read_caches(engine); dl=engine.import_decision_lab()
+    v16=load_module(V16_PATH,"market_sweep_v16_for_v19"); v13=load_module(V13_PATH,"market_sweep_v13_for_v19"); engine=v13.load_module(v13.BASE_ENGINE,"market_sweep_base_for_v19"); v16.install_read_caches(engine); dl=engine.import_decision_lab()
     def sim(dl_mod,mi,bl,b,fu,bu,o,i,sims,seed): return v13.fast_simulate_candidate(engine,dl_mod,mi,bl,b,fu,bu,o,i,sims,seed)
     engine.simulate_candidate=sim
     with tempfile.TemporaryDirectory() as td:
@@ -186,26 +210,34 @@ def main():
     current=engine.score_candidate(focus,partner,outgoing,incoming); current["outgoing_assets"]=sent; current["outgoing_asset_names"]=[a.get("name") for a in outgoing]; current["candidate_type"]="CURRENT_OFFER"; current["outgoing_variant"]="FULL"; current["simulation"]=sim(dl,mi,bl,baseline,focus,partner,outgoing,incoming,args.quick_sims,args.seed); current["post_sim_score"]=engine.post_sim_score(current,engine.team_state(focus)); current["buyer_rationality"]=adjusted_buyer_rationality(v16,current,dl,beh,meta)
     rows=list(report.get("ranked_finalists") or [])
     for r in rows:
-        r["buyer_rationality"]=adjusted_buyer_rationality(v16,r,dl,beh,meta); r["comparison_to_current_offer"]=v13.compare_candidate(r,current); r["acceptance_likelihood"]=r["buyer_rationality"]["heuristic_acceptance_fit"]; r["acceptance_explanation"]=acceptance_note(r["buyer_rationality"]); r["why_advantageous_for_focus"]=advantage_note(r)
+        r["buyer_rationality"]=adjusted_buyer_rationality(v16,r,dl,beh,meta)
+        r["comparison_to_current_offer"]=v13.compare_candidate(r,current)
+        r["acceptance_likelihood"]=r["buyer_rationality"]["heuristic_acceptance_fit"]
+        r["acceptance_explanation"]=acceptance_note(r["buyer_rationality"])
+        r["why_advantageous_for_focus"]=advantage_note(r)
+        r["negotiation_ranking"]=blended_negotiation_score(r)
     viable=[r for r in rows if v16.focal_viable(r) and r["buyer_rationality"]["current_state_viable"]]
-    viable.sort(key=lambda r:(sf(r["buyer_rationality"].get("heuristic_acceptance_fit_score")),sf(r.get("post_sim_score"))),reverse=True)
-    realistic=[r for r in viable if r["acceptance_likelihood"] in {"HIGH","MEDIUM"}]; longshots=[r for r in viable if r["acceptance_likelihood"] in {"LOW","VERY_LOW"}]
+    viable.sort(key=lambda r:(sf((r.get("negotiation_ranking") or {}).get("score")),sf(r.get("post_sim_score"))),reverse=True)
+    realistic=[r for r in viable if r["acceptance_likelihood"] in {"HIGH","MEDIUM"}]
+    longshots=[r for r in viable if r["acceptance_likelihood"] in {"LOW","VERY_LOW"}]
     top5=list(realistic[:5]); top5.extend(longshots[:max(0,5-len(top5))])
     for r in top5: r["report_role"]="REALISTIC_COUNTER" if r["acceptance_likelihood"] in {"HIGH","MEDIUM"} else "REASONABLE_LONGSHOT"
     very=[r for r in top5 if r["acceptance_likelihood"]=="VERY_LOW"]; swing=max(very,key=lambda r:sf(r.get("post_sim_score"))) if very else None
     if swing: swing["report_role"]="SWING_FOR_FENCES"; swing["report_note"]="Aggressive ask included because focal upside is unusually strong; very low heuristic acceptance fit."
-    role={"REALISTIC_COUNTER":3,"REASONABLE_LONGSHOT":2,"SWING_FOR_FENCES":1}; top5.sort(key=lambda r:(role.get(r.get("report_role"),0),sf(r["buyer_rationality"].get("heuristic_acceptance_fit_score")),sf(r.get("post_sim_score"))),reverse=True)
+    role={"REALISTIC_COUNTER":3,"REASONABLE_LONGSHOT":2,"SWING_FOR_FENCES":1}
+    top5.sort(key=lambda r:(role.get(r.get("report_role"),0),sf((r.get("negotiation_ranking") or {}).get("score"))),reverse=True)
     for i,r in enumerate(top5,1): r["actionable_rank"]=i
     pivot=[r for r in rows if v16.focal_viable(r) and not r["buyer_rationality"]["current_state_viable"] and r["buyer_rationality"]["state_change_viable"]]; pivot.sort(key=lambda r:sf(r.get("post_sim_score")),reverse=True)
     if realistic:
-        if v16.focal_viable(current) and current["buyer_rationality"]["current_state_viable"]: action="SHOP_BEFORE_ACCEPTING" if sf(realistic[0].get("post_sim_score")) > sf(current.get("post_sim_score"))+750 else "ACCEPT_NOW"
+        best=realistic[0]
+        if v16.focal_viable(current) and current["buyer_rationality"]["current_state_viable"]: action="SHOP_BEFORE_ACCEPTING" if sf(best.get("post_sim_score")) > sf(current.get("post_sim_score"))+750 else "ACCEPT_NOW"
         elif any(r.get("candidate_type")=="SAME_PARTNER_COUNTER" for r in realistic[:5]): action="COUNTER_CURRENT_OFFEROR"
         else: action="SHOP_BEFORE_ACCEPTING"
     else: action="DECLINE"
     report["model_version"]=MODEL_VERSION; report["current_offer_evaluation"]=current; report["ranked_finalists"]=top5; report["top_5_alternatives"]=top5; report["realistic_counter_alternatives"]=realistic[:5]; report["reasonable_longshot_alternatives"]=[r for r in top5 if r.get("report_role")=="REASONABLE_LONGSHOT"]; report["swing_for_fences_alternative"]=swing; report["state_change_dependent_alternatives"]=pivot[:5]; report["recommended_next_action"]=action
     report.setdefault("candidate_counts",{})["acceptance_frontier_simulated"]=len(rows); report["candidate_counts"]["buyer_current_state_viable"]=len(viable); report["candidate_counts"]["realistic_acceptance_fit"]=len(realistic); report["candidate_counts"]["reasonable_longshot_pool"]=len(longshots)
-    pol=report.setdefault("policy",{}); pol.update({"five_option_report_when_market_supports_it":True,"reasonable_longshots_can_fill_report":True,"acceptance_likelihood_is_heuristic_not_probability":True,"each_option_explains_acceptance_and_focus_advantage":True,"swing_for_fences_slots_max":1,"longshots_cannot_drive_recommended_action":True,"fast_exact_lineup_dp":True,"GM_owner_behavior_integrated":True,"owner_behavior_sources":["completed_trades","rookie_drafts","waivers"],"owner_behavior_is_evidence_not_veto":True,"acceptance_fit_is_calibrated_probability":False})
-    report["owner_behavior_profiles_available"]=len(beh); report["simulation"]["lineup_reoptimization"]="exact_slot_mask_dynamic_programming"; report["simulation"]["execution_path"]="GM_owner_behavior_plus_deep_market_sweep_then_fast_decision_lab"
+    pol=report.setdefault("policy",{}); pol.update({"five_option_report_when_market_supports_it":True,"reasonable_longshots_can_fill_report":True,"acceptance_likelihood_is_heuristic_not_probability":True,"each_option_explains_acceptance_and_focus_advantage":True,"swing_for_fences_slots_max":1,"longshots_cannot_drive_recommended_action":True,"fast_exact_lineup_dp":True,"GM_owner_behavior_integrated":True,"owner_behavior_sources":["completed_trades","rookie_drafts","waivers"],"owner_behavior_is_evidence_not_veto":True,"acceptance_fit_is_calibrated_probability":False,"top_five_blended_ranking":True,"top_five_blended_ranking_weights":{"focal_strategic_gain":.50,"acceptance_fit":.30,"owner_behavior_match":.20}})
+    report["owner_behavior_profiles_available"]=len(beh); report["simulation"]["lineup_reoptimization"]="exact_slot_mask_dynamic_programming"; report["simulation"]["execution_path"]="GM_owner_behavior_plus_blended_negotiation_ranking_then_fast_decision_lab"
     Path(args.output).write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8"); print(json.dumps(report,indent=2))
 
 if __name__ == "__main__": main()
