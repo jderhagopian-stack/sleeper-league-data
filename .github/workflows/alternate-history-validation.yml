@@ -6,6 +6,7 @@ on:
       - 'script/alternate_history_engine.py'
       - 'script/run_fsffl_alternate_history.py'
       - 'script/run_fsffl_counterfactual_replay.py'
+      - 'script/run_fsffl_postseason_consequences.py'
       - 'script/validate_alternate_history.py'
       - 'script/validate_alternate_history_replay.py'
       - 'script/validate_puka_counterfactual_replay.py'
@@ -29,6 +30,7 @@ jobs:
           python -m py_compile script/alternate_history_engine.py
           python -m py_compile script/run_fsffl_alternate_history.py
           python -m py_compile script/run_fsffl_counterfactual_replay.py
+          python -m py_compile script/run_fsffl_postseason_consequences.py
           python -m py_compile script/validate_alternate_history.py
           python -m py_compile script/validate_alternate_history_replay.py
           python -m py_compile script/validate_puka_counterfactual_replay.py
@@ -38,3 +40,5 @@ jobs:
         run: python script/validate_alternate_history_replay.py
       - name: Validate Puka direct counterfactual fixture
         run: python script/validate_puka_counterfactual_replay.py
+      - name: Run 0.4 postseason and draft-order consequences
+        run: python script/run_fsffl_postseason_consequences.py data/alternate_history/scenarios/puka_vs_van_2023.json
