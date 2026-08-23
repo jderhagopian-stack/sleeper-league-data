@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""FSFFL Decision Lab Counter & Market Sweep Engine 1.0.
+"""FSFFL Decision Lab Counter & Market Sweep Engine 1.1.
 
 Generates model-driven same-partner counters and league-wide alternate-buyer
 packages around the focal outgoing assets from an incoming trade scenario.
 Canonical Sleeper, GM, and Simulator state is read-only.
 
-The engine intentionally separates candidate generation from confirmation:
-1. enumerate and GM-pre-screen plausible packages quickly;
-2. run quick Decision Lab simulations only on the shortlist;
-3. optionally run a larger confirmation simulation on the best candidate.
+1.1 refinements:
+- test strict subsets of focal outgoing assets (e.g. Dak alone instead of Dak+CeeDee);
+- penalize protected buyer assets and LOW-plausibility packages more strongly;
+- guarantee market representation in the simulation shortlist;
+- diversify alternate-buyer candidates across distinct franchises;
+- preserve best same-partner and alternate-buyer options in the report even
+  when they are not top-N overall by post-simulation score.
 """
 
 from __future__ import annotations
@@ -21,11 +24,12 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 DATA = Path("data")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.0"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.1"
 DEFAULT_QUICK_SIMS = 250
 DEFAULT_CONFIRM_SIMS = 0
 DEFAULT_SHORTLIST = 5
 DEFAULT_FINALISTS = 3
+DEFAULT_REPORT_CANDIDATES = 5
 
 
 def load_json(path: Path, default=None):
@@ -112,7 +116,6 @@ def roster_player_owners(rosters: List[Dict[str, Any]]) -> Dict[str, str]:
 
 
 def original_pick_owner_id(asset_id: str, rosters: List[Dict[str, Any]]) -> str | None:
-    # asset ids are conventionally pick:<year>:R<round>:orig<roster_id>
     marker = ":orig"
     if marker not in asset_id:
         return None
@@ -156,7 +159,7 @@ def incoming_trade_parts(scenario: Dict[str, Any], focus_uid: str):
             partners.add(src)
     partners.discard(focus_uid)
     if not sent or len(partners) != 1:
-        raise ValueError("Market Sweep 1.0 requires a bilateral incoming trade with focal outgoing assets")
+        raise ValueError("Market Sweep 1.1 requires a bilateral incoming trade with focal outgoing assets")
     return sent, received, next(iter(partners))
 
 
@@ -181,6 +184,21 @@ def team_state(uid: str) -> str:
 
 def package_key(assets: Iterable[Dict[str, Any]]) -> Tuple[str, ...]:
     return tuple(sorted(str(a.get("asset_id")) for a in assets))
+
+
+def outgoing_variants(outgoing: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+    """Full package plus strict non-empty subsets, largest first.
+
+    This lets the engine discover a cleaner sale of a liquid asset without
+    silently requiring a core player to move with it.
+    """
+    if len(outgoing) <= 1:
+        return [outgoing]
+    variants = []
+    for n in range(len(outgoing), 0, -1):
+        for combo in itertools.combinations(outgoing, n):
+            variants.append(list(combo))
+    return variants
 
 
 def candidate_packages(assets: List[Dict[str, Any]], max_players=2, max_picks=2) -> Iterable[List[Dict[str, Any]]]:
@@ -209,56 +227,70 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
     return_market = sum(asset_value(a, buyer_uid)["market"] for a in incoming)
     return_redraft = sum(asset_value(a, buyer_uid)["redraft"] for a in incoming)
     return_break = sum(asset_value(a, buyer_uid)["break_glass"] for a in incoming)
-    need_gain = sum(focal_needs.get(str(a.get("position")), 0.0) * asset_value(a, buyer_uid)["redraft"] for a in incoming if a.get("asset_type") == "player")
-    buyer_need_solved = sum(buyer_needs.get(str(a.get("position")), 0.0) * asset_value(a, focus_uid)["redraft"] for a in outgoing if a.get("asset_type") == "player")
-    core_penalty = 0.0
+    need_gain = sum(
+        focal_needs.get(str(a.get("position")), 0.0) * asset_value(a, buyer_uid)["redraft"]
+        for a in incoming if a.get("asset_type") == "player"
+    )
+    buyer_need_solved = sum(
+        buyer_needs.get(str(a.get("position")), 0.0) * asset_value(a, focus_uid)["redraft"]
+        for a in outgoing if a.get("asset_type") == "player"
+    )
+
+    protected_penalty = 0.0
+    protected_assets = []
     for a in incoming:
         g = buyer_gm.get(str(a.get("asset_id"))) or {}
         status = str(g.get("core_status") or "")
         if status == "franchise_cornerstone":
-            core_penalty += 0.55
+            protected_penalty += 0.78
+            protected_assets.append(a.get("name"))
         elif status == "core_high_hold":
-            core_penalty += 0.28
+            protected_penalty += 0.48
+            protected_assets.append(a.get("name"))
         elif status == "core_pick":
-            core_penalty += 0.12
+            protected_penalty += 0.18
+
     value_ratio = return_market / max(outgoing_market, 1.0)
     buyer_cost_ratio = return_break / max(outgoing_market, 1.0)
-    # Plausibility rewards buyer need and near-market balance, penalizes surrender of protected assets.
     plausibility_score = 1.0
-    plausibility_score -= min(0.65, abs(value_ratio - 1.0) * 0.7)
-    plausibility_score -= min(0.45, max(0.0, buyer_cost_ratio - 1.20) * 0.45)
-    plausibility_score -= core_penalty
-    plausibility_score += min(0.20, buyer_need_solved / 50000.0)
+    plausibility_score -= min(0.68, abs(value_ratio - 1.0) * 0.75)
+    plausibility_score -= min(0.50, max(0.0, buyer_cost_ratio - 1.15) * 0.52)
+    plausibility_score -= protected_penalty
+    plausibility_score += min(0.18, buyer_need_solved / 45000.0)
     plausibility_score = max(0.0, min(1.0, plausibility_score))
-    if plausibility_score >= 0.68:
+
+    if plausibility_score >= 0.72:
         plaus = "HIGH"
-    elif plausibility_score >= 0.45:
+    elif plausibility_score >= 0.52:
         plaus = "MEDIUM"
-    elif plausibility_score >= 0.25:
+    elif plausibility_score >= 0.35:
         plaus = "LOW"
     else:
         plaus = "THEORETICAL_ONLY"
 
-    # Fast focal utility used only for pre-screening; Decision Lab simulation decides finalists.
     future_surplus = return_market - outgoing_market
     redraft_replacement = return_redraft - outgoing_redraft
-    strategic_score = (
-        future_surplus
-        + 0.35 * redraft_replacement
-        + 0.10 * need_gain
-        + 1800.0 * plausibility_score
-        - 900.0 * core_penalty
-    )
+    raw_utility = future_surplus + 0.42 * redraft_replacement + 0.10 * need_gain
+    plausibility_multiplier = 0.35 + 0.65 * plausibility_score
+    strategic_score = raw_utility * plausibility_multiplier + 1500.0 * plausibility_score - 1800.0 * protected_penalty
+    if plaus == "LOW":
+        strategic_score -= 2200.0
+    elif plaus == "THEORETICAL_ONLY":
+        strategic_score -= 6000.0
+
     return {
         "buyer_user_id": buyer_uid,
         "buyer_team": command_center(buyer_uid).get("focal_team") or (franchise_index().get(buyer_uid) or {}).get("team_name"),
         "buyer_state": team_state(buyer_uid),
+        "outgoing_assets": [a.get("asset_id") for a in outgoing],
+        "outgoing_asset_names": [a.get("name") for a in outgoing],
         "return_assets": [a.get("asset_id") for a in incoming],
         "return_asset_names": [a.get("name") for a in incoming],
         "market_dynasty_delta_pre_screen": round(future_surplus, 2),
         "market_redraft_delta_pre_screen": round(redraft_replacement, 2),
         "focal_need_gain_score": round(need_gain, 2),
         "buyer_need_solved_score": round(buyer_need_solved, 2),
+        "protected_buyer_assets": protected_assets,
         "plausibility_score": round(plausibility_score, 4),
         "plausibility": plaus,
         "pre_screen_score": round(strategic_score, 2),
@@ -322,7 +354,11 @@ def post_sim_score(row: Dict[str, Any], state: str) -> float:
     dynasty = float(s.get("market_dynasty_delta") or 0.0)
     break_glass = float(s.get("break_glass_delta") or 0.0)
     externality = float(sim.get("net_title_equity_swing_against_focus") or 0.0)
+    plausibility = float(row.get("plausibility_score") or 0.0)
     score = dynasty + 0.35 * break_glass + 25000.0 * title + 5000.0 * playoff - 12000.0 * externality
+    score += 1200.0 * plausibility
+    if row.get("plausibility") == "LOW":
+        score -= 3000.0
     cap = contender_title_cap(state)
     if cap is not None and title < -cap:
         score -= 12000.0 + 50000.0 * abs(title + cap)
@@ -330,6 +366,62 @@ def post_sim_score(row: Dict[str, Any], state: str) -> float:
     else:
         row["championship_equity_constraint"] = "PASS"
     return round(score, 2)
+
+
+def diversified_select(raw_candidates, shortlist: int):
+    """Guarantee current-partner, alternate-market, and subset representation."""
+    if shortlist <= 0:
+        return []
+    current = [x for x in raw_candidates if x[0]["candidate_type"] == "SAME_PARTNER_COUNTER"]
+    alternates = [x for x in raw_candidates if x[0]["candidate_type"] == "ALTERNATE_BUYER"]
+
+    # Prefer MEDIUM/HIGH candidates; LOW becomes fallback only.
+    preferred_current = [x for x in current if x[0]["plausibility"] in {"HIGH", "MEDIUM"}] or current
+    preferred_alts = [x for x in alternates if x[0]["plausibility"] in {"HIGH", "MEDIUM"}] or alternates
+
+    selected, seen = [], set()
+
+    def add(item):
+        if not item or len(selected) >= shortlist:
+            return
+        row, pkg, outgoing = item
+        key = (row["buyer_user_id"], package_key(outgoing), package_key(pkg))
+        if key not in seen:
+            seen.add(key)
+            selected.append(item)
+
+    # Slot 1: best same-partner counter.
+    if preferred_current:
+        add(preferred_current[0])
+
+    # Slot 2: best alternate buyer, guaranteed when one exists.
+    if preferred_alts and len(selected) < shortlist:
+        add(preferred_alts[0])
+
+    # Slot 3: best strict-subset trade (e.g. Dak alone), regardless of buyer.
+    if len(selected) < shortlist:
+        subset_rows = [x for x in raw_candidates if x[0].get("outgoing_variant") == "SUBSET" and x[0]["plausibility"] in {"HIGH", "MEDIUM"}]
+        if not subset_rows:
+            subset_rows = [x for x in raw_candidates if x[0].get("outgoing_variant") == "SUBSET"]
+        if subset_rows:
+            add(subset_rows[0])
+
+    # Add alternate buyers from distinct teams before allowing repeats.
+    used_alt_buyers = {r[0]["buyer_user_id"] for r in selected if r[0]["candidate_type"] == "ALTERNATE_BUYER"}
+    for item in preferred_alts:
+        if len(selected) >= shortlist:
+            break
+        if item[0]["buyer_user_id"] in used_alt_buyers:
+            continue
+        add(item)
+        used_alt_buyers.add(item[0]["buyer_user_id"])
+
+    # Fill remaining slots by global score.
+    for item in raw_candidates:
+        if len(selected) >= shortlist:
+            break
+        add(item)
+    return selected
 
 
 def main():
@@ -360,49 +452,39 @@ def main():
     sent_ids, received_ids, current_partner = incoming_trade_parts(scenario, focus_uid)
     player_catalog, pick_catalog = asset_catalog()
     catalog = {**player_catalog, **pick_catalog}
-    outgoing = [catalog[x] for x in sent_ids if x in catalog]
-    if len(outgoing) != len(sent_ids):
+    full_outgoing = [catalog[x] for x in sent_ids if x in catalog]
+    if len(full_outgoing) != len(sent_ids):
         missing = [x for x in sent_ids if x not in catalog]
         raise ValueError(f"Outgoing assets missing from FSFFL asset catalog: {missing}")
 
     owner_assets = build_owner_assets(rosters)
     idx = franchise_index()
     raw_candidates = []
-    for buyer_uid in idx:
-        if buyer_uid == focus_uid:
-            continue
-        assets = owner_assets.get(buyer_uid) or []
-        # Keep search finite and relevant: top liquid/value assets and all picks.
-        player_pool = sorted([a for a in assets if a.get("asset_type") == "player"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:10]
-        pick_pool = sorted([a for a in assets if a.get("asset_type") == "pick"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:8]
-        for pkg in candidate_packages(player_pool + pick_pool):
-            row = score_candidate(focus_uid, buyer_uid, outgoing, pkg)
-            if row["plausibility"] == "THEORETICAL_ONLY":
+    variants = outgoing_variants(full_outgoing)
+    full_key = package_key(full_outgoing)
+
+    for outgoing in variants:
+        variant = "FULL" if package_key(outgoing) == full_key else "SUBSET"
+        for buyer_uid in idx:
+            if buyer_uid == focus_uid:
                 continue
-            row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
-            raw_candidates.append((row, pkg))
+            assets = owner_assets.get(buyer_uid) or []
+            player_pool = sorted([a for a in assets if a.get("asset_type") == "player"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:10]
+            pick_pool = sorted([a for a in assets if a.get("asset_type") == "pick"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:8]
+            for pkg in candidate_packages(player_pool + pick_pool):
+                row = score_candidate(focus_uid, buyer_uid, outgoing, pkg)
+                if row["plausibility"] == "THEORETICAL_ONLY":
+                    continue
+                row["outgoing_variant"] = variant
+                row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
+                raw_candidates.append((row, pkg, outgoing))
 
     raw_candidates.sort(key=lambda x: x[0]["pre_screen_score"], reverse=True)
-    # Diversify shortlist so the current partner and alternate market both get a chance.
-    selected = []
-    seen_keys = set()
-    current_rows = [x for x in raw_candidates if x[0]["candidate_type"] == "SAME_PARTNER_COUNTER"]
-    alternate_rows = [x for x in raw_candidates if x[0]["candidate_type"] == "ALTERNATE_BUYER"]
-    for bucket in (current_rows[: max(2, args.shortlist // 2)], alternate_rows[: args.shortlist]):
-        for row, pkg in bucket:
-            key = (row["buyer_user_id"], package_key(pkg))
-            if key in seen_keys:
-                continue
-            seen_keys.add(key)
-            selected.append((row, pkg))
-            if len(selected) >= args.shortlist:
-                break
-        if len(selected) >= args.shortlist:
-            break
+    selected = diversified_select(raw_candidates, args.shortlist)
 
     state = team_state(focus_uid)
     simulated = []
-    for row, pkg in selected:
+    for row, pkg, outgoing in selected:
         row = dict(row)
         row["simulation"] = simulate_candidate(
             dl, model_inputs, baseline_lineups, baseline, focus_uid, row["buyer_user_id"], outgoing, pkg, args.quick_sims, args.seed
@@ -410,28 +492,36 @@ def main():
         row["post_sim_score"] = post_sim_score(row, state)
         simulated.append(row)
     simulated.sort(key=lambda x: x["post_sim_score"], reverse=True)
+
+    # Overall finalists, while preserving category leaders for negotiation output.
     finalists = simulated[: args.finalists]
+    best_same = next((x for x in simulated if x["candidate_type"] == "SAME_PARTNER_COUNTER"), None)
+    best_alt = next((x for x in simulated if x["candidate_type"] == "ALTERNATE_BUYER"), None)
+    best_subset = next((x for x in simulated if x.get("outgoing_variant") == "SUBSET"), None)
 
     if args.confirm_sims >= 100 and finalists:
-        # Confirm only the top candidate at higher fidelity to preserve latency.
         top = finalists[0]
         pkg = [catalog[x] for x in top["return_assets"] if x in catalog]
+        outgoing = [catalog[x] for x in top["outgoing_assets"] if x in catalog]
         confirm_baseline = dl.simulate_from_lineups(simmod, league, rosters, users, raw_schedule, baseline_lineups, args.confirm_sims, args.seed)
         top["confirmation_simulation"] = simulate_candidate(
             dl, model_inputs, baseline_lineups, confirm_baseline, focus_uid, top["buyer_user_id"], outgoing, pkg, args.confirm_sims, args.seed
         )
 
-    same_partner = [x for x in finalists if x["candidate_type"] == "SAME_PARTNER_COUNTER"]
-    alternates = [x for x in finalists if x["candidate_type"] == "ALTERNATE_BUYER"]
-    if not finalists:
+    viable = [x for x in simulated if x.get("championship_equity_constraint") == "PASS" and x.get("plausibility") in {"HIGH", "MEDIUM"}]
+    best_viable_same = next((x for x in viable if x["candidate_type"] == "SAME_PARTNER_COUNTER"), None)
+    best_viable_alt = next((x for x in viable if x["candidate_type"] == "ALTERNATE_BUYER"), None)
+
+    if not viable:
         action = "DECLINE"
-    elif alternates and (not same_partner or alternates[0]["post_sim_score"] > same_partner[0]["post_sim_score"] + 750):
+    elif best_viable_alt and (not best_viable_same or best_viable_alt["post_sim_score"] > best_viable_same["post_sim_score"] + 750):
         action = "SHOP_BEFORE_ACCEPTING"
-    elif same_partner:
+    elif best_viable_same:
         action = "COUNTER_CURRENT_OFFEROR"
     else:
         action = "SHOP_BEFORE_ACCEPTING"
 
+    prescreen_top = [dict(x[0]) for x in raw_candidates[:DEFAULT_REPORT_CANDIDATES]]
     report = {
         "model_version": MODEL_VERSION,
         "scenario_id": scenario.get("scenario_id") or scenario_path.stem,
@@ -446,21 +536,29 @@ def main():
             "seed": args.seed,
             "simulator_model_version": simmod.MODEL_VERSION,
             "canonical_state_mutated": False,
-            "execution_path": "gm_prescreen_then_decision_lab_shortlist",
+            "execution_path": "gm_prescreen_then_diversified_decision_lab_shortlist",
         },
         "candidate_counts": {
             "enumerated_plausible": len(raw_candidates),
+            "outgoing_variants": len(variants),
             "simulated_shortlist": len(simulated),
             "finalists": len(finalists),
         },
-        "same_partner_counteroffers": [x for x in finalists if x["candidate_type"] == "SAME_PARTNER_COUNTER"],
-        "alternate_buyer_candidates": [x for x in finalists if x["candidate_type"] == "ALTERNATE_BUYER"],
+        "pre_screen_top_candidates": prescreen_top,
+        "same_partner_counteroffers": [x for x in simulated if x["candidate_type"] == "SAME_PARTNER_COUNTER"][:DEFAULT_REPORT_CANDIDATES],
+        "alternate_buyer_candidates": [x for x in simulated if x["candidate_type"] == "ALTERNATE_BUYER"][:DEFAULT_REPORT_CANDIDATES],
+        "best_subset_trade": best_subset,
+        "best_same_partner": best_same,
+        "best_alternate_buyer": best_alt,
         "ranked_finalists": finalists,
         "recommended_next_action": action,
         "policy": {
             "contender_title_loss_cap": contender_title_cap(state),
             "acceptance_requires_market_sweep": True,
             "conditional_state_logic": True,
+            "low_plausibility_can_drive_action": False,
+            "alternate_buyer_shortlist_slot_reserved": True,
+            "strict_outgoing_subsets_tested": True,
         },
     }
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}_market_sweep.json"
