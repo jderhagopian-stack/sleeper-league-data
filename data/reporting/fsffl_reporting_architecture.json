@@ -29,13 +29,26 @@
   },
   "supported_reports": [
     {"id": "trade_decision", "status": "live", "target_pages": 1},
-    {"id": "gm_franchise", "status": "phase_1", "target_pages": 1},
-    {"id": "season_simulator", "status": "phase_1", "target_pages": 1},
-    {"id": "roster_decision", "status": "phase_2", "target_pages": 1},
-    {"id": "league_power_rankings", "status": "phase_2", "target_pages": 2},
-    {"id": "player_prospect_dossier", "status": "phase_3", "target_pages": 1},
-    {"id": "market_movement_breakout", "status": "phase_3", "target_pages": 1},
-    {"id": "draft_board_recap", "status": "phase_3", "target_pages": 2},
-    {"id": "historical_record_book", "status": "phase_3", "target_pages": 2}
-  ]
+    {"id": "gm_franchise", "status": "implemented", "target_pages": 1},
+    {"id": "season_simulator", "status": "implemented", "target_pages": 1},
+    {"id": "roster_decision", "status": "implemented", "target_pages": 1},
+    {"id": "league_power_rankings", "status": "implemented", "target_pages": 1},
+    {"id": "player_prospect_dossier", "status": "implemented_on_demand", "target_pages": 1},
+    {"id": "market_movement_breakout", "status": "implemented", "target_pages": 1},
+    {"id": "draft_board_recap", "status": "implemented", "target_pages": 1},
+    {"id": "historical_record_book", "status": "implemented", "target_pages": 1},
+    {"id": "multiverse_outliers", "status": "implemented", "target_pages": 1}
+  ],
+  "automatic_report_pack": {
+    "enabled": true,
+    "triggers": [
+      "Build and Validate GM 3.0",
+      "Build FSFFL Competition Records",
+      "Test FSFFL Multiverse Outliers"
+    ],
+    "team_level_reports": ["gm_franchise", "season_simulator", "draft_board_recap"],
+    "league_level_reports": ["league_power_rankings", "market_movement_breakout", "historical_record_book", "multiverse_outliers"],
+    "player_dossier": "generated on demand for the queried player",
+    "roster_decision": "generated on demand from the queried Decision Lab scenario"
+  }
 }
