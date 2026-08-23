@@ -6,6 +6,7 @@ on:
       - 'script/alternate_history_engine.py'
       - 'script/run_fsffl_alternate_history.py'
       - 'script/validate_alternate_history.py'
+      - 'script/validate_alternate_history_replay.py'
       - 'data/alternate_history/**'
       - '.github/workflows/alternate-history-validation.yml'
   workflow_dispatch:
@@ -26,5 +27,8 @@ jobs:
           python -m py_compile script/alternate_history_engine.py
           python -m py_compile script/run_fsffl_alternate_history.py
           python -m py_compile script/validate_alternate_history.py
+          python -m py_compile script/validate_alternate_history_replay.py
       - name: Run isolated regression validation
         run: python script/validate_alternate_history.py
+      - name: Run no-fork historical replay validation
+        run: python script/validate_alternate_history_replay.py
