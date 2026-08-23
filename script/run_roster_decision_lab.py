@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""FSFFL Roster Decision Lab 1.0.
+"""FSFFL Roster Decision Lab 1.1.
 
-Ephemeral what-if engine for trades, adds, drops/cuts, and multi-step roster
-moves. It reads canonical league data, applies a scenario in memory, reruns the
-existing FSFFL season simulator on the hypothetical state, and writes a compact
-comparison report. Canonical roster/pick state is never modified.
+Fast ephemeral what-if engine for trades, adds, drops/cuts, and multi-step
+roster moves. Canonical Sleeper/GM state is read-only.
+
+Performance design:
+- Reuse the canonical Simulator 1.0 optimized-lineup cache.
+- Re-optimize only teams touched by the hypothetical decision.
+- Run Monte Carlo from prepared lineups rather than rebuilding every lineup.
+- Use the same simulation seed for baseline and hypothetical worlds.
+- Default to 5,000 paired simulations for minute-scale decision support;
+  callers may request a larger confirmation run with --sims.
 """
 
 from __future__ import annotations
@@ -13,12 +19,14 @@ import argparse
 import copy
 import importlib.util
 import json
+import random
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 DATA = Path("data")
-MODEL_VERSION = "FSFFL-Roster-Decision-Lab-1.0"
-DEFAULT_SIMS = 50000
+MODEL_VERSION = "FSFFL-Roster-Decision-Lab-1.1"
+DEFAULT_SIMS = 5000
 DEFAULT_SEED = 20260821
 
 
@@ -81,24 +89,24 @@ def remove_player(roster: Dict[str, Any], pid: str):
     roster["reserve"] = [x for x in roster["reserve"] if x != pid]
 
 
-def ensure_user(by_uid: Dict[str, Dict[str, Any]], uid: str, idx: int):
+def ensure_user(by_uid, uid, idx):
     if uid not in by_uid:
         raise ValueError(f"Action {idx}: unknown user id {uid}")
 
 
-def ensure_owned(owners: Dict[str, str], uid: str, pid: str, idx: int):
+def ensure_owned(owners, uid, pid, idx):
     actual = owners.get(str(pid))
     if actual != str(uid):
         raise ValueError(f"Action {idx}: player {pid} is not owned by {uid}; current owner={actual}")
 
 
-def ensure_unowned(owners: Dict[str, str], pid: str, idx: int):
+def ensure_unowned(owners, pid, idx):
     actual = owners.get(str(pid))
     if actual is not None:
         raise ValueError(f"Action {idx}: add target {pid} is already rostered by {actual}")
 
 
-def iter_player_ids(action: Dict[str, Any], plural_key: str = "players", singular_key: str = "player_id") -> Iterable[str]:
+def iter_player_ids(action: Dict[str, Any], plural_key="players", singular_key="player_id") -> Iterable[str]:
     vals = action.get(plural_key)
     if vals is None and action.get(singular_key) is not None:
         vals = [action.get(singular_key)]
@@ -113,7 +121,6 @@ def apply_actions(rosters: List[Dict[str, Any]], actions: List[Dict[str, Any]]):
 
     for idx, action in enumerate(actions, start=1):
         typ = str(action.get("type") or "").lower().strip()
-
         if typ == "trade":
             src, dst = str(action.get("from_user_id")), str(action.get("to_user_id"))
             ensure_user(by_uid, src, idx)
@@ -127,7 +134,6 @@ def apply_actions(rosters: List[Dict[str, Any]], actions: List[Dict[str, Any]]):
                 owners[pid] = dst
             for pick in action.get("picks") or []:
                 pick_transfers.append({"asset_id": str(pick), "from_user_id": src, "to_user_id": dst})
-
         elif typ in {"drop", "cut"}:
             uid = str(action.get("user_id"))
             ensure_user(by_uid, uid, idx)
@@ -135,7 +141,6 @@ def apply_actions(rosters: List[Dict[str, Any]], actions: List[Dict[str, Any]]):
                 ensure_owned(owners, uid, pid, idx)
                 remove_player(by_uid[uid], pid)
                 owners.pop(pid, None)
-
         elif typ == "add":
             uid = str(action.get("user_id"))
             ensure_user(by_uid, uid, idx)
@@ -143,7 +148,6 @@ def apply_actions(rosters: List[Dict[str, Any]], actions: List[Dict[str, Any]]):
                 ensure_unowned(owners, pid, idx)
                 add_player(by_uid[uid], pid)
                 owners[pid] = uid
-
         elif typ == "add_drop":
             uid = str(action.get("user_id"))
             ensure_user(by_uid, uid, idx)
@@ -157,11 +161,18 @@ def apply_actions(rosters: List[Dict[str, Any]], actions: List[Dict[str, Any]]):
                 ensure_unowned(owners, pid, idx)
                 add_player(by_uid[uid], pid)
                 owners[pid] = uid
-
         else:
             raise ValueError(f"Action {idx}: unsupported action type {typ!r}")
-
     return out, pick_transfers
+
+
+def touched_users(focus_uid: str, actions: List[Dict[str, Any]]) -> List[str]:
+    touched = {str(focus_uid)}
+    for a in actions:
+        for key in ("user_id", "from_user_id", "to_user_id"):
+            if a.get(key) is not None:
+                touched.add(str(a.get(key)))
+    return sorted(touched)
 
 
 def team_index(sim: Dict[str, Any]):
@@ -252,10 +263,7 @@ def strategic_summary(uid, actions):
         }
 
     sent_rows, rec_rows = [val(x) for x in sent], [val(x) for x in received]
-
-    def total(rows, key):
-        return sum(float(x.get(key) or 0.0) for x in rows)
-
+    total = lambda rows, key: sum(float(x.get(key) or 0.0) for x in rows)
     return {
         "sent": sent_rows,
         "received": rec_rows,
@@ -280,9 +288,10 @@ def resolve_schedule_path(season: str) -> Path:
     raise FileNotFoundError("Could not locate canonical FSFFL schedule input")
 
 
-def run_sims(rosters, n_sims, seed):
+def load_model_inputs():
     simmod = import_simulator()
     league = load_json(DATA / "league.json", {}) or {}
+    rosters = load_json(DATA / "rosters.json", []) or []
     users = load_json(DATA / "users.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
     season = str(league.get("season"))
@@ -291,16 +300,107 @@ def run_sims(rosters, n_sims, seed):
     validation = simmod.validate_inputs(league, rosters, users, players, raw_schedule, projections)
     if not validation.get("validation_passed"):
         raise RuntimeError(f"Decision Lab simulator validation failed: {validation}")
-    return simmod.run_simulation(
-        league=league,
-        rosters=rosters,
-        users=users,
-        players=players,
-        raw_schedule=raw_schedule,
-        projections=projections,
-        n_sims=n_sims,
-        seed=seed,
-    )
+    return simmod, league, rosters, users, players, season, projections, raw_schedule
+
+
+def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
+    cache = load_json(DATA / "simulator" / season / "outputs" / "weekly_optimized_lineups.json", {}) or {}
+    raw = cache.get("lineups") or {}
+    if not raw:
+        raise RuntimeError("Missing canonical weekly optimized-lineup cache; run Simulator 1.0 first")
+    return {
+        int(rid): {int(week): rows for week, rows in weeks.items()}
+        for rid, weeks in raw.items()
+    }
+
+
+def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, touched_uids,
+                               league, users, players, projections):
+    lineups = copy.deepcopy(baseline_lineups)
+    by_uid, _ = roster_maps(hypothetical_rosters)
+    reg_weeks = simmod.regular_season_weeks(league)
+    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
+    all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
+    reoptimized = []
+    for uid in touched_uids:
+        roster = by_uid.get(str(uid))
+        if not roster:
+            continue
+        rid = int(roster.get("roster_id"))
+        lineups[rid] = {}
+        for week in all_weeks:
+            lineups[rid][week] = simmod.optimize_weekly_lineup(roster, week, league, players, projections)
+        reoptimized.append(rid)
+    return lineups, reoptimized
+
+
+def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed):
+    roster_dir = simmod.roster_directory(rosters, users)
+    reg_weeks = simmod.regular_season_weeks(league)
+    by_week, _ = simmod.build_schedule(raw_schedule, reg_weeks)
+    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
+    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
+    playoff_teams = int((league.get("settings") or {}).get("playoff_teams") or 6)
+
+    rng = random.Random(seed)
+    counts = defaultdict(lambda: defaultdict(int))
+    win_totals = defaultdict(float)
+    pf_totals = defaultdict(float)
+    seed_counts = defaultdict(lambda: defaultdict(int))
+    division_win_counts = defaultdict(int)
+    title_counts = defaultdict(int)
+    division_members = defaultdict(list)
+    for rid, info in roster_dir.items():
+        division_members[info.get("division")].append(rid)
+
+    for _ in range(n_sims):
+        wins = defaultdict(int)
+        pf = defaultdict(float)
+        for week in reg_weeks:
+            scores = {}
+            for rid in roster_dir:
+                scores[rid] = simmod.team_week_score(lineups[rid][week], rng)
+                pf[rid] += scores[rid]
+            for a, b in by_week.get(week, []):
+                wins[a if scores[a] >= scores[b] else b] += 1
+
+        order = simmod.seed_teams(wins, pf)
+        for _, members in division_members.items():
+            if members:
+                winner = max(members, key=lambda rid: (wins[rid], pf[rid], -rid))
+                division_win_counts[winner] += 1
+        for i, rid in enumerate(order, start=1):
+            seed_counts[rid][i] += 1
+            win_totals[rid] += wins[rid]
+            pf_totals[rid] += pf[rid]
+            if i <= playoff_teams:
+                counts[rid]["playoff"] += 1
+            if i <= 2:
+                counts[rid]["bye"] += 1
+
+        champ = simmod.simulate_playoffs(order[:playoff_teams], lineups, playoff_weeks, rng)
+        if champ is not None:
+            title_counts[champ] += 1
+
+    teams = []
+    for rid, info in roster_dir.items():
+        teams.append({
+            "roster_id": rid,
+            "user_id": info["user_id"],
+            "manager": info["manager"],
+            "team_name": info["team_name"],
+            "division": info.get("division"),
+            "expected_wins": round(win_totals[rid] / n_sims, 3),
+            "expected_losses": round(len(reg_weeks) - win_totals[rid] / n_sims, 3),
+            "expected_points_for": round(pf_totals[rid] / n_sims, 2),
+            "playoff_probability": round(counts[rid]["playoff"] / n_sims, 5),
+            "bye_probability": round(counts[rid]["bye"] / n_sims, 5),
+            "division_probability": round(division_win_counts[rid] / n_sims, 5) if info.get("division") is not None else None,
+            "championship_probability": round(title_counts[rid] / n_sims, 5),
+            "seed_probabilities": {str(s): round(seed_counts[rid][s] / n_sims, 5) for s in range(1, len(roster_dir) + 1)},
+        })
+    teams.sort(key=lambda x: (-x["expected_wins"], -x["expected_points_for"]))
+    return {"model_version": simmod.MODEL_VERSION, "teams": teams}
 
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
@@ -310,7 +410,6 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     playoff = float(d.get("playoff_probability") or 0.0)
     dynasty = float(s.get("market_dynasty_delta") or 0.0)
     break_glass = float(s.get("break_glass_delta") or 0.0)
-
     contender = team_state in {"contender", "elite_contender"}
     if contender and title <= -0.03:
         band = "reject_competitive_damage"
@@ -324,12 +423,7 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
         band = "accept_retool_value"
     else:
         band = "needs_context"
-    return {
-        "band": band,
-        "team_state": team_state,
-        "rule_based": True,
-        "note": "Decision band is a transparent heuristic overlay; underlying simulator and GM deltas remain primary evidence.",
-    }
+    return {"band": band, "team_state": team_state, "rule_based": True}
 
 
 def main():
@@ -339,33 +433,33 @@ def main():
     ap.add_argument("--seed", type=int, default=DEFAULT_SEED)
     ap.add_argument("--output", default=None)
     args = ap.parse_args()
+    if args.sims < 100:
+        raise ValueError("--sims must be at least 100")
 
     scenario_path = Path(args.scenario)
     scenario = load_json(scenario_path, {}) or {}
     focus_uid = str(scenario.get("focus_user_id") or "")
     actions = scenario.get("actions") or []
-    if not focus_uid:
-        raise ValueError("scenario.focus_user_id is required")
-    if not actions:
-        raise ValueError("scenario.actions must contain at least one action")
-    if args.sims < 100:
-        raise ValueError("--sims must be at least 100")
+    if not focus_uid or not actions:
+        raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
-    canonical_rosters = load_json(DATA / "rosters.json", []) or []
+    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = load_model_inputs()
     hypothetical_rosters, pick_transfers = apply_actions(canonical_rosters, actions)
+    touched = touched_users(focus_uid, actions)
 
-    baseline = run_sims(canonical_rosters, args.sims, args.seed)
-    hypothetical = run_sims(hypothetical_rosters, args.sims, args.seed)
+    baseline_lineups = load_cached_lineups(season)
+    hypothetical_lineups, reoptimized_rids = reoptimize_touched_lineups(
+        simmod, baseline_lineups, hypothetical_rosters, touched, league, users, players, projections
+    )
+
+    baseline = simulate_from_lineups(simmod, league, canonical_rosters, users, raw_schedule,
+                                     baseline_lineups, args.sims, args.seed)
+    hypothetical = simulate_from_lineups(simmod, league, hypothetical_rosters, users, raw_schedule,
+                                         hypothetical_lineups, args.sims, args.seed)
     base_by_uid, hyp_by_uid = team_index(baseline), team_index(hypothetical)
 
-    touched = {focus_uid}
-    for a in actions:
-        for k in ("user_id", "from_user_id", "to_user_id"):
-            if a.get(k) is not None:
-                touched.add(str(a.get(k)))
-
     comparisons = {}
-    for uid in sorted(touched):
+    for uid in touched:
         b, h = base_by_uid.get(uid), hyp_by_uid.get(uid)
         if not b or not h:
             continue
@@ -391,10 +485,7 @@ def main():
         max(0.0, float(((row.get("delta") or {}).get("championship_probability")) or 0.0))
         for uid, row in comparisons.items() if uid != focus_uid
     )
-
-    idx = franchise_index()
-    team_state = str((idx.get(focus_uid) or {}).get("team_state") or "unknown")
-    recommendation = classify_decision(focus_cmp, team_state)
+    team_state = str((franchise_index().get(focus_uid) or {}).get("team_state") or "unknown")
 
     report = {
         "model_version": MODEL_VERSION,
@@ -406,6 +497,9 @@ def main():
             "seed": args.seed,
             "common_random_numbers": True,
             "simulator_model_version": baseline.get("model_version"),
+            "execution_path": "cached_lineups_plus_touched_team_reoptimization",
+            "teams_reoptimized": reoptimized_rids,
+            "default_latency_target": "under_2_minutes",
         },
         "actions": actions,
         "ephemeral_state": True,
@@ -417,7 +511,7 @@ def main():
             "opponent_positive_championship_probability_delta_sum": round(opponent_title_gain, 5),
             "net_title_equity_swing_against_focus": round(opponent_title_gain - focus_title_delta, 5),
         },
-        "recommendation": recommendation,
+        "recommendation": classify_decision(focus_cmp, team_state),
     }
 
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}.json"
