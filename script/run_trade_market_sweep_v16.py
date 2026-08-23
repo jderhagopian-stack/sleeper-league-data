@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.6 — true deep bilateral search.
+"""FSFFL Counter & Market Sweep 1.7 — true deep bilateral search.
 
-This version bypasses the v1.3/v1.4 report-level Top-5 truncation and runs the
-base market engine directly with the fast exact lineup optimizer and read caches.
-It can therefore simulate a genuinely deep candidate pool before applying focal
-and buyer-side rationality gates.
+Runs a genuinely deep candidate pool before applying focal and buyer-side
+rationality gates. The actionable report prioritizes bilateral trades with at
+least MEDIUM heuristic acceptance fit. If fewer than five such trades exist, it
+may include at most one clearly labeled SWING_FOR_FENCES candidate that still
+passes both teams' current-state strategic gates but has LOW/VERY_LOW heuristic
+acceptance fit.
 
 Human acceptance remains a strategic-fit heuristic, not a calibrated
 probability. Canonical Sleeper / GM / Simulator state remains read-only.
@@ -20,7 +22,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.6"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.7"
 DEFAULT_SEARCH_DEPTH = 40
 
 
@@ -122,13 +124,11 @@ def main():
     args = ap.parse_args()
     depth = max(20, args.search_depth)
 
-    v13 = load_module(V13_PATH, "market_sweep_v13_for_v16")
-    engine = v13.load_module(v13.BASE_ENGINE, "market_sweep_base_for_v16")
+    v13 = load_module(V13_PATH, "market_sweep_v13_for_v17")
+    engine = v13.load_module(v13.BASE_ENGINE, "market_sweep_base_for_v17")
     install_read_caches(engine)
     dl = engine.import_decision_lab()
 
-    # Preserve the 1.3 exact slot-mask optimizer while allowing the base engine
-    # to retain all requested finalists instead of truncating the report to 5.
     def patched_simulate_candidate(dl_mod, model_inputs, baseline_lineups, baseline,
                                    focus_uid, buyer_uid, outgoing, incoming, sims, seed):
         return v13.fast_simulate_candidate(
@@ -150,8 +150,6 @@ def main():
         ])
         report = json.loads(raw_out.read_text(encoding="utf-8"))
 
-    # Evaluate the actual offer on the identical quick-sim baseline so every
-    # alternative retains a direct current-offer comparison.
     scenario = engine.load_json(Path(args.scenario), {}) or {}
     focus_uid = str(scenario.get("focus_user_id") or "")
     sent_ids, received_ids, current_partner = engine.incoming_trade_parts(scenario, focus_uid)
@@ -192,21 +190,46 @@ def main():
         float(r["buyer_rationality"]["heuristic_acceptance_fit_score"]),
     ), reverse=True)
 
+    realistic = [
+        r for r in mutually_viable
+        if r["buyer_rationality"]["heuristic_acceptance_fit"] in {"HIGH", "MEDIUM"}
+    ]
+    swing_pool = [
+        r for r in mutually_viable
+        if r["buyer_rationality"]["heuristic_acceptance_fit"] in {"LOW", "VERY_LOW"}
+    ]
+
+    # Prefer five realistic counters. Only if the realistic pool has fewer than
+    # five do we permit one explicitly labeled aspirational option.
+    top5 = realistic[:5]
+    swing = None
+    if len(top5) < 5 and swing_pool:
+        swing = swing_pool[0]
+        swing["report_role"] = "SWING_FOR_FENCES"
+        swing["report_note"] = (
+            "Aspirational counter: passes both teams' modeled current-state strategic gates, "
+            "but heuristic human acceptance fit is LOW/VERY_LOW. Do not treat as a likely yes."
+        )
+        top5.append(swing)
+
+    for row in top5:
+        row.setdefault("report_role", "REALISTIC_COUNTER")
+    for i, row in enumerate(top5, 1):
+        row["actionable_rank"] = i
+
     pivot = [r for r in rows if focal_viable(r)
              and not r["buyer_rationality"]["current_state_viable"]
              and r["buyer_rationality"]["state_change_viable"]]
     pivot.sort(key=lambda r: float(r.get("post_sim_score") or 0.0), reverse=True)
     rejected = [r for r in rows if r["buyer_rationality"]["current_state_gate"] == "BUYER_IRRATIONAL"]
 
-    top5 = mutually_viable[:5]
-    for i, row in enumerate(top5, 1):
-        row["actionable_rank"] = i
-
-    if not top5:
+    # Negotiation action is driven only by realistic counters; the swing slot
+    # can never by itself cause SHOP/COUNTER/ACCEPT behavior.
+    if not realistic:
         action = "DECLINE"
     elif focal_viable(current) and current["buyer_rationality"]["current_state_viable"]:
-        action = "SHOP_BEFORE_ACCEPTING" if top5[0].get("post_sim_score", 0) > current.get("post_sim_score", 0) + 750 else "ACCEPT_NOW"
-    elif any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in top5):
+        action = "SHOP_BEFORE_ACCEPTING" if realistic[0].get("post_sim_score", 0) > current.get("post_sim_score", 0) + 750 else "ACCEPT_NOW"
+    elif any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in realistic[:5]):
         action = "COUNTER_CURRENT_OFFEROR"
     else:
         action = "SHOP_BEFORE_ACCEPTING"
@@ -215,17 +238,23 @@ def main():
     report["current_offer_evaluation"] = current
     report["ranked_finalists"] = top5
     report["top_5_alternatives"] = top5
+    report["realistic_counter_alternatives"] = realistic[:5]
+    report["swing_for_fences_alternative"] = swing
     report["state_change_dependent_alternatives"] = pivot[:5]
     report["buyer_irrational_candidates_excluded"] = len(rejected)
     report["recommended_next_action"] = action
     report.setdefault("candidate_counts", {})["deep_search_simulated"] = len(rows)
     report["candidate_counts"]["buyer_current_state_viable"] = len(mutually_viable)
+    report["candidate_counts"]["realistic_acceptance_fit"] = len(realistic)
+    report["candidate_counts"]["swing_for_fences_pool"] = len(swing_pool)
     report["candidate_counts"]["state_change_dependent"] = len(pivot)
     report["candidate_counts"]["buyer_irrational_excluded"] = len(rejected)
     report.setdefault("policy", {})["buyer_current_state_rationality_gate"] = True
     report["policy"]["state_change_dependent_candidates_separated"] = True
     report["policy"]["heuristic_acceptance_fit_not_probability"] = True
-    report["policy"]["actionable_top_five_requires_bilateral_utility"] = True
+    report["policy"]["actionable_realistic_counters_require_medium_or_high_acceptance_fit"] = True
+    report["policy"]["swing_for_fences_slots_max"] = 1
+    report["policy"]["swing_for_fences_cannot_drive_recommended_action"] = True
     report["policy"]["deep_search_replaces_filtered_candidates"] = True
     report["policy"]["focal_and_counterparty_must_both_pass"] = True
     report["policy"]["fast_exact_lineup_dp"] = True
