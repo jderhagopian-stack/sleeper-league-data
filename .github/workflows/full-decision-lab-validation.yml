@@ -1,0 +1,36 @@
+name: Full Roster Decision Lab Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-5000:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run 5,000-simulation validation
+        run: time python script/run_roster_decision_lab.py --scenario data/decision_lab/full_validation_scenario.json --sims 5000 --output /tmp/decision-lab-full.json
+      - name: Validate result
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/decision-lab-full.json'))
+          assert d['simulation']['n_sims'] == 5000
+          assert d['simulation']['execution_path'] == 'cached_lineups_plus_touched_team_reoptimization'
+          assert d['recommendation']['band']
+          print(json.dumps({
+            'simulation': d['simulation'],
+            'recommendation': d['recommendation'],
+            'competitive_externality': d['competitive_externality'],
+            'team_comparisons': d['team_comparisons'],
+          }, indent=2))
+          PY
