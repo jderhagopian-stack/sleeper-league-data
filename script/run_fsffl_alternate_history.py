@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""FSFFL profile runner for Fantasy Alternate History Engine 0.1.
+"""FSFFL profile runner for Fantasy Alternate History Engine.
 
-This adapter merges the current-season Sleeper transaction feed with the
-repo's historical acquisition/trade ledgers so the league-agnostic core can
-rewind across seasons. It does not change NFL outcomes or canonical data.
+Source precedence:
+1. isolated raw Sleeper historical cache under data/alternate_history/source_history;
+2. current-season canonical transactions.json;
+3. derived acquisition/trade ledgers only as gap-filling fallback.
+
+The core remains league-agnostic and completed NFL history remains immutable.
 """
 
 from __future__ import annotations
@@ -20,6 +23,10 @@ class FSFFLHistoricalAdapter(ah.SleeperJsonAdapter):
         super().__init__(data_dir=data_dir, profile_name="fsffl")
         self.acquisition_ledger = ah.load_json(self.data_dir / "acquisition_ledger.json", []) or []
         self.trade_ledger = ah.load_json(self.data_dir / "trade_ledger.json", []) or []
+        self.raw_history_manifest = ah.load_json(
+            self.data_dir / "alternate_history" / "source_history" / "sleeper_history.json",
+            {},
+        ) or {}
 
     @staticmethod
     def _pick_tuple(row: Dict[str, Any]) -> Tuple[str, str, str]:
@@ -110,13 +117,28 @@ class FSFFLHistoricalAdapter(ah.SleeperJsonAdapter):
             "source": "trade_ledger",
         }
 
+    def raw_history_seasons(self) -> List[Dict[str, Any]]:
+        rows = self.raw_history_manifest.get("history") or []
+        return rows if isinstance(rows, list) else []
+
     def completed_events(self) -> List[Dict[str, Any]]:
-        # Prefer raw Sleeper events where available; fill historical gaps from
-        # derived ledgers. Deduplication is transaction-id based.
+        # Deduplicate by transaction ID. Raw authoritative history wins over
+        # current-season and derived fallback sources.
         by_id: Dict[str, Dict[str, Any]] = {}
+
+        for season_data in self.raw_history_seasons():
+            season = str((season_data.get("league") or {}).get("season") or "unknown")
+            for raw in season_data.get("transactions") or []:
+                if raw.get("status") not in {None, "complete", "completed"}:
+                    continue
+                txid = str(raw.get("transaction_id") or "")
+                if txid:
+                    by_id[txid] = dict(raw, source="raw_sleeper_history", source_season=season)
+
         for event in self.transactions:
             if event.get("status") == "complete":
-                by_id[str(event.get("transaction_id"))] = dict(event, source="transactions_json")
+                txid = str(event.get("transaction_id"))
+                by_id.setdefault(txid, dict(event, source="transactions_json"))
 
         for row in self.acquisition_ledger:
             if str(row.get("status") or "complete") != "complete":
@@ -133,21 +155,25 @@ class FSFFLHistoricalAdapter(ah.SleeperJsonAdapter):
         return sorted(by_id.values(), key=lambda x: int(x.get("created") or 0))
 
 
-def _mark_provisional_history(manifest: Dict[str, Any]) -> None:
-    """Do not overstate accuracy until 0.2 no-fork replay is validated."""
+def _mark_history_confidence(manifest: Dict[str, Any], adapter: FSFFLHistoricalAdapter) -> None:
     fork_ms = int((manifest.get("scenario") or {}).get("fork_timestamp_ms") or 0)
-    # Current canonical transaction feed is 2026; older events are reconstructed
-    # from derived historical ledgers and must remain explicitly provisional.
-    if fork_ms < 1767225600000:  # 2026-01-01T00:00:00Z
+    has_raw = bool(adapter.raw_history_seasons())
+    if fork_ms < 1767225600000:
         for key in ("historical_state", "alternate_state_at_fork"):
             reconstruction = (manifest.get(key) or {}).setdefault("reconstruction", {})
-            reconstruction["validation_status"] = "PROVISIONAL_PENDING_NO_FORK_REPLAY"
-            reconstruction["confidence"] = "medium"
-            reconstruction["ownership_coverage"] = min(float(reconstruction.get("ownership_coverage") or 1.0), 0.85)
-            reconstruction["confidence_note"] = (
-                "Pre-2026 ownership reconstructed from merged derived ledgers. "
-                "Do not promote to high confidence until historical no-fork replay reproduces canonical outcomes."
-            )
+            if has_raw:
+                reconstruction["validation_status"] = "RAW_SLEEPER_HISTORY_AVAILABLE"
+                reconstruction["confidence"] = "high"
+                reconstruction["confidence_note"] = (
+                    "Pre-current ownership replay prefers raw Sleeper completed transactions from the linked league-season chain."
+                )
+            else:
+                reconstruction["validation_status"] = "PROVISIONAL_DERIVED_HISTORY_FALLBACK"
+                reconstruction["confidence"] = "medium"
+                reconstruction["ownership_coverage"] = min(float(reconstruction.get("ownership_coverage") or 1.0), 0.85)
+                reconstruction["confidence_note"] = (
+                    "Raw Sleeper historical cache unavailable; pre-current ownership uses merged derived ledgers and must expose reconstruction gaps."
+                )
 
 
 def run(path: Path) -> Path:
@@ -155,12 +181,17 @@ def run(path: Path) -> Path:
     adapter = FSFFLHistoricalAdapter()
     scenario = ah.scenario_from_json(adapter, payload)
     manifest = ah.build_manifest(adapter, scenario)
-    _mark_provisional_history(manifest)
+    _mark_history_confidence(manifest, adapter)
+    has_raw = bool(adapter.raw_history_seasons())
     manifest["adapter"] = {
         "name": "FSFFLHistoricalAdapter",
         "profile": "fsffl",
-        "event_sources": ["transactions.json", "acquisition_ledger.json", "trade_ledger.json"],
-        "pre_2026_validation_status": "PROVISIONAL_PENDING_NO_FORK_REPLAY",
+        "event_sources": (
+            ["alternate_history/source_history/sleeper_history.json", "transactions.json", "acquisition_ledger.json", "trade_ledger.json"]
+            if has_raw
+            else ["transactions.json", "acquisition_ledger.json", "trade_ledger.json"]
+        ),
+        "raw_historical_cache_available": has_raw,
     }
     out = ah.write_isolated_json(f"results/{scenario.scenario_id}/manifest.json", manifest)
     ah.write_isolated_json(f"cache/{scenario.scenario_id}/fork_state.json", manifest["alternate_state_at_fork"])
