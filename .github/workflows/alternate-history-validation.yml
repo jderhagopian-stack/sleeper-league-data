@@ -8,6 +8,7 @@ on:
       - 'script/run_fsffl_counterfactual_replay.py'
       - 'script/validate_alternate_history.py'
       - 'script/validate_alternate_history_replay.py'
+      - 'script/validate_puka_counterfactual_replay.py'
       - 'data/alternate_history/**'
       - '.github/workflows/alternate-history-validation.yml'
   workflow_dispatch:
@@ -30,9 +31,10 @@ jobs:
           python -m py_compile script/run_fsffl_counterfactual_replay.py
           python -m py_compile script/validate_alternate_history.py
           python -m py_compile script/validate_alternate_history_replay.py
+          python -m py_compile script/validate_puka_counterfactual_replay.py
       - name: Run isolated regression validation
         run: python script/validate_alternate_history.py
       - name: Run no-fork historical replay validation
         run: python script/validate_alternate_history_replay.py
-      - name: Run Puka direct counterfactual replay
-        run: python script/run_fsffl_counterfactual_replay.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Validate Puka direct counterfactual fixture
+        run: python script/validate_puka_counterfactual_replay.py
