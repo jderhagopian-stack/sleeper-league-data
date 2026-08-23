@@ -27,7 +27,7 @@ jobs:
 
       - name: Build all GM and simulator reports
         run: |
-          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator
+          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator /tmp/fsffl-reports/league
           python - <<'PY'
           import json, subprocess
           from pathlib import Path
@@ -40,6 +40,9 @@ jobs:
               subprocess.run(['python','script/render_gm_franchise_report.py','--user-id',uid,'--output',gm],check=True)
               subprocess.run(['python','script/render_simulator_report.py','--user-id',uid,'--output',sim],check=True)
               manifest['reports'].append({'user_id':uid,'team_name':team['team_name'],'slug':slug,'gm_report':gm.split('/tmp/fsffl-reports/')[-1],'simulator_report':sim.split('/tmp/fsffl-reports/')[-1]})
+          league='/tmp/fsffl-reports/league/competitive-landscape.pdf'
+          subprocess.run(['python','script/render_league_power_report.py','--output',league],check=True)
+          manifest['league_report']=league.split('/tmp/fsffl-reports/')[-1]
           Path('/tmp/fsffl-reports/manifest.json').write_text(json.dumps(manifest,indent=2))
           PY
 
@@ -53,11 +56,11 @@ jobs:
           manifest=json.loads((root/'manifest.json').read_text())
           assert len(manifest['reports']) == 12
           pdfs=list(root.rglob('*.pdf'))
-          assert len(pdfs) == 24
+          assert len(pdfs) == 25
           for p in pdfs:
               assert p.stat().st_size > 2500
               assert len(PdfReader(str(p)).pages) == 1
-          print('Validated 24 standardized one-page reports')
+          print('Validated 25 standardized one-page reports')
           PY
 
       - name: Upload standardized report pack
