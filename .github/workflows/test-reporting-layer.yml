@@ -6,14 +6,17 @@ on:
       - 'script/fsffl_report_style.py'
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
+      - 'script/render_roster_decision_report.py'
+      - 'script/render_league_power_report.py'
       - 'data/reporting/fsffl_reporting_architecture.json'
+      - '.github/workflows/build-standardized-reports.yml'
       - '.github/workflows/test-reporting-layer.yml'
   workflow_dispatch:
 
 jobs:
   report-smoke-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,19 +30,18 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py
+        run: python -m py_compile script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py
 
-      - name: Render phase-one reports
+      - name: Render standardized reports
         run: |
           mkdir -p /tmp/fsffl-reports
-          python script/render_gm_franchise_report.py \
-            --user-id 846634401482792960 \
-            --output /tmp/fsffl-reports/gm-franchise.pdf
-          python script/render_simulator_report.py \
-            --user-id 846634401482792960 \
-            --output /tmp/fsffl-reports/simulator-outlook.pdf
+          python script/render_gm_franchise_report.py --user-id 846634401482792960 --output /tmp/fsffl-reports/gm-franchise.pdf
+          python script/render_simulator_report.py --user-id 846634401482792960 --output /tmp/fsffl-reports/simulator-outlook.pdf
+          python script/render_league_power_report.py --output /tmp/fsffl-reports/league-power.pdf
+          python script/run_roster_decision_lab.py --scenario data/decision_lab/full_validation_scenario.json --sims 100 --output /tmp/fsffl-reports/decision.json > /tmp/fsffl-reports/decision.log
+          python script/render_roster_decision_report.py --input /tmp/fsffl-reports/decision.json --output /tmp/fsffl-reports/roster-decision.pdf
 
-      - name: Validate aesthetics contract and one-page output
+      - name: Validate reporting contract and one-page output
         run: |
           python - <<'PY'
           import json
@@ -49,20 +51,25 @@ jobs:
           assert arch['principles']['raw_model_output_is_source_of_truth'] is True
           assert arch['principles']['chatgpt_reads_raw_output_not_pdf'] is True
           assert arch['principles']['pdf_is_presentation_only'] is True
+          assert arch['principles']['pdf_must_not_rescore_or_reinterpret'] is True
+          assert arch['principles']['conversational_response_precedes_attachment'] is True
           assert arch['principles']['aesthetic_quality_is_required'] is True
           assert 'avoid spreadsheet-dump layouts' in arch['design_system']['rules']
-          for name in ('gm-franchise.pdf','simulator-outlook.pdf'):
+          names=('gm-franchise.pdf','simulator-outlook.pdf','league-power.pdf','roster-decision.pdf')
+          for name in names:
               p=Path('/tmp/fsffl-reports')/name
               assert p.exists() and p.stat().st_size > 2500
               assert p.read_bytes()[:4] == b'%PDF'
               assert len(PdfReader(str(p)).pages) == 1
-          print('FSFFL reporting layer phase-one smoke test passed')
+          print('FSFFL reporting layer standardized smoke test passed')
           PY
 
       - name: Upload report artifacts
         uses: actions/upload-artifact@v4
         with:
           name: fsffl-reporting-layer-samples
-          path: /tmp/fsffl-reports/*.pdf
+          path: |
+            /tmp/fsffl-reports/*.pdf
+            /tmp/fsffl-reports/decision.json
           if-no-files-found: error
           retention-days: 14
