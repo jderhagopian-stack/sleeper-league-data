@@ -21,6 +21,10 @@ on:
       - 'script/run_fsffl_historical_policy_triage.py'
       - 'script/run_fsffl_historical_usage_policy.py'
       - 'script/run_fsffl_historical_usage_policy_v2.py'
+      - 'script/run_fsffl_historical_usage_policy_v3.py'
+      - 'script/run_fsffl_historical_trade_policy.py'
+      - 'script/run_fsffl_historical_trade_policy_v2.py'
+      - 'script/run_fsffl_historical_trade_policy_v3.py'
       - 'script/run_fsffl_reference_present_day.py'
       - 'script/run_fsffl_alternate_current_outlook.py'
       - 'script/diagnose_alternate_history_event.py'
@@ -69,6 +73,10 @@ jobs:
           python -m py_compile script/run_fsffl_historical_policy_triage.py
           python -m py_compile script/run_fsffl_historical_usage_policy.py
           python -m py_compile script/run_fsffl_historical_usage_policy_v2.py
+          python -m py_compile script/run_fsffl_historical_usage_policy_v3.py
+          python -m py_compile script/run_fsffl_historical_trade_policy.py
+          python -m py_compile script/run_fsffl_historical_trade_policy_v2.py
+          python -m py_compile script/run_fsffl_historical_trade_policy_v3.py
           python -m py_compile script/run_fsffl_reference_present_day.py
           python -m py_compile script/run_fsffl_alternate_current_outlook.py
           python -m py_compile script/diagnose_alternate_history_event.py
@@ -85,7 +93,7 @@ jobs:
         run: python script/validate_puka_counterfactual_replay.py
       - name: Run 0.4 postseason and raw draft-order consequences
         run: python script/run_fsffl_postseason_consequences_v3.py data/alternate_history/scenarios/puka_vs_van_2023.json
-      - name: Infer playoff draft-order component
+      - name: Infer draft-order components
         run: python script/infer_fsffl_historical_draft_order.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Build 0.6a alternate draft candidate windows
         run: python script/run_fsffl_alternate_draft_candidates.py data/alternate_history/scenarios/puka_vs_van_2023.json
@@ -100,7 +108,11 @@ jobs:
       - name: Run 0.5b historical policy triage
         run: python script/run_fsffl_historical_policy_triage.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run 0.5c historical usage policy
-        run: python script/run_fsffl_historical_usage_policy_v2.py data/alternate_history/scenarios/puka_vs_van_2023.json
+        run: python script/run_fsffl_historical_usage_policy_v3.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Run 0.5d historical trade policy
+        run: python script/run_fsffl_historical_trade_policy_v2.py data/alternate_history/scenarios/puka_vs_van_2023.json
+      - name: Expand 0.5e modified historical trade branches
+        run: python script/run_fsffl_historical_trade_policy_v3.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Build present-day deterministic reference snapshot
         run: python script/run_fsffl_reference_present_day.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run current Simulator 1.0 reference outlook
