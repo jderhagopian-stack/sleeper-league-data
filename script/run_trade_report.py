@@ -3,8 +3,8 @@
 
 Manager-facing entry point for trade queries. Analysis uses the canonical
 continuous state-aware, bilateral market-intelligence, league-realistic,
-dynamic-state Counter & Market Sweep 1.17 path, then delegates presentation to
-the standardized PDF renderer.
+historical-state-conditioned Counter & Market Sweep 1.18 path, then delegates
+presentation to the standardized PDF renderer.
 """
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARKET_SWEEP = Path("script/run_trade_market_sweep_v23.py")
+MARKET_SWEEP = Path("script/run_trade_market_sweep_v24.py")
 PDF_RENDERER = Path("script/render_trade_decision_report.py")
-MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.4"
-EXPECTED_ANALYSIS_MODEL = "FSFFL-Counter-Market-Sweep-1.17"
+MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.5"
+EXPECTED_ANALYSIS_MODEL = "FSFFL-Counter-Market-Sweep-1.18"
 
 
 def run(cmd):
