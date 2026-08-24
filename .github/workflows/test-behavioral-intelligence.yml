@@ -1,0 +1,54 @@
+name: Test Behavioral Intelligence 2.0
+
+on:
+  pull_request:
+    paths:
+      - 'script/behavioral_intelligence.py'
+      - 'script/run_trade_market_sweep_v25.py'
+      - 'script/run_trade_report.py'
+      - '.github/workflows/test-behavioral-intelligence.yml'
+  workflow_dispatch:
+
+jobs:
+  behavioral-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile
+        run: python -m py_compile script/behavioral_intelligence.py script/run_trade_market_sweep_v25.py script/run_trade_report.py
+      - name: Build intelligence audit
+        run: python script/behavioral_intelligence.py --output /tmp/behavioral-intelligence.json
+      - name: Validate persistent and state-conditioned layers
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/behavioral-intelligence.json'))
+          assert r['model_version']=='FSFFL-Behavioral-Intelligence-2.0'
+          assert r['persistent_plus_state_conditioned'] is True
+          w=r['evidence_weights']; assert w['trade']>w['draft']>w['waiver']>w['drop']
+          owners=r['owners']; assert len(owners)>=12
+          required={'qb_accumulation','wr_affinity','rb_affinity','te_affinity','youth_preference','draft_pick_accumulation','large_package_tolerance','faab_aggressiveness'}
+          multi_state=0; full_source=0
+          for uid,p in owners.items():
+              pers=p['persistent']; assert required.issubset(pers['traits'])
+              if len(p.get('by_state') or {})>=2: multi_state+=1
+              mix=pers.get('source_mix') or {}
+              if mix.get('trade_n',0)>0 and mix.get('draft_n',0)>0 and mix.get('waiver_n',0)>0 and mix.get('drop_n',0)>0: full_source+=1
+          assert multi_state>=6, multi_state
+          assert full_source>=10, full_source
+          hsg=owners['846634401482792960']
+          assert len(hsg.get('by_state') or {})>=2
+          print('owners',len(owners),'multi_state',multi_state,'full_source',full_source)
+          print('HSG persistent',hsg['persistent']['traits'])
+          print('HSG states',list(hsg['by_state']))
+          PY
+      - name: Upload audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: behavioral-intelligence-2-audit
+          path: /tmp/behavioral-intelligence.json
+          retention-days: 14
