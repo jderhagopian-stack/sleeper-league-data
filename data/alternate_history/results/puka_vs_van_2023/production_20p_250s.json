@@ -1,0 +1,308 @@
+{
+  "actual_current_outlook": {
+    "bye_probability": 0.296,
+    "championship_probability": 0.12,
+    "expected_points_for": 1662.26,
+    "expected_wins": 9.012,
+    "playoff_probability": 0.844
+  },
+  "configuration": {
+    "historical_particles": 20,
+    "seed": 20260824,
+    "simulator_total_sims": 250
+  },
+  "deltas": {
+    "bye_probability": 0.144063,
+    "championship_probability": 0.060769,
+    "expected_points_for": -67.654,
+    "expected_wins": 0.11645,
+    "playoff_probability": -0.016115
+  },
+  "design_invariants": {
+    "all_present_day_states_receive_simulator_coverage": true,
+    "alternate_outlook_weighted_by_particle_probability": true,
+    "canonical_simulator_inputs_are_read_only": true,
+    "completed_historical_nfl_outcomes_are_immutable": true,
+    "generic_arbitrary_year_historical_engine_used": true,
+    "simulator_1_0_runs_only_after_present_day_boundary": true
+  },
+  "model_version": "Fantasy-Alternate-History-1.0-generic-weighted-simulator",
+  "scenario_id": "puka_vs_van_2023",
+  "state_simulation_allocations": [
+    {
+      "focus_outlook": {
+        "bye_probability": 0.07692,
+        "championship_probability": 0.07692,
+        "expected_points_for": 1509.0,
+        "expected_wins": 7.231,
+        "playoff_probability": 0.61538
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 0
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.61538,
+        "championship_probability": 0.23077,
+        "expected_points_for": 1694.31,
+        "expected_wins": 9.462,
+        "playoff_probability": 0.92308
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 1
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.76923,
+        "championship_probability": 0.23077,
+        "expected_points_for": 1657.36,
+        "expected_wins": 10.077,
+        "playoff_probability": 1.0
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 2
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.53846,
+        "championship_probability": 0.07692,
+        "expected_points_for": 1668.83,
+        "expected_wins": 9.769,
+        "playoff_probability": 1.0
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 3
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.07692,
+        "championship_probability": 0.0,
+        "expected_points_for": 1500.77,
+        "expected_wins": 7.385,
+        "playoff_probability": 0.46154
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 4
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.76923,
+        "championship_probability": 0.30769,
+        "expected_points_for": 1642.96,
+        "expected_wins": 9.923,
+        "playoff_probability": 0.92308
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 5
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.46154,
+        "championship_probability": 0.07692,
+        "expected_points_for": 1555.59,
+        "expected_wins": 9.231,
+        "playoff_probability": 0.84615
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 6
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.07692,
+        "championship_probability": 0.15385,
+        "expected_points_for": 1570.27,
+        "expected_wins": 7.769,
+        "playoff_probability": 0.69231
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 7
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.69231,
+        "championship_probability": 0.30769,
+        "expected_points_for": 1640.3,
+        "expected_wins": 10.538,
+        "playoff_probability": 1.0
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 8
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.30769,
+        "championship_probability": 0.15385,
+        "expected_points_for": 1520.59,
+        "expected_wins": 8.769,
+        "playoff_probability": 0.84615
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 13,
+      "state_index": 9
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.08333,
+        "championship_probability": 0.0,
+        "expected_points_for": 1494.34,
+        "expected_wins": 8.333,
+        "playoff_probability": 0.75
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 10
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.66667,
+        "championship_probability": 0.41667,
+        "expected_points_for": 1715.44,
+        "expected_wins": 10.167,
+        "playoff_probability": 1.0
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 11
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.58333,
+        "championship_probability": 0.16667,
+        "expected_points_for": 1653.74,
+        "expected_wins": 9.833,
+        "playoff_probability": 0.83333
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 12
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.5,
+        "championship_probability": 0.25,
+        "expected_points_for": 1659.38,
+        "expected_wins": 10.0,
+        "playoff_probability": 0.91667
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 13
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.25,
+        "championship_probability": 0.16667,
+        "expected_points_for": 1543.68,
+        "expected_wins": 8.75,
+        "playoff_probability": 0.83333
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 14
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.33333,
+        "championship_probability": 0.08333,
+        "expected_points_for": 1592.68,
+        "expected_wins": 9.083,
+        "playoff_probability": 0.83333
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 15
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.5,
+        "championship_probability": 0.08333,
+        "expected_points_for": 1564.52,
+        "expected_wins": 9.583,
+        "playoff_probability": 0.91667
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 16
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.75,
+        "championship_probability": 0.41667,
+        "expected_points_for": 1689.42,
+        "expected_wins": 10.333,
+        "playoff_probability": 0.91667
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 17
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.0,
+        "championship_probability": 0.0,
+        "expected_points_for": 1406.83,
+        "expected_wins": 6.583,
+        "playoff_probability": 0.33333
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 18
+    },
+    {
+      "focus_outlook": {
+        "bye_probability": 0.75,
+        "championship_probability": 0.41667,
+        "expected_points_for": 1612.11,
+        "expected_wins": 9.75,
+        "playoff_probability": 0.91667
+      },
+      "particles": 1,
+      "probability": 0.05,
+      "simulations": 12,
+      "state_index": 19
+    }
+  ],
+  "summary": {
+    "active_season": "2026",
+    "active_season_transactions_processed": 0,
+    "present_day_probability_mass": 1.0,
+    "present_day_unique_states": 20,
+    "simulated_state_probability_mass": 1.0,
+    "simulator_draws_allocated": 250
+  },
+  "weighted_alternate_current_outlook": {
+    "bye_probability": 0.440063,
+    "championship_probability": 0.180769,
+    "expected_points_for": 1594.606,
+    "expected_wins": 9.12845,
+    "playoff_probability": 0.827885
+  }
+}
