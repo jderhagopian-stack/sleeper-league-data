@@ -9,6 +9,8 @@ Efficiency comes from grouping particles that share an identical league state:
 - invariant events are applied once per unique state group;
 - sensitive decisions split group counts with seeded multinomial sampling;
 - identical post-event states are merged by summing particle counts;
+- representative traces record only causal/sensitive or legality-changing
+  decisions, not deterministic invariant housekeeping;
 - only a few representative traces are retained per group.
 
 The particle count is conserved exactly from fork to present. No branch
@@ -18,12 +20,11 @@ probability mass is pruned.
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 import alternate_history_engine as ah
 import run_fsffl_multiseason_branch_replay as v1
@@ -44,9 +45,15 @@ class ParticleGroup:
 
 def state_key(state: Dict[str, Any]) -> str:
     canonical = {
-        "roster_players": {str(k): sorted(str(x) for x in (v or [])) for k, v in sorted((state.get("roster_players") or {}).items())},
+        "roster_players": {
+            str(k): sorted(str(x) for x in (v or []))
+            for k, v in sorted((state.get("roster_players") or {}).items())
+        },
         "pick_owners": dict(sorted((state.get("pick_owners") or {}).items())),
-        "faab": {str(k): float(v or 0.0) for k, v in sorted((state.get("faab") or {}).items())},
+        "faab": {
+            str(k): float(v or 0.0)
+            for k, v in sorted((state.get("faab") or {}).items())
+        },
     }
     return ah.stable_hash(canonical)
 
@@ -60,7 +67,11 @@ def merge_groups(groups: Iterable[ParticleGroup]) -> Tuple[List[ParticleGroup], 
         key = state_key(group.state)
         existing = by_key.get(key)
         if existing is None:
-            by_key[key] = ParticleGroup(group.count, group.state, [list(t) for t in group.traces[:MAX_TRACES_PER_GROUP]])
+            by_key[key] = ParticleGroup(
+                group.count,
+                group.state,
+                [list(t) for t in group.traces[:MAX_TRACES_PER_GROUP]],
+            )
         else:
             merged_particles += group.count
             existing.count += group.count
@@ -72,12 +83,7 @@ def merge_groups(groups: Iterable[ParticleGroup]) -> Tuple[List[ParticleGroup], 
 
 
 def multinomial_counts(n: int, probabilities: List[float], rng: random.Random) -> List[int]:
-    """Seeded categorical draw with exact count conservation.
-
-    Uses cumulative probabilities and repeated RNG draws. Number of sensitive
-    decisions is small enough that this remains cheap while avoiding numpy as a
-    core-engine dependency.
-    """
+    """Seeded categorical draw with exact count conservation."""
     if n <= 0:
         return [0] * len(probabilities)
     total = sum(max(0.0, float(x)) for x in probabilities)
@@ -111,7 +117,11 @@ def load_or_run(path: Path, runner, scenario_path: Path) -> Dict[str, Any]:
     return load(runner(scenario_path))
 
 
-def policy_inputs(adapter: FSFFLHistoricalAdapter, scenario: ah.Scenario, scenario_path: Path) -> Dict[str, Any]:
+def policy_inputs(
+    adapter: FSFFLHistoricalAdapter,
+    scenario: ah.Scenario,
+    scenario_path: Path,
+) -> Dict[str, Any]:
     from run_fsffl_historical_policy_triage import run as run_triage
     from run_fsffl_historical_usage_policy_v3 import run as run_usage
     from run_fsffl_historical_trade_policy_v2 import run as run_trade
@@ -121,7 +131,9 @@ def policy_inputs(adapter: FSFFLHistoricalAdapter, scenario: ah.Scenario, scenar
     triage = load_or_run(base / "policy_triage_0_5b.json", run_triage, scenario_path)
     usage = load_or_run(base / "historical_usage_policy_0_5c.json", run_usage, scenario_path)
     trade = load_or_run(base / "historical_trade_policy_0_5d.json", run_trade, scenario_path)
-    expansion = load_or_run(base / "historical_trade_expansion_0_5e.json", run_expand, scenario_path)
+    expansion = load_or_run(
+        base / "historical_trade_expansion_0_5e.json", run_expand, scenario_path
+    )
     return {"triage": triage, "usage": usage, "trade": trade, "expansion": expansion}
 
 
@@ -143,7 +155,9 @@ def proposed_outcomes(
         ]
     if tid in trade_ids:
         decision = trade_by_id.get(tid)
-        return "historical_trade_policy", v1.trade_outcomes(event, decision or {}, expansion_by_id.get(tid)) if decision else [
+        return "historical_trade_policy", v1.trade_outcomes(
+            event, decision or {}, expansion_by_id.get(tid)
+        ) if decision else [
             {"outcome": "preserve_exact", "probability": 1.0, "mode": "exact"}
         ]
     if tid in required:
@@ -172,20 +186,33 @@ def run(
         policies["triage"], policies["usage"], policies["trade"], policies["expansion"]
     )
 
-    usage_by_id = {str(x.get("transaction_id")): x for x in (usage.get("decisions") or [])}
-    trade_by_id = {str(x.get("transaction_id")): x for x in (trade.get("decisions") or [])}
-    expansion_by_id = {str(x.get("transaction_id")): x for x in (expansion.get("expansions") or [])}
+    usage_by_id = {
+        str(x.get("transaction_id")): x for x in (usage.get("decisions") or [])
+    }
+    trade_by_id = {
+        str(x.get("transaction_id")): x for x in (trade.get("decisions") or [])
+    }
+    expansion_by_id = {
+        str(x.get("transaction_id")): x for x in (expansion.get("expansions") or [])
+    }
     queues = triage.get("queues") or {}
     required = {str(x) for x in queues.get("required_branch_transaction_ids") or []}
-    usage_ids = {str(x) for x in queues.get("historical_usage_policy_transaction_ids") or []}
-    trade_ids = {str(x) for x in queues.get("historical_gm_required_transaction_ids") or []}
-    stable = {str(x) for x in queues.get("structurally_stable_transaction_ids") or []}
+    usage_ids = {
+        str(x) for x in queues.get("historical_usage_policy_transaction_ids") or []
+    }
+    trade_ids = {
+        str(x) for x in queues.get("historical_gm_required_transaction_ids") or []
+    }
+    stable = {
+        str(x) for x in queues.get("structurally_stable_transaction_ids") or []
+    }
 
     root = ah.apply_fork(ah.reconstruct_state(adapter, scenario.fork_timestamp_ms), scenario)
     groups = [ParticleGroup(particles, v1.serial(root), [[]])]
     rng = random.Random(seed)
     audits: List[Dict[str, Any]] = []
     invariant_fast_path_events = 0
+    trace_suppressed_invariant_events = 0
     total_merge_events = 0
     max_unique_states = 1
     event_count = 0
@@ -197,8 +224,15 @@ def run(
         event_count += 1
         tid = str(event.get("transaction_id") or "")
         kind, proposed = proposed_outcomes(
-            event, tid, usage_ids, trade_ids, required, stable,
-            usage_by_id, trade_by_id, expansion_by_id,
+            event,
+            tid,
+            usage_ids,
+            trade_ids,
+            required,
+            stable,
+            usage_by_id,
+            trade_by_id,
+            expansion_by_id,
         )
 
         next_groups: List[ParticleGroup] = []
@@ -206,10 +240,10 @@ def run(
         legality_changed = False
         for group in groups:
             outcomes = v1.branch_specific_outcomes(group.state, event, proposed)
-            if len(outcomes) > 1:
-                actual_branching = True
-            if len(outcomes) != 1 or outcomes[0].get("mode") != "exact":
-                legality_changed = True
+            group_branching = len(outcomes) > 1
+            group_legality_changed = len(outcomes) != 1 or outcomes[0].get("mode") != "exact"
+            actual_branching = actual_branching or group_branching
+            legality_changed = legality_changed or group_legality_changed
             counts = multinomial_counts(
                 group.count,
                 [float(x.get("probability") or 0.0) for x in outcomes],
@@ -219,21 +253,33 @@ def run(
                 raise ah.AlternateHistoryError(
                     f"0.7b particle conservation failed at {tid}: {sum(counts)} != {group.count}"
                 )
-            for idx, (outcome, count) in enumerate(zip(outcomes, counts)):
+            record_trace = kind != "invariant" or group_branching or group_legality_changed
+            for outcome, count in zip(outcomes, counts):
                 if count <= 0:
                     continue
                 state = v1.apply_outcome(group.state, event, outcome)
-                step = {
-                    "transaction_id": tid,
-                    "timestamp_ms": created,
-                    "kind": kind,
-                    "outcome": outcome.get("outcome"),
-                    "conditional_probability": round(float(outcome.get("probability") or 0.0), 8),
-                    "particles": count,
-                }
-                if outcome.get("package_id"):
-                    step["package_id"] = outcome.get("package_id")
-                traces = [(list(t) + [step]) for t in (group.traces or [[]])[:MAX_TRACES_PER_GROUP]]
+                if record_trace:
+                    step = {
+                        "transaction_id": tid,
+                        "timestamp_ms": created,
+                        "kind": kind,
+                        "outcome": outcome.get("outcome"),
+                        "conditional_probability": round(
+                            float(outcome.get("probability") or 0.0), 8
+                        ),
+                        "particles": count,
+                    }
+                    if outcome.get("package_id"):
+                        step["package_id"] = outcome.get("package_id")
+                    traces = [
+                        list(t) + [step]
+                        for t in (group.traces or [[]])[:MAX_TRACES_PER_GROUP]
+                    ]
+                else:
+                    # Safe to share: traces are never mutated in place; any later
+                    # causal step creates a new list. This avoids O(history^2)
+                    # copying on hundreds of deterministic housekeeping events.
+                    traces = group.traces
                 next_groups.append(ParticleGroup(count, state, traces))
 
         if not next_groups:
@@ -243,18 +289,19 @@ def run(
                 f"0.7b global particle conservation failed before merge at {tid}"
             )
 
-        # For a truly deterministic invariant mapping there is no distributional
-        # benefit to hashing/merging immediately. Defer until a sensitive boundary.
         if kind == "invariant" and not actual_branching and not legality_changed:
             groups = next_groups
             invariant_fast_path_events += 1
+            trace_suppressed_invariant_events += 1
             continue
 
         groups, merged_particles = merge_groups(next_groups)
         total_merge_events += 1 if merged_particles > 0 else 0
         max_unique_states = max(max_unique_states, len(groups))
         if sum(x.count for x in groups) != particles:
-            raise ah.AlternateHistoryError(f"0.7b particle conservation failed after merge at {tid}")
+            raise ah.AlternateHistoryError(
+                f"0.7b particle conservation failed after merge at {tid}"
+            )
         audits.append({
             "transaction_id": tid,
             "timestamp_ms": created,
@@ -265,7 +312,7 @@ def run(
             "particles_in_merged_duplicates": merged_particles,
         })
 
-    groups, merged_particles = merge_groups(groups)
+    groups, _ = merge_groups(groups)
     max_unique_states = max(max_unique_states, len(groups))
     final_particles = sum(x.count for x in groups)
     if final_particles != particles:
@@ -284,13 +331,19 @@ def run(
             pick_owner_counts[str(key)][str(rid)] += group.count
 
     focus_players = [
-        {"player_id": pid, "probability_on_focus_roster": round(count / particles, 6), "particles": count}
+        {
+            "player_id": pid,
+            "probability_on_focus_roster": round(count / particles, 6),
+            "particles": count,
+        }
         for pid, count in player_focus_counts.items()
     ]
-    focus_players.sort(key=lambda x: (-x["probability_on_focus_roster"], x["player_id"]))
+    focus_players.sort(
+        key=lambda x: (-x["probability_on_focus_roster"], x["player_id"])
+    )
 
     report = {
-        "model_version": "Fantasy-Alternate-History-0.7b-grouped-particle-replay",
+        "model_version": "Fantasy-Alternate-History-0.7b.1-grouped-particle-replay",
         "scenario_id": scenario.scenario_id,
         "design_invariants": {
             "completed_nfl_history_is_immutable": True,
@@ -302,6 +355,7 @@ def run(
             "equal_weight_particle_count_conserved": True,
             "identical_states_grouped_for_efficiency": True,
             "seeded_reproducibility": True,
+            "deterministic_invariant_trace_copying_suppressed": True,
         },
         "configuration": {"particles": particles, "seed": seed},
         "summary": {
@@ -312,6 +366,7 @@ def run(
             "max_unique_states": max_unique_states,
             "audited_sensitive_or_legality_events": len(audits),
             "invariant_fast_path_events": invariant_fast_path_events,
+            "trace_suppressed_invariant_events": trace_suppressed_invariant_events,
             "merge_boundaries_with_duplicates": total_merge_events,
         },
         "event_audit": audits,
@@ -324,7 +379,9 @@ def run(
             {
                 "particles": group.count,
                 "probability": round(group.count / particles, 8),
-                "focus_roster_players": sorted((group.state.get("roster_players") or {}).get(focus, [])),
+                "focus_roster_players": sorted(
+                    (group.state.get("roster_players") or {}).get(focus, [])
+                ),
                 "pick_owners": group.state.get("pick_owners") or {},
                 "trace": (group.traces or [[]])[0],
             }
@@ -341,7 +398,9 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run Alternate History 0.7b grouped particle replay")
+    parser = argparse.ArgumentParser(
+        description="Run Alternate History 0.7b grouped particle replay"
+    )
     parser.add_argument("scenario", type=Path)
     parser.add_argument("--particles", type=int, default=DEFAULT_PARTICLES)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
