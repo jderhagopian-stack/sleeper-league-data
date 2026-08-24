@@ -3,17 +3,55 @@ name: Test Bilateral Market Intelligence
 on:
   pull_request:
     paths:
+      - 'script/historical_state_behavior.py'
+      - 'script/run_trade_market_sweep_v24.py'
       - 'script/run_trade_market_sweep_v23.py'
-      - 'script/run_trade_market_sweep_v22.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - 'script/run_trade_market_sweep_v20.py'
-      - 'script/run_trade_market_sweep_v19.py'
-      - 'script/run_trade_market_sweep_v18.py'
-      - 'script/run_trade_market_sweep_v16.py'
       - '.github/workflows/test-market-intelligence-bilateral.yml'
   workflow_dispatch:
 
 jobs:
+  historical-state-reconstruction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build historical trade-state audit
+        run: |
+          python script/historical_state_behavior.py --output /tmp/historical-trade-state.json > /tmp/historical-trade-state.log
+          cat /tmp/historical-trade-state.log
+      - name: Validate no hindsight leakage and useful coverage
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/historical-trade-state.json'))
+          assert r['model_version']=='FSFFL-Historical-Trade-State-1.0'
+          assert r['historical_state_at_trade_reconstruction_enabled'] is True
+          assert r['historical_state_at_trade_reconstruction_is_approximate'] is True
+          assert r['future_same_season_result_leakage_allowed'] is False
+          assert r['trade_side_count']>0
+          assert r['state_labeled_trade_side_count']>0
+          assert float(r['coverage'])>=0.50, r['coverage']
+          assert all(x.get('uses_future_same_season_results') is False for x in r['sides'])
+          states={x.get('historical_state') for x in r['sides']}
+          assert len(states-{'unknown'})>=2, states
+          profiles=r.get('owner_state_behavior_profiles') or {}
+          assert profiles
+          assert any(len((p.get('by_state') or {}))>=2 for p in profiles.values()), 'Need at least one owner observed in multiple competitive states'
+          print('Historical state-at-trade reconstruction passed', r['coverage'], r['state_counts'])
+          PY
+      - name: Upload historical-state audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-trade-state-audit
+          path: |
+            /tmp/historical-trade-state.json
+            /tmp/historical-trade-state.log
+          retention-days: 14
+
   hungry-dawgs-regression:
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -22,43 +60,41 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compile 1.17
-        run: python -m py_compile script/run_trade_market_sweep_v23.py
+      - name: Compile 1.18
+        run: python -m py_compile script/historical_state_behavior.py script/run_trade_market_sweep_v24.py
       - name: Build blockbuster scenario
         run: |
           cat > /tmp/hungry-dawgs.json <<'JSON'
-          {"scenario_id":"hungry_dawgs_dynamic_state_regression","focus_user_id":"833709164739014656","actions":[
+          {"scenario_id":"hungry_dawgs_historical_state_regression","focus_user_id":"833709164739014656","actions":[
             {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155","8130"],"picks":[]},
             {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12481","12529","9484"],"picks":[]}
           ]}
           JSON
-      - name: Run blockbuster Market Sweep 1.17
+      - name: Run blockbuster Market Sweep 1.18
         run: |
-          python script/run_trade_market_sweep_v23.py --scenario /tmp/hungry-dawgs.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hungry-117.json > /tmp/hungry-117.log
+          python script/run_trade_market_sweep_v24.py --scenario /tmp/hungry-dawgs.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hungry-118.json > /tmp/hungry-118.log
       - name: Validate blockbuster safeguards
         run: |
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/hungry-117.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          r=json.load(open('/tmp/hungry-118.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.18'
           p=r['policy']
-          assert p['competitive_state_treated_as_time_varying'] is True
+          assert p['historical_state_at_trade_reconstruction_enabled'] is True
+          assert p['historical_behavior_prefers_same_state_samples'] is True
           assert p['historical_behavior_can_override_current_state_utility'] is False
           normals=[x for x in (r.get('top_5_alternatives') or []) if x.get('report_role')!='SWING_FOR_FENCES']
           assert all(float(x.get('post_sim_score') or 0)>0 for x in normals)
-          for x in normals:
-              if x.get('focal_current_state')=='rebuild':
-                  assert float((x.get('state_aware_score_components') or {}).get('future') or 0)>0
-          print('Blockbuster dynamic-state regression passed')
+          print('Blockbuster historical-state regression passed')
           PY
       - name: Upload blockbuster artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hungry-dawgs-dynamic-state-regression
+          name: hungry-dawgs-historical-state-regression
           path: |
-            /tmp/hungry-117.json
-            /tmp/hungry-117.log
+            /tmp/hungry-118.json
+            /tmp/hungry-118.log
           retention-days: 14
 
   sensible-trade-regression:
@@ -72,48 +108,49 @@ jobs:
       - name: Build Hall for Henderson scenario
         run: |
           cat > /tmp/hall-henderson.json <<'JSON'
-          {"scenario_id":"hall_for_henderson_dynamic_state_regression","focus_user_id":"833709164739014656","actions":[
+          {"scenario_id":"hall_for_henderson_historical_state_regression","focus_user_id":"833709164739014656","actions":[
             {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155"],"picks":[]},
             {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12529"],"picks":[]}
           ]}
           JSON
-      - name: Run sensible Market Sweep 1.17
+      - name: Run sensible Market Sweep 1.18
         run: |
-          python script/run_trade_market_sweep_v23.py --scenario /tmp/hall-henderson.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hall-henderson-117.json > /tmp/hall-henderson-117.log
+          python script/run_trade_market_sweep_v24.py --scenario /tmp/hall-henderson.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hall-henderson-118.json > /tmp/hall-henderson-118.log
       - name: Validate sensible market clears coherently
         run: |
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/hall-henderson-117.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          r=json.load(open('/tmp/hall-henderson-118.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.18'
           top=r.get('top_5_alternatives') or []
           normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
           assert normals, 'Ordinary Breece Hall market should have at least one normal bilateral path'
           assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals)
           assert all(float(x.get('post_sim_score') or 0)>0 for x in normals)
-          for x in normals:
-              if x.get('focal_current_state')=='rebuild':
-                  assert float((x.get('state_aware_score_components') or {}).get('future') or 0)>0, x
-          # Explicit regression: aging-current-production filler must not occupy a normal rebuild slot.
           bad=[x for x in normals if 'Davante Adams' in (x.get('return_asset_names') or []) and ('Mike Evans' in (x.get('return_asset_names') or []) or 'Josh Downs' in (x.get('return_asset_names') or []))]
           assert not bad, bad
-          # Owner behavior must expose current-state conditioning provenance.
+          observed=False
           for x in top:
               ob=((x.get('buyer_rationality') or {}).get('owner_behavior') or {})
               if ob.get('available'):
-                  assert 'state_conditioned_adjustment' in ob
-                  assert 'current_state' in ob
-          print('Sensible dynamic-state regression passed')
+                  assert 'historical_same_state_sample' in ob
+                  assert 'historical_same_state_blend_weight' in ob
+                  assert ob.get('historical_state_model_version')=='FSFFL-Historical-Trade-State-1.0'
+                  if int(ob.get('historical_same_state_sample') or 0)>0:
+                      observed=True
+          assert observed, 'At least one candidate should use a historical same-state owner sample'
+          print('Sensible historical-state regression passed')
           print('ACTION',r.get('recommended_next_action'))
           for x in top:
-              print(x.get('report_role'),x.get('buyer_team'),'->',x.get('return_asset_names'),x.get('acceptance_likelihood'),x.get('post_sim_score'))
+              ob=((x.get('buyer_rationality') or {}).get('owner_behavior') or {})
+              print(x.get('report_role'),x.get('buyer_team'),'->',x.get('return_asset_names'),x.get('acceptance_likelihood'),x.get('post_sim_score'),'same_state_n=',ob.get('historical_same_state_sample'))
           PY
       - name: Upload sensible artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sensible-hall-henderson-dynamic-state-regression
+          name: sensible-hall-henderson-historical-state-regression
           path: |
-            /tmp/hall-henderson-117.json
-            /tmp/hall-henderson-117.log
+            /tmp/hall-henderson-118.json
+            /tmp/hall-henderson-118.log
           retention-days: 14
