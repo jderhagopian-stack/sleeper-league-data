@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.12 — state-aware hypothetical GM profiles.
+"""FSFFL Counter & Market Sweep 1.13 — continuous state-aware GM profiles.
 
-Upgrade over 1.11:
-- every candidate's incoming assets are re-profiled for the focal franchise on
-  the hypothetical post-trade roster using the GM 3.0 inherited strategic core;
-- the post-simulation ranking uses the focal franchise's actual objective
-  weights for elite_contender, contender, retool and rebuild states;
+Upgrade over 1.12:
+- incoming assets are re-profiled for the focal franchise on the hypothetical
+  post-trade roster using continuous GM objective weights;
+- runtime weights come from a tiny precomputed calibration artifact plus
+  already-produced Simulator 1.0 context, never from historical calibration;
+- descriptive competition classifications remain, but hard weight cliffs do not;
 - contender title-equity caps remain hard guardrails;
-- no canonical roster or GM state is mutated.
+- canonical roster and GM state remain read-only.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parent
 V19_PATH = SCRIPT / "run_trade_market_sweep_v19.py"
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.12"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.13"
 
 
 def load_module(path: Path, name: str):
@@ -39,6 +40,7 @@ def sf(x, default=0.0):
 
 
 def fallback_weights(state: str):
+    """Legacy exact anchors retained only for graceful degradation/tests."""
     return {
         "elite_contender": {"current": 0.50, "future": 0.25, "liquidity": 0.10, "resilience": 0.15},
         "contender": {"current": 0.40, "future": 0.35, "liquidity": 0.10, "resilience": 0.15},
@@ -70,8 +72,8 @@ def state_aware_post_sim_score(engine, row, state: str):
     externality = sf(sim.get("net_title_equity_swing_against_focus"))
     plausibility = sf(row.get("plausibility_score"))
 
-    # Normalize each franchise against the historical contender-weight baseline.
-    # This preserves score scale while making the objective genuinely state-aware.
+    # Preserve familiar score scale while letting each franchise's objective mix
+    # determine how much present, future, liquidity, and resilience matter.
     current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points
     future_block = dynasty + 0.30 * break_glass + 0.18 * optionality
     liquidity_block = 0.25 * liquidity
@@ -128,8 +130,8 @@ def output_path_from_argv():
 
 
 def main():
-    v19 = load_module(V19_PATH, "market_sweep_v19_for_v112")
-    overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v112")
+    v19 = load_module(V19_PATH, "market_sweep_v19_for_v113")
+    overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v113")
     original_v19_loader = v19.load_module
 
     def patched_v19_loader(path: Path, name: str):
@@ -158,12 +160,27 @@ def main():
         policy.update({
             "focal_post_trade_gm_profiles_recomputed": True,
             "all_competition_classifications_state_aware": True,
+            "continuous_state_weighting": True,
             "state_aware_objective_weighted_ranking": True,
             "incoming_assets_use_focal_post_trade_profile": True,
             "seller_profile_not_used_as_focal_strategic_value": True,
+            "historical_calibration_runs_during_interactive_query": False,
+            "runtime_weight_resolution_reads_precomputed_artifacts_only": True,
+            "calibration_fallback_enabled": True,
         })
+        current_strategic = (((report.get("current_offer_evaluation") or {}).get("simulation") or {}).get("strategic") or {})
+        wr = current_strategic.get("weight_resolution") or {}
+        report["state_weighting"] = {
+            "model_version": wr.get("calibration_model_version"),
+            "calibration_status": wr.get("calibration_status"),
+            "runtime_source": wr.get("runtime_source"),
+            "objective_state": current_strategic.get("objective_state"),
+            "objective_weights": current_strategic.get("objective_weights"),
+            "inputs": wr.get("inputs"),
+            "adjustments": wr.get("adjustments"),
+        }
         sim = report.setdefault("simulation", {})
-        sim["execution_path"] = "GM3_post_trade_profile_recompute_plus_state_weighted_market_sweep_plus_fast_decision_lab"
+        sim["execution_path"] = "GM3_continuous_state_weights_plus_post_trade_profile_recompute_plus_state_weighted_market_sweep_plus_fast_decision_lab"
         output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
 
