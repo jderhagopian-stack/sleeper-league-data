@@ -1,0 +1,118 @@
+name: Test State-Aware Market Sweep
+
+on:
+  pull_request:
+    paths:
+      - 'script/decision_lab_state_aware.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - '.github/workflows/test-state-aware-market-sweep.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile state-aware modules
+        run: python -m py_compile script/decision_lab_state_aware.py script/run_trade_market_sweep_v20.py
+
+      - name: Verify classification-specific objective weights
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p = Path('script/run_trade_market_sweep_v20.py')
+          spec = importlib.util.spec_from_file_location('v20', p)
+          m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          expected = {
+              'elite_contender': (0.50, 0.25, 0.10, 0.15),
+              'contender': (0.40, 0.35, 0.10, 0.15),
+              'retool': (0.23, 0.47, 0.15, 0.15),
+              'rebuild': (0.10, 0.60, 0.20, 0.10),
+          }
+          for state, vals in expected.items():
+              w = m.fallback_weights(state)
+              got = (w['current'], w['future'], w['liquidity'], w['resilience'])
+              assert got == vals, (state, got, vals)
+          assert m.fallback_weights('elite_contender')['current'] > m.fallback_weights('rebuild')['current']
+          assert m.fallback_weights('rebuild')['future'] > m.fallback_weights('elite_contender')['future']
+          assert m.fallback_weights('rebuild')['liquidity'] > m.fallback_weights('contender')['liquidity']
+          print('All competition classifications have distinct objective weights')
+          PY
+
+      - name: Verify state changes ranking emphasis
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p = Path('script/run_trade_market_sweep_v20.py')
+          spec = importlib.util.spec_from_file_location('v20', p)
+          m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          class E:
+              @staticmethod
+              def contender_title_cap(state):
+                  return {'elite_contender':.025,'contender':.03,'retool':.06}.get(state)
+          base = {
+              'plausibility_score': .7,
+              'plausibility': 'HIGH',
+              'simulation': {
+                  'focus_delta': {'championship_probability':0,'playoff_probability':0,'expected_wins':0,'expected_points_for':0},
+                  'net_title_equity_swing_against_focus': 0,
+                  'strategic': {
+                      'market_dynasty_delta': 1000,
+                      'break_glass_delta': 1000,
+                      'liquidity_value_delta': 1000,
+                      'strategic_value_delta': 1000,
+                      'optionality_value_delta': 1000,
+                  }
+              }
+          }
+          import copy
+          rebuild = copy.deepcopy(base); rebuild['simulation']['strategic']['objective_weights'] = m.fallback_weights('rebuild')
+          elite = copy.deepcopy(base); elite['simulation']['strategic']['objective_weights'] = m.fallback_weights('elite_contender')
+          assert m.state_aware_post_sim_score(E, rebuild, 'rebuild') > m.state_aware_post_sim_score(E, elite, 'elite_contender')
+
+          current = copy.deepcopy(base)
+          current['simulation']['focus_delta'].update({'championship_probability':.02,'playoff_probability':.08,'expected_wins':1.0,'expected_points_for':120})
+          current['simulation']['strategic'].update({'market_dynasty_delta':0,'break_glass_delta':0,'liquidity_value_delta':0,'strategic_value_delta':0,'optionality_value_delta':0})
+          elite2 = copy.deepcopy(current); elite2['simulation']['strategic']['objective_weights'] = m.fallback_weights('elite_contender')
+          rebuild2 = copy.deepcopy(current); rebuild2['simulation']['strategic']['objective_weights'] = m.fallback_weights('rebuild')
+          assert m.state_aware_post_sim_score(E, elite2, 'elite_contender') > m.state_aware_post_sim_score(E, rebuild2, 'rebuild')
+          print('Ranking emphasis changes correctly by competition classification')
+          PY
+
+      - name: Run state-aware market sweep smoke scenario
+        run: |
+          python script/run_trade_market_sweep_v20.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 50 \
+            --confirm-sims 0 \
+            --search-depth 40 \
+            --output /tmp/state-aware-market-sweep.json \
+            > /tmp/state-aware-market-sweep.log
+
+      - name: Validate hypothetical profile recomputation
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('/tmp/state-aware-market-sweep.json'))
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.12'
+          assert d['policy']['focal_post_trade_gm_profiles_recomputed'] is True
+          assert d['policy']['all_competition_classifications_state_aware'] is True
+          assert d['policy']['state_aware_objective_weighted_ranking'] is True
+          cur = d['current_offer_evaluation']['simulation']['strategic']
+          assert cur['hypothetical_profiles_recomputed'] is True
+          assert cur['objective_state'] in {'elite_contender','contender','retool','rebuild'}
+          assert set(cur['objective_weights']) == {'current','future','liquidity','resilience'}
+          for row in cur['received']:
+              assert row['profile_source'] == 'post_trade_focal_gm'
+          print('Post-trade focal GM profiles are recomputed and used')
+          PY
