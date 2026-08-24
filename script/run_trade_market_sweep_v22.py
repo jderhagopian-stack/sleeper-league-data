@@ -59,16 +59,13 @@ def expanded_candidate_packages(assets, max_players=MAX_PLAYERS, max_picks=MAX_P
     picks = [a for a in assets if a.get("asset_type") == "pick"]
     seen = set()
     pmax = min(MAX_PLAYERS, max_players, len(players))
-    kmax = min(MAX_PICK_ONLY, max(MAX_PICKS, max_picks), len(picks))
     for np in range(0, pmax + 1):
-        for nk in range(0, kmax + 1):
+        nk_cap = min(MAX_PICK_ONLY if np == 0 else MAX_PICKS, len(picks))
+        for nk in range(0, nk_cap + 1):
             total = np + nk
             if total == 0:
                 continue
-            if np == 0:
-                if nk > MAX_PICK_ONLY:
-                    continue
-            elif nk > MAX_PICKS or total > MAX_TOTAL_ASSETS:
+            if np > 0 and total > MAX_TOTAL_ASSETS:
                 continue
             for pc in itertools.combinations(players, np):
                 for kc in itertools.combinations(picks, nk):
