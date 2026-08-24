@@ -8,6 +8,7 @@ on:
       - 'script/run_trade_market_sweep_v20.py'
       - 'script/run_trade_market_sweep_v21.py'
       - 'script/run_trade_market_sweep_v22.py'
+      - 'script/run_trade_market_sweep_v23.py'
       - '.github/workflows/test-trade-report.yml'
       - '.github/workflows/run-trade-analysis.yml'
   workflow_dispatch:
@@ -19,18 +20,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install PDF dependencies
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
-
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/run_trade_market_sweep_v20.py script/run_trade_market_sweep_v21.py script/run_trade_market_sweep_v22.py
-
+        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/run_trade_market_sweep_v23.py
       - name: Run trade query pipeline
         run: |
           mkdir -p /tmp/fsffl-trade-report
@@ -46,39 +43,36 @@ jobs:
           elapsed=$SECONDS
           echo "Trade report pipeline runtime: ${elapsed}s"
           test "$elapsed" -le 180
-          tail -n 30 /tmp/fsffl-trade-report/pipeline.log
-
       - name: Validate JSON PDF and delivery policy
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from pypdf import PdfReader
-
-          root = Path('/tmp/fsffl-trade-report')
-          analysis = json.loads((root/'validation-trade.json').read_text())
-          summary = json.loads((root/'validation-trade-summary.json').read_text())
-          pdf = root/'validation-trade.pdf'
-
-          assert analysis['model_version'] == 'FSFFL-Counter-Market-Sweep-1.16'
-          assert analysis['policy']['continuous_state_weighting'] is True
-          assert analysis['policy']['market_intelligence_can_veto_buyer_current_state_viability'] is True
-          assert analysis['policy']['negotiation_family_deduplication'] is True
-          assert analysis['policy']['league_realistic_multi_asset_search'] is True
-          assert analysis['policy']['legacy_three_asset_return_ceiling_removed'] is True
-          assert analysis['policy']['max_return_picks_with_players'] == 4
-          assert analysis['policy']['max_return_total_assets_with_players'] == 5
-          assert analysis['policy']['max_pick_only_return_assets'] == 5
-          normals=[r for r in analysis.get('top_5_alternatives',[]) if r.get('report_role') != 'SWING_FOR_FENCES']
-          assert all(r.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for r in normals)
-          assert summary['pipeline_model_version'] == 'FSFFL-Trade-Query-Pipeline-1.3'
-          assert summary['analysis_model_version'] == analysis['model_version']
-          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v22.py')
-          assert pdf.exists() and pdf.stat().st_size > 2000
-          assert len(PdfReader(str(pdf)).pages) == 1
-          print('Automatic Market Sweep 1.16 trade PDF report smoke test passed')
+          root=Path('/tmp/fsffl-trade-report')
+          analysis=json.loads((root/'validation-trade.json').read_text())
+          summary=json.loads((root/'validation-trade-summary.json').read_text())
+          pdf=root/'validation-trade.pdf'
+          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          p=analysis['policy']
+          assert p['continuous_state_weighting'] is True
+          assert p['league_realistic_multi_asset_search'] is True
+          assert p['competitive_state_treated_as_time_varying'] is True
+          assert p['normal_recommendations_require_positive_focal_current_state_utility'] is True
+          assert p['owner_behavior_conditioned_on_current_competitive_state'] is True
+          assert p['historical_behavior_can_override_current_state_utility'] is False
+          normals=[r for r in analysis.get('top_5_alternatives',[]) if r.get('report_role')!='SWING_FOR_FENCES']
+          assert all(float(r.get('post_sim_score') or 0)>0 for r in normals)
+          for r in normals:
+              if r.get('focal_current_state')=='rebuild':
+                  assert float((r.get('state_aware_score_components') or {}).get('future') or 0)>0
+          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.4'
+          assert summary['analysis_model_version']==analysis['model_version']
+          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v23.py')
+          assert pdf.exists() and pdf.stat().st_size>2000
+          assert len(PdfReader(str(pdf)).pages)==1
+          print('Automatic Market Sweep 1.17 trade PDF report smoke test passed')
           PY
-
       - name: Upload trade report artifacts
         if: always()
         uses: actions/upload-artifact@v4
