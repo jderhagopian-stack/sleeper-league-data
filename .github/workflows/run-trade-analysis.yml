@@ -82,17 +82,19 @@ jobs:
           analysis=json.loads((root/f'{base}.json').read_text())
           summary=json.loads((root/f'{base}-summary.json').read_text())
           pdf=root/f'{base}.pdf'
-          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.18'
           assert analysis['simulation']['canonical_state_mutated'] is False
           p=analysis['policy']
           assert p['continuous_state_weighting'] is True
           assert p['league_realistic_multi_asset_search'] is True
           assert p['competitive_state_treated_as_time_varying'] is True
           assert p['normal_recommendations_require_positive_focal_current_state_utility'] is True
-          assert p['owner_behavior_conditioned_on_current_competitive_state'] is True
+          assert p['historical_state_at_trade_reconstruction_enabled'] is True
+          assert p['historical_state_at_trade_uses_future_same_season_results'] is False
+          assert p['historical_behavior_prefers_same_state_samples'] is True
           assert p['historical_behavior_can_override_current_state_utility'] is False
-          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.4'
-          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v23.py')
+          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.5'
+          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v24.py')
           assert pdf.exists() and len(PdfReader(str(pdf)).pages)==1
           print(summary['short_answer'])
           PY
