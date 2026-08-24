@@ -1,0 +1,36 @@
+name: Alternate History Historical Anchor Validation
+
+on:
+  pull_request:
+    paths:
+      - 'script/alternate_history_historical_state.py'
+      - 'script/validate_historical_season_anchor.py'
+      - 'script/backfill_alternate_history_sleeper.py'
+      - 'data/alternate_history/**'
+      - '.github/workflows/alternate-history-historical-anchor-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-historical-anchor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore completed-season Sleeper history cache
+        uses: actions/cache@v4
+        with:
+          path: data/alternate_history/source_history/sleeper_history.json
+          key: alternate-history-sleeper-completed-2022-2025-v1
+      - name: Compile historical anchor modules
+        run: |
+          python -m py_compile script/alternate_history_historical_state.py
+          python -m py_compile script/validate_historical_season_anchor.py
+      - name: Backfill authoritative raw Sleeper history
+        run: python script/backfill_alternate_history_sleeper.py
+      - name: Validate completed-season state anchoring
+        run: python script/validate_historical_season_anchor.py
