@@ -16,6 +16,10 @@ on:
       - '.github/workflows/alternate-history-season-boundary-validation.yml'
   workflow_dispatch:
 
+concurrency:
+  group: alternate-history-season-boundary-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
