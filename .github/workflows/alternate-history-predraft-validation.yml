@@ -1,14 +1,6 @@
 name: Alternate History Predraft Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_historical_state.py'
-      - 'script/alternate_history_postseason.py'
-      - 'script/run_fsffl_season_boundary_particles.py'
-      - 'script/run_fsffl_predraft_particles.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-predraft-validation.yml'
   workflow_dispatch:
 
 permissions:
