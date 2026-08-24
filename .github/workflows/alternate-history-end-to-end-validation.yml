@@ -21,13 +21,10 @@ concurrency:
   group: alternate-history-end-to-end-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-
 jobs:
   validate-end-to-end:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -50,35 +47,3 @@ jobs:
         run: python script/backfill_alternate_history_sleeper.py
       - name: Validate complete 2023-to-present weighted protocol in one pass
         run: python script/validate_fsffl_end_to_end_protocol.py
-      - name: Run Puka production scenario and final report
-        run: |
-          python script/run_fsffl_alternate_history_final_report.py \
-            data/alternate_history/scenarios/puka_vs_van_2023.json \
-            --particles 100 \
-            --sims 500 \
-            --seed 20260824
-      - name: Print final human-readable report
-        run: cat data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md
-      - name: Persist final report for ChatGPT retrieval
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir -p .run_outputs/alternate_history/puka_vs_van_2023
-          cp data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md .run_outputs/alternate_history/puka_vs_van_2023/final_report_1_0.md
-          cp data/alternate_history/results/puka_vs_van_2023/final_report_1_0.json .run_outputs/alternate_history/puka_vs_van_2023/final_report_1_0.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .run_outputs/alternate_history/puka_vs_van_2023/final_report_1_0.md .run_outputs/alternate_history/puka_vs_van_2023/final_report_1_0.json
-          if git diff --cached --quiet; then
-            echo "Report unchanged; nothing to persist."
-          else
-            git commit -m "Store Puka Alternate History final report [skip ci]"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
-      - name: Upload final report package
-        uses: actions/upload-artifact@v4
-        with:
-          name: puka-alternate-history-final-report
-          path: |
-            data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md
-            data/alternate_history/results/puka_vs_van_2023/final_report_1_0.json
-          if-no-files-found: error
