@@ -41,7 +41,6 @@ jobs:
           assert all(abs(sum(v.values())-1.0)<1e-5 for v in vals)
           assert all(vals[i]['current'] <= vals[i+1]['current']+1e-6 for i in range(len(vals)-1))
           assert all(vals[i]['future'] >= vals[i+1]['future']-1e-6 for i in range(len(vals)-1))
-          # Old bucket logic jumped ~10 percentage points at .78; continuous logic must not.
           assert abs(r(.779)['weights']['current']-r(.780)['weights']['current']) < .01
           assert abs(r(.549)['weights']['current']-r(.550)['weights']['current']) < .01
           assert r(.50,d=.10)['weights']['future'] > r(.50,d=.50)['weights']['future']
@@ -74,9 +73,6 @@ jobs:
               Path.read_text=original
           assert elapsed < 1.0, elapsed
           assert all(x in allowed for x in seen)
-          # Explicit invalid calibration falls back to embedded priors.
-          bad={'anchor_points':[]}
-          # load_calibration itself handles bad/missing disk artifacts; resolver also remains usable with supplied valid fallback artifact.
           fb={'anchor_points':[{'contender_score':x,'weights':wt} for x,wt in w.LEGACY_ANCHORS], 'classification_thresholds':w.LEGACY_THRESHOLDS}
           out=w.resolve({'contender_score':.6,'dynasty_roster_score':.5}, simulator_row={'championship_probability':.08}, calibration=fb)
           assert abs(sum(out['weights'].values())-1)<1e-5
@@ -124,7 +120,7 @@ jobs:
           SECONDS=0
           python script/run_trade_market_sweep_v20.py \
             --scenario data/decision_lab/full_validation_scenario.json \
-            --quick-sims 50 \
+            --quick-sims 100 \
             --confirm-sims 0 \
             --search-depth 40 \
             --output /tmp/state-aware-market-sweep.json \
