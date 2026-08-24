@@ -8,7 +8,7 @@ from pathlib import Path
 
 import alternate_history_engine as ah
 from run_fsffl_downstream_dependencies import load
-from run_fsffl_multiseason_particle_replay_v3 import run
+from run_fsffl_multiseason_particle_replay_v4 import run
 
 SCENARIO = Path("data/alternate_history/scenarios/puka_vs_van_2023.json")
 PARTICLES = 50
