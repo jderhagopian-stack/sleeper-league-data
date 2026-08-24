@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-22T22:54:21.004976+00:00",
+  "generated_at_utc": "2026-08-24T11:48:53.215982+00:00",
   "model_version": "FSFFL-GM-3.0-Emerging-Value-v5.2-Stash-Action-Gate",
   "scope": "POST_ROOKIE_DEVELOPMENTAL_YEARS_1_TO_4_PLUS_EXTRAORDINARY_VETERANS",
   "player_universe_count": 482,
@@ -17,7 +17,7 @@
   "source_coverage": {
     "fsffl_market_players": 244,
     "prior_snap_records": 419,
-    "preseason_usage_records": 51,
+    "preseason_usage_records": 56,
     "manual_intelligence_records": 90,
     "prior_ppg_players": 610,
     "prior_ppg_diagnostics": {
@@ -73,9 +73,9 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 4,
-      "market_value": 378.2,
-      "market_score": 0.037037037037037035,
-      "usage_score": 0.06356,
+      "market_value": 463.1,
+      "market_score": 0.053497942386831275,
+      "usage_score": 0.046326666666666676,
       "manual_score": 0.3,
       "manual_evidence": [
         "role_loss"
@@ -93,22 +93,22 @@
         "source_season": 2026,
         "source": "ESPN_PRESEASON_BOXSCORE",
         "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-        "games": 1,
+        "games": 2,
         "starter_games": 0,
         "starter_rate": 0.0,
-        "pass_attempts": 8,
-        "pass_attempt_share": 0.381,
-        "carries": 5,
-        "carry_share": 0.1786,
+        "pass_attempts": 19,
+        "pass_attempt_share": 0.413,
+        "carries": 6,
+        "carry_share": 0.1277,
         "targets": 0,
         "target_share": 0.0,
         "receptions": 0,
-        "touches": 5,
-        "touch_share": 0.119,
-        "latest_game_role_share": 0.381,
+        "touches": 6,
+        "touch_share": 0.0759,
+        "latest_game_role_share": 0.44,
         "latest_game_starter": false,
         "meaningful_role_signal": true,
-        "signal_strength": 0.683,
+        "signal_strength": 0.695,
         "signal_reasons": [
           "PASS_ATTEMPT_SHARE"
         ],
@@ -149,7 +149,7 @@
       "current_catalyst_profile": {
         "present": true,
         "structured_preseason_usage": true,
-        "preseason_signal_strength": 0.68,
+        "preseason_signal_strength": 0.69,
         "preseason_signal_reasons": [
           "PASS_ATTEMPT_SHARE"
         ],
@@ -158,7 +158,7 @@
         "negative_evidence_count": 1,
         "strong_positive_evidence_count": 0,
         "positive_independent_sources": 0,
-        "max_positive_strength": 0.68,
+        "max_positive_strength": 0.69,
         "max_negative_strength": 0.45,
         "negative_veto": false,
         "strong": false,
@@ -168,15 +168,15 @@
       "extraordinary_veteran_circumstance": false,
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 66.6,
-      "latent_value_score": 55.3,
-      "market_mispricing_score": 51.6,
+      "latent_value_score": 54.9,
+      "market_mispricing_score": 49.6,
       "signals": [
         "DEVELOPMENTAL_WATCH",
         "BUY_LOW_WATCH",
         "DYNASTY_STASH_WATCH"
       ],
       "direction": "WATCHLIST",
-      "confidence_score": 74.5,
+      "confidence_score": 74.6,
       "confidence_grade": "B"
     },
     {
@@ -190,14 +190,11 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 1,
-      "market_value": 1424.2,
-      "market_score": 0.37037037037037035,
+      "market_value": 1380.3,
+      "market_score": 0.36213991769547327,
       "usage_score": 0.916,
-      "manual_score": 0.15999999999999998,
-      "manual_evidence": [
-        "injury_concern",
-        "role_loss"
-      ],
+      "manual_score": null,
+      "manual_evidence": [],
       "season_phase": "PRESEASON",
       "prior_snap_evidence": {
         "source_season": 2025,
@@ -238,18 +235,18 @@
         "base_breakout_rate": 0.0982
       },
       "current_catalyst_profile": {
-        "present": true,
+        "present": false,
         "structured_preseason_usage": false,
         "preseason_signal_strength": 0.0,
         "preseason_signal_reasons": [],
-        "evidence_count": 2,
+        "evidence_count": 0,
         "positive_evidence_count": 0,
-        "negative_evidence_count": 2,
+        "negative_evidence_count": 0,
         "strong_positive_evidence_count": 0,
         "positive_independent_sources": 0,
         "max_positive_strength": 0.0,
-        "max_negative_strength": 0.9,
-        "negative_veto": true,
+        "max_negative_strength": 0.0,
+        "negative_veto": false,
         "strong": false,
         "corroborated": false
       },
@@ -257,8 +254,8 @@
       "extraordinary_veteran_circumstance": false,
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 62.7,
-      "latent_value_score": 71.4,
-      "market_mispricing_score": 34.4,
+      "latent_value_score": 88.4,
+      "market_mispricing_score": 52.2,
       "signals": [
         "DEVELOPMENTAL_WATCH",
         "BUY_LOW_WATCH",
@@ -279,7 +276,7 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 11,
-      "market_value": 2109.9,
+      "market_value": 2112.1,
       "market_score": 0.5843621399176955,
       "usage_score": 0.8514,
       "manual_score": null,
@@ -364,8 +361,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 7,
-      "market_value": 3339.4,
-      "market_score": 0.7489711934156379,
+      "market_value": 3303.4,
+      "market_score": 0.7448559670781894,
       "usage_score": 0.8345,
       "manual_score": null,
       "manual_evidence": [],
@@ -429,7 +426,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 56.3,
       "latent_value_score": 78.1,
-      "market_mispricing_score": 3.2,
+      "market_mispricing_score": 3.6,
       "signals": [
         "DEVELOPMENTAL_WATCH"
       ],
@@ -608,8 +605,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 6,
-      "market_value": 2423.9,
-      "market_score": 0.6172839506172839,
+      "market_value": 2356.1,
+      "market_score": 0.6131687242798354,
       "usage_score": 0.5767,
       "manual_score": null,
       "manual_evidence": [],
@@ -675,7 +672,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
       "latent_value_score": 35.2,
-      "market_mispricing_score": -26.5,
+      "market_mispricing_score": -26.1,
       "signals": [
         "VALUE_TRAP_RISK"
       ],
@@ -694,7 +691,7 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 8,
-      "market_value": 2612.5,
+      "market_value": 2636.2,
       "market_score": 0.6460905349794238,
       "usage_score": 0.2162,
       "manual_score": null,
@@ -778,7 +775,7 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 4,
-      "market_value": 2761.2,
+      "market_value": 2764.5,
       "market_score": 0.6625514403292181,
       "usage_score": 0.5978,
       "manual_score": null,
@@ -864,8 +861,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 8,
-      "market_value": 3952.0,
-      "market_score": 0.8024691358024691,
+      "market_value": 4060.8,
+      "market_score": 0.8065843621399177,
       "usage_score": 0.9125,
       "manual_score": null,
       "manual_evidence": [],
@@ -931,7 +928,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
       "latent_value_score": 49.1,
-      "market_mispricing_score": -31.2,
+      "market_mispricing_score": -31.6,
       "signals": [
         "FRAGILE_VALUE"
       ],
@@ -950,8 +947,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 10,
-      "market_value": 2759.6,
-      "market_score": 0.654320987654321,
+      "market_value": 2743.9,
+      "market_score": 0.6502057613168725,
       "usage_score": 0.5931,
       "manual_score": null,
       "manual_evidence": [],
@@ -1017,7 +1014,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
       "latent_value_score": 31.3,
-      "market_mispricing_score": -34.1,
+      "market_mispricing_score": -33.7,
       "signals": [
         "VALUE_TRAP_RISK"
       ],
@@ -1036,8 +1033,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 8,
-      "market_value": 3014.1,
-      "market_score": 0.6872427983539094,
+      "market_value": 3046.4,
+      "market_score": 0.6954732510288066,
       "usage_score": 0.5453,
       "manual_score": null,
       "manual_evidence": [],
@@ -1103,8 +1100,95 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
       "latent_value_score": 26.7,
-      "market_mispricing_score": -42.0,
+      "market_mispricing_score": -42.8,
       "signals": [
+        "VALUE_TRAP_RISK"
+      ],
+      "direction": "SELL_OR_AVOID",
+      "confidence_score": 55.0,
+      "confidence_grade": "C"
+    },
+    {
+      "player_id": "4034",
+      "name": "Christian McCaffrey",
+      "position": "RB",
+      "nfl_team": "SF",
+      "age": 30.0,
+      "years_exp": 9.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": true,
+      "fsffl_roster_id": 8,
+      "market_value": 4320.5,
+      "market_score": 0.831275720164609,
+      "usage_score": 0.8173999999999999,
+      "manual_score": null,
+      "manual_evidence": [],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": {
+        "source_season": 2025,
+        "games": 19,
+        "offense_snaps": 1015.0,
+        "offense_snap_pct": 0.8174,
+        "evidence_type": "PRIOR_REGULAR_SEASON"
+      },
+      "prior_half_ppr_ppg": 21.506,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": 0.314,
+        "cutoff": 1.393,
+        "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
+        "feature_coverage": 0.8,
+        "features_used": 4,
+        "contributions": {
+          "age": {
+            "value": "AGE_29_PLUS",
+            "weight": -0.214
+          },
+          "experience": {
+            "value": "EXP_YEAR_6_PLUS",
+            "weight": -0.206
+          },
+          "prior_snap": {
+            "value": "SNAP_70_PLUS",
+            "weight": 0.367
+          },
+          "prior_ppg": {
+            "value": "PPG_ALREADY_HIGH",
+            "weight": 0.367
+          }
+        },
+        "base_breakout_rate": 0.09
+      },
+      "current_catalyst_profile": {
+        "present": false,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 0,
+        "positive_evidence_count": 0,
+        "negative_evidence_count": 0,
+        "strong_positive_evidence_count": 0,
+        "positive_independent_sources": 0,
+        "max_positive_strength": 0.0,
+        "max_negative_strength": 0.0,
+        "negative_veto": false,
+        "strong": false,
+        "corroborated": false
+      },
+      "developmental_eligible": false,
+      "extraordinary_veteran_circumstance": false,
+      "credible_path_to_relevance": false,
+      "developmental_trajectory_score": 0.0,
+      "latent_value_score": 40.3,
+      "market_mispricing_score": -42.8,
+      "signals": [
+        "FRAGILE_VALUE",
         "VALUE_TRAP_RISK"
       ],
       "direction": "SELL_OR_AVOID",
@@ -1122,7 +1206,7 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 2,
-      "market_value": 5582.0,
+      "market_value": 5461.8,
       "market_score": 0.897119341563786,
       "usage_score": 0.5768,
       "manual_score": null,
@@ -1198,40 +1282,38 @@
       "confidence_grade": "C"
     },
     {
-      "player_id": "4034",
-      "name": "Christian McCaffrey",
+      "player_id": "5892",
+      "name": "David Montgomery",
       "position": "RB",
-      "nfl_team": "SF",
-      "age": 30.0,
-      "years_exp": 9.0,
+      "nfl_team": "HOU",
+      "age": 29.0,
+      "years_exp": 7.0,
       "draft_round": null,
       "draft_pick": null,
       "fsffl_rostered": true,
-      "fsffl_roster_id": 8,
-      "market_value": 4352.2,
-      "market_score": 0.8436213991769548,
-      "usage_score": 0.8173999999999999,
+      "fsffl_roster_id": 5,
+      "market_value": 2266.2,
+      "market_score": 0.6049382716049383,
+      "usage_score": 0.3706,
       "manual_score": null,
       "manual_evidence": [],
       "season_phase": "PRESEASON",
       "prior_snap_evidence": {
         "source_season": 2025,
-        "games": 19,
-        "offense_snaps": 1015.0,
-        "offense_snap_pct": 0.8174,
+        "games": 17,
+        "offense_snaps": 408.0,
+        "offense_snap_pct": 0.3706,
         "evidence_type": "PRIOR_REGULAR_SEASON"
       },
-      "prior_half_ppr_ppg": 21.506,
+      "prior_half_ppr_ppg": 9.054,
       "preseason_usage_evidence": null,
       "historical_breakout_profile": {
         "cohort": "VETERAN_NEXT_YEAR",
-        "score": 0.314,
+        "score": -0.239,
         "cutoff": 1.393,
         "clears_cutoff": false,
-        "already_established": true,
-        "disqualifiers": [
-          "PRIOR_PPG_ALREADY_HIGH"
-        ],
+        "already_established": false,
+        "disqualifiers": [],
         "feature_coverage": 0.8,
         "features_used": 4,
         "contributions": {
@@ -1244,12 +1326,12 @@
             "weight": -0.206
           },
           "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": 0.367
+            "value": "SNAP_20_44",
+            "weight": -0.152
           },
           "prior_ppg": {
-            "value": "PPG_ALREADY_HIGH",
-            "weight": 0.367
+            "value": "PPG_NEAR_BREAKOUT",
+            "weight": 0.333
           }
         },
         "base_breakout_rate": 0.09
@@ -1274,11 +1356,96 @@
       "extraordinary_veteran_circumstance": false,
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
-      "latent_value_score": 40.3,
-      "market_mispricing_score": -44.1,
+      "latent_value_score": 16.7,
+      "market_mispricing_score": -43.8,
       "signals": [
-        "FRAGILE_VALUE",
         "VALUE_TRAP_RISK"
+      ],
+      "direction": "SELL_OR_AVOID",
+      "confidence_score": 55.0,
+      "confidence_grade": "C"
+    },
+    {
+      "player_id": "6786",
+      "name": "CeeDee Lamb",
+      "position": "WR",
+      "nfl_team": "DAL",
+      "age": 27.0,
+      "years_exp": 6.0,
+      "draft_round": null,
+      "draft_pick": null,
+      "fsffl_rostered": true,
+      "fsffl_roster_id": 9,
+      "market_value": 6569.7,
+      "market_score": 0.9259259259259259,
+      "usage_score": 0.7286,
+      "manual_score": null,
+      "manual_evidence": [],
+      "season_phase": "PRESEASON",
+      "prior_snap_evidence": {
+        "source_season": 2025,
+        "games": 14,
+        "offense_snaps": 732.0,
+        "offense_snap_pct": 0.7286,
+        "evidence_type": "PRIOR_REGULAR_SEASON"
+      },
+      "prior_half_ppr_ppg": 12.569,
+      "preseason_usage_evidence": null,
+      "historical_breakout_profile": {
+        "cohort": "VETERAN_NEXT_YEAR",
+        "score": -1.179,
+        "cutoff": 1.57,
+        "clears_cutoff": false,
+        "already_established": true,
+        "disqualifiers": [
+          "PRIOR_PPG_ALREADY_HIGH"
+        ],
+        "feature_coverage": 0.8,
+        "features_used": 4,
+        "contributions": {
+          "age": {
+            "value": "AGE_27_28",
+            "weight": -0.393
+          },
+          "experience": {
+            "value": "EXP_YEAR_6_PLUS",
+            "weight": -1.248
+          },
+          "prior_snap": {
+            "value": "SNAP_70_PLUS",
+            "weight": 0.325
+          },
+          "prior_ppg": {
+            "value": "PPG_ALREADY_HIGH",
+            "weight": 0.137
+          }
+        },
+        "base_breakout_rate": 0.0722
+      },
+      "current_catalyst_profile": {
+        "present": false,
+        "structured_preseason_usage": false,
+        "preseason_signal_strength": 0.0,
+        "preseason_signal_reasons": [],
+        "evidence_count": 0,
+        "positive_evidence_count": 0,
+        "negative_evidence_count": 0,
+        "strong_positive_evidence_count": 0,
+        "positive_independent_sources": 0,
+        "max_positive_strength": 0.0,
+        "max_negative_strength": 0.0,
+        "negative_veto": false,
+        "strong": false,
+        "corroborated": false
+      },
+      "developmental_eligible": false,
+      "extraordinary_veteran_circumstance": false,
+      "credible_path_to_relevance": false,
+      "developmental_trajectory_score": 0.0,
+      "latent_value_score": 48.8,
+      "market_mispricing_score": -43.8,
+      "signals": [
+        "FRAGILE_VALUE"
       ],
       "direction": "SELL_OR_AVOID",
       "confidence_score": 55.0,
@@ -1295,7 +1462,7 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 12,
-      "market_value": 5955.1,
+      "market_value": 5924.0,
       "market_score": 0.9053497942386831,
       "usage_score": 0.8259,
       "manual_score": null,
@@ -1371,176 +1538,6 @@
       "confidence_grade": "C"
     },
     {
-      "player_id": "5892",
-      "name": "David Montgomery",
-      "position": "RB",
-      "nfl_team": "HOU",
-      "age": 29.0,
-      "years_exp": 7.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 5,
-      "market_value": 2290.8,
-      "market_score": 0.6090534979423868,
-      "usage_score": 0.3706,
-      "manual_score": null,
-      "manual_evidence": [],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 17,
-        "offense_snaps": 408.0,
-        "offense_snap_pct": 0.3706,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": 9.054,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": -0.239,
-        "cutoff": 1.393,
-        "clears_cutoff": false,
-        "already_established": false,
-        "disqualifiers": [],
-        "feature_coverage": 0.8,
-        "features_used": 4,
-        "contributions": {
-          "age": {
-            "value": "AGE_29_PLUS",
-            "weight": -0.214
-          },
-          "experience": {
-            "value": "EXP_YEAR_6_PLUS",
-            "weight": -0.206
-          },
-          "prior_snap": {
-            "value": "SNAP_20_44",
-            "weight": -0.152
-          },
-          "prior_ppg": {
-            "value": "PPG_NEAR_BREAKOUT",
-            "weight": 0.333
-          }
-        },
-        "base_breakout_rate": 0.09
-      },
-      "current_catalyst_profile": {
-        "present": false,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 0,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "developmental_eligible": false,
-      "extraordinary_veteran_circumstance": false,
-      "credible_path_to_relevance": false,
-      "developmental_trajectory_score": 0.0,
-      "latent_value_score": 16.7,
-      "market_mispricing_score": -44.2,
-      "signals": [
-        "VALUE_TRAP_RISK"
-      ],
-      "direction": "SELL_OR_AVOID",
-      "confidence_score": 55.0,
-      "confidence_grade": "C"
-    },
-    {
-      "player_id": "6786",
-      "name": "CeeDee Lamb",
-      "position": "WR",
-      "nfl_team": "DAL",
-      "age": 27.0,
-      "years_exp": 6.0,
-      "draft_round": null,
-      "draft_pick": null,
-      "fsffl_rostered": true,
-      "fsffl_roster_id": 9,
-      "market_value": 6735.7,
-      "market_score": 0.934156378600823,
-      "usage_score": 0.7286,
-      "manual_score": null,
-      "manual_evidence": [],
-      "season_phase": "PRESEASON",
-      "prior_snap_evidence": {
-        "source_season": 2025,
-        "games": 14,
-        "offense_snaps": 732.0,
-        "offense_snap_pct": 0.7286,
-        "evidence_type": "PRIOR_REGULAR_SEASON"
-      },
-      "prior_half_ppr_ppg": 12.569,
-      "preseason_usage_evidence": null,
-      "historical_breakout_profile": {
-        "cohort": "VETERAN_NEXT_YEAR",
-        "score": -1.179,
-        "cutoff": 1.57,
-        "clears_cutoff": false,
-        "already_established": true,
-        "disqualifiers": [
-          "PRIOR_PPG_ALREADY_HIGH"
-        ],
-        "feature_coverage": 0.8,
-        "features_used": 4,
-        "contributions": {
-          "age": {
-            "value": "AGE_27_28",
-            "weight": -0.393
-          },
-          "experience": {
-            "value": "EXP_YEAR_6_PLUS",
-            "weight": -1.248
-          },
-          "prior_snap": {
-            "value": "SNAP_70_PLUS",
-            "weight": 0.325
-          },
-          "prior_ppg": {
-            "value": "PPG_ALREADY_HIGH",
-            "weight": 0.137
-          }
-        },
-        "base_breakout_rate": 0.0722
-      },
-      "current_catalyst_profile": {
-        "present": false,
-        "structured_preseason_usage": false,
-        "preseason_signal_strength": 0.0,
-        "preseason_signal_reasons": [],
-        "evidence_count": 0,
-        "positive_evidence_count": 0,
-        "negative_evidence_count": 0,
-        "strong_positive_evidence_count": 0,
-        "positive_independent_sources": 0,
-        "max_positive_strength": 0.0,
-        "max_negative_strength": 0.0,
-        "negative_veto": false,
-        "strong": false,
-        "corroborated": false
-      },
-      "developmental_eligible": false,
-      "extraordinary_veteran_circumstance": false,
-      "credible_path_to_relevance": false,
-      "developmental_trajectory_score": 0.0,
-      "latent_value_score": 48.8,
-      "market_mispricing_score": -44.6,
-      "signals": [
-        "FRAGILE_VALUE"
-      ],
-      "direction": "SELL_OR_AVOID",
-      "confidence_score": 55.0,
-      "confidence_grade": "C"
-    },
-    {
       "player_id": "4866",
       "name": "Saquon Barkley",
       "position": "RB",
@@ -1551,8 +1548,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 12,
-      "market_value": 4280.3,
-      "market_score": 0.8395061728395061,
+      "market_value": 4334.8,
+      "market_score": 0.8353909465020576,
       "usage_score": 0.7871,
       "manual_score": null,
       "manual_evidence": [],
@@ -1618,7 +1615,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 0.0,
       "latent_value_score": 38.9,
-      "market_mispricing_score": -45.0,
+      "market_mispricing_score": -44.6,
       "signals": [
         "FRAGILE_VALUE",
         "VALUE_TRAP_RISK"
@@ -1638,8 +1635,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 1,
-      "market_value": 3499.7,
-      "market_score": 0.7613168724279835,
+      "market_value": 3684.8,
+      "market_score": 0.7901234567901234,
       "usage_score": 0.4182,
       "manual_score": null,
       "manual_evidence": [],
@@ -1699,7 +1696,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 30.3,
       "latent_value_score": 48.8,
-      "market_mispricing_score": -27.3,
+      "market_mispricing_score": -30.2,
       "signals": [
         "FRAGILE_VALUE"
       ],
@@ -1718,8 +1715,8 @@
       "draft_pick": null,
       "fsffl_rostered": true,
       "fsffl_roster_id": 10,
-      "market_value": 4608.3,
-      "market_score": 0.8600823045267489,
+      "market_value": 4504.0,
+      "market_score": 0.8559670781893004,
       "usage_score": null,
       "manual_score": null,
       "manual_evidence": [],
@@ -1773,7 +1770,7 @@
       "credible_path_to_relevance": false,
       "developmental_trajectory_score": 23.1,
       "latent_value_score": 33.6,
-      "market_mispricing_score": -52.4,
+      "market_mispricing_score": -52.0,
       "signals": [
         "FRAGILE_VALUE",
         "VALUE_TRAP_RISK"
