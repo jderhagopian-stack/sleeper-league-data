@@ -87,7 +87,8 @@ def run(
     *,
     particles: int = DEFAULT_PARTICLES,
     seed: int = DEFAULT_SEED,
-) -> Path:
+    return_handoff: bool = False,
+) -> Any:
     if particles <= 0:
         raise ah.AlternateHistoryError("0.8b particles must be positive")
 
@@ -112,8 +113,6 @@ def run(
     slots = starter_slots(adapter.league)
     events = target_season_events(adapter, season, draft_start_ms)
 
-    # Actual historical pre-event state does not depend on the alternate branch.
-    # Cache once per transaction instead of reconstructing it for every group.
     actual_state_cache: Dict[str, ah.LeagueState] = {}
     original_actual_pre_state = dynamic_policy.actual_pre_state
 
@@ -366,6 +365,13 @@ def run(
     )
     print(out)
     print(json.dumps(report["summary"], indent=2, sort_keys=True))
+    if return_handoff:
+        return out, groups, {
+            **postdraft_meta,
+            "completed_season": season,
+            "next_draft_season": str(int(season) + 1),
+            "second_season_summary": report["summary"],
+        }
     return out
 
 
