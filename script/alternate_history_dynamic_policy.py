@@ -33,6 +33,24 @@ MAX_TRADE_CANDIDATES = 3
 MAX_TRADE_PACKAGES = 6
 
 
+def payload_owner_index(state: Dict[str, Any]) -> Dict[str, str]:
+    """Build one player->roster index for a branch-state classification pass."""
+    return {
+        str(pid): str(rid)
+        for rid, players in (state.get("roster_players") or {}).items()
+        for pid in (players or [])
+    }
+
+
+def actual_owner_index(state: ah.LeagueState) -> Dict[str, str]:
+    """Build one player->roster index for the timestamp-safe actual state."""
+    return {
+        str(pid): str(rid)
+        for rid, players in state.roster_players.items()
+        for pid in players
+    }
+
+
 def owner_from_payload(state: Dict[str, Any], pid: str) -> Optional[str]:
     pid = str(pid)
     for rid, players in (state.get("roster_players") or {}).items():
@@ -61,16 +79,17 @@ def actual_pre_state(
     )
 
 
-def divergent_players(actual: ah.LeagueState, branch_state: Dict[str, Any]) -> Set[str]:
-    ids: Set[str] = set()
-    for players in actual.roster_players.values():
-        ids |= {str(x) for x in players}
-    for players in (branch_state.get("roster_players") or {}).values():
-        ids |= {str(x) for x in (players or [])}
-    return {
-        pid for pid in ids
-        if owner_from_state(actual, pid) != owner_from_payload(branch_state, pid)
-    }
+def divergent_players(
+    actual: ah.LeagueState,
+    branch_state: Dict[str, Any],
+    *,
+    actual_owners: Optional[Dict[str, str]] = None,
+    branch_owners: Optional[Dict[str, str]] = None,
+) -> Set[str]:
+    actual_owners = actual_owners if actual_owners is not None else actual_owner_index(actual)
+    branch_owners = branch_owners if branch_owners is not None else payload_owner_index(branch_state)
+    ids = set(actual_owners) | set(branch_owners)
+    return {pid for pid in ids if actual_owners.get(pid) != branch_owners.get(pid)}
 
 
 def event_players(event: Dict[str, Any]) -> Set[str]:
@@ -116,7 +135,14 @@ def classify(
     actual = actual_pre_state(adapter, season, event)
     branch_league_state = branch_v1.to_state(branch_state)
     legal, reasons = event_legality(branch_league_state, event)
-    div = divergent_players(actual, branch_state)
+    actual_owners = actual_owner_index(actual)
+    branch_owners = payload_owner_index(branch_state)
+    div = divergent_players(
+        actual,
+        branch_state,
+        actual_owners=actual_owners,
+        branch_owners=branch_owners,
+    )
     players = event_players(event)
     direct = sorted(players & div)
     participants = {str(x) for x in (event.get("roster_ids") or [])}
@@ -126,7 +152,7 @@ def classify(
         pos = positions.get(pid, "")
         if not pos:
             continue
-        for rid in (owner_from_state(actual, pid), owner_from_payload(branch_state, pid)):
+        for rid in (actual_owners.get(pid), branch_owners.get(pid)):
             if rid is not None:
                 divergent_positions_by_roster[str(rid)].add(pos)
     epositions = {positions.get(pid, "") for pid in players if positions.get(pid, "")}
