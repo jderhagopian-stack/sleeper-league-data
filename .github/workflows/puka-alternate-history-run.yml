@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   run-puka-scenario:
@@ -42,6 +42,16 @@ jobs:
             --seed 20260824
       - name: Print Puka weighted result
         run: cat data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
+      - name: Persist Puka result without retriggering validation gates
+        run: |
+          mkdir -p .run_outputs
+          cp data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json \
+            .run_outputs/puka_alternate_history_100p_500s.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .run_outputs/puka_alternate_history_100p_500s.json
+          git commit -m "Store Puka Alternate History 100p 500s result"
+          git push origin HEAD:feature/alternate-history-0.1
       - name: Upload Puka result
         uses: actions/upload-artifact@v4
         with:
