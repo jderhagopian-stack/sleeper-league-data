@@ -9,6 +9,8 @@ Upgrade over 1.12:
 - descriptive competition classifications remain, but hard weight cliffs do not;
 - contender title-equity caps remain hard guardrails;
 - canonical roster and GM state remain read-only.
+
+Temporary regression trigger: Hungry Dawgs 1.13 production rerun.
 """
 from __future__ import annotations
 
