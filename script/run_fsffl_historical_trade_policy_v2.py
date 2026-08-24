@@ -25,8 +25,48 @@ def run(scenario_path: Path) -> Path:
         raise ah.AlternateHistoryError(
             f"0.5d triage queue mismatch: ids={len(expected_ids)} summary={expected_count}"
         )
-    if expected_count <= 0:
-        raise ah.AlternateHistoryError("0.5d expected a non-empty historical trade queue")
+
+    # A generic arbitrary-year fork can legitimately have no historical trades
+    # requiring GM policy evaluation. Treat that as a valid no-op while still
+    # enforcing the triage queue contract and emitting a normal isolated report.
+    if expected_count == 0:
+        report: Dict[str, Any] = {
+            "model_version": "Fantasy-Alternate-History-0.5d-v2-historical-trade-policy",
+            "scenario_id": scenario.scenario_id,
+            "design_invariants": {
+                "current_gm3_numeric_values_used": False,
+                "current_market_values_used": False,
+                "future_nfl_outcomes_used": False,
+                "historical_accepted_trade_is_revealed_action_prior": True,
+                "replacement_trade_packages_generated_here": False,
+                "triage_queue_contract_enforced": True,
+                "local_reference_state_only": True,
+            },
+            "policy_note": (
+                "No historical trades required GM policy evaluation for this scenario; valid no-op."
+            ),
+            "queued_trade_events": 0,
+            "evaluated_trade_events": 0,
+            "expected_branch_counts": {
+                "preserve_historical_trade": 0.0,
+                "modified_trade_branch": 0.0,
+                "no_trade": 0.0,
+            },
+            "classification_counts": {},
+            "confidence_counts": {},
+            "decisions": [],
+            "status": "VALID_EMPTY_QUEUE",
+        }
+        out = ah.write_isolated_json(
+            f"results/{scenario.scenario_id}/historical_trade_policy_0_5d.json", report
+        )
+        print(out)
+        print(json.dumps({
+            "queued_trade_events": 0,
+            "evaluated_trade_events": 0,
+            "status": "VALID_EMPTY_QUEUE",
+        }, indent=2, sort_keys=True))
+        return out
 
     event_by_id = {str(e.get("transaction_id")): e for e in adapter.completed_events()}
     positions = player_positions()
