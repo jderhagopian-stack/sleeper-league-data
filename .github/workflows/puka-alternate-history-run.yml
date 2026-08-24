@@ -9,7 +9,7 @@ on:
       particles:
         description: 'Historical particle count'
         required: false
-        default: '100'
+        default: '50'
       sims:
         description: 'Total Simulator 1.0 draws'
         required: false
@@ -45,7 +45,7 @@ jobs:
       - name: Run Puka Alternate History protocol once and render final report
         shell: bash
         run: |
-          PARTICLES="${{ inputs.particles || '100' }}"
+          PARTICLES="${{ inputs.particles || '50' }}"
           SIMS="${{ inputs.sims || '500' }}"
           python script/run_fsffl_alternate_history_final_report.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
