@@ -47,6 +47,10 @@ on:
       - '.github/workflows/alternate-history-validation.yml'
   workflow_dispatch:
 
+concurrency:
+  group: alternate-history-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
