@@ -1,4 +1,4 @@
-name: Puka Alternate History Scenario Run
+name: Puka Alternate History Final Report
 
 on:
   push:
@@ -7,16 +7,25 @@ on:
     paths:
       - '.github/workflows/puka-alternate-history-run.yml'
   workflow_dispatch:
+    inputs:
+      particles:
+        description: 'Historical particle count'
+        required: false
+        default: '100'
+      sims:
+        description: 'Total Simulator 1.0 draws'
+        required: false
+        default: '500'
 
 concurrency:
-  group: puka-alternate-history-scenario
+  group: puka-alternate-history-final-report
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  run-puka-scenario:
+  run-puka-final-report:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -31,29 +40,27 @@ jobs:
         with:
           path: data/alternate_history/source_history/sleeper_history.json
           key: alternate-history-sleeper-completed-2022-2025-v1
+      - name: Compile final report renderer
+        run: python -m py_compile script/run_fsffl_alternate_history_final_report.py
       - name: Backfill authoritative raw Sleeper history
         run: python script/backfill_alternate_history_sleeper.py
-      - name: Run Puka Alternate History scenario
+      - name: Run Puka Alternate History final report
+        shell: bash
         run: |
-          python script/run_fsffl_weighted_alternate_outlook.py \
+          PARTICLES="${{ inputs.particles || '100' }}"
+          SIMS="${{ inputs.sims || '500' }}"
+          python script/run_fsffl_alternate_history_final_report.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
-            --particles 100 \
-            --sims 500 \
+            --particles "$PARTICLES" \
+            --sims "$SIMS" \
             --seed 20260824
-      - name: Print Puka weighted result
-        run: cat data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
-      - name: Persist Puka result without retriggering validation gates
-        run: |
-          mkdir -p .run_outputs
-          cp data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json \
-            .run_outputs/puka_alternate_history_100p_500s.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .run_outputs/puka_alternate_history_100p_500s.json
-          git commit -m "Store Puka Alternate History 100p 500s result"
-          git push origin HEAD:feature/alternate-history-0.1
-      - name: Upload Puka result
+      - name: Print final human-readable report
+        run: cat data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md
+      - name: Upload final report package
         uses: actions/upload-artifact@v4
         with:
-          name: puka-alternate-history-100p-500s
-          path: data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
+          name: puka-alternate-history-final-report
+          path: |
+            data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md
+            data/alternate_history/results/puka_vs_van_2023/final_report_1_0.json
+          if-no-files-found: error
