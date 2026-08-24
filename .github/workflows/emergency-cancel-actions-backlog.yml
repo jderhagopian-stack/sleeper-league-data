@@ -1,5 +1,6 @@
 name: Emergency Cancel Actions Backlog
 
+# retrigger: cancel long-running validation
 on:
   push:
     branches:
@@ -75,8 +76,6 @@ jobs:
           cancelled = 0
           seen = set()
 
-          # Re-read page 1 after each batch so cancellation-induced pagination shifts
-          # cannot cause us to skip older runs.
           for round_no in range(1, 31):
               targets = []
               for status in ("in_progress", "queued"):
@@ -93,8 +92,6 @@ jobs:
                       deduped.append(item)
 
               if not deduped:
-                  # If page 1 only contains already-seen runs, clear seen and verify
-                  # whether any cancellable runs remain before declaring success.
                   remaining = []
                   for status in ("in_progress", "queued"):
                       remaining.extend(
