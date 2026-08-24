@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   run-puka-scenario:
@@ -40,10 +40,17 @@ jobs:
             --particles 100 \
             --sims 500 \
             --seed 20260824
-      - name: Print Puka weighted result
-        run: cat data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
+      - name: Persist Puka result on isolated branch
+        run: |
+          cp data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json \
+             data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
+          git commit -m "Persist Puka Alternate History 100p 500s result"
+          git push
       - name: Upload Puka result
         uses: actions/upload-artifact@v4
         with:
           name: puka-alternate-history-100p-500s
-          path: data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
+          path: data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
