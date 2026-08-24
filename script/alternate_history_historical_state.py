@@ -10,12 +10,19 @@ Production historical reconstruction for a completed season therefore anchors
 to that season's archived Sleeper roster/traded-pick snapshot and reverses only
 same-season transactions after the requested timestamp. Drafted players are also
 removed when reconstructing to a timestamp before that season's rookie draft.
+
+Performance note: historical policy evaluation needs the pre-event state for
+hundreds of transactions. Reconstructing each one independently repeats almost
+the same reverse replay and becomes quadratic in transaction count. The
+season-level cache below walks history backward once, snapshots the state at each
+transaction timestamp, and serves the exact same timestamp-safe state thereafter.
 """
 
 from __future__ import annotations
 
 import copy
-from typing import Any, Dict, List, Optional
+from collections import defaultdict
+from typing import Any, Dict, List
 
 import alternate_history_engine as ah
 from run_fsffl_alternate_history import FSFFLHistoricalAdapter
@@ -109,9 +116,6 @@ def reverse_future_draft_acquisitions(
             rid = u2r.get(str(uid)) if uid is not None else None
             if pid is None:
                 continue
-            # Remove defensively from all rosters. The archived end snapshot is
-            # authoritative for later ownership; pre-draft the player must not be
-            # fantasy-owned regardless of later trades/drops.
             for players in state.roster_players.values():
                 if str(pid) in players:
                     players.discard(str(pid))
@@ -120,6 +124,85 @@ def reverse_future_draft_acquisitions(
                 state.roster_taxi.setdefault(rid, set()).discard(str(pid))
                 state.roster_reserve.setdefault(rid, set()).discard(str(pid))
     return {"drafts_reversed": drafts_reversed, "draft_players_removed": players_removed}
+
+
+def _event_cache_key(event: Dict[str, Any]) -> str:
+    return f"{str(event.get('transaction_id') or '')}|{int(event.get('created') or 0)}"
+
+
+def completed_season_pre_event_cache(
+    adapter: FSFFLHistoricalAdapter,
+    season: str,
+) -> Dict[str, ah.LeagueState]:
+    """Build/read exact pre-event historical states with one reverse pass.
+
+    Events sharing a timestamp receive the same pre-timestamp state, matching
+    reconstruct_completed_season_state(), which reverses every event whose
+    created timestamp is >= the requested timestamp.
+    """
+    season = str(season)
+    cache_root = getattr(adapter, "_alternate_history_pre_event_state_cache", None)
+    if cache_root is None:
+        cache_root = {}
+        setattr(adapter, "_alternate_history_pre_event_state_cache", cache_root)
+    if season in cache_root:
+        return cache_root[season]
+
+    data = season_data(adapter, season)
+    state = copy.deepcopy(season_end_state(adapter, season))
+    events = normalized_same_season_events(adapter, season)
+    by_timestamp: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
+    for event in events:
+        by_timestamp[int(event.get("created") or 0)].append(event)
+
+    result: Dict[str, ah.LeagueState] = {}
+    reversed_events = 0
+    player_moves = pick_moves = faab_moves = 0
+    for created in sorted(by_timestamp, reverse=True):
+        same_time = by_timestamp[created]
+        for event in reversed(same_time):
+            counts = ah.reverse_event(state, event)
+            reversed_events += 1
+            player_moves += int(counts.get("player_moves") or 0)
+            pick_moves += int(counts.get("pick_moves") or 0)
+            faab_moves += int(counts.get("faab_moves") or 0)
+
+        snapshot = copy.deepcopy(state)
+        draft_counts = reverse_future_draft_acquisitions(snapshot, data, created)
+        snapshot.timestamp_ms = created
+        snapshot.reconstruction = {
+            "source": "archived_completed_season_incremental_reverse_cache",
+            "season": season,
+            "reversed_same_season_transactions": reversed_events,
+            "player_moves_reversed": player_moves,
+            "pick_moves_reversed": pick_moves,
+            "faab_moves_reversed": faab_moves,
+            **draft_counts,
+            "future_season_rookie_leakage_prevented": True,
+            "confidence": "high",
+        }
+        for event in same_time:
+            result[_event_cache_key(event)] = snapshot
+
+    cache_root[season] = result
+    return result
+
+
+def cached_completed_season_pre_event_state(
+    adapter: FSFFLHistoricalAdapter,
+    season: str,
+    event: Dict[str, Any],
+) -> ah.LeagueState:
+    cache = completed_season_pre_event_cache(adapter, str(season))
+    key = _event_cache_key(event)
+    state = cache.get(key)
+    if state is None:
+        return reconstruct_completed_season_state(
+            adapter,
+            str(season),
+            int(event.get("created") or 0),
+        )
+    return state
 
 
 def reconstruct_completed_season_state(
