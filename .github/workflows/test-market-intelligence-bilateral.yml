@@ -101,3 +101,63 @@ jobs:
             /tmp/hungry-dawgs-116.json
             /tmp/hungry-dawgs-116.log
           retention-days: 14
+
+  sensible-trade-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build Hall for Henderson scenario
+        run: |
+          cat > /tmp/hall-henderson.json <<'JSON'
+          {
+            "scenario_id": "hall_for_henderson_sensible_regression",
+            "description": "Hungry Dawgs sends Breece Hall and receives TreVeyon Henderson from Chef Niners.",
+            "focus_user_id": "833709164739014656",
+            "actions": [
+              {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155"],"picks":[]},
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12529"],"picks":[]}
+            ]
+          }
+          JSON
+      - name: Run sensible Market Sweep 1.16
+        run: |
+          python script/run_trade_market_sweep_v22.py \
+            --scenario /tmp/hall-henderson.json \
+            --quick-sims 100 \
+            --confirm-sims 0 \
+            --search-depth 60 \
+            --seed 20260821 \
+            --output /tmp/hall-henderson-116.json \
+            > /tmp/hall-henderson-116.log
+      - name: Validate sensible market clears
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/hall-henderson-116.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.16'
+          top=r.get('top_5_alternatives') or []
+          normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
+          assert normals, 'A one-player Breece Hall market should produce at least one normal bilateral path'
+          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals), normals
+          assert len({str(x.get('buyer_user_id')) for x in normals}) >= 1
+          print('Sensible Hall-for-Henderson regression passed')
+          print('ACTION', r.get('recommended_next_action'))
+          print('CURRENT', r.get('current_offer_evaluation',{}).get('buyer_rationality',{}).get('heuristic_acceptance_fit'))
+          for x in top:
+              print(x.get('report_role'), x.get('buyer_team'), '->', x.get('return_asset_names'), x.get('acceptance_likelihood'), x.get('post_sim_score'))
+          PY
+      - name: Upload sensible regression artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sensible-hall-henderson-regression
+          path: |
+            /tmp/hall-henderson-116.json
+            /tmp/hall-henderson-116.log
+          retention-days: 14
