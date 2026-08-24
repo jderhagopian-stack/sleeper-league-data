@@ -5,15 +5,15 @@ Computes best-ball weekly lineup points from immutable realized fantasy points
 and the players actually owned by one alternate-history branch in that scoring
 week. NFL outcomes never change; only fantasy roster eligibility changes.
 
-Exact results are memoized across equivalent roster/week inputs. Particle
-engines often contain many copies of the same roster state, so recomputing the
-same dynamic program per particle wastes substantial runtime without adding any
-fidelity.
+Exact results are memoized across equivalent roster/week inputs. The exact
+optimizer uses dynamic programming over starter-slot masks rather than subsets
+of remaining roster players. With a typical fantasy lineup this bounds the
+state space by roughly ``players * 2**starter_slots`` instead of exploring a
+large power set of a 15-25 player roster.
 """
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 from run_fsffl_counterfactual_replay import eligible
@@ -22,6 +22,8 @@ from run_fsffl_counterfactual_replay import eligible
 EMPTY = "0"
 _BEST_LINEUP_CACHE: Dict[Tuple[object, ...], Tuple[float, Tuple[str, ...]]] = {}
 _CACHE_MAX = 50000
+_CACHE_HITS = 0
+_CACHE_MISSES = 0
 
 
 def _cache_key(
@@ -41,7 +43,33 @@ def _cache_key(
 
 
 def clear_best_lineup_cache() -> None:
+    global _CACHE_HITS, _CACHE_MISSES
     _BEST_LINEUP_CACHE.clear()
+    _CACHE_HITS = 0
+    _CACHE_MISSES = 0
+
+
+def best_lineup_cache_stats() -> Dict[str, int]:
+    return {
+        "size": len(_BEST_LINEUP_CACHE),
+        "hits": _CACHE_HITS,
+        "misses": _CACHE_MISSES,
+    }
+
+
+def _better(
+    candidate_score: float,
+    candidate_lineup: Tuple[str, ...],
+    incumbent: Tuple[float, Tuple[str, ...]] | None,
+) -> bool:
+    if incumbent is None:
+        return True
+    incumbent_score, incumbent_lineup = incumbent
+    if candidate_score > incumbent_score + 1e-9:
+        return True
+    if abs(candidate_score - incumbent_score) <= 1e-9 and candidate_lineup < incumbent_lineup:
+        return True
+    return False
 
 
 def best_lineup_points(
@@ -50,7 +78,15 @@ def best_lineup_points(
     positions: Dict[str, str],
     realized_points: Dict[str, float],
 ) -> Tuple[float, List[str]]:
-    """Return exact maximum legal lineup score and one maximizing lineup."""
+    """Return exact maximum legal lineup score and one maximizing lineup.
+
+    Exact assignment DP over starter-slot masks. Each rostered player is either
+    unused or assigned to one eligible unfilled slot. This preserves the same
+    legal-lineup semantics as the old remaining-player recursion while making
+    runtime depend primarily on the small number of starter slots.
+    """
+    global _CACHE_HITS, _CACHE_MISSES
+
     players = tuple(sorted(
         str(pid) for pid in roster_players
         if str(pid) not in {EMPTY, "None", ""}
@@ -60,31 +96,52 @@ def best_lineup_points(
     key = _cache_key(players, slot_tuple, positions, realized_points)
     cached = _BEST_LINEUP_CACHE.get(key)
     if cached is not None:
+        _CACHE_HITS += 1
         score, lineup = cached
         return score, list(lineup)
+    _CACHE_MISSES += 1
 
-    @lru_cache(maxsize=None)
-    def solve(slot_idx: int, remaining: Tuple[str, ...]) -> Tuple[float, Tuple[str, ...]]:
-        if slot_idx >= len(slot_tuple):
-            return 0.0, ()
-        slot = slot_tuple[slot_idx]
-        best_score, best_lineup = solve(slot_idx + 1, remaining)
-        best_lineup = (EMPTY,) + best_lineup
-        for i, pid in enumerate(remaining):
-            if not eligible(positions.get(pid, ""), slot):
-                continue
-            nxt = remaining[:i] + remaining[i + 1 :]
-            rest_score, rest_lineup = solve(slot_idx + 1, nxt)
-            score = float(realized_points.get(pid) or 0.0) + rest_score
-            candidate = (pid,) + rest_lineup
-            if score > best_score + 1e-9 or (
-                abs(score - best_score) <= 1e-9 and candidate < best_lineup
-            ):
-                best_score, best_lineup = score, candidate
-        return best_score, best_lineup
+    slot_count = len(slot_tuple)
+    empty_lineup = tuple(EMPTY for _ in slot_tuple)
+    # mask -> (score, lineup tuple indexed by slot). We only retain the best
+    # assignment for each filled-slot mask after processing each player.
+    dp: Dict[int, Tuple[float, Tuple[str, ...]]] = {0: (0.0, empty_lineup)}
 
-    score, lineup = solve(0, players)
-    result = (round(score, 2), tuple(lineup))
+    for pid in players:
+        position = positions.get(pid, "")
+        points = float(realized_points.get(pid) or 0.0)
+        eligible_slots = [
+            idx for idx, slot in enumerate(slot_tuple)
+            if eligible(position, slot)
+        ]
+        if not eligible_slots:
+            continue
+
+        next_dp = dict(dp)  # player unused
+        for mask, (score, lineup) in dp.items():
+            for slot_idx in eligible_slots:
+                bit = 1 << slot_idx
+                if mask & bit:
+                    continue
+                new_mask = mask | bit
+                new_lineup_list = list(lineup)
+                new_lineup_list[slot_idx] = pid
+                new_lineup = tuple(new_lineup_list)
+                candidate_score = score + points
+                incumbent = next_dp.get(new_mask)
+                if _better(candidate_score, new_lineup, incumbent):
+                    next_dp[new_mask] = (candidate_score, new_lineup)
+        dp = next_dp
+
+    best_score = -1.0
+    best_lineup = empty_lineup
+    for score, lineup in dp.values():
+        if score > best_score + 1e-9 or (
+            abs(score - best_score) <= 1e-9 and lineup < best_lineup
+        ):
+            best_score, best_lineup = score, lineup
+
+    result = (round(max(best_score, 0.0), 2), best_lineup)
     if len(_BEST_LINEUP_CACHE) >= _CACHE_MAX:
         # Deterministic coarse eviction; cache contents affect speed only.
         _BEST_LINEUP_CACHE.clear()
