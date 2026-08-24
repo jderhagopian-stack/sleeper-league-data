@@ -37,20 +37,20 @@ jobs:
         run: |
           python script/run_fsffl_weighted_alternate_outlook.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
-            --particles 100 \
-            --sims 500 \
+            --particles 20 \
+            --sims 250 \
             --seed 20260824
       - name: Persist Puka result on isolated branch
         run: |
           cp data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json \
-             data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
+             data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
-          git commit -m "Persist Puka Alternate History 100p 500s result"
+          git add data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json
+          git commit -m "Persist Puka Alternate History 20p 250s result"
           git push
       - name: Upload Puka result
         uses: actions/upload-artifact@v4
         with:
-          name: puka-alternate-history-100p-500s
-          path: data/alternate_history/results/puka_vs_van_2023/production_100p_500s.json
+          name: puka-alternate-history-20p-250s
+          path: data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json
