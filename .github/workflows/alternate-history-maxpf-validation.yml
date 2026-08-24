@@ -1,16 +1,6 @@
 name: Alternate History MaxPF Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_fsffl_maxpf_draft_order.py'
-      - 'script/run_fsffl_maxpf_draft_order_v2.py'
-      - 'script/diagnose_fsffl_weekly_scoring_source.py'
-      - 'script/run_fsffl_historical_usage_policy.py'
-      - 'script/run_fsffl_postseason_consequences_v3.py'
-      - 'data/stats/fsffl/**'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-maxpf-validation.yml'
   workflow_dispatch:
 
 concurrency:
