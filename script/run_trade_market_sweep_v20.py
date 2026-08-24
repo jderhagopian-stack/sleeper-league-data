@@ -1,28 +1,30 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.13 — continuous state-aware GM profiles.
+"""FSFFL Counter & Market Sweep 1.14 — continuous state-aware GM profiles and ranking.
 
-Upgrade over 1.12:
+Upgrade over 1.13:
 - incoming assets are re-profiled for the focal franchise on the hypothetical
   post-trade roster using continuous GM objective weights;
 - runtime weights come from a tiny precomputed calibration artifact plus
   already-produced Simulator 1.0 context, never from historical calibration;
 - descriptive competition classifications remain, but hard weight cliffs do not;
+- the final negotiation ranking consumes the state-aware post-simulation score
+  instead of rebuilding focal strategic gain from generic wins/dynasty deltas;
 - contender title-equity caps remain hard guardrails;
 - canonical roster and GM state remain read-only.
-
-Temporary regression trigger: Hungry Dawgs 1.13 production rerun.
 """
 from __future__ import annotations
 
 import importlib.util
 import json
+import math
 import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 V19_PATH = SCRIPT / "run_trade_market_sweep_v19.py"
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.13"
+V18_PATH = Path("script/run_trade_market_sweep_v18.py")
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.14"
 
 
 def load_module(path: Path, name: str):
@@ -39,6 +41,10 @@ def sf(x, default=0.0):
         return float(x)
     except (TypeError, ValueError):
         return default
+
+
+def clamp(x, lo, hi):
+    return max(lo, min(hi, x))
 
 
 def fallback_weights(state: str):
@@ -74,8 +80,6 @@ def state_aware_post_sim_score(engine, row, state: str):
     externality = sf(sim.get("net_title_equity_swing_against_focus"))
     plausibility = sf(row.get("plausibility_score"))
 
-    # Preserve familiar score scale while letting each franchise's objective mix
-    # determine how much present, future, liquidity, and resilience matter.
     current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points
     future_block = dynasty + 0.30 * break_glass + 0.18 * optionality
     liquidity_block = 0.25 * liquidity
@@ -113,6 +117,27 @@ def state_aware_post_sim_score(engine, row, state: str):
     return round(score, 2)
 
 
+def state_aware_blended_negotiation_score(row):
+    """Blend acceptance/behavior around the focal team's true GM 3.0 utility."""
+    br = row.get("buyer_rationality") or {}
+    post = sf(row.get("post_sim_score"))
+    # Bounded monotone transform preserves ordering without letting very large
+    # utility values swamp acceptance/owner-behavior evidence.
+    strategic = clamp(0.50 + 0.50 * math.tanh(post / 5000.0), 0.0, 1.0)
+    acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0.0, 1.0)
+    behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0.0, 1.0)
+    score = .50 * strategic + .30 * acceptance + .20 * behavior
+    return {
+        "score": round(score, 4),
+        "focal_strategic_gain_component": round(strategic, 4),
+        "acceptance_fit_component": round(acceptance, 4),
+        "owner_behavior_match_component": round(behavior, 4),
+        "focal_strategic_gain_source": "state_aware_post_sim_score",
+        "state_aware_post_sim_score": round(post, 2),
+        "weights": {"focal_strategic_gain": .50, "acceptance_fit": .30, "owner_behavior_match": .20},
+    }
+
+
 def install_engine_upgrade(engine, overlay):
     original_import = engine.import_decision_lab
 
@@ -132,8 +157,8 @@ def output_path_from_argv():
 
 
 def main():
-    v19 = load_module(V19_PATH, "market_sweep_v19_for_v113")
-    overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v113")
+    v19 = load_module(V19_PATH, "market_sweep_v19_for_v114")
+    overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v114")
     original_v19_loader = v19.load_module
 
     def patched_v19_loader(path: Path, name: str):
@@ -148,6 +173,10 @@ def main():
                 return engine
 
             mod.load_module = patched_v13_loader
+        elif Path(path) == V18_PATH:
+            # v19's final negotiation layer must retain the GM 3.0 state-aware
+            # utility instead of reconstructing strategic gain from generic deltas.
+            mod.blended_negotiation_score = state_aware_blended_negotiation_score
         return mod
 
     v19.load_module = patched_v19_loader
@@ -164,6 +193,7 @@ def main():
             "all_competition_classifications_state_aware": True,
             "continuous_state_weighting": True,
             "state_aware_objective_weighted_ranking": True,
+            "final_negotiation_ranking_uses_state_aware_post_sim_score": True,
             "incoming_assets_use_focal_post_trade_profile": True,
             "seller_profile_not_used_as_focal_strategic_value": True,
             "historical_calibration_runs_during_interactive_query": False,
@@ -182,7 +212,7 @@ def main():
             "adjustments": wr.get("adjustments"),
         }
         sim = report.setdefault("simulation", {})
-        sim["execution_path"] = "GM3_continuous_state_weights_plus_post_trade_profile_recompute_plus_state_weighted_market_sweep_plus_fast_decision_lab"
+        sim["execution_path"] = "GM3_continuous_state_weights_plus_post_trade_profile_recompute_plus_state_aware_negotiation_ranking_plus_fast_decision_lab"
         output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
 
