@@ -149,16 +149,34 @@ def realized_lineup_points(
     week: int,
     weekly_points: Dict[int, Dict[str, float]],
 ) -> Tuple[float, List[str]]:
+    """Return immutable realized lineup points and true source-data gaps.
+
+    Historical player-week feeds commonly omit a player on a bye or inactive
+    week. If that player is observed elsewhere in the same season, absence from
+    this week's map is a known zero, not missing historical information. A true
+    data gap is reserved for a starter absent from every available week source
+    for the season.
+    """
     missing: List[str] = []
     total = 0.0
     realized = weekly_points.get(int(week), {})
+    season_observed = {
+        str(pid)
+        for week_rows in weekly_points.values()
+        for pid in week_rows.keys()
+    }
     for pid in lineup:
         if pid in {EMPTY, "None", ""}:
             continue
-        if str(pid) not in realized:
-            missing.append(str(pid))
+        pid = str(pid)
+        if pid in realized:
+            total += float(realized[pid])
             continue
-        total += float(realized[str(pid)])
+        if pid in season_observed:
+            # Known rosterable player with no recorded score this NFL week:
+            # bye/inactive/non-participation is an immutable zero-point outcome.
+            continue
+        missing.append(pid)
     return round(total, 2), missing
 
 
