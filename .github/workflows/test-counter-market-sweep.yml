@@ -111,7 +111,7 @@ jobs:
           SECONDS=0
           python script/run_trade_market_sweep_v20.py \
             --scenario data/decision_lab/full_validation_scenario.json \
-            --quick-sims 50 \
+            --quick-sims 100 \
             --confirm-sims 0 \
             --search-depth 40 \
             --output /tmp/state-aware-market-sweep.json \
