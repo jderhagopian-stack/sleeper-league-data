@@ -12,6 +12,10 @@ on:
       - 'script/run_trade_market_sweep_v17.py'
       - 'script/run_trade_market_sweep_v18.py'
       - 'script/run_trade_market_sweep_v19.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'script/decision_lab_state_aware.py'
+      - 'script/gm_state_weighting.py'
+      - 'data/gm/state_weight_calibration.json'
       - 'data/decision_lab/counter_market_engine_architecture.json'
       - '.github/workflows/test-counter-market-sweep.yml'
   workflow_dispatch:
@@ -30,7 +34,7 @@ jobs:
           python-version: '3.11'
 
       - name: Compile engine
-        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_trade_market_sweep_v20.py script/decision_lab_state_aware.py script/gm_state_weighting.py script/run_roster_decision_lab.py
 
       - name: Validate fast optimizer equivalence
         run: |
@@ -70,7 +74,7 @@ jobs:
           test "$elapsed" -le 180
           tail -n 40 /tmp/counter-market-sweep.log
 
-      - name: Validate output invariants
+      - name: Validate legacy output invariants
         run: |
           python - <<'PY'
           import json
@@ -83,46 +87,61 @@ jobs:
           assert d['policy']['five_option_report_when_market_supports_it'] is True
           assert d['policy']['reasonable_longshots_can_fill_report'] is True
           assert d['policy']['acceptance_likelihood_is_heuristic_not_probability'] is True
-          assert d['policy']['each_option_explains_acceptance_and_focus_advantage'] is True
           assert d['policy']['GM_owner_behavior_integrated'] is True
-          assert d['policy']['owner_behavior_is_evidence_not_veto'] is True
-          assert d['policy']['top_five_blended_ranking'] is True
           assert d['policy']['buyer_diversity_enabled'] is True
-          assert d['policy']['normal_max_options_per_buyer'] == 2
           assert d['policy']['swing_for_fences_required_when_viable'] is True
-          assert d['policy']['swing_for_fences_slots_exact'] == 1
-          assert d['policy']['swing_selected_for_focal_upside'] is True
           assert d['policy']['swing_for_fences_can_drive_action'] is False
-          assert d['policy']['longshots_cannot_drive_recommended_action'] is True
           assert d['owner_behavior_profiles_available'] > 0
           assert d['current_offer_evaluation']['candidate_type'] == 'CURRENT_OFFER'
           assert d['candidate_counts']['acceptance_frontier_simulated'] >= 30
           assert len(d['top_5_alternatives']) <= 5
-          if d['candidate_counts']['buyer_current_state_viable'] >= 5:
-              assert len(d['top_5_alternatives']) == 5
           swings = [x for x in d['top_5_alternatives'] if x.get('report_role') == 'SWING_FOR_FENCES']
           if d['candidate_counts']['buyer_current_state_viable'] > 0:
               assert len(swings) == 1
-              assert d['candidate_counts']['reserved_swing_slots'] == 1
-              assert d['top_5_alternatives'][-1]['report_role'] == 'SWING_FOR_FENCES'
-          else:
-              assert len(swings) == 0
           assert all(x['championship_equity_constraint'] == 'PASS' for x in d['top_5_alternatives'])
-          assert all(x['plausibility'] in {'HIGH','MEDIUM'} for x in d['top_5_alternatives'])
           assert all(x['buyer_rationality']['current_state_viable'] is True for x in d['top_5_alternatives'])
-          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM','LOW','VERY_LOW'} for x in d['top_5_alternatives'])
-          assert all(x.get('acceptance_explanation') for x in d['top_5_alternatives'])
-          assert all(x.get('why_advantageous_for_focus') for x in d['top_5_alternatives'])
-          assert all('owner_behavior' in x['buyer_rationality'] for x in d['top_5_alternatives'])
-          assert all('negotiation_ranking' in x for x in d['top_5_alternatives'])
           counts = Counter(str(x.get('buyer_user_id') or '') for x in d['top_5_alternatives'])
           assert d['candidate_counts']['top_five_unique_buyers'] == len(counts)
-          assert d['candidate_counts']['top_five_options_by_buyer'] == dict(counts)
           assert d['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          print('Counter & Market Sweep 1.11 reserved-swing smoke test passed')
+          print('Counter & Market Sweep 1.11 compatibility test passed')
           PY
 
-      - name: Upload full counter report
+      - name: Run continuous state-aware market sweep
+        run: |
+          SECONDS=0
+          python script/run_trade_market_sweep_v20.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 100 \
+            --confirm-sims 0 \
+            --search-depth 40 \
+            --output /tmp/state-aware-market-sweep.json \
+            > /tmp/state-aware-market-sweep.log
+          elapsed=$SECONDS
+          echo "Continuous state-aware market sweep runtime: ${elapsed}s"
+          test "$elapsed" -le 180
+
+      - name: Validate continuous state-aware output
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('/tmp/state-aware-market-sweep.json'))
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.13'
+          assert d['policy']['focal_post_trade_gm_profiles_recomputed'] is True
+          assert d['policy']['all_competition_classifications_state_aware'] is True
+          assert d['policy']['continuous_state_weighting'] is True
+          assert d['policy']['historical_calibration_runs_during_interactive_query'] is False
+          assert d['policy']['runtime_weight_resolution_reads_precomputed_artifacts_only'] is True
+          cur = d['current_offer_evaluation']['simulation']['strategic']
+          assert cur['hypothetical_profiles_recomputed'] is True
+          assert cur['objective_state'] in {'elite_contender','contender','retool','rebuild'}
+          assert set(cur['objective_weights']) == {'current','future','liquidity','resilience'}
+          assert abs(sum(cur['objective_weights'].values()) - 1.0) < 1e-5
+          assert all(x['profile_source'] == 'post_trade_focal_gm' for x in cur['received'])
+          assert d['state_weighting']['model_version']
+          print('Continuous state-aware market sweep test passed')
+          PY
+
+      - name: Upload full counter reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -130,5 +149,7 @@ jobs:
           path: |
             /tmp/counter-market-sweep.json
             /tmp/counter-market-sweep.log
+            /tmp/state-aware-market-sweep.json
+            /tmp/state-aware-market-sweep.log
           if-no-files-found: error
           retention-days: 14

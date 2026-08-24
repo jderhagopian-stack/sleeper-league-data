@@ -1,0 +1,153 @@
+name: Test State-Aware Market Sweep
+
+on:
+  pull_request:
+    paths:
+      - 'script/decision_lab_state_aware.py'
+      - 'script/gm_state_weighting.py'
+      - 'script/calibrate_gm_state_weights.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'data/gm/state_weight_calibration.json'
+      - '.github/workflows/test-state-aware-market-sweep.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile state-aware modules
+        run: python -m py_compile script/decision_lab_state_aware.py script/gm_state_weighting.py script/calibrate_gm_state_weights.py script/run_trade_market_sweep_v20.py
+
+      - name: Verify continuous weights and no threshold cliffs
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p=Path('script/gm_state_weighting.py')
+          spec=importlib.util.spec_from_file_location('w',p); w=importlib.util.module_from_spec(spec); spec.loader.exec_module(w)
+          def r(c,d=.5,title=.08):
+              return w.resolve({'contender_score':c,'dynasty_roster_score':d,'user_id':'test'}, simulator_row={'championship_probability':title})
+          xs=[0,.10,.349,.350,.351,.549,.550,.551,.779,.780,.781,.90,1.0]
+          vals=[r(x)['weights'] for x in xs]
+          assert all(abs(sum(v.values())-1.0)<1e-5 for v in vals)
+          assert all(vals[i]['current'] <= vals[i+1]['current']+1e-6 for i in range(len(vals)-1))
+          assert all(vals[i]['future'] >= vals[i+1]['future']-1e-6 for i in range(len(vals)-1))
+          assert abs(r(.779)['weights']['current']-r(.780)['weights']['current']) < .01
+          assert abs(r(.549)['weights']['current']-r(.550)['weights']['current']) < .01
+          assert r(.50,d=.10)['weights']['future'] > r(.50,d=.50)['weights']['future']
+          assert r(.70,title=.20)['weights']['current'] > r(.70,title=.02)['weights']['current']
+          print('Continuous weighting is normalized, monotone, and cliff-free')
+          PY
+
+      - name: Verify runtime isolation and fallback
+        run: |
+          python - <<'PY'
+          import importlib.util, time
+          from pathlib import Path
+          p=Path('script/gm_state_weighting.py')
+          spec=importlib.util.spec_from_file_location('w',p); w=importlib.util.module_from_spec(spec); spec.loader.exec_module(w)
+          allowed={w.CALIBRATION_PATH.resolve(), w.SIM_CONTEXT_PATH.resolve()}
+          original=Path.read_text
+          seen=[]
+          def guarded(self,*a,**k):
+              rp=self.resolve(); seen.append(rp)
+              assert rp in allowed, f'interactive resolver attempted unexpected file read: {rp}'
+              return original(self,*a,**k)
+          Path.read_text=guarded
+          try:
+              w.load_calibration.cache_clear(); w.simulator_index.cache_clear()
+              start=time.perf_counter()
+              for i in range(1000):
+                  w.resolve({'contender_score':(i%100)/100,'dynasty_roster_score':.4,'user_id':'none'}, simulator_row={'championship_probability':.08})
+              elapsed=time.perf_counter()-start
+          finally:
+              Path.read_text=original
+          assert elapsed < 1.0, elapsed
+          assert all(x in allowed for x in seen)
+          fb={'anchor_points':[{'contender_score':x,'weights':wt} for x,wt in w.LEGACY_ANCHORS], 'classification_thresholds':w.LEGACY_THRESHOLDS}
+          out=w.resolve({'contender_score':.6,'dynasty_roster_score':.5}, simulator_row={'championship_probability':.08}, calibration=fb)
+          assert abs(sum(out['weights'].values())-1)<1e-5
+          print(f'1000 runtime resolutions completed in {elapsed:.4f}s; no historical reads')
+          PY
+
+      - name: Verify offline calibrator is isolated
+        run: |
+          python script/calibrate_gm_state_weights.py --input /tmp/does-not-exist.json --output /tmp/candidate.json --report /tmp/report.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/report.json'))
+          c=json.load(open('/tmp/candidate.json'))
+          assert r['status']=='INSUFFICIENT_EVIDENCE_KEEP_PRIOR'
+          assert r['promotion_allowed'] is False
+          assert 'PRIOR_RETAINED' in c['status']
+          print('Offline calibrator refuses to overfit or self-promote without evidence')
+          PY
+
+      - name: Verify state changes ranking emphasis
+        run: |
+          python - <<'PY'
+          import copy, importlib.util
+          from pathlib import Path
+          def load(path,name):
+              spec=importlib.util.spec_from_file_location(name,Path(path)); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
+          m=load('script/run_trade_market_sweep_v20.py','v20')
+          w=load('script/gm_state_weighting.py','weights')
+          class E:
+              @staticmethod
+              def contender_title_cap(state): return {'elite_contender':.025,'contender':.03,'retool':.06}.get(state)
+          base={'plausibility_score':.7,'plausibility':'HIGH','simulation':{'focus_delta':{'championship_probability':0,'playoff_probability':0,'expected_wins':0,'expected_points_for':0},'net_title_equity_swing_against_focus':0,'strategic':{'market_dynasty_delta':1000,'break_glass_delta':1000,'liquidity_value_delta':1000,'strategic_value_delta':1000,'optionality_value_delta':1000}}}
+          rebuild=copy.deepcopy(base); rebuild['simulation']['strategic']['objective_weights']=w.resolve({'contender_score':.15,'dynasty_roster_score':.3},simulator_row={'championship_probability':.01})['weights']
+          elite=copy.deepcopy(base); elite['simulation']['strategic']['objective_weights']=w.resolve({'contender_score':.9,'dynasty_roster_score':.8},simulator_row={'championship_probability':.20})['weights']
+          assert m.state_aware_post_sim_score(E,rebuild,'rebuild') > m.state_aware_post_sim_score(E,elite,'elite_contender')
+          current=copy.deepcopy(base); current['simulation']['focus_delta'].update({'championship_probability':.02,'playoff_probability':.08,'expected_wins':1.0,'expected_points_for':120}); current['simulation']['strategic'].update({'market_dynasty_delta':0,'break_glass_delta':0,'liquidity_value_delta':0,'strategic_value_delta':0,'optionality_value_delta':0})
+          elite2=copy.deepcopy(current); elite2['simulation']['strategic']['objective_weights']=elite['simulation']['strategic']['objective_weights']
+          rebuild2=copy.deepcopy(current); rebuild2['simulation']['strategic']['objective_weights']=rebuild['simulation']['strategic']['objective_weights']
+          assert m.state_aware_post_sim_score(E,elite2,'elite_contender') > m.state_aware_post_sim_score(E,rebuild2,'rebuild')
+          print('Continuous weights change ranking emphasis correctly')
+          PY
+
+      - name: Run state-aware market sweep smoke scenario
+        run: |
+          SECONDS=0
+          python script/run_trade_market_sweep_v20.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 100 \
+            --confirm-sims 0 \
+            --search-depth 40 \
+            --output /tmp/state-aware-market-sweep.json \
+            > /tmp/state-aware-market-sweep.log
+          elapsed=$SECONDS
+          echo "State-aware market sweep runtime: ${elapsed}s"
+          test "$elapsed" -le 180
+
+      - name: Validate hypothetical profile recomputation and provenance
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/state-aware-market-sweep.json'))
+          assert d['model_version']=='FSFFL-Counter-Market-Sweep-1.13'
+          p=d['policy']
+          assert p['focal_post_trade_gm_profiles_recomputed'] is True
+          assert p['all_competition_classifications_state_aware'] is True
+          assert p['continuous_state_weighting'] is True
+          assert p['historical_calibration_runs_during_interactive_query'] is False
+          assert p['runtime_weight_resolution_reads_precomputed_artifacts_only'] is True
+          cur=d['current_offer_evaluation']['simulation']['strategic']
+          assert cur['hypothetical_profiles_recomputed'] is True
+          assert cur['objective_state'] in {'elite_contender','contender','retool','rebuild'}
+          assert set(cur['objective_weights'])=={'current','future','liquidity','resilience'}
+          assert abs(sum(cur['objective_weights'].values())-1)<1e-5
+          assert cur['weight_resolution']['calibration_model_version']
+          assert all(x['profile_source']=='post_trade_focal_gm' for x in cur['received'])
+          assert d['state_weighting']['runtime_source'] in {'calibration_artifact','embedded_fallback'}
+          print('Post-trade profiles use continuous focal GM weights with calibration provenance')
+          PY
