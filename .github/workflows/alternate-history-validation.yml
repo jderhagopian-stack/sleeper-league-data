@@ -32,6 +32,7 @@ on:
       - 'script/run_fsffl_multiseason_branch_replay_v3.py'
       - 'script/run_fsffl_multiseason_particle_replay.py'
       - 'script/run_fsffl_multiseason_particle_replay_v2.py'
+      - 'script/run_fsffl_multiseason_particle_replay_v3.py'
       - 'script/run_fsffl_reference_present_day.py'
       - 'script/run_fsffl_alternate_current_outlook.py'
       - 'script/diagnose_alternate_history_event.py'
@@ -41,6 +42,7 @@ on:
       - 'script/validate_alternate_history_branching.py'
       - 'script/validate_fsffl_multiseason_branch_replay.py'
       - 'script/validate_fsffl_multiseason_particle_replay.py'
+      - 'script/validate_fsffl_fork_season_feedback.py'
       - 'data/alternate_history/**'
       - '.github/workflows/alternate-history-validation.yml'
   workflow_dispatch:
@@ -94,6 +96,7 @@ jobs:
           python -m py_compile script/run_fsffl_multiseason_branch_replay_v3.py
           python -m py_compile script/run_fsffl_multiseason_particle_replay.py
           python -m py_compile script/run_fsffl_multiseason_particle_replay_v2.py
+          python -m py_compile script/run_fsffl_multiseason_particle_replay_v3.py
           python -m py_compile script/run_fsffl_reference_present_day.py
           python -m py_compile script/run_fsffl_alternate_current_outlook.py
           python -m py_compile script/diagnose_alternate_history_event.py
@@ -103,6 +106,7 @@ jobs:
           python -m py_compile script/validate_alternate_history_branching.py
           python -m py_compile script/validate_fsffl_multiseason_branch_replay.py
           python -m py_compile script/validate_fsffl_multiseason_particle_replay.py
+          python -m py_compile script/validate_fsffl_fork_season_feedback.py
       - name: Validate 0.7 branch manager invariants
         run: python script/validate_alternate_history_branching.py
       - name: Backfill authoritative raw Sleeper history (isolated cache)
@@ -137,8 +141,8 @@ jobs:
         run: python script/run_fsffl_historical_trade_policy_v3.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Validate grouped-particle chronological replay
         run: python script/validate_fsffl_multiseason_particle_replay.py
-      - name: Run 0.7c branch-specific Max PF particle replay
-        run: python script/run_fsffl_multiseason_particle_replay_v2.py data/alternate_history/scenarios/puka_vs_van_2023.json --particles 500 --seed 20260824
+      - name: Validate 0.7d fork-season standings and Max PF feedback
+        run: python script/validate_fsffl_fork_season_feedback.py
       - name: Build present-day deterministic reference snapshot
         run: python script/run_fsffl_reference_present_day.py data/alternate_history/scenarios/puka_vs_van_2023.json
       - name: Run current Simulator 1.0 reference outlook
