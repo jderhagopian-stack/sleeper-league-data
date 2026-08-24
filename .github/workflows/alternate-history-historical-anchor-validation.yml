@@ -1,13 +1,6 @@
 name: Alternate History Historical Anchor Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_historical_state.py'
-      - 'script/validate_historical_season_anchor.py'
-      - 'script/backfill_alternate_history_sleeper.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-historical-anchor-validation.yml'
   workflow_dispatch:
 
 permissions:
