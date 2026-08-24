@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""FSFFL Alternate History 0.5c v3: queue-contract validated usage policy."""
+"""FSFFL Alternate History 0.5c v3: queue-contract validated usage policy.
+
+Includes the normalized Sleeper adapter contract fix: raw historical events
+carry `source_season` at the event top level, so the v2 evaluator's season/week
+resolver is patched before evaluation to consume that timestamp-safe evidence.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +12,10 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 import alternate_history_engine as ah
+import run_fsffl_historical_usage_policy_v2 as usage_v2
 from run_fsffl_alternate_history import FSFFLHistoricalAdapter
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_historical_policy_triage import run as run_triage
@@ -17,7 +23,27 @@ from run_fsffl_historical_usage_policy import HistoricalPoints, positions_index
 from run_fsffl_historical_usage_policy_v2 import evaluate_event
 
 
+def corrected_event_season_week(event: Dict[str, Any]) -> Tuple[Optional[str], Optional[int]]:
+    meta = event.get("metadata") or {}
+    season = (
+        event.get("source_season")
+        or event.get("season")
+        or meta.get("source_season")
+        or meta.get("season")
+    )
+    week = event.get("leg") or event.get("week") or meta.get("leg") or meta.get("week")
+    try:
+        parsed_week = int(week) if week is not None else None
+    except (TypeError, ValueError):
+        parsed_week = None
+    return (str(season) if season is not None else None, parsed_week)
+
+
 def run(scenario_path: Path) -> Path:
+    # evaluate_event is defined in the v2 module and therefore resolves globals
+    # there at runtime. Patch the resolver once before any decisions are scored.
+    usage_v2.event_season_week = corrected_event_season_week
+
     adapter = FSFFLHistoricalAdapter()
     scenario = ah.scenario_from_json(adapter, load(scenario_path))
     triage = load(run_triage(scenario_path))
@@ -61,7 +87,7 @@ def run(scenario_path: Path) -> Path:
         conf[str(d.get("confidence"))] += 1
 
     report: Dict[str, Any] = {
-        "model_version": "Fantasy-Alternate-History-0.5c-v3-historical-usage",
+        "model_version": "Fantasy-Alternate-History-0.5c-v3.1-historical-usage",
         "scenario_id": scenario.scenario_id,
         "design_invariants": {
             "future_nfl_outcomes_used": False,
@@ -71,6 +97,11 @@ def run(scenario_path: Path) -> Path:
             "historical_completed_transaction_is_revealed_action_prior": True,
             "triage_queue_contract_enforced": True,
             "local_reference_state_only": True,
+            "normalized_top_level_source_season_used": True,
+        },
+        "metadata_contract_fix": {
+            "source_season_location": "normalized event top level",
+            "week_location": "normalized event leg/week with metadata fallback",
         },
         "queued_usage_events": expected_count,
         "evaluated_transactions": len(results),
@@ -90,6 +121,7 @@ def run(scenario_path: Path) -> Path:
         "evaluated_roster_decisions": len(flattened),
         "expected_decision_counts": expected,
         "confidence_counts": dict(conf),
+        "historical_points_sources": points.sources,
     }, indent=2, sort_keys=True))
     return out
 
