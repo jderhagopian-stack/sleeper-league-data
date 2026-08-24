@@ -1,9 +1,7 @@
 name: Puka Alternate History Final Report
 
 on:
-  push:
-    branches:
-      - feature/alternate-history-0.1
+  pull_request:
     paths:
       - '.github/workflows/puka-alternate-history-run.yml'
   workflow_dispatch:
@@ -18,7 +16,7 @@ on:
         default: '500'
 
 concurrency:
-  group: puka-alternate-history-final-report
+  group: puka-alternate-history-final-report-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -57,6 +55,7 @@ jobs:
       - name: Print final human-readable report
         run: cat data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md
       - name: Persist final report for ChatGPT retrieval
+        if: github.event_name == 'pull_request'
         run: |
           mkdir -p .run_outputs/alternate_history/puka_vs_van_2023
           cp data/alternate_history/results/puka_vs_van_2023/final_report_1_0.md \
@@ -71,7 +70,7 @@ jobs:
             echo "Report unchanged; nothing to persist."
           else
             git commit -m "Store Puka Alternate History final report [skip ci]"
-            git push origin HEAD:feature/alternate-history-0.1
+            git push origin HEAD:${{ github.head_ref }}
           fi
       - name: Upload final report package
         uses: actions/upload-artifact@v4
