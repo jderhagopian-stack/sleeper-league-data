@@ -27,28 +27,61 @@ from run_fsffl_postseason_consequences_v3 import run as run_postseason
 DATA = Path("data")
 
 
+def active_season() -> str:
+    league = load(DATA / "league.json") or {}
+    season = str(league.get("season") or "")
+    if not season:
+        raise ah.AlternateHistoryError("Active Sleeper season unavailable")
+    return season
+
+
 def raw_draft(season: str) -> Dict[str, Any]:
+    """Return an authoritative draft snapshot without leaking future history.
+
+    Completed seasons come only from the immutable Alternate History archive.
+    The active season may fall back to the canonical live Sleeper snapshot,
+    because by definition that draft has already occurred in the present-day
+    league state and is required to reach the Simulator 1.0 boundary.
+    """
+    season = str(season)
     cache = load(DATA / "alternate_history" / "source_history" / "sleeper_history.json")
     for season_data in cache.get("history") or []:
-        if str((season_data.get("league") or {}).get("season")) != str(season):
+        if str((season_data.get("league") or {}).get("season")) != season:
             continue
         for entry in season_data.get("drafts") or []:
             draft = entry.get("draft") or {}
-            if str(draft.get("season")) == str(season):
+            if str(draft.get("season")) == season:
                 return entry
+
+    if season == active_season():
+        current = load(DATA / "drafts.json") or []
+        for entry in current if isinstance(current, list) else []:
+            draft = entry.get("draft") or {}
+            if str(draft.get("season")) == season:
+                return entry
+
     raise ah.AlternateHistoryError(f"Raw Sleeper draft not found for {season}")
 
 
 def user_to_roster_for_season(season: str) -> Dict[str, str]:
+    season = str(season)
     cache = load(DATA / "alternate_history" / "source_history" / "sleeper_history.json")
     for season_data in cache.get("history") or []:
-        if str((season_data.get("league") or {}).get("season")) != str(season):
+        if str((season_data.get("league") or {}).get("season")) != season:
             continue
         out = {}
         for roster in season_data.get("rosters") or []:
             if roster.get("owner_id") is not None and roster.get("roster_id") is not None:
                 out[str(roster["owner_id"])] = str(roster["roster_id"])
         return out
+
+    if season == active_season():
+        out = {}
+        for roster in load(DATA / "rosters.json") or []:
+            if roster.get("owner_id") is not None and roster.get("roster_id") is not None:
+                out[str(roster["owner_id"])] = str(roster["roster_id"])
+        return out
+
     return {}
 
 
@@ -165,6 +198,7 @@ def run(scenario_path: Path) -> Path:
             "actual_historical_draft_order_used_only_as_contemporaneous_market_evidence": True,
             "no_alternate_player_selection_assumed_in_0_6a": True,
             "only_backvalidated_playoff_slot_component_used": True,
+            "active_season_draft_may_use_canonical_live_snapshot": True,
         },
         "summary": {
             "affected_playoff_owners": len(affected_owners),
