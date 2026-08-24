@@ -3,7 +3,7 @@ name: Puka Alternate History Scenario Run
 on:
   push:
     branches:
-      - feature/alternate-history-0.1
+      - ops/puka-scenario-run
     paths:
       - '.github/workflows/puka-alternate-history-run.yml'
   workflow_dispatch:
