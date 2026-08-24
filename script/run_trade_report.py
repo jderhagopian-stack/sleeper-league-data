@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Run FSFFL trade analysis and always emit JSON + one-page PDF + short answer.
 
-This is the manager-facing entry point for trade queries. It delegates analysis to
-Counter & Market Sweep 1.11, then delegates presentation to the PDF renderer.
+Manager-facing entry point for trade queries. Analysis uses the canonical
+continuous state-aware Counter & Market Sweep 1.14 path, then delegates
+presentation to the standardized PDF renderer.
 """
 from __future__ import annotations
 
@@ -12,9 +13,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARKET_SWEEP = Path("script/run_trade_market_sweep_v19.py")
+MARKET_SWEEP = Path("script/run_trade_market_sweep_v20.py")
 PDF_RENDERER = Path("script/render_trade_decision_report.py")
-MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.0"
+MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.1"
+EXPECTED_ANALYSIS_MODEL = "FSFFL-Counter-Market-Sweep-1.14"
 
 
 def run(cmd):
@@ -72,6 +74,10 @@ def main():
     run([sys.executable, str(PDF_RENDERER), "--input", str(json_path), "--output", str(pdf_path)])
 
     report = json.loads(json_path.read_text(encoding="utf-8"))
+    if report.get("model_version") != EXPECTED_ANALYSIS_MODEL:
+        raise RuntimeError(
+            f"Trade report pipeline expected {EXPECTED_ANALYSIS_MODEL}, got {report.get('model_version')}"
+        )
     payload = {
         "pipeline_model_version": MODEL_VERSION,
         "analysis_model_version": report.get("model_version"),
@@ -79,6 +85,7 @@ def main():
         "short_answer": summary(report),
         "json_report": str(json_path),
         "pdf_report": str(pdf_path),
+        "canonical_model_entry_point": str(MARKET_SWEEP),
         "delivery_policy": "Always return the short answer and attach/share the PDF report for a trade query.",
     }
     summary_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
