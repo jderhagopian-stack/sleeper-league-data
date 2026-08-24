@@ -1,19 +1,6 @@
 name: Alternate History Season Boundary Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_branch_scoring.py'
-      - 'script/alternate_history_historical_state.py'
-      - 'script/alternate_history_postseason.py'
-      - 'script/alternate_history_maxpf.py'
-      - 'script/run_fsffl_multiseason_particle_replay.py'
-      - 'script/run_fsffl_multiseason_particle_replay_v3.py'
-      - 'script/run_fsffl_season_boundary_particles.py'
-      - 'script/run_fsffl_season_boundary_particles_v2.py'
-      - 'data/stats/fsffl/**'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-season-boundary-validation.yml'
   workflow_dispatch:
 
 concurrency:
