@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """State-aware hypothetical GM overlay for FSFFL Decision Lab.
 
-This module upgrades Decision Lab strategic summaries so every hypothetical
-transaction is evaluated using the focal franchise's own GM objective state.
-Incoming assets are re-profiled on the post-transaction roster instead of
-inheriting the seller's strategic profile or falling back to generic values.
+Every hypothetical transaction is evaluated using the focal franchise's own
+continuous GM objective weights. Incoming assets are re-profiled on the
+post-transaction roster rather than inheriting the seller's strategic profile.
 
-The same mechanism applies to elite_contender, contender, retool and rebuild
-franchises. Canonical Sleeper/GM state remains read-only.
+Runtime weighting is intentionally cheap: it reads only a tiny precomputed
+calibration artifact plus already-produced Simulator 1.0 context. Historical
+calibration never runs in an interactive Decision Lab / Market Sweep request.
 """
 from __future__ import annotations
 
@@ -29,8 +29,17 @@ def _load(path: Path, name: str):
 
 def _gm_core():
     gm30 = _load(SCRIPT / "build_fsffl_gm30.py", "gm30_state_aware_overlay")
+    weighting = _load(SCRIPT / "gm_state_weighting.py", "gm_state_weighting_for_overlay")
     season = gm30.active_season()
     gm30.patch_gm22_runtime(season)
+
+    # Crucial consistency rule: the same continuous weights used to rank a
+    # hypothetical also drive GM strategic-profile construction itself.
+    def continuous_team_objective_weights(team):
+        return weighting.weights_for_team(team)
+
+    gm30.core._u_team_objective_weights = continuous_team_objective_weights
+    gm30.core._state_weighting_runtime = weighting
     return gm30.core
 
 
@@ -116,6 +125,7 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
 def install(base_dl):
     """Patch a loaded Decision Lab module in-place and return it."""
     core = _gm_core()
+    weighting = core._state_weighting_runtime
     base_ctx = core._u_load_context()
     original_summary = base_dl.strategic_summary
 
@@ -125,6 +135,8 @@ def install(base_dl):
         baseline_map, baseline_payload = _profile_map(core, uid, base_ctx)
         post_ctx = _post_context(core, uid, actions, base_ctx)
         post_map, post_payload = _profile_map(core, uid, post_ctx)
+        team = (base_ctx.get("teams") or {}).get(uid, {})
+        weight_resolution = weighting.resolve(team)
 
         # Retain the legacy summary only as a fallback for any asset the GM core
         # cannot profile (e.g. malformed external scenario input).
@@ -132,7 +144,7 @@ def install(base_dl):
         legacy_sent = {str(x.get("asset_id")): x for x in legacy.get("sent") or []}
         legacy_recv = {str(x.get("asset_id")): x for x in legacy.get("received") or []}
 
-        def normalized(aid: str, profile: Dict[str, Any] | None, fallback: Dict[str, Any] | None):
+        def normalized(aid: str, profile: Dict[str, Any] | None, fallback: Dict[str, Any] | None, source: str):
             p = profile or {}
             f = fallback or {}
             base = float(p.get("base_franchise_value") or f.get("base_franchise_value") or 0.0)
@@ -149,13 +161,13 @@ def install(base_dl):
                 "liquidity_score": float(p.get("liquidity_score") or 0.0),
                 "future_distribution": p.get("future_distribution"),
                 "pick_profile": p.get("pick_profile"),
-                "objective_state": p.get("objective_state") or post_payload.get("team_state") or baseline_payload.get("team_state"),
-                "objective_weights": p.get("objective_weights") or post_payload.get("objective_weights") or baseline_payload.get("objective_weights"),
-                "profile_source": "baseline_focal_gm" if profile is baseline_map.get(aid) else "post_trade_focal_gm",
+                "objective_state": p.get("objective_state") or weight_resolution["state"],
+                "objective_weights": p.get("objective_weights") or weight_resolution["weights"],
+                "profile_source": source,
             }
 
-        sent_rows = [normalized(aid, baseline_map.get(aid), legacy_sent.get(aid)) for aid in sent_ids]
-        rec_rows = [normalized(aid, post_map.get(aid), legacy_recv.get(aid)) for aid in received_ids]
+        sent_rows = [normalized(aid, baseline_map.get(aid), legacy_sent.get(aid), "baseline_focal_gm") for aid in sent_ids]
+        rec_rows = [normalized(aid, post_map.get(aid), legacy_recv.get(aid), "post_trade_focal_gm") for aid in received_ids]
 
         def total(rows, key):
             return sum(float(x.get(key) or 0.0) for x in rows)
@@ -170,10 +182,11 @@ def install(base_dl):
             "liquidity_value_delta": round(_weighted_total(rec_rows, "liquidity") - _weighted_total(sent_rows, "liquidity"), 2),
             "strategic_value_delta": round(_weighted_total(rec_rows, "strategic") - _weighted_total(sent_rows, "strategic"), 2),
             "optionality_value_delta": round(_weighted_total(rec_rows, "optionality") - _weighted_total(sent_rows, "optionality"), 2),
-            "objective_state": post_payload.get("team_state") or baseline_payload.get("team_state") or "unknown",
-            "objective_weights": post_payload.get("objective_weights") or baseline_payload.get("objective_weights") or {},
+            "objective_state": weight_resolution["state"],
+            "objective_weights": weight_resolution["weights"],
+            "weight_resolution": weight_resolution,
             "hypothetical_profiles_recomputed": True,
-            "hypothetical_profile_model": "FSFFL-GM-3.0 inherited GM-2.2 strategic core",
+            "hypothetical_profile_model": "FSFFL-GM-3.0 continuous state-aware strategic core",
         }
 
     base_dl.strategic_summary = state_aware_summary
