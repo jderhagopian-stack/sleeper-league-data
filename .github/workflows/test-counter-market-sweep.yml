@@ -12,6 +12,8 @@ on:
       - 'script/run_trade_market_sweep_v17.py'
       - 'script/run_trade_market_sweep_v18.py'
       - 'script/run_trade_market_sweep_v19.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'script/decision_lab_state_aware.py'
       - 'data/decision_lab/counter_market_engine_architecture.json'
       - '.github/workflows/test-counter-market-sweep.yml'
   workflow_dispatch:
@@ -30,7 +32,7 @@ jobs:
           python-version: '3.11'
 
       - name: Compile engine
-        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_trade_market_sweep_v20.py script/decision_lab_state_aware.py script/run_roster_decision_lab.py
 
       - name: Validate fast optimizer equivalence
         run: |
@@ -122,7 +124,60 @@ jobs:
           print('Counter & Market Sweep 1.11 reserved-swing smoke test passed')
           PY
 
-      - name: Upload full counter report
+      - name: Validate all classification objectives
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p = Path('script/run_trade_market_sweep_v20.py')
+          spec = importlib.util.spec_from_file_location('v20', p)
+          m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          expected = {
+              'elite_contender': (0.50, 0.25, 0.10, 0.15),
+              'contender': (0.40, 0.35, 0.10, 0.15),
+              'retool': (0.23, 0.47, 0.15, 0.15),
+              'rebuild': (0.10, 0.60, 0.20, 0.10),
+          }
+          for state, vals in expected.items():
+              w = m.fallback_weights(state)
+              assert (w['current'], w['future'], w['liquidity'], w['resilience']) == vals
+          assert m.fallback_weights('elite_contender')['current'] > m.fallback_weights('rebuild')['current']
+          assert m.fallback_weights('rebuild')['future'] > m.fallback_weights('elite_contender')['future']
+          print('All four competition classifications are state-aware')
+          PY
+
+      - name: Run state-aware market sweep
+        run: |
+          SECONDS=0
+          python script/run_trade_market_sweep_v20.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 50 \
+            --confirm-sims 0 \
+            --search-depth 40 \
+            --output /tmp/state-aware-market-sweep.json \
+            > /tmp/state-aware-market-sweep.log
+          elapsed=$SECONDS
+          echo "State-aware market sweep runtime: ${elapsed}s"
+          test "$elapsed" -le 180
+
+      - name: Validate state-aware hypothetical profiles
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('/tmp/state-aware-market-sweep.json'))
+          assert d['model_version'] == 'FSFFL-Counter-Market-Sweep-1.12'
+          assert d['policy']['focal_post_trade_gm_profiles_recomputed'] is True
+          assert d['policy']['all_competition_classifications_state_aware'] is True
+          assert d['policy']['state_aware_objective_weighted_ranking'] is True
+          cur = d['current_offer_evaluation']['simulation']['strategic']
+          assert cur['hypothetical_profiles_recomputed'] is True
+          assert cur['objective_state'] in {'elite_contender','contender','retool','rebuild'}
+          assert set(cur['objective_weights']) == {'current','future','liquidity','resilience'}
+          assert all(x['profile_source'] == 'post_trade_focal_gm' for x in cur['received'])
+          print('Incoming assets use focal post-trade GM profiles')
+          PY
+
+      - name: Upload full counter reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -130,5 +185,7 @@ jobs:
           path: |
             /tmp/counter-market-sweep.json
             /tmp/counter-market-sweep.log
+            /tmp/state-aware-market-sweep.json
+            /tmp/state-aware-market-sweep.log
           if-no-files-found: error
           retention-days: 14
