@@ -13,6 +13,10 @@ on:
       - '.github/workflows/alternate-history-maxpf-validation.yml'
   workflow_dispatch:
 
+concurrency:
+  group: alternate-history-maxpf-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
