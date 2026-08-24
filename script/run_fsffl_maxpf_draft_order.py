@@ -74,9 +74,6 @@ def max_lineup(points: Dict[str, float], positions: Dict[str, str]) -> Dict[str,
                 best_flex = flex_pos
                 best_superflex = sf_pos
 
-    # Defensive fallback for an incomplete historical roster snapshot. We never
-    # invent a player; missing starter slots are zero. This should not occur in
-    # normal FSFFL weekly snapshots but keeps the audit explicit.
     if best_score == float("-inf"):
         counts = dict(BASE_COUNTS)
         best_score = 0.0
@@ -84,11 +81,7 @@ def max_lineup(points: Dict[str, float], positions: Dict[str, str]) -> Dict[str,
             best_score += sum(value for _, value in by_pos[pos][:needed])
         best_counts = counts
 
-    selected_by_pos = {
-        pos: list(by_pos[pos][:needed]) for pos, needed in best_counts.items()
-    }
-    # Reconstruct a readable slot audit. Fixed slots consume the first players;
-    # FLEX/SF consume any extra selected player of their designated position.
+    selected_by_pos = {pos: list(by_pos[pos][:needed]) for pos, needed in best_counts.items()}
     cursors = {p: 0 for p in selected_by_pos}
     lineup = []
     for slot in ("QB", "RB", "RB", "WR", "WR", "WR", "TE"):
@@ -154,10 +147,17 @@ def run(scenario_path: Path) -> Path:
     playoff = {str(k) for k in (post.get("actual", {}).get("playoffs", {}).get("finish_by_roster") or {}).keys()}
     nonplay_ids = sorted((rid for rid in observed if rid not in playoff), key=lambda rid: observed[rid])
 
-    standings = post.get("actual", {}).get("regular_season", {}).get("standings") or {}
+    # postseason_0_4_v3 stores regular-season standings as a list directly at
+    # actual.standings, not under actual.regular_season. Build the record index
+    # from that normalized shape so the user-confirmed exact-MaxPF tie breaker is
+    # correctly available when needed.
+    standings_rows = post.get("actual", {}).get("standings") or []
+    standings_by_roster = {
+        str(row.get("roster_id")): row for row in standings_rows if row.get("roster_id") is not None
+    }
+
     def losses(rid: str) -> int:
-        row = standings.get(str(rid)) or {}
-        return int(row.get("losses") or 0)
+        return int((standings_by_roster.get(str(rid)) or {}).get("losses") or 0)
 
     reconstructed = sorted(
         nonplay_ids,
@@ -165,6 +165,8 @@ def run(scenario_path: Path) -> Path:
     )
     checks = []
     valid = len(nonplay_ids) == 6 and not maxpf["missing_regular_season_weeks"]
+    maxpf_values = [float(maxpf["totals"].get(rid, float("inf"))) for rid in nonplay_ids]
+    tie_breaker_exercised = len(maxpf_values) != len(set(maxpf_values))
     for slot, rid in enumerate(reconstructed, 1):
         observed_slot = observed.get(rid)
         ok = observed_slot == slot
@@ -200,17 +202,18 @@ def run(scenario_path: Path) -> Path:
             "observed_nonplayoff_rosters_in_slot_order": nonplay_ids,
             "reconstructed_nonplayoff_rosters_in_slot_order": reconstructed,
             "missing_regular_season_weeks": maxpf["missing_regular_season_weeks"],
+            "tie_breaker_exercised_in_observed_season": tie_breaker_exercised,
+            "tie_breaker_status": "RULE_IMPLEMENTED_NOT_EMPIRICALLY_EXERCISED" if not tie_breaker_exercised else "EXERCISED",
         },
         "weekly_maxpf_audit": maxpf["weekly"],
     }
-    out = ah.write_isolated_json(
-        f"results/{post.get('scenario_id')}/maxpf_draft_order_0_7c.json", report
-    )
+    out = ah.write_isolated_json(f"results/{post.get('scenario_id')}/maxpf_draft_order_0_7c.json", report)
     print(out)
     print(json.dumps({
         "validated": valid,
         "observed": nonplay_ids,
         "reconstructed": reconstructed,
+        "tie_breaker_exercised": tie_breaker_exercised,
         "checks": checks,
     }, indent=2, sort_keys=True))
     if not valid:
