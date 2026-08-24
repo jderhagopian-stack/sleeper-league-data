@@ -5,8 +5,9 @@ on:
     paths:
       - 'script/render_trade_decision_report.py'
       - 'script/run_trade_report.py'
-      - 'script/run_trade_market_sweep_v19.py'
+      - 'script/run_trade_market_sweep_v20.py'
       - '.github/workflows/test-trade-report.yml'
+      - '.github/workflows/run-trade-analysis.yml'
   workflow_dispatch:
 
 jobs:
@@ -26,7 +27,7 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py
+        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/run_trade_market_sweep_v20.py
 
       - name: Run trade query pipeline
         run: |
@@ -57,9 +58,12 @@ jobs:
           summary = json.loads((root/'validation-trade-summary.json').read_text())
           pdf = root/'validation-trade.pdf'
 
-          assert analysis['model_version'] == 'FSFFL-Counter-Market-Sweep-1.11'
-          assert summary['pipeline_model_version'] == 'FSFFL-Trade-Query-Pipeline-1.0'
+          assert analysis['model_version'] == 'FSFFL-Counter-Market-Sweep-1.14'
+          assert analysis['policy']['continuous_state_weighting'] is True
+          assert analysis['policy']['final_negotiation_ranking_uses_state_aware_post_sim_score'] is True
+          assert summary['pipeline_model_version'] == 'FSFFL-Trade-Query-Pipeline-1.1'
           assert summary['analysis_model_version'] == analysis['model_version']
+          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v20.py')
           assert summary['recommended_next_action'] == analysis['recommended_next_action']
           assert summary['short_answer']
           assert summary['pdf_report'].endswith('validation-trade.pdf')
@@ -67,7 +71,7 @@ jobs:
           assert pdf.exists() and pdf.stat().st_size > 2000
           assert pdf.read_bytes()[:4] == b'%PDF'
           assert len(PdfReader(str(pdf)).pages) == 1
-          print('Automatic trade PDF report smoke test passed')
+          print('Automatic Market Sweep 1.14 trade PDF report smoke test passed')
           PY
 
       - name: Upload trade report artifacts
