@@ -1,0 +1,42 @@
+name: Alternate History Performance Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      particle_scales:
+        description: 'Space-separated particle counts for deterministic scaling audit'
+        required: false
+        default: '2 4 8'
+
+permissions:
+  contents: read
+
+jobs:
+  profile-generic-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore completed-season Sleeper history cache
+        uses: actions/cache@v4
+        with:
+          path: data/alternate_history/source_history/sleeper_history.json
+          key: alternate-history-sleeper-completed-2022-2025-v1
+      - name: Compile performance audit
+        run: python -m py_compile script/profile_fsffl_alternate_history.py
+      - name: Backfill authoritative raw Sleeper history
+        run: python script/backfill_alternate_history_sleeper.py
+      - name: Profile generic-cycle particle scaling
+        shell: bash
+        run: |
+          read -r -a SCALES <<< "${{ inputs.particle_scales }}"
+          python script/profile_fsffl_alternate_history.py --particles "${SCALES[@]}"
+      - name: Upload performance audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: alternate-history-performance-audit
+          path: data/alternate_history/performance/generic_cycle_scaling_1_0.json
+          if-no-files-found: error
