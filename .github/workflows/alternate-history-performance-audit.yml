@@ -1,12 +1,20 @@
 name: Alternate History Performance Audit
 
 on:
+  pull_request:
+    paths:
+      - 'script/profile_fsffl_alternate_history.py'
+      - '.github/workflows/alternate-history-performance-audit.yml'
   workflow_dispatch:
     inputs:
       particle_scales:
         description: 'Space-separated particle counts for deterministic scaling audit'
         required: false
-        default: '2 4 8'
+        default: '2 4 8 16'
+
+concurrency:
+  group: alternate-history-performance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -14,7 +22,7 @@ permissions:
 jobs:
   profile-generic-cycle:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,8 +40,9 @@ jobs:
       - name: Profile generic-cycle particle scaling
         shell: bash
         run: |
-          read -r -a SCALES <<< "${{ inputs.particle_scales }}"
-          python script/profile_fsffl_alternate_history.py --particles "${SCALES[@]}"
+          SCALES="${{ inputs.particle_scales || '2 4 8 16' }}"
+          read -r -a SCALE_ARRAY <<< "$SCALES"
+          python script/profile_fsffl_alternate_history.py --particles "${SCALE_ARRAY[@]}"
       - name: Upload performance audit
         uses: actions/upload-artifact@v4
         with:
