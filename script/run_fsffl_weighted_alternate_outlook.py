@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""FSFFL Alternate History 0.9b: probability-weighted Simulator 1.0 outlook.
+"""Probability-weighted Simulator 1.0 outlook for arbitrary historical forks.
 
-Runs the existing current/future Simulator 1.0 across every merged present-day
-alternate-history state. Historical replay supplies the state distribution;
-Simulator 1.0 is invoked only after the active-2026 boundary is reached.
+Historical replay is delegated to the generic season-cycle engine, so a fork in
+2022, 2023, or any future completed season reaches the active-season boundary
+through the same orchestration. Simulator 1.0 runs only after that boundary.
 """
 
 from __future__ import annotations
@@ -16,10 +16,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import alternate_history_engine as ah
-import run_fsffl_present_day_particles as present
-import run_fsffl_third_season_particles as third_season
+import run_fsffl_generic_alternate_history as generic
+from run_fsffl_alternate_history import FSFFLHistoricalAdapter
+from run_fsffl_downstream_dependencies import load
 from run_fsffl_gm30_counterfactual import CounterfactualEngine
-from run_fsffl_next_draft_handoff import replay_rookie_draft_groups
 
 DEFAULT_PARTICLES = 5000
 DEFAULT_SIMS = 5000
@@ -53,10 +53,10 @@ def allocate_sims(groups, total_sims: int) -> List[int]:
     """Allocate simulation draws across every state while preserving total budget."""
     n = len(groups)
     if n <= 0:
-        raise ah.AlternateHistoryError("0.9b received no present-day states")
+        raise ah.AlternateHistoryError("weighted outlook received no present-day states")
     if total_sims < n:
         raise ah.AlternateHistoryError(
-            f"0.9b needs at least one Simulator draw per state: sims={total_sims}, states={n}"
+            f"weighted outlook needs at least one Simulator draw per state: sims={total_sims}, states={n}"
         )
     total_particles = sum(group.count for group in groups)
     remaining = total_sims - n
@@ -70,7 +70,7 @@ def allocate_sims(groups, total_sims: int) -> List[int]:
     for i in order[:leftover]:
         base[i] += 1
     if sum(base) != total_sims or any(x <= 0 for x in base):
-        raise ah.AlternateHistoryError("0.9b simulation allocation invariant failed")
+        raise ah.AlternateHistoryError("weighted simulation allocation invariant failed")
     return base
 
 
@@ -92,24 +92,24 @@ def weighted_metric(rows: List[Tuple[float, Dict[str, Any]]], key: str):
 
 
 def build_present_groups(scenario_path: Path, *, particles: int, seed: int):
-    scenario, end_2025_groups, _ = present.build_end_2025_groups(
-        scenario_path, particles=particles, seed=seed
-    )
-    groups, _ = replay_rookie_draft_groups(
-        end_2025_groups,
-        completed_season="2025",
-        draft_season="2026",
+    _, groups, generic_report = generic.run_generic(
+        scenario_path,
         particles=particles,
         seed=seed,
+        return_groups=True,
     )
-    after_timestamp_ms = third_season.draft_boundary_timestamp("2026")
-    groups, current_meta = present.replay_current_transactions(
-        groups,
-        particles=particles,
-        seed=seed,
-        after_timestamp_ms=after_timestamp_ms,
+    payload = load(scenario_path) or {}
+    adapter = FSFFLHistoricalAdapter()
+    scenario = ah.scenario_from_json(adapter, payload)
+    active_phase = next(
+        (row for row in reversed(generic_report.get("phase_audit") or []) if row.get("phase") == "active_season_to_now"),
+        {},
     )
-    return scenario, groups, current_meta
+    return scenario, groups, {
+        "season": str(generic_report.get("active_season") or ""),
+        "events_processed": int(active_phase.get("events_processed") or 0),
+        "generic_model_version": generic_report.get("model_version"),
+    }
 
 
 def run(
@@ -129,7 +129,7 @@ def run(
     focus_rid = int(scenario.focus_roster_id)
     focus_uid = engine.roster_id_to_uid.get(focus_rid)
     if focus_uid is None:
-        raise ah.AlternateHistoryError(f"0.9b unable to resolve focus roster {focus_rid}")
+        raise ah.AlternateHistoryError(f"weighted outlook unable to resolve focus roster {focus_rid}")
 
     baseline = engine.baseline(int(n_sims))
     baseline_focus = team(baseline, focus_uid)
@@ -160,7 +160,7 @@ def run(
     }
 
     report = {
-        "model_version": "Fantasy-Alternate-History-0.9b-weighted-simulator-1.0",
+        "model_version": "Fantasy-Alternate-History-1.0-generic-weighted-simulator",
         "scenario_id": scenario.scenario_id,
         "configuration": {
             "historical_particles": int(particles),
@@ -168,6 +168,7 @@ def run(
             "seed": int(seed),
         },
         "design_invariants": {
+            "generic_arbitrary_year_historical_engine_used": True,
             "completed_historical_nfl_outcomes_are_immutable": True,
             "simulator_1_0_runs_only_after_present_day_boundary": True,
             "all_present_day_states_receive_simulator_coverage": True,
@@ -179,7 +180,8 @@ def run(
             "present_day_probability_mass": 1.0,
             "simulated_state_probability_mass": round(sum(group.count for group in groups) / total_particles, 8),
             "simulator_draws_allocated": sum(allocations),
-            "2026_transactions_processed": current_meta["events_processed"],
+            "active_season": current_meta["season"],
+            "active_season_transactions_processed": current_meta["events_processed"],
         },
         "actual_current_outlook": actual,
         "weighted_alternate_current_outlook": alternate,
@@ -187,7 +189,7 @@ def run(
         "state_simulation_allocations": state_results,
     }
     out = ah.write_isolated_json(
-        f"results/{scenario.scenario_id}/weighted_current_outlook_0_9b.json", report
+        f"results/{scenario.scenario_id}/weighted_current_outlook_1_0_generic.json", report
     )
     print(out)
     print(json.dumps({"summary": report["summary"], "deltas": deltas}, indent=2, sort_keys=True))
@@ -195,7 +197,7 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run probability-weighted Simulator 1.0 across present-day alternate states")
+    parser = argparse.ArgumentParser(description="Run probability-weighted Simulator 1.0 across generic present-day alternate states")
     parser.add_argument("scenario", type=Path)
     parser.add_argument("--particles", type=int, default=DEFAULT_PARTICLES)
     parser.add_argument("--sims", type=int, default=DEFAULT_SIMS)
