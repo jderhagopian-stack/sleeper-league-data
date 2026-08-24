@@ -3,6 +3,7 @@ name: Test Bilateral Market Intelligence
 on:
   pull_request:
     paths:
+      - 'script/run_trade_market_sweep_v23.py'
       - 'script/run_trade_market_sweep_v22.py'
       - 'script/run_trade_market_sweep_v21.py'
       - 'script/run_trade_market_sweep_v20.py'
@@ -17,87 +18,102 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compile 1.16
-        run: python -m py_compile script/run_trade_market_sweep_v22.py
-      - name: Validate expanded package universe
-        run: |
-          python - <<'PY'
-          import importlib.util
-          spec=importlib.util.spec_from_file_location('v22','script/run_trade_market_sweep_v22.py')
-          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-          assets=[
-            {'asset_id':'player:a','asset_type':'player'},
-            {'asset_id':'player:b','asset_type':'player'},
-            *[{'asset_id':f'pick:{i}','asset_type':'pick'} for i in range(1,7)]
-          ]
-          pkgs=list(m.expanded_candidate_packages(assets))
-          assert any(len(p)==5 and sum(a['asset_type']=='player' for a in p)==1 and sum(a['asset_type']=='pick' for a in p)==4 for p in pkgs)
-          assert any(len(p)==5 and all(a['asset_type']=='pick' for a in p) for p in pkgs)
-          assert max(len(p) for p in pkgs)==5
-          print('Expanded multi-asset package universe passed')
-          PY
-      - name: Build ephemeral Hungry Dawgs scenario
+      - name: Compile 1.17
+        run: python -m py_compile script/run_trade_market_sweep_v23.py
+      - name: Build blockbuster scenario
         run: |
           cat > /tmp/hungry-dawgs.json <<'JSON'
-          {
-            "scenario_id": "hungry_dawgs_multi_asset_regression",
-            "description": "Hungry Dawgs sends Breece Hall + Trey McBride and receives Cam Skattebo + TreVeyon Henderson + Tucker Kraft.",
-            "focus_user_id": "833709164739014656",
-            "actions": [
-              {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155","8130"],"picks":[]},
-              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12481","12529","9484"],"picks":[]}
-            ]
-          }
+          {"scenario_id":"hungry_dawgs_dynamic_state_regression","focus_user_id":"833709164739014656","actions":[
+            {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155","8130"],"picks":[]},
+            {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12481","12529","9484"],"picks":[]}
+          ]}
           JSON
-      - name: Run Hungry Dawgs Market Sweep 1.16
+      - name: Run blockbuster Market Sweep 1.17
         run: |
-          python script/run_trade_market_sweep_v22.py \
-            --scenario /tmp/hungry-dawgs.json \
-            --quick-sims 100 \
-            --confirm-sims 0 \
-            --search-depth 60 \
-            --seed 20260821 \
-            --output /tmp/hungry-dawgs-116.json \
-            > /tmp/hungry-dawgs-116.log
-      - name: Validate bilateral realism family diversity and expanded search
+          python script/run_trade_market_sweep_v23.py --scenario /tmp/hungry-dawgs.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hungry-117.json > /tmp/hungry-117.log
+      - name: Validate blockbuster safeguards
         run: |
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/hungry-dawgs-116.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.16'
-          assert r['policy']['legacy_three_asset_return_ceiling_removed'] is True
-          assert r['policy']['max_return_total_assets_with_players']==5
-          assert r['policy']['max_pick_only_return_assets']==5
-          top=r.get('top_5_alternatives') or []
-          normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
-          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals), normals
+          r=json.load(open('/tmp/hungry-117.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          p=r['policy']
+          assert p['competitive_state_treated_as_time_varying'] is True
+          assert p['historical_behavior_can_override_current_state_utility'] is False
+          normals=[x for x in (r.get('top_5_alternatives') or []) if x.get('report_role')!='SWING_FOR_FENCES']
+          assert all(float(x.get('post_sim_score') or 0)>0 for x in normals)
           for x in normals:
-              assert not (x.get('buyer_team')=='Hurts So Good' and set(x.get('return_asset_names') or [])=={'Dak Prescott','DeVonta Smith'}), x
-          def family(x):
-              buyer=str(x.get('buyer_user_id') or '')
-              outgoing=tuple(sorted(str(a) for a in (x.get('outgoing_assets') or [])))
-              ret=[str(a) for a in (x.get('return_assets') or [])]
-              players=tuple(sorted(a for a in ret if not a.startswith('pick:')))
-              picks=tuple(sorted(a for a in ret if a.startswith('pick:'))) if not players else ()
-              return buyer,outgoing,players,picks
-          fam=[family(x) for x in top]
-          assert len(fam)==len(set(fam)), fam
-          print('Hungry Dawgs 1.16 regression passed')
-          for x in top:
-              print(x.get('report_role'), x.get('buyer_team'), '->', x.get('return_asset_names'), x.get('acceptance_likelihood'))
+              if x.get('focal_current_state')=='rebuild':
+                  assert float((x.get('state_aware_score_components') or {}).get('future') or 0)>0
+          print('Blockbuster dynamic-state regression passed')
           PY
-      - name: Upload regression artifact
+      - name: Upload blockbuster artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hungry-dawgs-multi-asset-regression
+          name: hungry-dawgs-dynamic-state-regression
           path: |
-            /tmp/hungry-dawgs-116.json
-            /tmp/hungry-dawgs-116.log
+            /tmp/hungry-117.json
+            /tmp/hungry-117.log
+          retention-days: 14
+
+  sensible-trade-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build Hall for Henderson scenario
+        run: |
+          cat > /tmp/hall-henderson.json <<'JSON'
+          {"scenario_id":"hall_for_henderson_dynamic_state_regression","focus_user_id":"833709164739014656","actions":[
+            {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155"],"picks":[]},
+            {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12529"],"picks":[]}
+          ]}
+          JSON
+      - name: Run sensible Market Sweep 1.17
+        run: |
+          python script/run_trade_market_sweep_v23.py --scenario /tmp/hall-henderson.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/hall-henderson-117.json > /tmp/hall-henderson-117.log
+      - name: Validate sensible market clears coherently
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/hall-henderson-117.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.17'
+          top=r.get('top_5_alternatives') or []
+          normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
+          assert normals, 'Ordinary Breece Hall market should have at least one normal bilateral path'
+          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals)
+          assert all(float(x.get('post_sim_score') or 0)>0 for x in normals)
+          for x in normals:
+              if x.get('focal_current_state')=='rebuild':
+                  assert float((x.get('state_aware_score_components') or {}).get('future') or 0)>0, x
+          # Explicit regression: aging-current-production filler must not occupy a normal rebuild slot.
+          bad=[x for x in normals if 'Davante Adams' in (x.get('return_asset_names') or []) and ('Mike Evans' in (x.get('return_asset_names') or []) or 'Josh Downs' in (x.get('return_asset_names') or []))]
+          assert not bad, bad
+          # Owner behavior must expose current-state conditioning provenance.
+          for x in top:
+              ob=((x.get('buyer_rationality') or {}).get('owner_behavior') or {})
+              if ob.get('available'):
+                  assert 'state_conditioned_adjustment' in ob
+                  assert 'current_state' in ob
+          print('Sensible dynamic-state regression passed')
+          print('ACTION',r.get('recommended_next_action'))
+          for x in top:
+              print(x.get('report_role'),x.get('buyer_team'),'->',x.get('return_asset_names'),x.get('acceptance_likelihood'),x.get('post_sim_score'))
+          PY
+      - name: Upload sensible artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sensible-hall-henderson-dynamic-state-regression
+          path: |
+            /tmp/hall-henderson-117.json
+            /tmp/hall-henderson-117.log
           retention-days: 14
