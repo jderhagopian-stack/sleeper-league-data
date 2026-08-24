@@ -11,6 +11,8 @@ Upgrade over 1.13:
   instead of rebuilding focal strategic gain from generic wins/dynasty deltas;
 - contender title-equity caps remain hard guardrails;
 - canonical roster and GM state remain read-only.
+
+Temporary analysis trigger: Hungry Dawgs production 1.14 report rerun.
 """
 from __future__ import annotations
 
