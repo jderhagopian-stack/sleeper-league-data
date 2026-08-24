@@ -1,0 +1,102 @@
+name: Test Bilateral Market Intelligence
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_trade_market_sweep_v21.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'script/run_trade_market_sweep_v19.py'
+      - 'script/run_trade_market_sweep_v18.py'
+      - 'script/run_trade_market_sweep_v16.py'
+      - '.github/workflows/test-market-intelligence-bilateral.yml'
+  workflow_dispatch:
+
+jobs:
+  hungry-dawgs-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile 1.15
+        run: python -m py_compile script/run_trade_market_sweep_v21.py
+      - name: Build ephemeral Hungry Dawgs scenario
+        run: |
+          cat > /tmp/hungry-dawgs.json <<'JSON'
+          {
+            "scenario_id": "hungry_dawgs_bilateral_regression",
+            "description": "Hungry Dawgs sends Breece Hall + Trey McBride and receives Cam Skattebo + TreVeyon Henderson + Tucker Kraft.",
+            "focus_user_id": "833709164739014656",
+            "actions": [
+              {
+                "type": "trade",
+                "from_user_id": "833709164739014656",
+                "to_user_id": "709546576091090944",
+                "players": ["8155", "8130"],
+                "picks": []
+              },
+              {
+                "type": "trade",
+                "from_user_id": "709546576091090944",
+                "to_user_id": "833709164739014656",
+                "players": ["12481", "12529", "9484"],
+                "picks": []
+              }
+            ]
+          }
+          JSON
+      - name: Run Hungry Dawgs Market Sweep 1.15
+        run: |
+          python script/run_trade_market_sweep_v21.py \
+            --scenario /tmp/hungry-dawgs.json \
+            --quick-sims 100 \
+            --confirm-sims 0 \
+            --search-depth 60 \
+            --seed 20260821 \
+            --output /tmp/hungry-dawgs-115.json \
+            > /tmp/hungry-dawgs-115.log
+      - name: Validate bilateral realism and family diversity
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/hungry-dawgs-115.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.15'
+          top=r.get('top_5_alternatives') or []
+          normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
+          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals), normals
+          for x in normals:
+              assert not (x.get('buyer_team')=='Hurts So Good' and set(x.get('return_asset_names') or [])=={'Dak Prescott','DeVonta Smith'}), x
+          def family(x):
+              buyer=str(x.get('buyer_user_id') or '')
+              outgoing=tuple(sorted(str(a) for a in (x.get('outgoing_assets') or [])))
+              ret=[str(a) for a in (x.get('return_assets') or [])]
+              players=tuple(sorted(a for a in ret if not a.startswith('pick:')))
+              picks=tuple(sorted(a for a in ret if a.startswith('pick:'))) if not players else ()
+              return buyer,outgoing,players,picks
+          fam=[family(x) for x in top]
+          assert len(fam)==len(set(fam)), fam
+          swing=[x for x in top if x.get('report_role')=='SWING_FOR_FENCES']
+          assert len(swing)<=1
+          if swing:
+              sf=family(swing[0])
+              assert all(family(x)!=sf for x in normals)
+          assert r['policy']['market_intelligence_can_veto_buyer_current_state_viability'] is True
+          assert r['policy']['negotiation_family_deduplication'] is True
+          print('Hungry Dawgs bilateral market-intelligence regression passed')
+          print('Top paths:')
+          for x in top:
+              print(x.get('report_role'), x.get('buyer_team'), '->', x.get('return_asset_names'), x.get('acceptance_likelihood'))
+          PY
+      - name: Upload regression artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hungry-dawgs-bilateral-regression
+          path: |
+            /tmp/hungry-dawgs-115.json
+            /tmp/hungry-dawgs-115.log
+          retention-days: 14

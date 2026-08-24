@@ -2,8 +2,8 @@
 """Run FSFFL trade analysis and always emit JSON + one-page PDF + short answer.
 
 Manager-facing entry point for trade queries. Analysis uses the canonical
-continuous state-aware Counter & Market Sweep 1.14 path, then delegates
-presentation to the standardized PDF renderer.
+continuous state-aware, bilateral market-intelligence Counter & Market Sweep
+1.15 path, then delegates presentation to the standardized PDF renderer.
 """
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARKET_SWEEP = Path("script/run_trade_market_sweep_v20.py")
+MARKET_SWEEP = Path("script/run_trade_market_sweep_v21.py")
 PDF_RENDERER = Path("script/render_trade_decision_report.py")
-MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.1"
-EXPECTED_ANALYSIS_MODEL = "FSFFL-Counter-Market-Sweep-1.14"
+MODEL_VERSION = "FSFFL-Trade-Query-Pipeline-1.2"
+EXPECTED_ANALYSIS_MODEL = "FSFFL-Counter-Market-Sweep-1.15"
 
 
 def run(cmd):
