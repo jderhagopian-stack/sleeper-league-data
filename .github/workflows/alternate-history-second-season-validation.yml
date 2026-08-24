@@ -1,15 +1,6 @@
 name: Alternate History Second Season Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_dynamic_policy.py'
-      - 'script/alternate_history_postdraft_state.py'
-      - 'script/run_fsffl_second_season_particles.py'
-      - 'script/validate_fsffl_second_season_particles.py'
-      - 'script/alternate_history_maxpf.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-second-season-validation.yml'
   workflow_dispatch:
 
 concurrency:
