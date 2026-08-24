@@ -1,17 +1,6 @@
 name: Alternate History Next Draft Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_dynamic_policy.py'
-      - 'script/alternate_history_postdraft_state.py'
-      - 'script/run_fsffl_second_season_particles.py'
-      - 'script/run_fsffl_next_draft_handoff.py'
-      - 'script/validate_fsffl_next_draft_handoff.py'
-      - 'script/run_fsffl_alternate_rookie_draft_particles.py'
-      - 'script/alternate_history_rookie_draft_policy.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-next-draft-validation.yml'
   workflow_dispatch:
 
 concurrency:
