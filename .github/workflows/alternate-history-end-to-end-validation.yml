@@ -48,3 +48,12 @@ jobs:
         run: python script/backfill_alternate_history_sleeper.py
       - name: Validate complete 2023-to-present weighted protocol in one pass
         run: python script/validate_fsffl_end_to_end_protocol.py
+      - name: Run controlled Puka production scenario (100 particles / 500 sims)
+        run: |
+          python script/run_fsffl_weighted_alternate_outlook.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 100 \
+            --sims 500 \
+            --seed 20260824
+      - name: Print controlled Puka production result
+        run: cat data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json
