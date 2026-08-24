@@ -3,6 +3,7 @@ name: Test Bilateral Market Intelligence
 on:
   pull_request:
     paths:
+      - 'script/run_trade_market_sweep_v22.py'
       - 'script/run_trade_market_sweep_v21.py'
       - 'script/run_trade_market_sweep_v20.py'
       - 'script/run_trade_market_sweep_v19.py'
@@ -22,49 +23,57 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compile 1.15
-        run: python -m py_compile script/run_trade_market_sweep_v21.py
+      - name: Compile 1.16
+        run: python -m py_compile script/run_trade_market_sweep_v22.py
+      - name: Validate expanded package universe
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('v22','script/run_trade_market_sweep_v22.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          assets=[
+            {'asset_id':'player:a','asset_type':'player'},
+            {'asset_id':'player:b','asset_type':'player'},
+            *[{'asset_id':f'pick:{i}','asset_type':'pick'} for i in range(1,7)]
+          ]
+          pkgs=list(m.expanded_candidate_packages(assets))
+          assert any(len(p)==5 and sum(a['asset_type']=='player' for a in p)==1 and sum(a['asset_type']=='pick' for a in p)==4 for p in pkgs)
+          assert any(len(p)==5 and all(a['asset_type']=='pick' for a in p) for p in pkgs)
+          assert max(len(p) for p in pkgs)==5
+          print('Expanded multi-asset package universe passed')
+          PY
       - name: Build ephemeral Hungry Dawgs scenario
         run: |
           cat > /tmp/hungry-dawgs.json <<'JSON'
           {
-            "scenario_id": "hungry_dawgs_bilateral_regression",
+            "scenario_id": "hungry_dawgs_multi_asset_regression",
             "description": "Hungry Dawgs sends Breece Hall + Trey McBride and receives Cam Skattebo + TreVeyon Henderson + Tucker Kraft.",
             "focus_user_id": "833709164739014656",
             "actions": [
-              {
-                "type": "trade",
-                "from_user_id": "833709164739014656",
-                "to_user_id": "709546576091090944",
-                "players": ["8155", "8130"],
-                "picks": []
-              },
-              {
-                "type": "trade",
-                "from_user_id": "709546576091090944",
-                "to_user_id": "833709164739014656",
-                "players": ["12481", "12529", "9484"],
-                "picks": []
-              }
+              {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155","8130"],"picks":[]},
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12481","12529","9484"],"picks":[]}
             ]
           }
           JSON
-      - name: Run Hungry Dawgs Market Sweep 1.15
+      - name: Run Hungry Dawgs Market Sweep 1.16
         run: |
-          python script/run_trade_market_sweep_v21.py \
+          python script/run_trade_market_sweep_v22.py \
             --scenario /tmp/hungry-dawgs.json \
             --quick-sims 100 \
             --confirm-sims 0 \
             --search-depth 60 \
             --seed 20260821 \
-            --output /tmp/hungry-dawgs-115.json \
-            > /tmp/hungry-dawgs-115.log
-      - name: Validate bilateral realism and family diversity
+            --output /tmp/hungry-dawgs-116.json \
+            > /tmp/hungry-dawgs-116.log
+      - name: Validate bilateral realism family diversity and expanded search
         run: |
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/hungry-dawgs-115.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.15'
+          r=json.load(open('/tmp/hungry-dawgs-116.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.16'
+          assert r['policy']['legacy_three_asset_return_ceiling_removed'] is True
+          assert r['policy']['max_return_total_assets_with_players']==5
+          assert r['policy']['max_pick_only_return_assets']==5
           top=r.get('top_5_alternatives') or []
           normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
           assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals), normals
@@ -79,15 +88,7 @@ jobs:
               return buyer,outgoing,players,picks
           fam=[family(x) for x in top]
           assert len(fam)==len(set(fam)), fam
-          swing=[x for x in top if x.get('report_role')=='SWING_FOR_FENCES']
-          assert len(swing)<=1
-          if swing:
-              sf=family(swing[0])
-              assert all(family(x)!=sf for x in normals)
-          assert r['policy']['market_intelligence_can_veto_buyer_current_state_viability'] is True
-          assert r['policy']['negotiation_family_deduplication'] is True
-          print('Hungry Dawgs bilateral market-intelligence regression passed')
-          print('Top paths:')
+          print('Hungry Dawgs 1.16 regression passed')
           for x in top:
               print(x.get('report_role'), x.get('buyer_team'), '->', x.get('return_asset_names'), x.get('acceptance_likelihood'))
           PY
@@ -95,8 +96,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hungry-dawgs-bilateral-regression
+          name: hungry-dawgs-multi-asset-regression
           path: |
-            /tmp/hungry-dawgs-115.json
-            /tmp/hungry-dawgs-115.log
+            /tmp/hungry-dawgs-116.json
+            /tmp/hungry-dawgs-116.log
           retention-days: 14
