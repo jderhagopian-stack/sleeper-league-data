@@ -1,10 +1,6 @@
 name: Alternate History Performance Audit
 
 on:
-  pull_request:
-    paths:
-      - 'script/profile_fsffl_alternate_history.py'
-      - '.github/workflows/alternate-history-performance-audit.yml'
   workflow_dispatch:
     inputs:
       particle_scales:
@@ -13,7 +9,7 @@ on:
         default: '2 4 8 16'
 
 concurrency:
-  group: alternate-history-performance-${{ github.event.pull_request.number || github.ref }}
+  group: alternate-history-performance-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
