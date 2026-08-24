@@ -1,15 +1,6 @@
 name: Alternate History Third Season Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_fsffl_third_season_particles.py'
-      - 'script/validate_fsffl_third_season_particles.py'
-      - 'script/run_fsffl_next_draft_handoff.py'
-      - 'script/run_fsffl_second_season_particles.py'
-      - 'script/alternate_history_dynamic_policy.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-third-season-validation.yml'
   workflow_dispatch:
 
 concurrency:
