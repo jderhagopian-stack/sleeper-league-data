@@ -1,16 +1,6 @@
 name: Alternate History Weighted Outlook Validation
 
 on:
-  pull_request:
-    paths:
-      - 'script/alternate_history_season_cycle.py'
-      - 'script/run_fsffl_generic_alternate_history.py'
-      - 'script/run_fsffl_weighted_alternate_outlook.py'
-      - 'script/validate_fsffl_weighted_alternate_outlook.py'
-      - 'script/run_fsffl_gm30_counterfactual.py'
-      - 'script/run_fsffl_season_simulator_preproduction.py'
-      - 'data/alternate_history/**'
-      - '.github/workflows/alternate-history-weighted-outlook-validation.yml'
   workflow_dispatch:
 
 concurrency:
