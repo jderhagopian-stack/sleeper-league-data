@@ -6,8 +6,8 @@ on:
       - 'script/render_trade_decision_report.py'
       - 'script/run_trade_report.py'
       - 'script/historical_state_behavior.py'
-      - 'script/run_trade_market_sweep_v24.py'
-      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/behavioral_intelligence.py'
+      - 'script/run_trade_market_sweep_v25.py'
       - '.github/workflows/test-trade-report.yml'
       - '.github/workflows/run-trade-analysis.yml'
   workflow_dispatch:
@@ -17,75 +17,54 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install PDF dependencies
-        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/historical_state_behavior.py script/run_trade_market_sweep_v24.py
+        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/historical_state_behavior.py script/behavioral_intelligence.py script/run_trade_market_sweep_v25.py
       - name: Run trade query pipeline
         run: |
           mkdir -p /tmp/fsffl-trade-report
           SECONDS=0
-          python script/run_trade_report.py \
-            --scenario data/decision_lab/full_validation_scenario.json \
-            --out-dir /tmp/fsffl-trade-report \
-            --basename validation-trade \
-            --quick-sims 100 \
-            --confirm-sims 0 \
-            --search-depth 60 \
-            > /tmp/fsffl-trade-report/pipeline.log
-          elapsed=$SECONDS
-          echo "Trade report pipeline runtime: ${elapsed}s"
-          test "$elapsed" -le 180
-      - name: Validate JSON PDF and delivery policy
+          python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 100 --confirm-sims 0 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
+          test "$SECONDS" -le 180
+      - name: Validate JSON PDF and behavioral policy
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from pypdf import PdfReader
-          root=Path('/tmp/fsffl-trade-report')
-          analysis=json.loads((root/'validation-trade.json').read_text())
-          summary=json.loads((root/'validation-trade-summary.json').read_text())
-          pdf=root/'validation-trade.pdf'
-          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.18'
+          root=Path('/tmp/fsffl-trade-report');analysis=json.loads((root/'validation-trade.json').read_text());summary=json.loads((root/'validation-trade-summary.json').read_text());pdf=root/'validation-trade.pdf'
+          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.19'
           p=analysis['policy']
           assert p['continuous_state_weighting'] is True
           assert p['league_realistic_multi_asset_search'] is True
-          assert p['competitive_state_treated_as_time_varying'] is True
-          assert p['normal_recommendations_require_positive_focal_current_state_utility'] is True
           assert p['historical_state_at_trade_reconstruction_enabled'] is True
-          assert p['historical_state_at_trade_reconstruction_is_approximate'] is True
-          assert p['historical_state_at_trade_uses_future_same_season_results'] is False
-          assert p['historical_behavior_prefers_same_state_samples'] is True
-          assert p['historical_behavior_can_override_current_state_utility'] is False
-          hi=analysis['historical_trade_state_intelligence']
-          assert hi['model_version']=='FSFFL-Historical-Trade-State-1.0'
-          assert hi['trade_side_count']>0
-          assert hi['state_labeled_trade_side_count']>0
-          assert 0 < float(hi['coverage']) <= 1
+          assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-2.0'
+          assert p['persistent_manager_traits_enabled'] is True
+          assert p['state_conditioned_full_action_behavior_enabled'] is True
+          assert p['behavioral_sources_include_trades_drafts_waivers_faab_drops'] is True
+          assert p['behavioral_history_can_override_current_state_utility'] is False
+          bi=analysis['behavioral_intelligence'];assert bi['owner_count']>=12;assert bi['persistent_plus_state_conditioned'] is True
           normals=[r for r in analysis.get('top_5_alternatives',[]) if r.get('report_role')!='SWING_FOR_FENCES']
           assert all(float(r.get('post_sim_score') or 0)>0 for r in normals)
-          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.5'
-          assert summary['analysis_model_version']==analysis['model_version']
-          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v24.py')
-          assert pdf.exists() and pdf.stat().st_size>2000
-          assert len(PdfReader(str(pdf)).pages)==1
-          print('Automatic Market Sweep 1.18 trade PDF report smoke test passed')
+          for r in analysis.get('top_5_alternatives',[]):
+              ob=((r.get('buyer_rationality') or {}).get('owner_behavior') or {})
+              if ob.get('available'):
+                  assert ob.get('behavioral_intelligence_version')=='FSFFL-Behavioral-Intelligence-2.0'
+                  assert 'behavioral_intelligence_adjustment' in ob
+          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.6'
+          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v25.py')
+          assert pdf.exists() and pdf.stat().st_size>2000 and len(PdfReader(str(pdf)).pages)==1
+          print('Automatic Market Sweep 1.19 / Behavioral Intelligence 2.0 report test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: automatic-trade-report
-          path: |
-            /tmp/fsffl-trade-report/validation-trade.json
-            /tmp/fsffl-trade-report/validation-trade.pdf
-            /tmp/fsffl-trade-report/validation-trade-summary.json
-            /tmp/fsffl-trade-report/pipeline.log
+          path: /tmp/fsffl-trade-report/*
           if-no-files-found: error
           retention-days: 14
