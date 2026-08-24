@@ -21,6 +21,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Mark isolated run started
+        run: |
+          mkdir -p data/alternate_history/results/puka_vs_van_2023
+          printf '{"status":"started","commit":"%s"}\n' "$GITHUB_SHA" > data/alternate_history/results/puka_vs_van_2023/production_run_status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/alternate_history/results/puka_vs_van_2023/production_run_status.json
+          git commit -m "Mark Puka production run started"
+          git push
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -44,9 +53,8 @@ jobs:
         run: |
           cp data/alternate_history/results/puka_vs_van_2023/weighted_current_outlook_1_0_generic.json \
              data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json
+          printf '{"status":"completed","commit":"%s"}\n' "$GITHUB_SHA" > data/alternate_history/results/puka_vs_van_2023/production_run_status.json
+          git add data/alternate_history/results/puka_vs_van_2023/production_20p_250s.json data/alternate_history/results/puka_vs_van_2023/production_run_status.json
           git commit -m "Persist Puka Alternate History 20p 250s result"
           git push
       - name: Upload Puka result
