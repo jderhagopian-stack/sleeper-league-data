@@ -17,6 +17,7 @@ import alternate_history_engine as ah
 import alternate_history_season_cycle as cycle
 import run_fsffl_predraft_particles as predraft
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
+from alternate_history_historical_state import cached_completed_season_pre_event_state
 from run_fsffl_alternate_draft_candidates import raw_draft
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_next_draft_handoff import replay_rookie_draft_groups
@@ -75,7 +76,6 @@ def run_generic(
     if fork_season > current:
         raise ah.AlternateHistoryError("fork season cannot be after the active season")
 
-    # Production root: archived completed-season snapshot plus reverse replay.
     groups, boundary_meta = predraft.anchored_boundary_simulate(
         scenario_path,
         particles=particles,
@@ -95,74 +95,82 @@ def run_generic(
         )
 
     original_actual_pre = dynamic_policy.actual_pre_state
+
+    def cached_completed_actual_pre(adapter, season, event):
+        return cached_completed_season_pre_event_state(adapter, str(season), event)
+
     active_actual_pre = _active_actual_pre_state_factory(current, original_actual_pre)
+    dynamic_policy.actual_pre_state = cached_completed_actual_pre
 
-    for draft_year in range(fork_season + 1, current + 1):
-        draft_season = str(draft_year)
-        completed_season = str(draft_year - 1)
-        use_active_reference = draft_year == current
-        if use_active_reference:
-            dynamic_policy.actual_pre_state = active_actual_pre
-        try:
-            groups, offseason_meta = cycle.replay_predraft_offseason(
-                groups,
-                season=draft_season,
-                particles=particles,
-                seed=seed,
-            )
-            phases.append({
-                "phase": "predraft_offseason",
-                "season": draft_season,
-                "events_processed": offseason_meta["events_processed"],
-                "unique_states": offseason_meta["final_unique_states"],
-            })
-
-            groups, draft_meta = replay_rookie_draft_groups(
-                groups,
-                completed_season=completed_season,
-                draft_season=draft_season,
-                particles=particles,
-                seed=seed,
-            )
-            phases.append({
-                "phase": "rookie_draft",
-                "season": draft_season,
-                "picks_simulated": draft_meta["draft_picks_simulated"],
-                "unique_states": draft_meta["final_unique_states"],
-            })
-
-            after_draft = cycle.draft_end_ms(draft_season)
-            if draft_year < current:
-                groups, season_meta = cycle.propagate_completed_season(
-                    groups,
-                    season=draft_season,
-                    particles=particles,
-                    seed=seed,
-                    after_timestamp_ms=after_draft,
-                )
-                phases.append({
-                    "phase": "completed_season",
-                    "season": draft_season,
-                    "events_processed": season_meta["events_processed"],
-                    "unique_states": season_meta["final_unique_states"],
-                })
-            else:
-                groups, active_meta = cycle.replay_active_season_to_now(
-                    groups,
-                    season=draft_season,
-                    particles=particles,
-                    seed=seed,
-                    after_timestamp_ms=after_draft,
-                )
-                phases.append({
-                    "phase": "active_season_to_now",
-                    "season": draft_season,
-                    "events_processed": active_meta["events_processed"],
-                    "unique_states": active_meta["final_unique_states"],
-                })
-        finally:
+    try:
+        for draft_year in range(fork_season + 1, current + 1):
+            draft_season = str(draft_year)
+            completed_season = str(draft_year - 1)
+            use_active_reference = draft_year == current
             if use_active_reference:
-                dynamic_policy.actual_pre_state = original_actual_pre
+                dynamic_policy.actual_pre_state = active_actual_pre
+            try:
+                groups, offseason_meta = cycle.replay_predraft_offseason(
+                    groups,
+                    season=draft_season,
+                    particles=particles,
+                    seed=seed,
+                )
+                phases.append({
+                    "phase": "predraft_offseason",
+                    "season": draft_season,
+                    "events_processed": offseason_meta["events_processed"],
+                    "unique_states": offseason_meta["final_unique_states"],
+                })
+
+                groups, draft_meta = replay_rookie_draft_groups(
+                    groups,
+                    completed_season=completed_season,
+                    draft_season=draft_season,
+                    particles=particles,
+                    seed=seed,
+                )
+                phases.append({
+                    "phase": "rookie_draft",
+                    "season": draft_season,
+                    "picks_simulated": draft_meta["draft_picks_simulated"],
+                    "unique_states": draft_meta["final_unique_states"],
+                })
+
+                after_draft = cycle.draft_end_ms(draft_season)
+                if draft_year < current:
+                    groups, season_meta = cycle.propagate_completed_season(
+                        groups,
+                        season=draft_season,
+                        particles=particles,
+                        seed=seed,
+                        after_timestamp_ms=after_draft,
+                    )
+                    phases.append({
+                        "phase": "completed_season",
+                        "season": draft_season,
+                        "events_processed": season_meta["events_processed"],
+                        "unique_states": season_meta["final_unique_states"],
+                    })
+                else:
+                    groups, active_meta = cycle.replay_active_season_to_now(
+                        groups,
+                        season=draft_season,
+                        particles=particles,
+                        seed=seed,
+                        after_timestamp_ms=after_draft,
+                    )
+                    phases.append({
+                        "phase": "active_season_to_now",
+                        "season": draft_season,
+                        "events_processed": active_meta["events_processed"],
+                        "unique_states": active_meta["final_unique_states"],
+                    })
+            finally:
+                if use_active_reference:
+                    dynamic_policy.actual_pre_state = cached_completed_actual_pre
+    finally:
+        dynamic_policy.actual_pre_state = original_actual_pre
 
     if sum(group.count for group in groups) != particles:
         raise ah.AlternateHistoryError("generic orchestrator lost particle mass")
@@ -190,6 +198,7 @@ def run_generic(
             "branch_specific_rookie_drafts": True,
             "branch_specific_downstream_transactions": True,
             "current_gm3_numeric_values_used_for_historical_decisions": False,
+            "completed_season_pre_event_states_incrementally_cached": True,
         },
         "summary": {
             "final_particles": particles,
