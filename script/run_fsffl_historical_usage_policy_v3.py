@@ -4,6 +4,9 @@
 Includes the normalized Sleeper adapter contract fix: raw historical events
 carry `source_season` at the event top level, so the v2 evaluator's season/week
 resolver is patched before evaluation to consume that timestamp-safe evidence.
+
+An empty usage-policy queue is a valid outcome for an arbitrary historical fork;
+the queue contract requires consistency, not non-emptiness.
 """
 
 from __future__ import annotations
@@ -53,12 +56,56 @@ def run(scenario_path: Path) -> Path:
         raise ah.AlternateHistoryError(
             f"0.5c triage queue mismatch: ids={len(expected_ids)} summary={expected_count}"
         )
-    if expected_count <= 0:
-        raise ah.AlternateHistoryError("0.5c expected a non-empty historical usage queue")
 
-    event_by_id = {str(e.get("transaction_id")): e for e in adapter.completed_events()}
     positions = positions_index()
     points = HistoricalPoints()
+
+    # Empty is legitimate for arbitrary-year forks. Preserve the same report
+    # schema so downstream consumers can treat zero work as a validated no-op.
+    if expected_count == 0:
+        report: Dict[str, Any] = {
+            "model_version": "Fantasy-Alternate-History-0.5c-v3.2-historical-usage",
+            "scenario_id": scenario.scenario_id,
+            "design_invariants": {
+                "future_nfl_outcomes_used": False,
+                "current_week_realized_points_used": False,
+                "current_gm3_numeric_values_used": False,
+                "completed_prior_week_scoring_only": True,
+                "historical_completed_transaction_is_revealed_action_prior": True,
+                "triage_queue_contract_enforced": True,
+                "local_reference_state_only": True,
+                "normalized_top_level_source_season_used": True,
+                "empty_usage_queue_is_valid_noop": True,
+            },
+            "metadata_contract_fix": {
+                "source_season_location": "normalized event top level",
+                "week_location": "normalized event leg/week with metadata fallback",
+            },
+            "queued_usage_events": 0,
+            "evaluated_transactions": 0,
+            "evaluated_roster_decisions": 0,
+            "expected_decision_counts": {
+                "preserve_exact": 0.0,
+                "preserve_add_change_drop": 0.0,
+                "no_action": 0.0,
+            },
+            "confidence_counts": {},
+            "historical_points_sources": points.sources,
+            "decisions": [],
+        }
+        out = ah.write_isolated_json(
+            f"results/{scenario.scenario_id}/historical_usage_policy_0_5c.json", report
+        )
+        print(out)
+        print(json.dumps({
+            "queued_usage_events": 0,
+            "evaluated_transactions": 0,
+            "evaluated_roster_decisions": 0,
+            "status": "VALID_EMPTY_QUEUE",
+        }, indent=2, sort_keys=True))
+        return out
+
+    event_by_id = {str(e.get("transaction_id")): e for e in adapter.completed_events()}
     results = []
     missing = []
     for tid in expected_ids:
@@ -86,8 +133,8 @@ def run(scenario_path: Path) -> Path:
     for d in flattened:
         conf[str(d.get("confidence"))] += 1
 
-    report: Dict[str, Any] = {
-        "model_version": "Fantasy-Alternate-History-0.5c-v3.1-historical-usage",
+    report = {
+        "model_version": "Fantasy-Alternate-History-0.5c-v3.2-historical-usage",
         "scenario_id": scenario.scenario_id,
         "design_invariants": {
             "future_nfl_outcomes_used": False,
@@ -98,6 +145,7 @@ def run(scenario_path: Path) -> Path:
             "triage_queue_contract_enforced": True,
             "local_reference_state_only": True,
             "normalized_top_level_source_season_used": True,
+            "empty_usage_queue_is_valid_noop": True,
         },
         "metadata_contract_fix": {
             "source_season_location": "normalized event top level",
