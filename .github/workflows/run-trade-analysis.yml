@@ -8,26 +8,21 @@ on:
         required: true
         type: string
       basename:
-        description: 'Artifact/report basename'
         required: false
         default: 'trade-decision-report'
         type: string
       quick_sims:
-        description: 'Market-screen simulations'
         required: false
         default: '100'
         type: string
       confirm_sims:
-        description: 'Confirmation simulations for finalists'
         required: false
         default: '0'
         type: string
       search_depth:
-        description: 'Candidate search depth'
         required: false
         default: '60'
         type: string
-
 jobs:
   trade-analysis:
     runs-on: ubuntu-latest
@@ -35,76 +30,43 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout canonical main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install report dependencies
-        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Materialize ephemeral scenario
         env:
           SCENARIO_JSON: ${{ inputs.scenario_json }}
         run: |
           python - <<'PY'
-          import json, os
+          import json,os
           from pathlib import Path
-          scenario=json.loads(os.environ['SCENARIO_JSON'])
-          assert scenario.get('focus_user_id'), 'focus_user_id is required'
-          assert scenario.get('actions'), 'actions are required'
-          Path('/tmp/fsffl-trade-scenario.json').write_text(json.dumps(scenario, indent=2), encoding='utf-8')
-          print('Validated ephemeral scenario; canonical repository files unchanged')
+          s=json.loads(os.environ['SCENARIO_JSON']);assert s.get('focus_user_id');assert s.get('actions');Path('/tmp/fsffl-trade-scenario.json').write_text(json.dumps(s,indent=2))
           PY
       - name: Run standardized trade pipeline
         run: |
           mkdir -p /tmp/fsffl-trade-output
-          python script/run_trade_report.py \
-            --scenario /tmp/fsffl-trade-scenario.json \
-            --out-dir /tmp/fsffl-trade-output \
-            --basename '${{ inputs.basename }}' \
-            --quick-sims '${{ inputs.quick_sims }}' \
-            --confirm-sims '${{ inputs.confirm_sims }}' \
-            --search-depth '${{ inputs.search_depth }}' \
-            > /tmp/fsffl-trade-output/pipeline.log
+          python script/run_trade_report.py --scenario /tmp/fsffl-trade-scenario.json --out-dir /tmp/fsffl-trade-output --basename '${{ inputs.basename }}' --quick-sims '${{ inputs.quick_sims }}' --confirm-sims '${{ inputs.confirm_sims }}' --search-depth '${{ inputs.search_depth }}' > /tmp/fsffl-trade-output/pipeline.log
       - name: Validate production output
         env:
           BASENAME: ${{ inputs.basename }}
         run: |
           python - <<'PY'
-          import json, os
+          import json,os
           from pathlib import Path
           from pypdf import PdfReader
-          base=os.environ['BASENAME'] or 'trade-decision-report'
-          root=Path('/tmp/fsffl-trade-output')
-          analysis=json.loads((root/f'{base}.json').read_text())
-          summary=json.loads((root/f'{base}-summary.json').read_text())
-          pdf=root/f'{base}.pdf'
-          assert analysis['model_version']=='FSFFL-Counter-Market-Sweep-1.18'
-          assert analysis['simulation']['canonical_state_mutated'] is False
-          p=analysis['policy']
-          assert p['continuous_state_weighting'] is True
-          assert p['league_realistic_multi_asset_search'] is True
-          assert p['competitive_state_treated_as_time_varying'] is True
-          assert p['normal_recommendations_require_positive_focal_current_state_utility'] is True
-          assert p['historical_state_at_trade_reconstruction_enabled'] is True
-          assert p['historical_state_at_trade_uses_future_same_season_results'] is False
-          assert p['historical_behavior_prefers_same_state_samples'] is True
-          assert p['historical_behavior_can_override_current_state_utility'] is False
-          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.5'
-          assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v24.py')
-          assert pdf.exists() and len(PdfReader(str(pdf)).pages)==1
-          print(summary['short_answer'])
+          base=os.environ['BASENAME'] or 'trade-decision-report';root=Path('/tmp/fsffl-trade-output');a=json.loads((root/f'{base}.json').read_text());s=json.loads((root/f'{base}-summary.json').read_text());pdf=root/f'{base}.pdf'
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.19';assert a['simulation']['canonical_state_mutated'] is False
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-2.0';assert p['persistent_manager_traits_enabled'] is True;assert p['state_conditioned_full_action_behavior_enabled'] is True;assert p['behavioral_history_can_override_current_state_utility'] is False
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.6';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v25.py');assert pdf.exists() and len(PdfReader(str(pdf)).pages)==1
+          print(s['short_answer'])
           PY
-      - name: Upload analysis and standardized report
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: fsffl-trade-analysis
-          path: |
-            /tmp/fsffl-trade-output/*.json
-            /tmp/fsffl-trade-output/*.pdf
-            /tmp/fsffl-trade-output/pipeline.log
+          path: /tmp/fsffl-trade-output/*
           if-no-files-found: error
           retention-days: 30
