@@ -78,6 +78,7 @@ jobs:
         run: python script/backfill_alternate_history_sleeper.py
       - name: Run 100-particle / 500-draw production certification
         run: |
+          mkdir -p data/alternate_history/results/puka_vs_van_2023
           /usr/bin/time -v python script/run_gm30_alternate_history_review.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
             --particles 100 --sims 500 --seed 20260824 \
