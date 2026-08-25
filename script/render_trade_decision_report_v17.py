@@ -10,6 +10,7 @@ MODEL_VERSION='FSFFL-Trade-Decision-Report-1.7'
 def load():
     s=importlib.util.spec_from_file_location('trade_report_v16_base',BASE);m=importlib.util.module_from_spec(s);assert s.loader;s.loader.exec_module(m);return m
 b=load();sf=b.sf;clean=b.clean;names=b.names
+BASE_COUNTER_TEXT=b.counter_text;BASE_MARKET_TEXT=b.market_text;BASE_NARRATIVE=b.narrative
 
 def resolution_parts(row):
     sim=row.get('simulation') or {};res=sim.get('roster_resolution') or {};buyer=str(row.get('buyer_user_id') or '')
@@ -31,15 +32,15 @@ def roster_note(row):
     return ' '.join(parts)
 
 def counter_text(row,i):
-    base=b.counter_text(row,i);rn=roster_note(row)
+    base=BASE_COUNTER_TEXT(row,i);rn=roster_note(row)
     return base+(f' <font color="#5F6B76">{rn}</font>' if rn else ' <font color="#5F6B76">Roster impact: no forced active-roster cut required.</font>')
 
 def market_text(row,i):
-    base=b.market_text(row,i);rn=roster_note(row)
+    base=BASE_MARKET_TEXT(row,i);rn=roster_note(row)
     return base+(f' <font color="#5F6B76">{rn}</font>' if rn else ' <font color="#5F6B76">Roster impact: no forced active-roster cut required.</font>')
 
 def narrative(r,cur):
-    text=b.narrative(r,cur);rn=roster_note(cur)
+    text=BASE_NARRATIVE(r,cur);rn=roster_note(cur)
     if rn:text+=' '+rn
     else:text+=' Roster check: the current offer does not require an active-roster cut.'
     return text
