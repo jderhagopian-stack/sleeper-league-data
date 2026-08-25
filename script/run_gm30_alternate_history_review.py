@@ -18,6 +18,7 @@ import alternate_history_performance_runtime as perf
 import alternate_history_weekly_cow_runtime as weekly_cow
 import alternate_history_ledger_key_runtime as ledger_key
 import alternate_history_simulator_dp_runtime as simulator_dp
+import alternate_history_trade_persistence_runtime as trade_persistence
 
 DEFAULT_PARTICLES = 100
 DEFAULT_SIMS = 500
@@ -39,15 +40,17 @@ def run_review(
         raise SystemExit(f"Alternate History scenario not found: {scenario}")
 
     # Performance patches are accuracy-neutral and already equivalence-tested.
-    # Install them only inside this explicit Alternate History process.
+    # Trade persistence is a separately regression-gated counterfactual behavior
+    # improvement: it only repairs historical trades whose exact terms became
+    # illegal while comparable timestamp-safe branch-owned capital still exists.
     perf.install()
     weekly_cow.install()
     ledger_key.install()
     simulator_dp.install()
+    trade_persistence.install()
 
-    # Import after the opt-in performance runtime is installed. The narrative
-    # report is presentation-only and consumes the same validated groups and
-    # Simulator boundary as the original final-report implementation.
+    # Import after the opt-in runtimes are installed. The narrative report
+    # consumes the same branch groups and Simulator boundary as the final model.
     import run_fsffl_alternate_history_report_v2 as final_report
 
     return final_report.run(
