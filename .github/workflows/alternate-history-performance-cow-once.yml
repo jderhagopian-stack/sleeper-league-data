@@ -1,0 +1,54 @@
+name: Alternate History COW Performance Benchmark Once
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/alternate-history-performance-cow-once.yml'
+
+concurrency:
+  group: alternate-history-cow-performance-once
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore completed-season Sleeper history cache
+        uses: actions/cache@v4
+        with:
+          path: data/alternate_history/source_history/sleeper_history.json
+          key: alternate-history-sleeper-completed-2022-2025-v1
+      - name: Backfill authoritative raw Sleeper history
+        run: python script/backfill_alternate_history_sleeper.py
+      - name: Validate optimized runtime is output-identical at 8 particles
+        shell: bash
+        run: |
+          python script/run_fsffl_generic_alternate_history.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 8 --seed 20260824
+          cp data/alternate_history/results/puka_vs_van_2023/generic_season_cycle_1_0.json /tmp/baseline.json
+          python script/run_fsffl_alternate_history_optimized.py \
+            script/run_fsffl_generic_alternate_history.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 8 --seed 20260824
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('/tmp/baseline.json').read_text())
+          b=json.loads(Path('data/alternate_history/results/puka_vs_van_2023/generic_season_cycle_1_0.json').read_text())
+          assert a == b, 'optimized runtime changed generic engine output'
+          print('EQUIVALENCE_PASS particles=8')
+          PY
+      - name: Benchmark optimized Puka 32 particles
+        shell: bash
+        run: |
+          /usr/bin/time -f 'COW_BENCHMARK_32 elapsed=%e maxrss_kb=%M' \
+            python script/run_fsffl_alternate_history_optimized.py \
+            script/run_fsffl_generic_alternate_history.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 32 --seed 20260824
