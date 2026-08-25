@@ -2,12 +2,12 @@
 """FSFFL Behavioral Intelligence 3.0 research model.
 
 BI3 keeps BI2's persistent + competitive-state layers, then adds a third layer:
-context-normalized revealed preference.  A positional acquisition is compared
+context-normalized revealed preference. A positional acquisition is compared
 with the manager's reconstructed pre-action positional needs, so need-driven
 behavior is discounted and redundant/surplus accumulation receives more weight.
 
-This module intentionally consumes a PRECOMPUTED action-context artifact. It
-never rebuilds historical ownership in Market Sweep's interactive path.
+This module consumes a PRECOMPUTED action-context artifact. It never rebuilds
+historical ownership in Market Sweep's interactive path.
 """
 from __future__ import annotations
 
@@ -46,6 +46,7 @@ def sf(x, d=0.0):
 def load_bi2():
     spec = importlib.util.spec_from_file_location("bi2_for_bi3", BI2_PATH)
     mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
 
@@ -102,15 +103,12 @@ def add_action(acc, row):
     if acquired:
         obs_each = 1.0 / len(acquired)
         for p in POSITIONS:
-            # Expected positional choice share if decisions followed roster need only.
             exp = max(.02, sf(needs.get(p), .5)) / need_total
             obs = obs_each if p in acquired else 0.0
             acc["position"][p]["preference_residual_sum"] += w * (obs - exp)
         for p in acquired:
             need = sf(needs.get(p), .5)
             sur = sf(surplus.get(p), 0.0)
-            # Redundancy score is high when the room was already healthy even if
-            # strict quality surplus was not above target.
             redundancy = .72 * (1 - need) + .28 * sur
             pa = acc["position"][p]
             pa["chosen_weight"] += w
@@ -118,7 +116,10 @@ def add_action(acc, row):
             pa["redundancy_sum"] += w * redundancy
         if kind == "draft":
             acc["draft_weight"] += w
-            acc["draft_redundancy_sum"] += w * sum(.72 * (1 - sf(needs.get(p), .5)) + .28 * sf(surplus.get(p), 0) for p in acquired) / len(acquired)
+            acc["draft_redundancy_sum"] += w * sum(
+                .72 * (1 - sf(needs.get(p), .5)) + .28 * sf(surplus.get(p), 0)
+                for p in acquired
+            ) / len(acquired)
             if row.get("bpa_reach_signal") is not None:
                 acc["bpa_supported_weight"] += w
 
@@ -136,7 +137,6 @@ def finalize(acc):
         a = acc["position"][p]
         cw = a["chosen_weight"]
         ew = a["exit_weight"]
-        # Residual is scaled from probability-share units to an interpretable -1..1 trait.
         residual = clamp(a["preference_residual_sum"] / max(.001, acc["weight"]) * 3.0)
         need_response = a["need_sum"] / cw if cw else None
         redundancy = a["redundancy_sum"] / cw if cw else None
@@ -171,7 +171,7 @@ def finalize(acc):
 
 def build(context_path):
     ctx = loadj(context_path, {})
-    if ctx.get("model_version") != "FSFFL-Behavioral-Action-Context-1.0":
+    if ctx.get("model_version") != "FSFFL-Behavioral-Action-Context-1.1":
         raise RuntimeError(f"Unexpected action-context model: {ctx.get('model_version')}")
     bi2 = load_bi2().build()
     accs = defaultdict(new_acc)
@@ -199,15 +199,18 @@ def build(context_path):
             "context_normalized_traits_added": True,
             "need_driven_acquisitions_discount_intrinsic_preference": True,
             "surplus_accumulation_strengthens_intrinsic_preference": True,
+            "shared_historical_state_provider": True,
+            "independent_bi3_historical_replay": False,
             "interactive_historical_replay": False,
             "history_can_override_current_state_utility": False,
         },
         "action_context_model_version": ctx.get("model_version"),
+        "historical_state_provider": ctx.get("historical_state_provider"),
         "action_context_audit": ctx.get("audit"),
         "owner_count": len(owners),
         "owners": owners,
         "limitations": [
-            "Historical roster reconstruction is transaction-replay based and confidence weighted, not perfect ground truth.",
+            "Historical ownership facts come from the shared point-in-time state provider derived from Alternate History reconstruction logic.",
             "Historical player quality uses prior completed-season FSFFL production only; unknown quality is retained as unknown.",
             "Exact historical market-value-at-time is not available.",
             "BPA/reach inference is withheld until time-appropriate historical draft-board evidence is available.",
