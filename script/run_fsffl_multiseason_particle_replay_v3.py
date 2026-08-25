@@ -44,6 +44,7 @@ DEFAULT_PARTICLES = 5000
 DEFAULT_SEED = 20260824
 MAX_TRACES_PER_GROUP = 3
 LEDGER_KEY = "_alternate_history_season_ledger"
+DRAFT_KEY = "_alternate_history_rookie_draft"
 
 
 @dataclass
@@ -74,17 +75,24 @@ def historical_settings(adapter: FSFFLHistoricalAdapter, season: str) -> Dict[st
     return {}
 
 
+def _canonical_roster_subsets(state: Dict[str, Any], key: str) -> Dict[str, List[str]]:
+    return {
+        str(k): sorted(str(x) for x in (v or []))
+        for k, v in sorted((state.get(key) or {}).items())
+    }
+
+
 def season_state_key(state: Dict[str, Any]) -> str:
     canonical = {
-        "roster_players": {
-            str(k): sorted(str(x) for x in (v or []))
-            for k, v in sorted((state.get("roster_players") or {}).items())
-        },
+        "roster_players": _canonical_roster_subsets(state, "roster_players"),
+        "roster_taxi": _canonical_roster_subsets(state, "roster_taxi"),
+        "roster_reserve": _canonical_roster_subsets(state, "roster_reserve"),
         "pick_owners": dict(sorted((state.get("pick_owners") or {}).items())),
         "faab": {
             str(k): float(v or 0.0)
             for k, v in sorted((state.get("faab") or {}).items())
         },
+        "rookie_draft_history": state.get(DRAFT_KEY) or {},
         "season_ledger": state.get(LEDGER_KEY) or {},
     }
     return ah.stable_hash(canonical)
@@ -159,9 +167,14 @@ def score_regular_week(
     positions: Dict[str, str],
     weekly_points: Dict[int, Dict[str, float]],
 ) -> Dict[str, Any]:
+    # Historical lineup shape comes from that season's archived Sleeper profile,
+    # not from the active/current league configuration passed by older callers.
+    season_league, _ = roster_compliance.season_league_profile(str(season))
+    slots = starter_slots(season_league)
+
     compliance_audit = None
     if int(week) == 1:
-        compliance_audit = roster_compliance.enforce_week1_roster_envelope(
+        compliance_audit = roster_compliance.enforce_completed_season_roster_rules(
             groups,
             season=str(season),
         )
@@ -191,11 +204,25 @@ def score_regular_week(
         scores: Dict[str, float] = {}
 
         for rid, actual_row in rows_by_roster.items():
-            roster_players = (group.state.get("roster_players") or {}).get(str(rid), [])
+            owned_players = {
+                str(x)
+                for x in ((group.state.get("roster_players") or {}).get(str(rid), []) or [])
+            }
+            taxi = {
+                str(x)
+                for x in ((group.state.get("roster_taxi") or {}).get(str(rid), []) or [])
+            }
+            reserve = {
+                str(x)
+                for x in ((group.state.get("roster_reserve") or {}).get(str(rid), []) or [])
+            }
+            # Taxi and reserve players remain owned, and therefore remain in the
+            # Sleeper Max PF pool, but cannot be selected into a submitted lineup.
+            active_roster_players = sorted(owned_players - taxi - reserve)
             prev = {str(x) for x in (previous.get(str(rid)) or [])}
             lineup, changes = choose_branch_lineup(
                 actual_row,
-                roster_players,
+                active_roster_players,
                 week=week,
                 slots=slots,
                 positions=positions,
@@ -207,8 +234,10 @@ def score_regular_week(
                 week=week,
                 weekly_points=weekly_points,
             )
+            # Sleeper NFL Max PF includes taxi players. Keep the full ownership
+            # pool here rather than the submitted-lineup eligibility subset.
             max_pf, max_lineup = best_lineup_points(
-                roster_players,
+                sorted(owned_players),
                 slots,
                 positions,
                 realized,
@@ -274,7 +303,8 @@ def run(
     historical_points = HistoricalPoints()
     weekly_points = historical_points.season(fork_season)
     positions = player_positions()
-    slots = starter_slots(adapter.league)
+    season_league, _ = roster_compliance.season_league_profile(fork_season)
+    slots = starter_slots(season_league)
 
     policies = particle_v1.policy_inputs(adapter, scenario, scenario_path)
     triage = policies["triage"]
@@ -460,13 +490,17 @@ def run(
             "current_week_points_never_choose_current_week_lineup": True,
             "historical_starters_are_revealed_choice_baseline": True,
             "branch_specific_roster_eligibility": True,
+            "historical_sleeper_roster_rules_enforced": True,
+            "historical_lineup_slots_use_season_sleeper_profile": True,
+            "taxi_and_reserve_players_excluded_from_submitted_lineup": True,
+            "taxi_players_remain_in_sleeper_maxpf_pool": True,
+            "taxi_reserve_and_draft_history_part_of_state_identity": True,
             "broad_historical_player_week_points_used": True,
             "max_pf_exact_best_ball": True,
             "nonplayoff_slots_use_validated_maxpf_ascending_rule": True,
             "maxpf_exact_tie_uses_worse_regular_season_record": True,
             "particle_probability_mass_pruned": False,
             "season_feedback_part_of_state_identity": True,
-            "historical_week1_roster_envelope_enforced": True,
         },
         "historical_points_sources": historical_points.sources,
         "summary": {
