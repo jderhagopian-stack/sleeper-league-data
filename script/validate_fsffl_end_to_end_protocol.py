@@ -9,6 +9,7 @@ CI efficiency harness only: model logic remains in the production stages.
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import alternate_history_engine as ah
@@ -25,10 +26,17 @@ SEED = 20260824
 
 
 def main() -> None:
+    timings = {}
+    total_started = time.perf_counter()
+
     # Historical replay occurs exactly once through the active-2026 boundary.
+    started = time.perf_counter()
     scenario, end_2025_groups, season_meta = present.build_end_2025_groups(
         SCENARIO, particles=PARTICLES, seed=SEED
     )
+    timings["historical_replay_through_2025_seconds"] = round(time.perf_counter() - started, 4)
+
+    started = time.perf_counter()
     groups, draft_meta = replay_rookie_draft_groups(
         end_2025_groups,
         completed_season="2025",
@@ -36,13 +44,17 @@ def main() -> None:
         particles=PARTICLES,
         seed=SEED,
     )
+    timings["2026_rookie_draft_seconds"] = round(time.perf_counter() - started, 4)
+
     after_timestamp_ms = third_season.draft_boundary_timestamp("2026")
+    started = time.perf_counter()
     groups, current_meta = present.replay_current_transactions(
         groups,
         particles=PARTICLES,
         seed=SEED,
         after_timestamp_ms=after_timestamp_ms,
     )
+    timings["2026_current_transactions_seconds"] = round(time.perf_counter() - started, 4)
 
     final_particles = sum(group.count for group in groups)
     if final_particles != PARTICLES:
@@ -65,20 +77,26 @@ def main() -> None:
     if sum(allocations) != SIMS or any(value <= 0 for value in allocations):
         raise ah.AlternateHistoryError("Simulator allocation invariant failed")
 
+    started = time.perf_counter()
     engine = CounterfactualEngine()
+    timings["simulator_engine_init_seconds"] = round(time.perf_counter() - started, 4)
     focus_rid = int(scenario.focus_roster_id)
     focus_uid = engine.roster_id_to_uid.get(focus_rid)
     if focus_uid is None:
         raise ah.AlternateHistoryError(f"unable to resolve focus roster {focus_rid}")
 
+    started = time.perf_counter()
     baseline = engine.baseline(SIMS)
+    timings["baseline_simulator_seconds"] = round(time.perf_counter() - started, 4)
     baseline_focus = weighted.team(baseline, focus_uid)
     total_particles = sum(group.count for group in groups)
     weighted_rows = []
+    started = time.perf_counter()
     for group, sims in zip(groups, allocations):
         rosters = weighted.simulator_rosters_from_state(engine, group.state)
         result = engine._run(rosters, int(sims))
         weighted_rows.append((group.count / total_particles, weighted.team(result, focus_uid)))
+    timings["alternate_state_simulator_seconds"] = round(time.perf_counter() - started, 4)
 
     alternate = {
         key: weighted.weighted_metric(weighted_rows, key)
@@ -88,6 +106,7 @@ def main() -> None:
     if not alternate or all(value is None for value in alternate.values()):
         raise ah.AlternateHistoryError("weighted Simulator outlook is empty")
 
+    timings["total_seconds"] = round(time.perf_counter() - total_started, 4)
     report = {
         "model_version": "Fantasy-Alternate-History-0.9c-end-to-end-validation",
         "scenario_id": scenario.scenario_id,
@@ -116,6 +135,7 @@ def main() -> None:
             "2026_transactions_processed": current_meta["events_processed"],
             "simulator_draws_allocated": sum(allocations),
         },
+        "phase_timings_seconds": timings,
         "actual_current_outlook": actual,
         "weighted_alternate_current_outlook": alternate,
     }
