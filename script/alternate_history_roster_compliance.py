@@ -10,7 +10,7 @@ Capacity is contemporaneous league evidence only. Player retention never uses
 points from the season about to be replayed. Selection priority is:
 1. players the real manager retained in the contemporaneous roster snapshot;
 2. rookies the branch manager selected in that season's alternate rookie draft;
-3. completed prior-season fantasy production;
+3. completed prior-season fantasy production when archived;
 4. stable player-id tie break.
 """
 from __future__ import annotations
@@ -65,7 +65,12 @@ def drafted_by_roster(state: Dict[str, Any], season: str) -> Dict[str, Dict[str,
 
 
 def prior_season_totals(points: HistoricalPoints, season: str) -> Dict[str, float]:
-    weekly = points.season(str(int(season) - 1))
+    prior = str(int(season) - 1)
+    matchup_path = ah.DATA / "stats" / "fsffl" / prior / "league_matchups_raw.json"
+    weekly_path = ah.DATA / "stats" / "fsffl" / prior / "player_weekly_fsffl.json"
+    if not matchup_path.exists() and not weekly_path.exists():
+        return {}
+    weekly = points.season(prior)
     totals: Dict[str, float] = {}
     for rows in weekly.values():
         for pid, value in rows.items():
@@ -140,10 +145,11 @@ def _enforce(groups: List[Any], *, season: str, actual: Dict[str, set[str]], cap
         "season": str(season),
         "capacity_source": capacity_source,
         "future_season_points_used": False,
+        "prior_season_points_available": bool(prior_totals),
         "retention_signals": [
             "contemporaneous_revealed_retention",
             "branch_rookie_draft_investment",
-            "completed_prior_season_fantasy_points",
+            "completed_prior_season_fantasy_points_when_available",
         ],
         "particle_roster_instances_trimmed": particle_rosters_trimmed,
         "weighted_players_removed": total_removed,
