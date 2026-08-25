@@ -2,17 +2,22 @@
 """Roster-aware post-trade legalization for FSFFL decision support.
 
 Trade simulations must represent a legal roster, not an impossible temporary
-roster.  This module resolves active-roster overflow after a hypothetical trade
+roster. This module resolves active-roster overflow after a hypothetical move
 by selecting the least-damaging cuts using GM 3.0 state-aware asset profiles.
 Taxi and reserve players are excluded from the active-roster count because they
-occupy their own Sleeper slots.  The canonical roster is never mutated.
+occupy their own Sleeper slots. The canonical roster is never mutated.
+
+Callers may protect specific newly acquired players from automatic cut
+selection. This is useful for waiver/add evaluation: the question is whether
+adding the candidate improves the roster after the best incumbent is dropped,
+not whether the optimizer can immediately undo the hypothetical add.
 """
 from __future__ import annotations
 
 import copy
 from typing import Any, Dict, Iterable, List, Tuple
 
-MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.0"
+MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.1"
 
 
 def sf(v, d=0.0):
@@ -56,10 +61,6 @@ def cut_profile(dl, uid: str, pid: str, players: Dict[str, Any]) -> Dict[str, An
     starter = bool(g.get("is_current_optimal_starter"))
     core = str(g.get("core_status") or "")
 
-    # GM 3.0 base franchise value is the primary state-aware retention signal.
-    # Add smaller resilience/liquidity terms and strong protection for starters
-    # and designated core assets.  This is a cut-selection heuristic only; the
-    # actual cut is subsequently included in strategic valuation and simulation.
     cost = base + .12 * break_glass + .06 * depth + .04 * market_dynasty * liquidity
     if starter:
         cost *= 1.75
@@ -85,13 +86,22 @@ def cut_profile(dl, uid: str, pid: str, players: Dict[str, Any]) -> Dict[str, An
 
 
 def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothetical_rosters: List[Dict[str, Any]],
-                            touched_uids: Iterable[str], league: Dict[str, Any], players: Dict[str, Any]
+                            touched_uids: Iterable[str], league: Dict[str, Any], players: Dict[str, Any],
+                            protected_player_ids_by_uid: Dict[str, Iterable[str]] | None = None
                             ) -> Tuple[List[Dict[str, Any]], Dict[str, Any], List[Dict[str, Any]]]:
-    """Return legal hypothetical rosters, resolution metadata, and auto-cut actions."""
+    """Return legal hypothetical rosters, resolution metadata, and auto-cut actions.
+
+    ``protected_player_ids_by_uid`` prevents specified players from being chosen
+    as an automatic cut when enough unprotected incumbents are available.
+    """
     out = copy.deepcopy(hypothetical_rosters)
     before_by_uid, _ = dl.roster_maps(copy.deepcopy(canonical_rosters))
     after_by_uid, _ = dl.roster_maps(out)
     limit = active_roster_limit(league)
+    protected_map = {
+        str(uid): {str(x) for x in (ids or [])}
+        for uid, ids in (protected_player_ids_by_uid or {}).items()
+    }
     resolutions: Dict[str, Any] = {}
     cut_actions: List[Dict[str, Any]] = []
 
@@ -103,14 +113,22 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
         active_before = len(active_player_ids(before)) if before else 0
         active_pre_cut_ids = active_player_ids(roster)
         overflow = max(0, len(active_pre_cut_ids) - limit)
+        protected = protected_map.get(uid, set())
         selected = []
         if overflow:
-            profiles = [cut_profile(dl, uid, pid, players) for pid in active_pre_cut_ids]
+            eligible_ids = [pid for pid in active_pre_cut_ids if pid not in protected]
+            if len(eligible_ids) < overflow:
+                eligible_ids += [pid for pid in active_pre_cut_ids if pid in protected]
+            profiles = [cut_profile(dl, uid, pid, players) for pid in eligible_ids]
             profiles.sort(key=lambda x: (sf(x.get("retention_cost")), sf(x.get("base_franchise_value")), str(x.get("player_id"))))
             selected = profiles[:overflow]
             for row in selected:
                 dl.remove_player(roster, str(row["player_id"]))
-            cut_actions.append({"type": "cut", "user_id": uid, "players": [str(x["player_id"]) for x in selected], "automatic_roster_legalization": True})
+            cut_actions.append({
+                "type": "cut", "user_id": uid,
+                "players": [str(x["player_id"]) for x in selected],
+                "automatic_roster_legalization": True,
+            })
 
         active_after = len(active_player_ids(roster))
         resolutions[uid] = {
@@ -120,6 +138,7 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
             "active_players_after_trade_before_cuts": len(active_pre_cut_ids),
             "required_cuts": overflow,
             "selected_cuts": selected,
+            "protected_from_automatic_cut": sorted(protected),
             "cut_base_franchise_value": round(sum(sf(x.get("base_franchise_value")) for x in selected), 2),
             "cut_market_dynasty_value": round(sum(sf(x.get("market_dynasty")) for x in selected), 2),
             "legal_active_players_after_resolution": active_after,
