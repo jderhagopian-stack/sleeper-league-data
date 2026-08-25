@@ -9,6 +9,11 @@ assignment solver for hypothetical rosters.
 The DP solves the same maximum projected-mean legal lineup assignment problem
 in O(players * slots * 2^slots), which is tiny for the FSFFL nine-slot lineup.
 Canonical Sleeper / GM / Simulator state remains read-only.
+
+Roster-aware trade resolution is applied before lineup optimization: if a
+hypothetical trade would exceed the Sleeper active-roster limit, the least
+harmful legal cuts are selected from GM 3.0 state-aware retention values and
+included in both the simulation and strategic valuation.
 """
 
 from __future__ import annotations
@@ -25,6 +30,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 BASE_ENGINE = Path("script/run_trade_market_sweep.py")
+ROSTER_AWARE = Path("script/roster_aware_trade.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3"
 
 
@@ -52,7 +58,6 @@ def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projectio
         candidates.append({**meta, **pr})
 
     slots = simmod.lineup_slots(league)
-    # mask -> (projected value, assignment dict slot_index -> player row)
     states = {0: (0.0, {})}
     for c in candidates:
         weight = float(c["mean"]) * float(c["active_probability"])
@@ -70,9 +75,6 @@ def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projectio
                     new_assign[idx] = c
                     states[new_mask] = (new_value, new_assign)
 
-    # All projected values in the canonical feed are non-negative. Maximizing
-    # total projected value therefore reproduces the DFS optimum while allowing
-    # genuinely unfillable slots to remain empty.
     _, best_assign = max(states.values(), key=lambda x: x[0])
     lineup = []
     for idx, slot in enumerate(slots):
@@ -115,6 +117,13 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
     actions = engine.scenario_actions(focus_uid, buyer_uid, outgoing, incoming)
     hypothetical_rosters, _ = dl.apply_actions(canonical_rosters, actions)
     touched = dl.touched_users(focus_uid, actions)
+
+    roster_aware = load_module(ROSTER_AWARE, "roster_aware_trade_for_v13")
+    hypothetical_rosters, roster_resolution, auto_cut_actions = roster_aware.legalize_trade_rosters(
+        dl, canonical_rosters, hypothetical_rosters, touched, league, players
+    )
+    effective_actions = list(actions) + list(auto_cut_actions)
+
     hypothetical_lineups, reoptimized = fast_reoptimize_touched_lineups(
         dl, simmod, baseline_lineups, hypothetical_rosters, touched,
         league, users, players, projections
@@ -126,11 +135,15 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
     bidx, hidx = dl.team_index(baseline), dl.team_index(hyp)
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
-    strategic = dl.strategic_summary(focus_uid, actions)
+    strategic = dl.strategic_summary(focus_uid, effective_actions)
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
     return {
-        "actions": actions,
+        "actions": effective_actions,
+        "trade_actions": actions,
+        "automatic_roster_cut_actions": auto_cut_actions,
+        "roster_resolution": roster_resolution,
+        "roster_resolution_model_version": roster_aware.MODEL_VERSION,
         "teams_reoptimized": reoptimized,
         "focus_before": b,
         "focus_after": h,
@@ -224,8 +237,6 @@ def main():
     engine = load_module(BASE_ENGINE, "market_sweep_13_base")
     dl = engine.import_decision_lab()
 
-    # Monkeypatch only the Decision Lab candidate re-optimization path used by
-    # this process. Core Simulator 1.0 remains untouched.
     def patched_simulate_candidate(dl_mod, model_inputs, baseline_lineups, baseline,
                                    focus_uid, buyer_uid, outgoing, incoming, sims, seed):
         return fast_simulate_candidate(
@@ -289,6 +300,9 @@ def main():
     report["policy"]["top_five_report_required"] = True
     report["policy"]["alternatives_compared_to_current_offer"] = True
     report["policy"]["fast_exact_lineup_dp"] = True
+    report["policy"]["roster_aware_trade_resolution"] = True
+    report["policy"]["forced_cuts_included_in_simulation_and_strategic_value"] = True
+    report["policy"]["roster_limit_source"] = "league.roster_positions"
     report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
 
     better = [r for r in ranked if r["comparison_to_current_offer"]["verdict_vs_current_offer"] == "BETTER"]
