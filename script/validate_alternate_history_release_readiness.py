@@ -4,12 +4,15 @@
 This validator deliberately does not execute model logic. It protects the
 consolidated validation topology so future changes cannot silently restore the
 large PR-workflow fan-out that previously duplicated expensive historical
-replay.
+replay. It also enforces the explicit opt-in boundary between normal GM 3.0
+execution and Alternate History review/what-if execution.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+
+from validate_gm30_alternate_history_boundary import validate as validate_integration_boundary
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
@@ -53,6 +56,10 @@ def _require_runtime_guards(name: str, text: str) -> list[str]:
 
 
 def validate() -> None:
+    # First prove that normal GM 3.0 has no implicit path into Alternate History
+    # and that the historical information firewall remains explicit.
+    validate_integration_boundary()
+
     workflow_paths = sorted(WORKFLOW_DIR.glob(f"{PREFIX}*.yml"))
     found = {path.name for path in workflow_paths}
     failures: list[str] = []
@@ -97,7 +104,8 @@ def validate() -> None:
     print(
         "Alternate History release-readiness validation passed: "
         f"{len(AUTOMATIC)} consolidated PR gates, "
-        f"{len(MANUAL_REGRESSIONS)} manual regressions, runtime guards present."
+        f"{len(MANUAL_REGRESSIONS)} manual regressions, runtime guards present, "
+        "GM 3.0 opt-in boundary intact."
     )
 
 
