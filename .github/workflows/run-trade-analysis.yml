@@ -62,7 +62,7 @@ jobs:
           assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.21';assert a['simulation']['canonical_state_mutated'] is False
           p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['bi3_opportunity_normalized'] is True;assert p['counter_and_market_pools_separate'] is True;assert p['suggested_counteroffers_max']==2;assert p['market_sweep_max']==5;assert p['market_sweep_excludes_current_partner'] is True
           assert len(a.get('suggested_counteroffers') or [])<=2;assert len(a.get('market_sweep_alternatives') or [])<=5
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.10';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.3';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v27.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.11';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.4';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v27.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
