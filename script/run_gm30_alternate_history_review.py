@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 
 import alternate_history_performance_runtime as perf
+import alternate_history_ledger_key_runtime as ledger_perf
 
 DEFAULT_PARTICLES = 100
 DEFAULT_SIMS = 500
@@ -35,9 +36,10 @@ def run_review(
     if not scenario.exists():
         raise SystemExit(f"Alternate History scenario not found: {scenario}")
 
-    # Performance patches are accuracy-neutral and already equivalence-tested.
-    # Install them only inside this explicit Alternate History process.
+    # Performance patches are accuracy-neutral and equivalence-tested. Install
+    # them only inside this explicit Alternate History process.
     perf.install()
+    ledger_perf.install()
 
     # Import after the opt-in performance runtime is installed. Keeping this
     # import local also prevents Alternate History from entering normal GM 3.0
