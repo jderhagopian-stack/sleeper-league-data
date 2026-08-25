@@ -1,29 +1,24 @@
 {
-  "scenario_id": "dak_lamb_full_validation",
-  "description": "Full 5,000-simulation validation of Dak Prescott + CeeDee Lamb for Travis Hunter + Aaron Rodgers + Drigs picks.",
+  "scenario_id": "darnold_retrospective_bi3",
+  "description": "Retrospective evaluation of Hurts So Good acquiring Sam Darnold for Tre'Shaun Stribling, a 2027 3rd (orig3), and a 2029 2nd (orig9).",
   "focus_user_id": "846634401482792960",
   "actions": [
     {
       "type": "trade",
       "from_user_id": "846634401482792960",
-      "to_user_id": "853063390963277824",
-      "players": ["3294", "6786"],
-      "picks": []
+      "to_user_id": "676939933792964608",
+      "players": ["13417"],
+      "picks": [
+        "pick:2027:R3:orig3",
+        "pick:2029:R2:orig9"
+      ]
     },
     {
       "type": "trade",
-      "from_user_id": "853063390963277824",
+      "from_user_id": "676939933792964608",
       "to_user_id": "846634401482792960",
-      "players": ["12530", "96"],
-      "picks": [
-        "pick:2027:R1:orig11",
-        "pick:2027:R3:orig11",
-        "pick:2028:R1:orig11",
-        "pick:2028:R2:orig11",
-        "pick:2028:R3:orig11",
-        "pick:2029:R1:orig11",
-        "pick:2029:R2:orig11"
-      ]
+      "players": ["4943"],
+      "picks": []
     }
   ]
 }
