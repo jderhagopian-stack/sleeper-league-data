@@ -123,6 +123,8 @@ def main() -> None:
         f"results/{scenario.scenario_id}/end_to_end_validation_0_9c.json", report
     )
     print(out)
+    print("ALTERNATE_HISTORY_END_TO_END_REPORT")
+    print(json.dumps(report, indent=2, sort_keys=True))
     print("PASS: Puka 2023 -> present-day weighted state -> Simulator 1.0 single-pass protocol")
 
 
