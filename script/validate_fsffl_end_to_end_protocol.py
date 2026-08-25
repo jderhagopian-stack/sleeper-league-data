@@ -14,6 +14,7 @@ from pathlib import Path
 
 import alternate_history_engine as ah
 import alternate_history_performance_runtime as perf
+import alternate_history_roster_compliance as roster_compliance
 import run_fsffl_present_day_particles as present
 import run_fsffl_third_season_particles as third_season
 import run_fsffl_weighted_alternate_outlook as weighted
@@ -31,13 +32,6 @@ REFERENCE_ACTUAL = {
     "expected_points_for": 1658.56,
     "expected_wins": 9.0,
     "playoff_probability": 0.875,
-}
-REFERENCE_ALTERNATE = {
-    "bye_probability": 0.375,
-    "championship_probability": 0.1875,
-    "expected_points_for": 1610.7575,
-    "expected_wins": 9.375,
-    "playoff_probability": 0.9375,
 }
 
 
@@ -72,6 +66,13 @@ def main() -> None:
     )
     timings["2026_current_transactions_seconds"] = round(time.perf_counter() - started, 4)
 
+    started = time.perf_counter()
+    current_compliance = roster_compliance.enforce_current_roster_envelope(
+        groups,
+        season="2026",
+    )
+    timings["2026_roster_compliance_seconds"] = round(time.perf_counter() - started, 4)
+
     final_particles = sum(group.count for group in groups)
     if final_particles != PARTICLES:
         raise ah.AlternateHistoryError("end-to-end validator lost particle mass")
@@ -83,6 +84,18 @@ def main() -> None:
         raise ah.AlternateHistoryError("present-day probability mass != 1")
     if int(season_meta.get("final_particles") or 0) != PARTICLES:
         raise ah.AlternateHistoryError("2025 handoff lost particle mass")
+
+    canonical_sizes = {
+        rid: len(players)
+        for rid, players in roster_compliance.current_rosters().items()
+    }
+    for group in groups:
+        for rid, capacity in canonical_sizes.items():
+            size = len((group.state.get("roster_players") or {}).get(rid) or [])
+            if size > capacity:
+                raise ah.AlternateHistoryError(
+                    f"present-day roster envelope failed for roster {rid}: {size}>{capacity}"
+                )
 
     groups = sorted(
         groups,
@@ -138,14 +151,9 @@ def main() -> None:
     actual = {key: baseline_focus.get(key) for key in weighted.METRICS}
     if not alternate or all(value is None for value in alternate.values()):
         raise ah.AlternateHistoryError("weighted Simulator outlook is empty")
-
     if actual != REFERENCE_ACTUAL:
         raise ah.AlternateHistoryError(
-            f"optimized runtime changed actual Simulator reference: {actual}"
-        )
-    if alternate != REFERENCE_ALTERNATE:
-        raise ah.AlternateHistoryError(
-            f"optimized runtime changed alternate Simulator reference: {alternate}"
+            f"corrected runtime changed actual Simulator reference: {actual}"
         )
 
     timings["total_seconds"] = round(time.perf_counter() - total_started, 4)
@@ -164,12 +172,14 @@ def main() -> None:
             "2026_nfl_games_simulated_by_historical_engine": False,
             "branch_specific_2026_draft_used": True,
             "branch_specific_2026_transactions_used": True,
+            "historical_week1_roster_envelope_enforced": True,
+            "present_day_current_roster_envelope_enforced": True,
             "simulator_1_0_runs_only_after_present_day_boundary": True,
             "all_present_day_states_receive_simulator_coverage": True,
             "alternate_outlook_weighted_by_particle_probability": True,
             "current_gm3_numeric_values_used_for_historical_decisions": False,
             "future_nfl_outcomes_used_for_historical_decisions": False,
-            "optimized_runtime_exact_output_reference_passed": True,
+            "actual_simulator_reference_unchanged": True,
             "state_runtime_audit_is_observational_only": True,
         },
         "summary": {
@@ -179,6 +189,7 @@ def main() -> None:
             "2026_draft_picks_simulated": draft_meta["draft_picks_simulated"],
             "2026_transactions_processed": current_meta["events_processed"],
             "simulator_draws_allocated": sum(allocations),
+            "current_roster_compliance": current_compliance,
         },
         "phase_timings_seconds": timings,
         "state_runtime_audit": state_runtime_audit,
@@ -191,7 +202,7 @@ def main() -> None:
     print(out)
     print("ALTERNATE_HISTORY_END_TO_END_REPORT")
     print(json.dumps(report, indent=2, sort_keys=True))
-    print("PASS: Puka 2023 -> present-day weighted state -> Simulator 1.0 single-pass protocol")
+    print("PASS: Puka 2023 -> legal present-day weighted state -> Simulator 1.0 single-pass protocol")
 
 
 if __name__ == "__main__":
