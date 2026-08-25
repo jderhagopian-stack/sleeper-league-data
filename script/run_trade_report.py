@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Run FSFFL trade analysis and always emit JSON + one-page PDF + short answer.
 
-Manager-facing entry point. Analysis uses Market Sweep 1.19 with Behavioral
-Intelligence 2.0, dynamic competitive-state utility, bilateral realism, and
-league-realistic multi-asset search, then delegates presentation to the
-standardized PDF renderer.
+Manager-facing entry point. Analysis uses Market Sweep 1.20 with Behavioral
+Intelligence 3.0 context-normalized positional behavior, BI2 persistent/state
+traits, dynamic competitive-state utility, bilateral realism, and league-
+realistic multi-asset search, then delegates presentation to the standardized
+PDF renderer.
 """
 from __future__ import annotations
 import argparse,json,subprocess,sys
 from pathlib import Path
-MARKET_SWEEP=Path('script/run_trade_market_sweep_v25.py')
+MARKET_SWEEP=Path('script/run_trade_market_sweep_v26.py')
 PDF_RENDERER=Path('script/render_trade_decision_report.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.6'
-EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.19'
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.7'
+EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.20'
 def run(cmd):subprocess.run(cmd,check=True)
 def summary(report):
     action=str(report.get('recommended_next_action') or 'REVIEW');current=report.get('current_offer_evaluation') or {};sim=current.get('simulation') or {};delta=sim.get('focus_delta') or {};top=report.get('top_5_alternatives') or []
