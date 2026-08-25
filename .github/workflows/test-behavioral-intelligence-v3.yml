@@ -3,14 +3,12 @@ name: Test Behavioral Intelligence 3.0 Context
 on:
   pull_request:
     paths:
+      - 'script/fsffl_historical_state_provider.py'
       - 'script/build_behavioral_action_context.py'
       - 'script/behavioral_intelligence_v3.py'
       - 'script/behavioral_intelligence.py'
-      - 'data/trade_ledger.json'
-      - 'data/acquisition_ledger.json'
-      - 'data/draft_ledger.json'
-      - 'data/drafts.json'
-      - 'data/rosters.json'
+      - 'script/update_sleeper.py'
+      - 'data/alternate_history/source_history/**'
       - 'data/stats/fsffl/**'
       - '.github/workflows/test-behavioral-intelligence-v3.yml'
   workflow_dispatch:
@@ -18,14 +16,14 @@ on:
 jobs:
   context-reconstruction-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compile BI3 research pipeline
-        run: python -m py_compile script/build_behavioral_action_context.py script/behavioral_intelligence_v3.py script/behavioral_intelligence.py
+      - name: Compile shared history and BI3 research pipeline
+        run: python -m py_compile script/fsffl_historical_state_provider.py script/build_behavioral_action_context.py script/behavioral_intelligence_v3.py script/behavioral_intelligence.py
       - name: Build pre-action context cache
         run: |
           SECONDS=0
@@ -41,51 +39,58 @@ jobs:
             > /tmp/bi3-build.log
           echo "$SECONDS" > /tmp/bi3-build-seconds.txt
           cat /tmp/bi3-build.log
-      - name: Validate context, fallbacks, and non-leakage
+      - name: Validate shared provider, context, and non-leakage
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           c=json.loads(Path('/tmp/behavioral-action-context.json').read_text())
           b=json.loads(Path('/tmp/behavioral-intelligence-v3.json').read_text())
-          assert c['model_version']=='FSFFL-Behavioral-Action-Context-1.0'
+          assert c['model_version']=='FSFFL-Behavioral-Action-Context-1.1'
           assert b['model_version']=='FSFFL-Behavioral-Intelligence-3.0-RESEARCH'
           assert b['production_status']=='RESEARCH_NOT_YET_PROMOTED'
+          assert c['policy']['shared_historical_state_provider'] is True
+          assert c['policy']['alternate_history_reconstruction_pattern_reused'] is True
+          assert c['policy']['independent_bi3_ownership_replay'] is False
           assert c['policy']['same_season_future_results_allowed'] is False
           assert c['policy']['historical_quality_uses_prior_completed_season_only'] is True
           assert c['policy']['unknown_player_quality_is_not_treated_as_bad'] is True
           assert c['policy']['interactive_market_sweep_should_rebuild_this_artifact'] is False
           assert b['architecture']['context_normalized_traits_added'] is True
+          assert b['architecture']['shared_historical_state_provider'] is True
+          assert b['architecture']['independent_bi3_historical_replay'] is False
           assert b['architecture']['interactive_historical_replay'] is False
           assert b['architecture']['history_can_override_current_state_utility'] is False
+          p=c['historical_state_provider']
+          assert p['model_version']=='FSFFL-Historical-State-Provider-1.0'
+          assert len(p['seasons']) >= 5
+          assert p['transaction_count'] >= 200
+          assert p['cached_pre_transaction_state_count'] >= 200
           a=c['audit']
           assert a['owner_count'] >= 12
           assert a['action_side_count'] >= 250
           assert a['event_type_counts'].get('trade',0) > 100
           assert a['event_type_counts'].get('acquisition',0) > 100
           assert a['event_type_counts'].get('draft',0) > 50
-          assert 0 <= a['reverse_replay_anomaly_rate'] <= 1
           assert 0 < a['average_context_confidence'] <= 1
           assert b['owner_count'] >= 12
-          # No fake BPA conclusions: draft context can still measure redundancy,
-          # but reach/value-fall remains unsupported without historical board data.
           assert all(r.get('uses_same_season_future_results') is False for r in c['actions'])
           assert all((r.get('bpa_reach_signal') is None) for r in c['actions'] if r['event_type']=='draft')
-          # HSG should have meaningful cross-source context history.
+          assert all(r.get('draft_roster_context_sequence')=='exact_pick_order_from_shared_historical_state_provider' for r in c['actions'] if r['event_type']=='draft')
           h=b['owners']['846634401482792960']['context_normalized']
           assert h['weighted_context_sample'] > 5
           assert len(h['weighted_source_mix']) >= 2
-          # Preference output must be residualized rather than raw acquisition share.
-          for p in ('QB','RB','WR','TE'):
-              t=h['positions'][p]['need_adjusted_preference']
+          for pos in ('QB','RB','WR','TE'):
+              t=h['positions'][pos]['need_adjusted_preference']
               assert -1 <= float(t['score']) <= 1
               assert 0 <= float(t['confidence']) <= 1
           offline=int(Path('/tmp/context-build-seconds.txt').read_text().strip())
           profile=int(Path('/tmp/bi3-build-seconds.txt').read_text().strip())
-          # These are refresh-time jobs, but guard against accidental pathological replay.
-          assert offline <= 180
+          # Refresh-time work may be materially slower than an interactive trade run,
+          # but it must not become pathological. Interactive Market Sweep reads cache only.
+          assert offline <= 240
           assert profile <= 60
-          print(json.dumps({'audit':a,'context_build_seconds':offline,'bi3_profile_seconds':profile,'hsg_context':h},indent=2))
+          print(json.dumps({'provider':p,'audit':a,'context_build_seconds':offline,'bi3_profile_seconds':profile,'hsg_context':h},indent=2))
           PY
       - name: Upload BI3 audit artifacts
         if: always()
