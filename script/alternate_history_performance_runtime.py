@@ -64,11 +64,7 @@ def apply_draft_pick_cow(
     if not pid:
         raise ah.AlternateHistoryError("0.8a attempted to draft empty player id")
 
-    # The reference implementation deep-copies the entire particle state. A
-    # draft pick mutates only roster ownership, one pick-owner key, and draft
-    # history, so all other state components can be safely shared by reference.
     out = dict(state)
-
     source_rosters = state.get("roster_players") or {}
     rosters = dict(source_rosters)
     for rid, players in source_rosters.items():
@@ -82,7 +78,7 @@ def apply_draft_pick_cow(
                 rosters[rid] = copied
         else:
             values = list(players or [])
-            if pid in values or rid == str(controller_roster_id):
+            if pid in {str(x) for x in values} or rid == str(controller_roster_id):
                 values = [str(x) for x in values if str(x) != pid]
                 if rid == str(controller_roster_id) and pid not in values:
                     values.append(pid)
@@ -130,7 +126,6 @@ def _canonical_roster_subset(state: Dict[str, Any], key: str) -> Tuple[Tuple[str
 
 
 def _freeze_json_exact(value: Any) -> Any:
-    """Convert JSON-shaped data to an exact hashable structure without serialization."""
     if isinstance(value, dict):
         return ("dict", tuple(
             (str(k), _freeze_json_exact(v))
@@ -151,7 +146,6 @@ def _ledger_hash(ledger: Dict[str, Any]) -> str:
     identity = id(ledger)
     cached = _LEDGER_HASH_CACHE.get(identity)
     if cached is None:
-        # Retain the source object so Python cannot recycle its id while cached.
         _SOURCE_OBJECTS[identity] = ledger
         cached = ah.stable_hash(ledger)
         _LEDGER_HASH_CACHE[identity] = cached
@@ -159,7 +153,6 @@ def _ledger_hash(ledger: Dict[str, Any]) -> str:
 
 
 def _state_key_with_memo(state: Dict[str, Any]) -> Tuple[Any, ...]:
-    """Exact state identity without JSON-serializing the non-ledger state."""
     ledger = state.get(season_v3.LEDGER_KEY) or {}
     return (
         _canonical_roster_subset(state, "roster_players"),
@@ -175,10 +168,8 @@ def _state_key_with_memo(state: Dict[str, Any]) -> Tuple[Any, ...]:
 def merge_groups_memoized(
     groups: Iterable[season_v3.SeasonParticleGroup],
 ) -> Tuple[list[season_v3.SeasonParticleGroup], int]:
-    """Merge exact-equivalent states without repeated full-state JSON encoding."""
     by_key: Dict[Tuple[Any, ...], season_v3.SeasonParticleGroup] = {}
     merged_particles = 0
-
     for group in groups:
         if group.count <= 0:
             continue
@@ -191,7 +182,6 @@ def merge_groups_memoized(
                 [list(t) for t in group.traces[: season_v3.MAX_TRACES_PER_GROUP]],
             )
             continue
-
         merged_particles += group.count
         existing.count += group.count
         for trace in group.traces:
@@ -199,7 +189,6 @@ def merge_groups_memoized(
                 break
             if trace not in existing.traces:
                 existing.traces.append(list(trace))
-
     return list(by_key.values()), merged_particles
 
 
@@ -219,7 +208,6 @@ def realized_lineup_points_cached(
             for pid in week_rows.keys()
         )
         _SEASON_OBSERVED[source_id] = observed
-
     missing = []
     total = 0.0
     realized = weekly_points.get(int(week), {})
@@ -279,11 +267,6 @@ def best_lineup_points_cached(roster_players, slots, positions, realized):
     realized_id = id(realized)
     _SOURCE_OBJECTS[pos_id] = positions
     _SOURCE_OBJECTS[realized_id] = realized
-
-    # The reference MaxPF optimizer permits players to remain unused and uses
-    # EMPTY="0" for unfilled slots. Non-positive scorers can therefore never
-    # improve the maximum or its lexicographic tie-break. Ignoring them makes
-    # equivalent scoring rosters share the same exact cache entry.
     scoring_players = tuple(sorted(
         str(pid) for pid in roster_players
         if str(pid) not in {"0", "None", ""}
@@ -316,114 +299,6 @@ def _sim_roster_signature(roster: Dict[str, Any]) -> Tuple[Tuple[str, ...], ...]
     )
 
 
-def _fixed_from_sorted(
-    sorted_pool: list[Dict[str, Any]],
-    excluded: set[str],
-    count: int,
-) -> list[Dict[str, Any]] | None:
-    result = []
-    for candidate in sorted_pool:
-        if candidate["player_id"] in excluded:
-            continue
-        result.append(candidate)
-        if len(result) == count:
-            return result
-    return None
-
-
-def simulator_optimize_exact_presorted(roster, week, league, players, projections):
-    """Same exact FSFFL optimizer, but positional pools are sorted only once."""
-    slots = simulator.core.lineup_slots(league)
-    if not simulator.standard_fsffl_slot_counts(slots):
-        return _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
-
-    candidates = simulator.candidate_rows(roster, week, players, projections)
-    if not candidates:
-        return _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
-
-    pools = {
-        pos: sorted(
-            [c for c in candidates if c["position"] == pos],
-            key=lambda c: c["value"],
-            reverse=True,
-        )
-        for pos in ("QB", "RB", "WR", "TE")
-    }
-    sf_pool = [c for c in candidates if c["position"] in {"QB", "RB", "WR", "TE"}]
-    flex_pool = [c for c in candidates if c["position"] in {"RB", "WR", "TE"}]
-
-    best_total = -1e18
-    best = None
-    sf_options = [None] + sf_pool
-    flex_options = [None] + flex_pool
-
-    # Iteration order, candidate order, comparison, and first-best tie behavior
-    # intentionally match optimize_fsffl_fast exactly.
-    for sf in sf_options:
-        sf_id = sf["player_id"] if sf else None
-        for fl in flex_options:
-            fl_id = fl["player_id"] if fl else None
-            if sf_id is not None and sf_id == fl_id:
-                continue
-            used = {x for x in (sf_id, fl_id) if x is not None}
-
-            qb = _fixed_from_sorted(pools["QB"], used, 1)
-            if qb is None:
-                continue
-            used_qb = used | {x["player_id"] for x in qb}
-            rb = _fixed_from_sorted(pools["RB"], used_qb, 2)
-            if rb is None:
-                continue
-            used_rb = used_qb | {x["player_id"] for x in rb}
-            wr = _fixed_from_sorted(pools["WR"], used_rb, 3)
-            if wr is None:
-                continue
-            used_wr = used_rb | {x["player_id"] for x in wr}
-            te = _fixed_from_sorted(pools["TE"], used_wr, 1)
-            if te is None:
-                continue
-
-            selected = qb + rb + wr + te
-            if fl:
-                selected.append(fl)
-            if sf:
-                selected.append(sf)
-            total = sum(x["value"] for x in selected)
-            if total > best_total:
-                best_total = total
-                best = {
-                    "QB": qb,
-                    "RB": rb,
-                    "WR": wr,
-                    "TE": te,
-                    "FLEX": [fl] if fl else [],
-                    "SUPER_FLEX": [sf] if sf else [],
-                }
-
-    if best is None:
-        return _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
-
-    buckets = {k: list(v) for k, v in best.items()}
-    lineup = []
-    for slot in slots:
-        row = buckets.get(slot, []).pop(0) if buckets.get(slot) else None
-        if row is None:
-            lineup.append({
-                "slot": slot,
-                "player_id": None,
-                "name": "EMPTY",
-                "position": None,
-                "mean": 0.0,
-                "median": 0.0,
-                "sd": 0.1,
-                "active_probability": 0.0,
-                "nfl_team": None,
-            })
-        else:
-            lineup.append({"slot": slot, **row})
-    return lineup
-
-
 def simulator_lineup_cached(roster, week, league, players, projections):
     league_id = id(league)
     players_id = id(players)
@@ -441,7 +316,7 @@ def simulator_lineup_cached(roster, week, league, players, projections):
     cached = _SIM_LINEUP_CACHE.get(key)
     if cached is None:
         cached = copy.deepcopy(
-            simulator_optimize_exact_presorted(roster, week, league, players, projections)
+            _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
         )
         _SIM_LINEUP_CACHE[key] = cached
     return copy.deepcopy(cached)
@@ -473,7 +348,6 @@ def simulator_backups_cached(roster, week, lineup, players, projections):
 
 
 def install() -> None:
-    """Install the accuracy-neutral runtime replacements for this process."""
     season_v3.apply_preserving_ledger = apply_preserving_ledger_cow
     season_v3.merge_groups = merge_groups_memoized
     season_v3.realized_lineup_points = realized_lineup_points_cached
