@@ -1,0 +1,124 @@
+name: Test Behavioral Intelligence 3.0 Production Candidate
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_trade_market_sweep_v26.py'
+      - 'script/refresh_behavioral_intelligence_v3.py'
+      - 'script/behavioral_intelligence_v3.py'
+      - 'script/behavioral_intelligence.py'
+      - 'script/fsffl_historical_state_provider.py'
+      - 'script/build_behavioral_action_context.py'
+      - '.github/workflows/test-behavioral-intelligence-v3-production.yml'
+  workflow_dispatch:
+
+jobs:
+  production-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy
+      - name: Compile candidate
+        run: python -m py_compile script/refresh_behavioral_intelligence_v3.py script/run_trade_market_sweep_v26.py
+      - name: Materialize regression scenario
+        run: |
+          cat > /tmp/bi3-trade.json <<'JSON'
+          {
+            "scenario_id":"bi3-production-regression",
+            "focus_user_id":"833709164739014656",
+            "actions":[
+              {"type":"trade","from_user_id":"833709164739014656","to_user_id":"709546576091090944","players":["8155"],"picks":[]},
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"833709164739014656","players":["12529"],"picks":[]}
+            ]
+          }
+          JSON
+      - name: Build compact BI3 cache at refresh time
+        run: |
+          SECONDS=0
+          python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
+          echo "$SECONDS" > /tmp/bi3-refresh-seconds.txt
+          test -f data/behavioral/behavioral_intelligence_v3.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('data/behavioral/behavioral_intelligence_v3.json').read_text())
+          assert p['model_version'].startswith('FSFFL-Behavioral-Intelligence-3.0')
+          assert p['cache_policy']['interactive_history_rebuild'] is False
+          assert p['owner_count'] >= 12
+          assert all(abs(float(v)) <= .20 for v in p['league_bias_audit'].values())
+          PY
+      - name: Benchmark Market Sweep 1.19 baseline
+        run: |
+          SECONDS=0
+          python script/run_trade_market_sweep_v25.py --scenario /tmp/bi3-trade.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/v119.json > /tmp/v119.log
+          echo "$SECONDS" > /tmp/v119-seconds.txt
+      - name: Benchmark Market Sweep 1.20 candidate
+        run: |
+          SECONDS=0
+          python script/run_trade_market_sweep_v26.py --scenario /tmp/bi3-trade.json --quick-sims 100 --confirm-sims 0 --search-depth 60 --seed 20260821 --output /tmp/v120.json > /tmp/v120.log
+          echo "$SECONDS" > /tmp/v120-seconds.txt
+      - name: Validate BI3 production candidate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('/tmp/v119.json').read_text())
+          new=json.loads(Path('/tmp/v120.json').read_text())
+          assert old['model_version']=='FSFFL-Counter-Market-Sweep-1.19'
+          assert new['model_version']=='FSFFL-Counter-Market-Sweep-1.20'
+          assert new['simulation']['canonical_state_mutated'] is False
+          p=new['policy']
+          assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0'
+          assert p['bi2_persistent_manager_traits_retained'] is True
+          assert p['bi2_state_conditioned_full_action_behavior_retained'] is True
+          assert p['bi3_context_normalized_position_signal_enabled'] is True
+          assert p['bi3_opportunity_normalized'] is True
+          assert p['bi3_cache_status']=='AVAILABLE'
+          assert p['bi3_interactive_historical_replay'] is False
+          assert p['behavioral_history_can_override_current_state_utility'] is False
+          assert new['behavioral_intelligence']['interactive_history_rebuild'] is False
+          assert 'BI3_context_normalized_position_signal' in new['simulation']['execution_path']
+          text=json.dumps(new)
+          assert 'bi3_blend_weight' in text
+          assert 'bi3_context_normalized' in text
+          refresh=int(Path('/tmp/bi3-refresh-seconds.txt').read_text().strip())
+          old_sec=int(Path('/tmp/v119-seconds.txt').read_text().strip())
+          new_sec=int(Path('/tmp/v120-seconds.txt').read_text().strip())
+          assert refresh <= 240
+          # User-approved standard analysis ceiling. Cache refresh is excluded.
+          assert new_sec <= 60, (old_sec,new_sec)
+          print(json.dumps({'refresh_seconds':refresh,'v119_seconds':old_sec,'v120_seconds':new_sec,'action_old':old.get('recommended_next_action'),'action_new':new.get('recommended_next_action')},indent=2))
+          PY
+      - name: Validate cache-missing fallback
+        run: |
+          mv data/behavioral/behavioral_intelligence_v3.json /tmp/bi3-cache.json
+          python script/run_trade_market_sweep_v26.py --scenario /tmp/bi3-trade.json --quick-sims 10 --confirm-sims 0 --search-depth 5 --seed 20260821 --output /tmp/v120-fallback.json > /tmp/v120-fallback.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/v120-fallback.json').read_text())
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.20'
+          assert r['policy']['bi3_cache_status']=='MISSING'
+          assert r['policy']['bi3_context_normalized_position_signal_enabled'] is False
+          assert r['policy']['behavioral_history_can_override_current_state_utility'] is False
+          PY
+      - name: Upload candidate audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bi3-production-candidate-audit
+          path: |
+            /tmp/v119.json
+            /tmp/v120.json
+            /tmp/v120-fallback.json
+            /tmp/*seconds.txt
+            /tmp/bi3-refresh.log
+            /tmp/v119.log
+            /tmp/v120.log
+            /tmp/v120-fallback.log
+          if-no-files-found: warn
+          retention-days: 14
