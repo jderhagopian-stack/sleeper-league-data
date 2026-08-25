@@ -3,6 +3,7 @@ name: Test Automatic Trade PDF Report
 on:
   pull_request:
     paths:
+      - 'data/decision_lab/full_validation_scenario.json'
       - 'script/render_trade_decision_report.py'
       - 'script/run_trade_report.py'
       - 'script/historical_state_behavior.py'
