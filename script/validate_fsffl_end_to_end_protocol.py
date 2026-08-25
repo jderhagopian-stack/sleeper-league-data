@@ -67,7 +67,7 @@ def main() -> None:
     timings["2026_current_transactions_seconds"] = round(time.perf_counter() - started, 4)
 
     started = time.perf_counter()
-    current_compliance = roster_compliance.enforce_current_roster_envelope(
+    current_compliance = roster_compliance.enforce_current_season_roster_rules(
         groups,
         season="2026",
     )
@@ -85,16 +85,38 @@ def main() -> None:
     if int(season_meta.get("final_particles") or 0) != PARTICLES:
         raise ah.AlternateHistoryError("2025 handoff lost particle mass")
 
-    canonical_sizes = {
-        rid: len(players)
-        for rid, players in roster_compliance.current_rosters().items()
-    }
+    # Validate the exact Sleeper slot envelope, not observed roster counts.
+    rules = roster_compliance.roster_rules("2026")
+    active_cap = int(rules["active_slots"])
+    reserve_cap = int(rules["reserve_slots"])
+    taxi_cap = int(rules["taxi_slots"])
+    total_cap = int(rules["total_owned_capacity"])
     for group in groups:
-        for rid, capacity in canonical_sizes.items():
-            size = len((group.state.get("roster_players") or {}).get(rid) or [])
-            if size > capacity:
+        roster_map = group.state.get("roster_players") or {}
+        reserve_map = group.state.get("roster_reserve") or {}
+        taxi_map = group.state.get("roster_taxi") or {}
+        for rid, values in roster_map.items():
+            owned = {str(pid) for pid in (values or [])}
+            reserve = {str(pid) for pid in (reserve_map.get(str(rid)) or [])}
+            taxi = {str(pid) for pid in (taxi_map.get(str(rid)) or [])}
+            if not reserve.issubset(owned) or not taxi.issubset(owned):
                 raise ah.AlternateHistoryError(
-                    f"present-day roster envelope failed for roster {rid}: {size}>{capacity}"
+                    f"present-day non-active slots are not owned for roster {rid}"
+                )
+            if reserve & taxi:
+                raise ah.AlternateHistoryError(
+                    f"present-day reserve/taxi overlap for roster {rid}"
+                )
+            active = owned - reserve - taxi
+            if len(owned) > total_cap:
+                raise ah.AlternateHistoryError(
+                    f"present-day total roster cap failed for roster {rid}: {len(owned)}>{total_cap}"
+                )
+            if len(active) > active_cap or len(reserve) > reserve_cap or len(taxi) > taxi_cap:
+                raise ah.AlternateHistoryError(
+                    f"present-day Sleeper slot cap failed for roster {rid}: "
+                    f"active={len(active)}/{active_cap}, reserve={len(reserve)}/{reserve_cap}, "
+                    f"taxi={len(taxi)}/{taxi_cap}"
                 )
 
     groups = sorted(
@@ -172,8 +194,8 @@ def main() -> None:
             "2026_nfl_games_simulated_by_historical_engine": False,
             "branch_specific_2026_draft_used": True,
             "branch_specific_2026_transactions_used": True,
-            "historical_week1_roster_envelope_enforced": True,
-            "present_day_current_roster_envelope_enforced": True,
+            "historical_sleeper_roster_rules_enforced": True,
+            "present_day_sleeper_roster_rules_enforced": True,
             "simulator_1_0_runs_only_after_present_day_boundary": True,
             "all_present_day_states_receive_simulator_coverage": True,
             "alternate_outlook_weighted_by_particle_probability": True,
