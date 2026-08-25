@@ -89,14 +89,13 @@ jobs:
           old_sec=int(Path('/tmp/v119-seconds.txt').read_text().strip())
           new_sec=int(Path('/tmp/v120-seconds.txt').read_text().strip())
           assert refresh <= 240
-          # User-approved standard analysis ceiling. Cache refresh is excluded.
           assert new_sec <= 60, (old_sec,new_sec)
           print(json.dumps({'refresh_seconds':refresh,'v119_seconds':old_sec,'v120_seconds':new_sec,'action_old':old.get('recommended_next_action'),'action_new':new.get('recommended_next_action')},indent=2))
           PY
       - name: Validate cache-missing fallback
         run: |
           mv data/behavioral/behavioral_intelligence_v3.json /tmp/bi3-cache.json
-          python script/run_trade_market_sweep_v26.py --scenario /tmp/bi3-trade.json --quick-sims 10 --confirm-sims 0 --search-depth 5 --seed 20260821 --output /tmp/v120-fallback.json > /tmp/v120-fallback.log
+          python script/run_trade_market_sweep_v26.py --scenario /tmp/bi3-trade.json --quick-sims 100 --confirm-sims 0 --search-depth 5 --seed 20260821 --output /tmp/v120-fallback.json > /tmp/v120-fallback.log
           python - <<'PY'
           import json
           from pathlib import Path
