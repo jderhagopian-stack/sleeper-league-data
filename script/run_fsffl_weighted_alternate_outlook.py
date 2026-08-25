@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import alternate_history_engine as ah
+import alternate_history_roster_compliance as roster_compliance
 import run_fsffl_generic_alternate_history as generic
 from run_fsffl_alternate_history import FSFFLHistoricalAdapter
 from run_fsffl_downstream_dependencies import load
@@ -50,7 +51,6 @@ def simulator_rosters_from_state(engine: CounterfactualEngine, state: Dict[str, 
 
 
 def allocate_sims(groups, total_sims: int) -> List[int]:
-    """Allocate simulation draws across every state while preserving total budget."""
     n = len(groups)
     if n <= 0:
         raise ah.AlternateHistoryError("weighted outlook received no present-day states")
@@ -105,10 +105,16 @@ def build_present_groups(scenario_path: Path, *, particles: int, seed: int):
         (row for row in reversed(generic_report.get("phase_audit") or []) if row.get("phase") == "active_season_to_now"),
         {},
     )
+    active_season = str(generic_report.get("active_season") or "")
+    compliance = roster_compliance.enforce_current_roster_envelope(
+        groups,
+        season=active_season,
+    )
     return scenario, groups, {
-        "season": str(generic_report.get("active_season") or ""),
+        "season": active_season,
         "events_processed": int(active_phase.get("events_processed") or 0),
         "generic_model_version": generic_report.get("model_version"),
+        "roster_compliance": compliance,
     }
 
 
@@ -174,6 +180,7 @@ def run(
             "all_present_day_states_receive_simulator_coverage": True,
             "alternate_outlook_weighted_by_particle_probability": True,
             "canonical_simulator_inputs_are_read_only": True,
+            "present_day_roster_envelope_enforced": True,
         },
         "summary": {
             "present_day_unique_states": len(groups),
@@ -182,6 +189,7 @@ def run(
             "simulator_draws_allocated": sum(allocations),
             "active_season": current_meta["season"],
             "active_season_transactions_processed": current_meta["events_processed"],
+            "roster_compliance": current_meta["roster_compliance"],
         },
         "actual_current_outlook": actual,
         "weighted_alternate_current_outlook": alternate,
