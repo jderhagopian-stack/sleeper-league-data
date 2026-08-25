@@ -1,12 +1,14 @@
-name: Alternate History COW Performance Benchmark Once
+name: Alternate History Runtime Performance Benchmark Once
 
 on:
   pull_request:
     paths:
       - '.github/workflows/alternate-history-performance-cow-once.yml'
+      - 'script/alternate_history_performance_runtime.py'
+      - 'script/run_fsffl_alternate_history_optimized.py'
 
 concurrency:
-  group: alternate-history-cow-performance-once
+  group: alternate-history-runtime-performance-once
   cancel-in-progress: true
 
 jobs:
@@ -47,7 +49,7 @@ jobs:
       - name: Benchmark optimized Puka 32 particles
         shell: bash
         run: |
-          /usr/bin/time -f 'COW_BENCHMARK_32 elapsed=%e maxrss_kb=%M' \
+          /usr/bin/time -f 'RUNTIME_BENCHMARK_32 elapsed=%e maxrss_kb=%M' \
             python script/run_fsffl_alternate_history_optimized.py \
             script/run_fsffl_generic_alternate_history.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
