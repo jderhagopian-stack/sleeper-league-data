@@ -4,10 +4,10 @@ from __future__ import annotations
 import argparse,json,subprocess,sys
 from pathlib import Path
 MARKET_SWEEP=Path('script/run_trade_market_sweep_v27.py')
-PDF_RENDERER=Path('script/render_trade_decision_report_v14.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.11'
+PDF_RENDERER=Path('script/render_trade_decision_report_v15.py')
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.12'
 EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.21'
-REPORT_VERSION='FSFFL-Trade-Decision-Report-1.4'
+REPORT_VERSION='FSFFL-Trade-Decision-Report-1.5'
 def run(cmd):subprocess.run(cmd,check=True)
 def summary(report):
  action=str(report.get('recommended_next_action') or 'REVIEW');cur=report.get('current_offer_evaluation') or {};sim=cur.get('simulation') or {};d=sim.get('focus_delta') or {};st=sim.get('strategic') or {};cs=report.get('suggested_counteroffers') or [];ms=report.get('market_sweep_alternatives') or []
