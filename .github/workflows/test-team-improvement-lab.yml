@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/run_team_improvement_lab.py'
+      - 'script/run_team_improvement_lab_v11.py'
       - 'script/roster_aware_trade.py'
       - 'script/run_roster_decision_lab.py'
       - 'script/run_trade_market_sweep_v13.py'
@@ -22,11 +23,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile Team Improvement Lab
-        run: python -m py_compile script/run_team_improvement_lab.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v11.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
       - name: Run Team Improvement Lab smoke test
         run: |
           mkdir -p /tmp/team-improvement
-          python script/run_team_improvement_lab.py \
+          python script/run_team_improvement_lab_v11.py \
             --focus-user-id 846634401482792960 \
             --quick-sims 50 \
             --confirm-sims 100 \
@@ -41,7 +42,7 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/team-improvement/report.json')
           r=json.loads(p.read_text())
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.0'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.1'
           assert r['generated_for_user_id']=='846634401482792960'
           assert r['hold_benchmark']['team_improvement_score']==0
           assert r['policy']['hold_is_explicit_benchmark'] is True
@@ -50,6 +51,7 @@ jobs:
           assert r['policy']['forced_cuts_included_in_simulation_and_value'] is True
           assert r['policy']['canonical_state_mutated'] is False
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
+          assert r['search_summary']['waiver_candidates_screened'] > 0, 'full projection pool should produce waiver candidates'
           for row in r.get('top_cross_channel_options') or []:
               sim=row.get('simulation') or {}
               rr=sim.get('roster_resolution') or {}
@@ -58,7 +60,9 @@ jobs:
               assert row.get('team_improvement_score') is not None
               if row.get('channel')=='TRADE':
                   assert row.get('acceptance_fit') in {'HIGH','MEDIUM','LOW','VERY_LOW'}
-          print('Team Improvement Lab 1.0 validation passed')
+          for row in r.get('best_waiver_options') or []:
+              assert row.get('waiver_discovery_source')=='full_simulator_projection_pool'
+          print('Team Improvement Lab 1.1 validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
