@@ -2,8 +2,9 @@
 """Exact memoized replacement for Simulator 1.0 generic lineup DFS.
 
 This module changes only redundant recursion. Candidate construction, projected
-objective, eligibility, slot ordering, empty-slot behavior, strict tie handling,
-and final lineup shape intentionally mirror the validated reference optimizer.
+objective, eligibility, slot ordering, empty-slot behavior, forward floating
+arithmetic, strict tie handling, and final lineup shape intentionally mirror the
+validated reference optimizer.
 """
 
 from __future__ import annotations
@@ -33,11 +34,11 @@ def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
     slot_priority = {"QB": 0, "TE": 1, "RB": 2, "WR": 2, "SUPER_FLEX": 3, "FLEX": 4}
     ordered_slots = sorted(enumerate(slots), key=lambda x: slot_priority.get(x[1], 5))
 
-    # Preserve the reference optimizer's stable per-state ordering exactly.
+    # Preserve the reference optimizer's stable per-state option ordering.
     option_indexes: List[Tuple[int, ...]] = []
     values: List[float] = []
     for c in candidates:
-        values.append(float(c["mean"]) * float(c["active_probability"]))
+        values.append(c["mean"] * c["active_probability"])
     for _, slot in ordered_slots:
         eligible_indexes = [
             idx for idx, c in enumerate(candidates)
@@ -46,35 +47,40 @@ def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
         eligible_indexes.sort(key=lambda idx: values[idx], reverse=True)
         option_indexes.append(tuple(eligible_indexes))
 
-    # Return (best remaining value, assignments in ordered-slot traversal order).
-    # Strict > below matches the reference DFS: equal-valued later branches never
-    # replace the first branch encountered.
+    # Include the forward accumulated float in the cache key. The reference DFS
+    # adds projected values from left to right and uses strict > at the leaf;
+    # carrying `total` preserves both floating-point accumulation and the exact
+    # first-encountered tie path while still collapsing genuinely identical
+    # subproblems reached through redundant recursion.
     @lru_cache(maxsize=None)
-    def solve(i: int, used_ids: frozenset[str]):
+    def solve(i: int, used_ids: frozenset[str], total: float):
         if i == len(ordered_slots):
-            return 0.0, ()
+            return total, ()
 
         original_idx, slot = ordered_slots[i]
         feasible = [
             idx for idx in option_indexes[i]
-            if str(candidates[idx]["player_id"]) not in used_ids
+            if candidates[idx]["player_id"] not in used_ids
         ]
         if not feasible:
-            tail_value, tail_assign = solve(i + 1, used_ids)
-            return tail_value, ((original_idx, slot, -1),) + tail_assign
+            final_total, tail_assign = solve(i + 1, used_ids, total)
+            return final_total, ((original_idx, slot, -1),) + tail_assign
 
-        best_value = -1e18
+        best_final = -1e18
         best_assign: Tuple[Tuple[int, str, int], ...] = ()
         for idx in feasible:
-            pid = str(candidates[idx]["player_id"])
-            tail_value, tail_assign = solve(i + 1, used_ids | {pid})
-            total = values[idx] + tail_value
-            if total > best_value:
-                best_value = total
+            pid = candidates[idx]["player_id"]
+            final_total, tail_assign = solve(
+                i + 1,
+                used_ids | {pid},
+                total + values[idx],
+            )
+            if final_total > best_final:
+                best_final = final_total
                 best_assign = ((original_idx, slot, idx),) + tail_assign
-        return best_value, best_assign
+        return best_final, best_assign
 
-    _, assignment = solve(0, frozenset())
+    _, assignment = solve(0, frozenset(), 0.0)
     ordered_assignment = sorted(assignment, key=lambda x: x[0])
     lineup = []
     for _, slot, idx in ordered_assignment:
