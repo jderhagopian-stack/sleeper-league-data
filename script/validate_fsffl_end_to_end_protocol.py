@@ -42,13 +42,10 @@ REFERENCE_ALTERNATE = {
 
 
 def main() -> None:
-    # Production Alternate History installs only accuracy-neutral runtime patches.
     perf.install()
-
     timings = {}
     total_started = time.perf_counter()
 
-    # Historical replay occurs exactly once through the active-2026 boundary.
     started = time.perf_counter()
     scenario, end_2025_groups, season_meta = present.build_end_2025_groups(
         SCENARIO, particles=PARTICLES, seed=SEED
@@ -87,7 +84,6 @@ def main() -> None:
     if int(season_meta.get("final_particles") or 0) != PARTICLES:
         raise ah.AlternateHistoryError("2025 handoff lost particle mass")
 
-    # Simulator 1.0 sees those exact states; no historical replay is repeated.
     groups = sorted(
         groups,
         key=lambda group: (-group.count, json.dumps(group.state, sort_keys=True)),
@@ -110,11 +106,29 @@ def main() -> None:
     baseline_focus = weighted.team(baseline, focus_uid)
     total_particles = sum(group.count for group in groups)
     weighted_rows = []
+    state_runtime_audit = []
     started = time.perf_counter()
-    for group, sims in zip(groups, allocations):
+    for idx, (group, sims) in enumerate(zip(groups, allocations)):
         rosters = weighted.simulator_rosters_from_state(engine, group.state)
+        roster_sizes = {
+            str(row.get("roster_id")): len(row.get("players") or [])
+            for row in rosters
+        }
+        state_started = time.perf_counter()
         result = engine._run(rosters, int(sims))
+        wall = round(time.perf_counter() - state_started, 4)
         weighted_rows.append((group.count / total_particles, weighted.team(result, focus_uid)))
+        state_runtime_audit.append({
+            "state_index": idx,
+            "particles": group.count,
+            "simulations": int(sims),
+            "wall_seconds": wall,
+            "simulator_runtime": result.get("runtime") or {},
+            "max_roster_size": max(roster_sizes.values()) if roster_sizes else 0,
+            "min_roster_size": min(roster_sizes.values()) if roster_sizes else 0,
+            "focus_roster_size": roster_sizes.get(str(focus_rid)),
+            "roster_sizes": roster_sizes,
+        })
     timings["alternate_state_simulator_seconds"] = round(time.perf_counter() - started, 4)
 
     alternate = {
@@ -125,8 +139,6 @@ def main() -> None:
     if not alternate or all(value is None for value in alternate.values()):
         raise ah.AlternateHistoryError("weighted Simulator outlook is empty")
 
-    # Exact A/B reference from the immediately preceding unoptimized run.
-    # Timing may change; model outputs may not.
     if actual != REFERENCE_ACTUAL:
         raise ah.AlternateHistoryError(
             f"optimized runtime changed actual Simulator reference: {actual}"
@@ -158,6 +170,7 @@ def main() -> None:
             "current_gm3_numeric_values_used_for_historical_decisions": False,
             "future_nfl_outcomes_used_for_historical_decisions": False,
             "optimized_runtime_exact_output_reference_passed": True,
+            "state_runtime_audit_is_observational_only": True,
         },
         "summary": {
             "final_particles": final_particles,
@@ -168,6 +181,7 @@ def main() -> None:
             "simulator_draws_allocated": sum(allocations),
         },
         "phase_timings_seconds": timings,
+        "state_runtime_audit": state_runtime_audit,
         "actual_current_outlook": actual,
         "weighted_alternate_current_outlook": alternate,
     }
