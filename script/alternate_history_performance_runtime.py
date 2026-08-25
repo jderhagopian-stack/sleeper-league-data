@@ -18,6 +18,7 @@ import alternate_history_engine as ah
 import run_fsffl_multiseason_branch_replay as branch_v1
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
 import run_fsffl_season_boundary_particles as boundary_core
+import run_fsffl_season_simulator_preproduction as simulator
 
 # Keep referenced immutable source objects alive while their identity is used in
 # cache keys. That prevents Python id reuse from ever aliasing two source maps.
@@ -25,9 +26,13 @@ _SOURCE_OBJECTS: Dict[int, Any] = {}
 _SEASON_OBSERVED: Dict[int, frozenset[str]] = {}
 _LINEUP_CACHE: Dict[Tuple[Any, ...], Tuple[Tuple[str, ...], Any]] = {}
 _MAXPF_CACHE: Dict[Tuple[Any, ...], Tuple[float, Tuple[str, ...]]] = {}
+_SIM_LINEUP_CACHE: Dict[Tuple[Any, ...], Any] = {}
+_SIM_BACKUP_CACHE: Dict[Tuple[Any, ...], Any] = {}
 
 _ORIGINAL_CHOOSE = season_v3.choose_branch_lineup
 _ORIGINAL_BEST_LINEUP = season_v3.best_lineup_points
+_ORIGINAL_SIM_OPTIMIZE = simulator.optimize_fsffl_fast
+_ORIGINAL_SIM_BACKUPS = simulator.build_backup_chains
 
 
 def apply_preserving_ledger_cow(
@@ -203,6 +208,64 @@ def best_lineup_points_cached(roster_players, slots, positions, realized):
     return cached[0], list(cached[1])
 
 
+def _sim_roster_signature(roster: Dict[str, Any]) -> Tuple[Tuple[str, ...], ...]:
+    return (
+        tuple(sorted(str(x) for x in (roster.get("players") or []))),
+        tuple(sorted(str(x) for x in (roster.get("taxi") or []))),
+        tuple(sorted(str(x) for x in (roster.get("reserve") or []))),
+    )
+
+
+def simulator_lineup_cached(roster, week, league, players, projections):
+    """Reuse exact deterministic Simulator lineup preprocessing across states."""
+    league_id = id(league)
+    players_id = id(players)
+    projections_id = id(projections)
+    _SOURCE_OBJECTS[league_id] = league
+    _SOURCE_OBJECTS[players_id] = players
+    _SOURCE_OBJECTS[projections_id] = projections
+    key = (
+        league_id,
+        players_id,
+        projections_id,
+        int(week),
+        _sim_roster_signature(roster),
+    )
+    cached = _SIM_LINEUP_CACHE.get(key)
+    if cached is None:
+        cached = copy.deepcopy(
+            _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
+        )
+        _SIM_LINEUP_CACHE[key] = cached
+    return copy.deepcopy(cached)
+
+
+def simulator_backups_cached(roster, week, lineup, players, projections):
+    """Reuse exact deterministic Simulator backup chains across states."""
+    players_id = id(players)
+    projections_id = id(projections)
+    _SOURCE_OBJECTS[players_id] = players
+    _SOURCE_OBJECTS[projections_id] = projections
+    lineup_sig = tuple(
+        (str(row.get("slot") or ""), str(row.get("player_id") or ""))
+        for row in lineup
+    )
+    key = (
+        players_id,
+        projections_id,
+        int(week),
+        _sim_roster_signature(roster),
+        lineup_sig,
+    )
+    cached = _SIM_BACKUP_CACHE.get(key)
+    if cached is None:
+        cached = copy.deepcopy(
+            _ORIGINAL_SIM_BACKUPS(roster, week, lineup, players, projections)
+        )
+        _SIM_BACKUP_CACHE[key] = cached
+    return copy.deepcopy(cached)
+
+
 def install() -> None:
     """Install the accuracy-neutral runtime replacements for this process."""
     season_v3.apply_preserving_ledger = apply_preserving_ledger_cow
@@ -214,3 +277,7 @@ def install() -> None:
     # globals as well to reuse the same exact caches.
     boundary_core.realized_lineup_points = realized_lineup_points_cached
     boundary_core.choose_branch_lineup = choose_branch_lineup_cached
+    # Simulator 1.0 rebuilds deterministic lineup/backup structures on every
+    # alternate-state call. Reuse those exact structures for identical rosters.
+    simulator.optimize_fsffl_fast = simulator_lineup_cached
+    simulator.build_backup_chains = simulator_backups_cached
