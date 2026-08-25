@@ -47,7 +47,7 @@ jobs:
       - name: Run Team Improvement Lab
         run: |
           mkdir -p /tmp/team-improvement
-          python script/run_team_improvement_lab.py \
+          python script/run_team_improvement_lab_v11.py \
             --focus-user-id '${{ inputs.focus_user_id }}' \
             --quick-sims '${{ inputs.quick_sims }}' \
             --confirm-sims '${{ inputs.confirm_sims }}' \
@@ -63,10 +63,11 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/team-improvement/team-improvement-report.json')
           r=json.loads(p.read_text())
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.0'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.1'
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['roster_aware_trade_resolution'] is True
           assert r['policy']['hold_is_explicit_benchmark'] is True
+          assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
           for row in r.get('top_cross_channel_options') or []:
               assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
