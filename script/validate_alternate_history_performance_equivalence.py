@@ -95,22 +95,22 @@ def validate_maxpf() -> None:
             )
 
 
-def validate_simulator_lineups() -> None:
+def validate_simulator_cache() -> None:
     engine = CounterfactualEngine()
-    weeks = sorted(int(w) for w in engine.projections.keys() if str(w).isdigit())[:3]
-    if not weeks:
-        weeks = [1, 2, 3]
-    for roster in engine.rosters[:4]:
-        for week in weeks:
+    # The production simulator can traverse the full regular-season projection
+    # horizon. Compare every current roster across weeks 1-18 rather than a
+    # small early-week sample.
+    for roster in engine.rosters:
+        for week in range(1, 19):
             reference = perf._ORIGINAL_SIM_OPTIMIZE(
                 roster, week, engine.league, engine.players, engine.projections
             )
-            optimized = perf.simulator_optimize_exact_presorted(
+            optimized = perf.simulator_lineup_cached(
                 roster, week, engine.league, engine.players, engine.projections
             )
             if optimized != reference:
                 raise AssertionError(
-                    f"pre-sorted Simulator optimizer changed lineup for roster "
+                    f"Simulator lineup cache changed lineup for roster "
                     f"{roster.get('roster_id')} week {week}"
                 )
 
@@ -119,7 +119,7 @@ def main() -> None:
     validate_draft_cow()
     validate_state_key_equivalence()
     validate_maxpf()
-    validate_simulator_lineups()
+    validate_simulator_cache()
     print("PASS: Alternate History performance replacements are exact-equivalent")
 
 
