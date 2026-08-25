@@ -1,24 +1,24 @@
 {
-  "scenario_id": "darnold_retrospective_bi3",
-  "description": "Retrospective evaluation of Hurts So Good acquiring Sam Darnold for Tre'Shaun Stribling, a 2027 3rd (orig3), and a 2029 2nd (orig9).",
+  "scenario_id": "darnold_trade_reversal_bi3",
+  "description": "Counterfactual reversal of completed Hurts So Good Darnold trade. Baseline is current roster with Darnold; hypothetical returns Tre'Shaun Stribling, a 2027 3rd (orig3), and a 2029 2nd (orig9) to Hurts So Good.",
   "focus_user_id": "846634401482792960",
   "actions": [
     {
       "type": "trade",
       "from_user_id": "846634401482792960",
       "to_user_id": "676939933792964608",
-      "players": ["13417"],
-      "picks": [
-        "pick:2027:R3:orig3",
-        "pick:2029:R2:orig9"
-      ]
+      "players": ["4943"],
+      "picks": []
     },
     {
       "type": "trade",
       "from_user_id": "676939933792964608",
       "to_user_id": "846634401482792960",
-      "players": ["4943"],
-      "picks": []
+      "players": ["13417"],
+      "picks": [
+        "pick:2027:R3:orig3",
+        "pick:2029:R2:orig9"
+      ]
     }
   ]
 }
