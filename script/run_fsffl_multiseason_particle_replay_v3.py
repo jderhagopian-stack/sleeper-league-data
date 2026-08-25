@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import alternate_history_engine as ah
+import alternate_history_roster_compliance as roster_compliance
 from alternate_history_branch_scoring import (
     choose_branch_lineup,
     realized_lineup_points,
@@ -157,7 +158,14 @@ def score_regular_week(
     slots: List[str],
     positions: Dict[str, str],
     weekly_points: Dict[int, Dict[str, float]],
-) -> Dict[str, int]:
+) -> Dict[str, Any]:
+    compliance_audit = None
+    if int(week) == 1:
+        compliance_audit = roster_compliance.enforce_week1_roster_envelope(
+            groups,
+            season=str(season),
+        )
+
     missing_point_particles = 0
     lineup_change_particles = 0
     rows_by_roster = {str(row.get("roster_id")): row for row in matchup_rows}
@@ -230,10 +238,13 @@ def score_regular_week(
         update_records_from_week(records, matchup_rows, scores)
         group.state[LEDGER_KEY] = ledger
 
-    return {
+    result = {
         "missing_point_particle_roster_instances": missing_point_particles,
         "lineup_change_particle_roster_instances": lineup_change_particles,
     }
+    if compliance_audit is not None:
+        result["roster_compliance"] = compliance_audit
+    return result
 
 
 def run(
@@ -406,8 +417,6 @@ def run(
         max_unique_states = max(max_unique_states, len(groups))
         next_score_week += 1
 
-    # Finalize seed/playoff/nonplayoff draft-slot consequences before merge so
-    # those outcomes become part of state identity for later seasons.
     for group in groups:
         ledger = copy.deepcopy(group.state.get(LEDGER_KEY) or {})
         season_row = ledger.setdefault(fork_season, {})
@@ -457,6 +466,7 @@ def run(
             "maxpf_exact_tie_uses_worse_regular_season_record": True,
             "particle_probability_mass_pruned": False,
             "season_feedback_part_of_state_identity": True,
+            "historical_week1_roster_envelope_enforced": True,
         },
         "historical_points_sources": historical_points.sources,
         "summary": {
