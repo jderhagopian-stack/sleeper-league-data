@@ -1,6 +1,9 @@
 name: Alternate History Production Certification Once
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/alternate-history-production-certification-once.yml'
   workflow_dispatch:
 
 jobs:
@@ -23,6 +26,8 @@ jobs:
         run: python script/backfill_alternate_history_sleeper.py
       - name: Validate exact performance primitive equivalence
         run: python script/validate_alternate_history_performance_equivalence.py
+      - name: Validate memoized Simulator fallback equivalence
+        run: python script/validate_alternate_history_simulator_dp_equivalence.py
       - name: Run 100-particle / 500-draw production certification
         run: |
           mkdir -p data/alternate_history/results/puka_vs_van_2023
