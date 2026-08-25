@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 
 import alternate_history_performance_runtime as perf
+import alternate_history_ledger_key_runtime as ledger_perf
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_counterfactual_replay import player_positions
@@ -75,6 +76,39 @@ def validate_state_key_equivalence() -> None:
     opt_diff = perf._state_key_with_memo(base) == perf._state_key_with_memo(different)
     if (ref_same, ref_diff) != (opt_same, opt_diff):
         raise AssertionError("optimized structural key changed state equivalence classes")
+
+
+def validate_ledger_fingerprint_equivalence() -> None:
+    ledgers = [
+        {
+            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
+            "2024": {"season_max_pf": {"1": 1800.5}},
+        },
+        {
+            "2024": {"season_max_pf": {"1": 1800.5}},
+            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
+        },
+        {
+            "2023": {"standings": [{"roster_id": "1", "wins": 8}]},
+            "2024": {"season_max_pf": {"1": 1800.5}},
+        },
+        {
+            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
+            "2024": {"season_max_pf": {"1": 1800.5}},
+            "2025": {},
+        },
+    ]
+    for i, left in enumerate(ledgers):
+        for j, right in enumerate(ledgers):
+            reference_equal = perf._ledger_hash(left) == perf._ledger_hash(right)
+            optimized_equal = (
+                ledger_perf.ledger_fingerprint(left)
+                == ledger_perf.ledger_fingerprint(right)
+            )
+            if reference_equal != optimized_equal:
+                raise AssertionError(
+                    f"per-season ledger fingerprint changed equality class for cases {i}/{j}"
+                )
 
 
 def validate_maxpf() -> None:
@@ -166,6 +200,7 @@ def validate_simulator_cache() -> None:
 def main() -> None:
     validate_draft_cow()
     validate_state_key_equivalence()
+    validate_ledger_fingerprint_equivalence()
     validate_maxpf()
     validate_weekly_ledger_cow()
     validate_simulator_cache()
