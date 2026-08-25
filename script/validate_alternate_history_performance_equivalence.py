@@ -12,7 +12,10 @@ import copy
 
 import alternate_history_performance_runtime as perf
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
+from run_fsffl_downstream_dependencies import load
+from run_fsffl_counterfactual_replay import player_positions
 from run_fsffl_gm30_counterfactual import CounterfactualEngine
+from run_fsffl_historical_usage_policy import HistoricalPoints
 
 
 def validate_draft_cow() -> None:
@@ -95,11 +98,56 @@ def validate_maxpf() -> None:
             )
 
 
+def validate_weekly_ledger_cow() -> None:
+    season = "2025"
+    week = 2
+    rosters = load(season_v3.DATA / "rosters.json") or []
+    state = {
+        "roster_players": {
+            str(row.get("roster_id")): [str(x) for x in (row.get("players") or [])]
+            for row in rosters
+        },
+        "roster_taxi": {
+            str(row.get("roster_id")): [str(x) for x in (row.get("taxi") or [])]
+            for row in rosters
+        },
+        "roster_reserve": {
+            str(row.get("roster_id")): [str(x) for x in (row.get("reserve") or [])]
+            for row in rosters
+        },
+        season_v3.LEDGER_KEY: {
+            "2024": {
+                "standings": [{"roster_id": "1", "wins": 8}],
+                "season_max_pf": {"1": 2000.0},
+            }
+        },
+    }
+    matchups = load(season_v3.DATA / "stats" / "fsffl" / season / "league_matchups_raw.json") or {}
+    weekly_points = HistoricalPoints().season(season)
+    positions = player_positions()
+    kwargs = dict(
+        season=season,
+        week=week,
+        matchup_rows=matchups.get(str(week), []),
+        slots=[],
+        positions=positions,
+        weekly_points=weekly_points,
+    )
+    ref_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(state), [[]])]
+    opt_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(state), [[]])]
+    reference_audit = perf._ORIGINAL_SCORE_REGULAR_WEEK(ref_groups, **kwargs)
+    optimized_audit = perf.score_regular_week_cow(opt_groups, **kwargs)
+    if optimized_audit != reference_audit:
+        raise AssertionError("weekly ledger COW changed scoring audit output")
+    if opt_groups[0].state != ref_groups[0].state:
+        raise AssertionError("weekly ledger COW changed exact scored state")
+    prior = opt_groups[0].state[season_v3.LEDGER_KEY]["2024"]
+    if prior != state[season_v3.LEDGER_KEY]["2024"]:
+        raise AssertionError("weekly ledger COW mutated a completed prior-season row")
+
+
 def validate_simulator_cache() -> None:
     engine = CounterfactualEngine()
-    # The production simulator can traverse the full regular-season projection
-    # horizon. Compare every current roster across weeks 1-18 rather than a
-    # small early-week sample.
     for roster in engine.rosters:
         for week in range(1, 19):
             reference = perf._ORIGINAL_SIM_OPTIMIZE(
@@ -119,6 +167,7 @@ def main() -> None:
     validate_draft_cow()
     validate_state_key_equivalence()
     validate_maxpf()
+    validate_weekly_ledger_cow()
     validate_simulator_cache()
     print("PASS: Alternate History performance replacements are exact-equivalent")
 
