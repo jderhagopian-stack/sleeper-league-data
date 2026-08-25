@@ -14,6 +14,7 @@ from typing import Any, Dict, List
 
 import alternate_history_dynamic_policy as dynamic_policy
 import alternate_history_engine as ah
+import alternate_history_roster_compliance as roster_compliance
 import alternate_history_season_cycle as cycle
 import run_fsffl_predraft_particles as predraft
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
@@ -160,11 +161,26 @@ def run_generic(
                         seed=seed,
                         after_timestamp_ms=after_draft,
                     )
+                    # The generic present-day boundary is authoritative for all
+                    # downstream consumers, including the final report and the
+                    # weighted Simulator wrapper. Enforce the active Sleeper
+                    # roster structure here rather than relying on callers.
+                    compliance_meta = roster_compliance.enforce_current_season_roster_rules(
+                        groups,
+                        season=draft_season,
+                    )
+                    groups, compliance_merged = season_v3.merge_groups(groups)
+                    if sum(group.count for group in groups) != particles:
+                        raise ah.AlternateHistoryError(
+                            "generic active-season roster compliance lost particle mass"
+                        )
                     phases.append({
                         "phase": "active_season_to_now",
                         "season": draft_season,
                         "events_processed": active_meta["events_processed"],
-                        "unique_states": active_meta["final_unique_states"],
+                        "unique_states": len(groups),
+                        "roster_compliance": compliance_meta,
+                        "particles_merged_after_roster_compliance": compliance_merged,
                     })
             finally:
                 if use_active_reference:
@@ -199,6 +215,7 @@ def run_generic(
             "branch_specific_downstream_transactions": True,
             "current_gm3_numeric_values_used_for_historical_decisions": False,
             "completed_season_pre_event_states_incrementally_cached": True,
+            "present_day_sleeper_roster_rules_enforced_before_handoff": True,
         },
         "summary": {
             "final_particles": particles,
@@ -221,6 +238,8 @@ def run_generic(
                 "particles": group.count,
                 "probability": round(group.count / particles, 8),
                 "focus_roster_players": sorted((group.state.get("roster_players") or {}).get(focus, [])),
+                "focus_roster_taxi": sorted((group.state.get("roster_taxi") or {}).get(focus, [])),
+                "focus_roster_reserve": sorted((group.state.get("roster_reserve") or {}).get(focus, [])),
                 "focus_future_picks": sorted(
                     key for key, rid in (group.state.get("pick_owners") or {}).items()
                     if str(rid) == focus and not str(key).startswith(f"pick:{current}:")
