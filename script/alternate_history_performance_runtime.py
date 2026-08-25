@@ -20,8 +20,6 @@ import run_fsffl_multiseason_particle_replay_v3 as season_v3
 import run_fsffl_season_boundary_particles as boundary_core
 import run_fsffl_season_simulator_preproduction as simulator
 
-# Keep referenced immutable source objects alive while their identity is used in
-# cache keys. That prevents Python id reuse from ever aliasing two source maps.
 _SOURCE_OBJECTS: Dict[int, Any] = {}
 _SEASON_OBSERVED: Dict[int, frozenset[str]] = {}
 _LINEUP_CACHE: Dict[Tuple[Any, ...], Tuple[Tuple[str, ...], Any]] = {}
@@ -40,17 +38,18 @@ def apply_preserving_ledger_cow(
     event: Dict[str, Any],
     outcome: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Carry the immutable ledger by reference across transaction transitions.
-
-    branch_v1.apply_outcome serializes only transaction state and never reads or
-    mutates the season ledger. All ledger-writing paths in the season engine
-    already copy the ledger before mutation, so deep-copying it for every
-    transaction outcome is redundant.
-    """
+    """Carry the immutable ledger by reference across transaction transitions."""
     ledger = state_payload.get(season_v3.LEDGER_KEY)
     new_state = branch_v1.apply_outcome(state_payload, event, outcome)
     new_state[season_v3.LEDGER_KEY] = ledger if ledger is not None else {}
     return new_state
+
+
+def _canonical_roster_subsets(state: Dict[str, Any], key: str) -> Dict[str, list[str]]:
+    return {
+        str(k): sorted(str(x) for x in (v or []))
+        for k, v in sorted((state.get(key) or {}).items())
+    }
 
 
 def _state_key_with_memo(
@@ -65,15 +64,15 @@ def _state_key_with_memo(
         ledger_hash_by_identity[identity] = ledger_hash
 
     core = {
-        "roster_players": {
-            str(k): sorted(str(x) for x in (v or []))
-            for k, v in sorted((state.get("roster_players") or {}).items())
-        },
+        "roster_players": _canonical_roster_subsets(state, "roster_players"),
+        "roster_taxi": _canonical_roster_subsets(state, "roster_taxi"),
+        "roster_reserve": _canonical_roster_subsets(state, "roster_reserve"),
         "pick_owners": dict(sorted((state.get("pick_owners") or {}).items())),
         "faab": {
             str(k): float(v or 0.0)
             for k, v in sorted((state.get("faab") or {}).items())
         },
+        "rookie_draft_history": state.get(season_v3.DRAFT_KEY) or {},
     }
     return f"{ah.stable_hash(core)}:{ledger_hash}"
 
@@ -116,7 +115,6 @@ def realized_lineup_points_cached(
     week: int,
     weekly_points: Dict[int, Dict[str, float]],
 ):
-    """Exact realized scoring with a once-per-season observed-player index."""
     source_id = id(weekly_points)
     _SOURCE_OBJECTS[source_id] = weekly_points
     observed = _SEASON_OBSERVED.get(source_id)
@@ -152,7 +150,6 @@ def choose_branch_lineup_cached(
     weekly_points,
     previous_alt_starters,
 ):
-    """Memoize the exact no-hindsight lineup decision for identical inputs."""
     wp_id = id(weekly_points)
     pos_id = id(positions)
     _SOURCE_OBJECTS[wp_id] = weekly_points
@@ -184,7 +181,6 @@ def choose_branch_lineup_cached(
 
 
 def best_lineup_points_cached(roster_players, slots, positions, realized):
-    """Memoize exact MaxPF for identical immutable roster/week inputs."""
     pos_id = id(positions)
     realized_id = id(realized)
     _SOURCE_OBJECTS[pos_id] = positions
@@ -217,7 +213,6 @@ def _sim_roster_signature(roster: Dict[str, Any]) -> Tuple[Tuple[str, ...], ...]
 
 
 def simulator_lineup_cached(roster, week, league, players, projections):
-    """Reuse exact deterministic Simulator lineup preprocessing across states."""
     league_id = id(league)
     players_id = id(players)
     projections_id = id(projections)
@@ -241,7 +236,6 @@ def simulator_lineup_cached(roster, week, league, players, projections):
 
 
 def simulator_backups_cached(roster, week, lineup, players, projections):
-    """Reuse exact deterministic Simulator backup chains across states."""
     players_id = id(players)
     projections_id = id(projections)
     _SOURCE_OBJECTS[players_id] = players
@@ -273,11 +267,7 @@ def install() -> None:
     season_v3.realized_lineup_points = realized_lineup_points_cached
     season_v3.choose_branch_lineup = choose_branch_lineup_cached
     season_v3.best_lineup_points = best_lineup_points_cached
-    # Postseason scoring imported these functions directly, so patch its module
-    # globals as well to reuse the same exact caches.
     boundary_core.realized_lineup_points = realized_lineup_points_cached
     boundary_core.choose_branch_lineup = choose_branch_lineup_cached
-    # Simulator 1.0 rebuilds deterministic lineup/backup structures on every
-    # alternate-state call. Reuse those exact structures for identical rosters.
     simulator.optimize_fsffl_fast = simulator_lineup_cached
     simulator.build_backup_chains = simulator_backups_cached
