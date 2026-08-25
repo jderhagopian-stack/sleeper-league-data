@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-24T11:48:35.412452+00:00",
+  "generated_at_utc": "2026-08-25T11:50:31.629006+00:00",
   "model_version": "FSFFL-Season-Simulator-1.0-multiverse",
   "notes": {
     "historical_records": "Simulation extremes only; compare with the FSFFL historical record book before labeling a real league record.",
@@ -9,114 +9,114 @@
   "opponent_adjustment_source": "file",
   "player_extremes": {
     "highest_regular_season_total": {
-      "baseline_ppg": 23.316,
-      "fsffl_team": "HUNGRY DAWGS",
-      "nfl_team": "BUF",
-      "player": "Josh Allen",
-      "player_id": "4984",
-      "position": "QB",
-      "roster_id": 1,
-      "season_points": 446.59,
-      "simulated_ppg": 31.899,
-      "simulation_id": 2897
-    },
-    "highest_single_week": {
       "baseline_ppg": 19.262,
       "fsffl_team": "STINKS",
       "nfl_team": "DET",
       "player": "Jahmyr Gibbs",
       "player_id": "9221",
-      "points": 69.864,
       "position": "RB",
       "roster_id": 3,
-      "simulation_id": 15604,
-      "week": 14
+      "season_points": 432.062,
+      "simulated_ppg": 30.862,
+      "simulation_id": 23943
+    },
+    "highest_single_week": {
+      "baseline_ppg": 16.391,
+      "fsffl_team": "MochaSmevs",
+      "nfl_team": "CIN",
+      "player": "Chase Brown",
+      "player_id": "9224",
+      "points": 76.006,
+      "position": "RB",
+      "roster_id": 7,
+      "simulation_id": 24800,
+      "week": 9
     },
     "unexpected_superstar_season": {
-      "baseline_ppg": 7.92,
-      "fsffl_team": "Trash Incessant Talkers",
-      "nfl_team": "CHI",
-      "player": "Kyle Monangai",
-      "player_id": "12534",
-      "position": "RB",
-      "roster_id": 6,
-      "season_points": 206.182,
-      "simulated_ppg": 14.727,
-      "simulation_id": 28550
+      "baseline_ppg": 7.971,
+      "fsffl_team": "HUNGRY DAWGS",
+      "nfl_team": "TEN",
+      "player": "Carnell Tate",
+      "player_id": "13279",
+      "position": "WR",
+      "roster_id": 1,
+      "season_points": 210.732,
+      "simulated_ppg": 15.052,
+      "simulation_id": 20933
     }
   },
   "playoff_extremes": {
     "highest_seed_champion": {
-      "record": "9-5",
-      "season_points_for": 1328.898,
+      "record": "7-7",
+      "season_points_for": 1357.665,
       "seed": 6,
-      "simulation_id": 42554,
+      "simulation_id": 30442,
       "team": "Ball Knower"
     },
     "rarest_champion": {
-      "record": "8-6",
-      "season_points_for": 1383.203,
-      "seed": 6,
-      "simulation_id": 1725,
+      "record": "9-5",
+      "season_points_for": 1392.629,
+      "seed": 5,
+      "simulation_id": 1497,
       "team": "Trash Incessant Talkers",
-      "title_rate": 0.0003
+      "title_rate": 0.00068
     }
   },
   "rng_seed": 2617884895,
-  "runtime_seconds": 5.077,
+  "runtime_seconds": 5.101,
   "season": "2026",
   "simulations": 50000,
   "team_extremes": {
     "best_regular_season_record": {
-      "points_for": 2116.87,
+      "points_for": 2083.575,
       "record": "14-0",
-      "simulation_id": 37858,
-      "team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47"
-    },
-    "best_team_to_miss_playoffs": {
-      "points_for": 1674.045,
-      "record": "9-5",
-      "seed": 7,
-      "simulation_id": 44507,
+      "simulation_id": 43991,
       "team": "BING BONG DRIGSY\ud83c\udf4e"
     },
+    "best_team_to_miss_playoffs": {
+      "points_for": 1691.766,
+      "record": "9-5",
+      "seed": 7,
+      "simulation_id": 30108,
+      "team": "Chef Niners"
+    },
     "biggest_margin_of_victory": {
-      "loser": "STINKS",
-      "loser_score": 35.935,
-      "margin": 175.627,
-      "simulation_id": 25144,
-      "week": 10,
+      "loser": "The Associate ",
+      "loser_score": 16.204,
+      "margin": 197.132,
+      "simulation_id": 7727,
+      "week": 8,
       "winner": "BING BONG DRIGSY\ud83c\udf4e",
-      "winner_score": 211.562
+      "winner_score": 213.336
     },
     "highest_regular_season_points": {
-      "points_for": 2116.87,
-      "record": "14-0",
-      "simulation_id": 37858,
+      "points_for": 2087.416,
+      "record": "13-1",
+      "simulation_id": 20053,
       "team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47"
     },
     "highest_single_week_score": {
-      "score": 241.061,
-      "simulation_id": 28062,
+      "score": 245.652,
+      "simulation_id": 36602,
       "team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "week": 10
+      "week": 3
     },
     "lowest_regular_season_points": {
-      "points_for": 830.842,
+      "points_for": 841.613,
       "record": "0-14",
-      "simulation_id": 650,
+      "simulation_id": 2708,
       "team": "The Associate "
     },
     "lowest_single_week_score": {
-      "score": 8.247,
-      "simulation_id": 4176,
+      "score": 7.441,
+      "simulation_id": 40522,
       "team": "HUNGRY DAWGS",
-      "week": 13
+      "week": 7
     },
     "worst_regular_season_record": {
-      "points_for": 830.842,
+      "points_for": 841.613,
       "record": "0-14",
-      "simulation_id": 650,
+      "simulation_id": 2708,
       "team": "The Associate "
     }
   }

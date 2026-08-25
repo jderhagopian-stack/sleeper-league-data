@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-24T11:49:59.520169+00:00",
+  "generated_at_utc": "2026-08-25T11:52:01.497727+00:00",
   "model_version": "FSFFL-GM-3.0",
   "focal_user_id": "840356119955251200",
   "focal_manager": "ddersimon",
@@ -9,118 +9,58 @@
       "asset_id": "player:2307",
       "asset_type": "player",
       "asset": "Marcus Mariota",
-      "core_status": "developmental_or_expendable",
-      "strategic_score": 0.1954,
-      "hold_value": 202.0,
-      "break_glass_value": 232.9,
+      "core_status": "liquid_asset",
+      "strategic_score": 0.315,
+      "hold_value": 224.3,
+      "break_glass_value": 270.5,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 198.1,
-        "premium_vs_focal_hold": -3.9,
-        "premium_vs_break_glass": -34.8
+        "buyer_perceived_value": 219.8,
+        "premium_vs_focal_hold": -4.5,
+        "premium_vs_break_glass": -50.7
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 198.1,
-          "premium_vs_focal_hold": -3.9,
-          "premium_vs_break_glass": -34.8
+          "buyer_perceived_value": 219.8,
+          "premium_vs_focal_hold": -4.5,
+          "premium_vs_break_glass": -50.7
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 189.4,
-          "premium_vs_focal_hold": -12.6,
-          "premium_vs_break_glass": -43.5
+          "buyer_perceived_value": 210.2,
+          "premium_vs_focal_hold": -14.1,
+          "premium_vs_break_glass": -60.3
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 185.7,
-          "premium_vs_focal_hold": -16.3,
-          "premium_vs_break_glass": -47.2
+          "buyer_perceived_value": 206.1,
+          "premium_vs_focal_hold": -18.2,
+          "premium_vs_break_glass": -64.4
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 183.8,
-          "premium_vs_focal_hold": -18.2,
-          "premium_vs_break_glass": -49.1
+          "buyer_perceived_value": 204.0,
+          "premium_vs_focal_hold": -20.3,
+          "premium_vs_break_glass": -66.5
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 183.8,
-          "premium_vs_focal_hold": -18.2,
-          "premium_vs_break_glass": -49.1
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:6803",
-      "asset_type": "player",
-      "asset": "Brandon Aiyuk",
-      "core_status": "developmental_or_expendable",
-      "strategic_score": 0.2361,
-      "hold_value": 552.3,
-      "break_glass_value": 643.7,
-      "best_buyer": {
-        "buyer_user_id": "844772511156670464",
-        "buyer_manager": "CoachKoko",
-        "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 562.7,
-        "premium_vs_focal_hold": 10.4,
-        "premium_vs_break_glass": -81.0
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 562.7,
-          "premium_vs_focal_hold": 10.4,
-          "premium_vs_break_glass": -81.0
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 539.1,
-          "premium_vs_focal_hold": -13.2,
-          "premium_vs_break_glass": -104.6
-        },
-        {
-          "buyer_user_id": "725401251478605824",
-          "buyer_manager": "PVos",
-          "buyer_team": "STINKS",
-          "buyer_perceived_value": 531.3,
-          "premium_vs_focal_hold": -21.0,
-          "premium_vs_break_glass": -112.4
-        },
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 514.9,
-          "premium_vs_focal_hold": -37.4,
-          "premium_vs_break_glass": -128.8
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 507.4,
-          "premium_vs_focal_hold": -44.9,
-          "premium_vs_break_glass": -136.3
+          "buyer_perceived_value": 204.0,
+          "premium_vs_focal_hold": -20.3,
+          "premium_vs_break_glass": -66.5
         }
       ],
       "market_should_be_tested": false
@@ -130,57 +70,117 @@
       "asset_type": "player",
       "asset": "Garrett Nussmeier",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3195,
-      "hold_value": 205.4,
-      "break_glass_value": 288.6,
+      "strategic_score": 0.3197,
+      "hold_value": 123.0,
+      "break_glass_value": 172.9,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 203.1,
-        "premium_vs_focal_hold": -2.3,
-        "premium_vs_break_glass": -85.5
+        "buyer_perceived_value": 121.6,
+        "premium_vs_focal_hold": -1.4,
+        "premium_vs_break_glass": -51.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 203.1,
-          "premium_vs_focal_hold": -2.3,
-          "premium_vs_break_glass": -85.5
+          "buyer_perceived_value": 121.6,
+          "premium_vs_focal_hold": -1.4,
+          "premium_vs_break_glass": -51.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 190.0,
-          "premium_vs_focal_hold": -15.4,
-          "premium_vs_break_glass": -98.6
+          "buyer_perceived_value": 113.8,
+          "premium_vs_focal_hold": -9.2,
+          "premium_vs_break_glass": -59.1
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 187.7,
-          "premium_vs_focal_hold": -17.7,
-          "premium_vs_break_glass": -100.9
+          "buyer_perceived_value": 112.4,
+          "premium_vs_focal_hold": -10.6,
+          "premium_vs_break_glass": -60.5
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 182.9,
-          "premium_vs_focal_hold": -22.5,
-          "premium_vs_break_glass": -105.7
+          "buyer_perceived_value": 109.5,
+          "premium_vs_focal_hold": -13.5,
+          "premium_vs_break_glass": -63.4
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 182.2,
-          "premium_vs_focal_hold": -23.2,
-          "premium_vs_break_glass": -106.4
+          "buyer_perceived_value": 109.1,
+          "premium_vs_focal_hold": -13.9,
+          "premium_vs_break_glass": -63.8
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
+      "asset_id": "player:6803",
+      "asset_type": "player",
+      "asset": "Brandon Aiyuk",
+      "core_status": "developmental_or_expendable",
+      "strategic_score": 0.2103,
+      "hold_value": 571.4,
+      "break_glass_value": 659.9,
+      "best_buyer": {
+        "buyer_user_id": "844772511156670464",
+        "buyer_manager": "CoachKoko",
+        "buyer_team": "Trash Incessant Talkers",
+        "buyer_perceived_value": 582.2,
+        "premium_vs_focal_hold": 10.8,
+        "premium_vs_break_glass": -77.7
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 582.2,
+          "premium_vs_focal_hold": 10.8,
+          "premium_vs_break_glass": -77.7
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 557.8,
+          "premium_vs_focal_hold": -13.6,
+          "premium_vs_break_glass": -102.1
+        },
+        {
+          "buyer_user_id": "725401251478605824",
+          "buyer_manager": "PVos",
+          "buyer_team": "STINKS",
+          "buyer_perceived_value": 549.7,
+          "premium_vs_focal_hold": -21.7,
+          "premium_vs_break_glass": -110.2
+        },
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 532.7,
+          "premium_vs_focal_hold": -38.7,
+          "premium_vs_break_glass": -127.2
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 525.0,
+          "premium_vs_focal_hold": -46.4,
+          "premium_vs_break_glass": -134.9
         }
       ],
       "market_should_be_tested": false
@@ -190,57 +190,57 @@
       "asset_type": "player",
       "asset": "Aaron Jones",
       "core_status": "developmental_or_expendable",
-      "strategic_score": 0.1506,
-      "hold_value": 1102.9,
-      "break_glass_value": 1227.0,
+      "strategic_score": 0.1633,
+      "hold_value": 1115.7,
+      "break_glass_value": 1246.0,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1048.6,
-        "premium_vs_focal_hold": -54.3,
-        "premium_vs_break_glass": -178.4
+        "buyer_perceived_value": 1061.1,
+        "premium_vs_focal_hold": -54.6,
+        "premium_vs_break_glass": -184.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1048.6,
-          "premium_vs_focal_hold": -54.3,
-          "premium_vs_break_glass": -178.4
+          "buyer_perceived_value": 1061.1,
+          "premium_vs_focal_hold": -54.6,
+          "premium_vs_break_glass": -184.9
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1028.5,
-          "premium_vs_focal_hold": -74.4,
-          "premium_vs_break_glass": -198.5
+          "buyer_perceived_value": 1040.1,
+          "premium_vs_focal_hold": -75.6,
+          "premium_vs_break_glass": -205.9
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1021.1,
-          "premium_vs_focal_hold": -81.8,
-          "premium_vs_break_glass": -205.9
+          "buyer_perceived_value": 1034.6,
+          "premium_vs_focal_hold": -81.1,
+          "premium_vs_break_glass": -211.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1006.2,
-          "premium_vs_focal_hold": -96.7,
-          "premium_vs_break_glass": -220.8
+          "buyer_perceived_value": 1017.3,
+          "premium_vs_focal_hold": -98.4,
+          "premium_vs_break_glass": -228.7
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 999.1,
-          "premium_vs_focal_hold": -103.8,
-          "premium_vs_break_glass": -227.9
+          "buyer_perceived_value": 1013.4,
+          "premium_vs_focal_hold": -102.3,
+          "premium_vs_break_glass": -232.6
         }
       ],
       "market_should_be_tested": false
@@ -251,56 +251,116 @@
       "asset": "2029 Late 2nd \u2014 original The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
       "core_status": "liquid_pick",
       "strategic_score": 0.5099,
-      "hold_value": 1167.1,
-      "break_glass_value": 1479.7,
+      "hold_value": 1168.1,
+      "break_glass_value": 1481.0,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1156.7,
+        "buyer_perceived_value": 1157.7,
         "premium_vs_focal_hold": -10.4,
-        "premium_vs_break_glass": -323.0
+        "premium_vs_break_glass": -323.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1156.7,
+          "buyer_perceived_value": 1157.7,
           "premium_vs_focal_hold": -10.4,
-          "premium_vs_break_glass": -323.0
+          "premium_vs_break_glass": -323.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1136.6,
+          "buyer_perceived_value": 1137.6,
           "premium_vs_focal_hold": -30.5,
-          "premium_vs_break_glass": -343.1
+          "premium_vs_break_glass": -343.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1118.4,
-          "premium_vs_focal_hold": -48.7,
-          "premium_vs_break_glass": -361.3
+          "buyer_perceived_value": 1119.3,
+          "premium_vs_focal_hold": -48.8,
+          "premium_vs_break_glass": -361.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1076.6,
-          "premium_vs_focal_hold": -90.5,
-          "premium_vs_break_glass": -403.1
+          "buyer_perceived_value": 1077.5,
+          "premium_vs_focal_hold": -90.6,
+          "premium_vs_break_glass": -403.5
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1064.7,
-          "premium_vs_focal_hold": -102.4,
-          "premium_vs_break_glass": -415.0
+          "buyer_perceived_value": 1065.6,
+          "premium_vs_focal_hold": -102.5,
+          "premium_vs_break_glass": -415.4
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
+      "asset_id": "player:7567",
+      "asset_type": "player",
+      "asset": "Kenny Gainwell",
+      "core_status": "developmental_or_expendable",
+      "strategic_score": 0.249,
+      "hold_value": 1511.2,
+      "break_glass_value": 1757.5,
+      "best_buyer": {
+        "buyer_user_id": "833709164739014656",
+        "buyer_manager": "jaco057",
+        "buyer_team": "HUNGRY DAWGS",
+        "buyer_perceived_value": 1432.8,
+        "premium_vs_focal_hold": -78.4,
+        "premium_vs_break_glass": -324.7
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1432.8,
+          "premium_vs_focal_hold": -78.4,
+          "premium_vs_break_glass": -324.7
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1411.8,
+          "premium_vs_focal_hold": -99.4,
+          "premium_vs_break_glass": -345.7
+        },
+        {
+          "buyer_user_id": "846634401482792960",
+          "buyer_manager": "jimmygoodjob",
+          "buyer_team": "Hurts So Good",
+          "buyer_perceived_value": 1385.9,
+          "premium_vs_focal_hold": -125.3,
+          "premium_vs_break_glass": -371.6
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1385.1,
+          "premium_vs_focal_hold": -126.1,
+          "premium_vs_break_glass": -372.4
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1353.9,
+          "premium_vs_focal_hold": -157.3,
+          "premium_vs_break_glass": -403.6
         }
       ],
       "market_should_be_tested": false
@@ -371,116 +431,56 @@
       "asset": "2028 Early 3rd \u2014 original Ball Knower",
       "core_status": "developmental_pick",
       "strategic_score": 0.4871,
-      "hold_value": 1234.8,
-      "break_glass_value": 1564.6,
+      "hold_value": 1238.6,
+      "break_glass_value": 1569.4,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1223.8,
+        "buyer_perceived_value": 1227.6,
         "premium_vs_focal_hold": -11.0,
-        "premium_vs_break_glass": -340.8
+        "premium_vs_break_glass": -341.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1223.8,
+          "buyer_perceived_value": 1227.6,
           "premium_vs_focal_hold": -11.0,
-          "premium_vs_break_glass": -340.8
+          "premium_vs_break_glass": -341.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1202.6,
-          "premium_vs_focal_hold": -32.2,
-          "premium_vs_break_glass": -362.0
+          "buyer_perceived_value": 1206.3,
+          "premium_vs_focal_hold": -32.3,
+          "premium_vs_break_glass": -363.1
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1183.3,
-          "premium_vs_focal_hold": -51.5,
-          "premium_vs_break_glass": -381.3
+          "buyer_perceived_value": 1187.0,
+          "premium_vs_focal_hold": -51.6,
+          "premium_vs_break_glass": -382.4
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1139.1,
-          "premium_vs_focal_hold": -95.7,
-          "premium_vs_break_glass": -425.5
+          "buyer_perceived_value": 1142.6,
+          "premium_vs_focal_hold": -96.0,
+          "premium_vs_break_glass": -426.8
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1126.5,
-          "premium_vs_focal_hold": -108.3,
-          "premium_vs_break_glass": -438.1
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:7567",
-      "asset_type": "player",
-      "asset": "Kenny Gainwell",
-      "core_status": "developmental_or_expendable",
-      "strategic_score": 0.2577,
-      "hold_value": 1574.2,
-      "break_glass_value": 1840.6,
-      "best_buyer": {
-        "buyer_user_id": "833709164739014656",
-        "buyer_manager": "jaco057",
-        "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1492.2,
-        "premium_vs_focal_hold": -82.0,
-        "premium_vs_break_glass": -348.4
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1492.2,
-          "premium_vs_focal_hold": -82.0,
-          "premium_vs_break_glass": -348.4
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1470.9,
-          "premium_vs_focal_hold": -103.3,
-          "premium_vs_break_glass": -369.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1443.4,
-          "premium_vs_focal_hold": -130.8,
-          "premium_vs_break_glass": -397.2
-        },
-        {
-          "buyer_user_id": "846634401482792960",
-          "buyer_manager": "jimmygoodjob",
-          "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1442.2,
-          "premium_vs_focal_hold": -132.0,
-          "premium_vs_break_glass": -398.4
-        },
-        {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1409.4,
-          "premium_vs_focal_hold": -164.8,
-          "premium_vs_break_glass": -431.2
+          "buyer_perceived_value": 1130.0,
+          "premium_vs_focal_hold": -108.6,
+          "premium_vs_break_glass": -439.4
         }
       ],
       "market_should_be_tested": false
@@ -490,57 +490,57 @@
       "asset_type": "player",
       "asset": "Demond Claiborne",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3643,
-      "hold_value": 873.6,
-      "break_glass_value": 1211.0,
+      "strategic_score": 0.3929,
+      "hold_value": 847.6,
+      "break_glass_value": 1185.8,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 823.4,
-        "premium_vs_focal_hold": -50.2,
-        "premium_vs_break_glass": -387.6
+        "buyer_perceived_value": 798.9,
+        "premium_vs_focal_hold": -48.7,
+        "premium_vs_break_glass": -386.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 823.4,
-          "premium_vs_focal_hold": -50.2,
-          "premium_vs_break_glass": -387.6
+          "buyer_perceived_value": 798.9,
+          "premium_vs_focal_hold": -48.7,
+          "premium_vs_break_glass": -386.9
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 820.3,
-          "premium_vs_focal_hold": -53.3,
-          "premium_vs_break_glass": -390.7
+          "buyer_perceived_value": 795.9,
+          "premium_vs_focal_hold": -51.7,
+          "premium_vs_break_glass": -389.9
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 815.8,
-          "premium_vs_focal_hold": -57.8,
-          "premium_vs_break_glass": -395.2
+          "buyer_perceived_value": 791.6,
+          "premium_vs_focal_hold": -56.0,
+          "premium_vs_break_glass": -394.2
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 764.4,
-          "premium_vs_focal_hold": -109.2,
-          "premium_vs_break_glass": -446.6
+          "buyer_perceived_value": 741.7,
+          "premium_vs_focal_hold": -105.9,
+          "premium_vs_break_glass": -444.1
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 761.3,
-          "premium_vs_focal_hold": -112.3,
-          "premium_vs_break_glass": -449.7
+          "buyer_perceived_value": 738.7,
+          "premium_vs_focal_hold": -108.9,
+          "premium_vs_break_glass": -447.1
         }
       ],
       "market_should_be_tested": false
@@ -551,56 +551,56 @@
       "asset": "2027 Late 2nd \u2014 original BING BONG DRIGSY\ud83c\udf4e",
       "core_status": "liquid_pick",
       "strategic_score": 0.4848,
-      "hold_value": 1482.0,
-      "break_glass_value": 1867.5,
+      "hold_value": 1490.7,
+      "break_glass_value": 1878.5,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1468.8,
-        "premium_vs_focal_hold": -13.2,
-        "premium_vs_break_glass": -398.7
+        "buyer_perceived_value": 1477.4,
+        "premium_vs_focal_hold": -13.3,
+        "premium_vs_break_glass": -401.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1468.8,
-          "premium_vs_focal_hold": -13.2,
-          "premium_vs_break_glass": -398.7
+          "buyer_perceived_value": 1477.4,
+          "premium_vs_focal_hold": -13.3,
+          "premium_vs_break_glass": -401.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1443.3,
-          "premium_vs_focal_hold": -38.7,
-          "premium_vs_break_glass": -424.2
+          "buyer_perceived_value": 1451.8,
+          "premium_vs_focal_hold": -38.9,
+          "premium_vs_break_glass": -426.7
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1420.2,
-          "premium_vs_focal_hold": -61.8,
-          "premium_vs_break_glass": -447.3
+          "buyer_perceived_value": 1428.5,
+          "premium_vs_focal_hold": -62.2,
+          "premium_vs_break_glass": -450.0
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1367.1,
-          "premium_vs_focal_hold": -114.9,
-          "premium_vs_break_glass": -500.4
+          "buyer_perceived_value": 1375.2,
+          "premium_vs_focal_hold": -115.5,
+          "premium_vs_break_glass": -503.3
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1352.0,
-          "premium_vs_focal_hold": -130.0,
-          "premium_vs_break_glass": -515.5
+          "buyer_perceived_value": 1360.0,
+          "premium_vs_focal_hold": -130.7,
+          "premium_vs_break_glass": -518.5
         }
       ],
       "market_should_be_tested": false
@@ -610,57 +610,57 @@
       "asset_type": "player",
       "asset": "Mike Evans",
       "core_status": "developmental_or_expendable",
-      "strategic_score": 0.268,
-      "hold_value": 2035.5,
-      "break_glass_value": 2359.7,
+      "strategic_score": 0.2714,
+      "hold_value": 1996.7,
+      "break_glass_value": 2317.1,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1910.7,
-        "premium_vs_focal_hold": -124.8,
-        "premium_vs_break_glass": -449.0
+        "buyer_perceived_value": 1874.9,
+        "premium_vs_focal_hold": -121.8,
+        "premium_vs_break_glass": -442.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1910.7,
-          "premium_vs_focal_hold": -124.8,
-          "premium_vs_break_glass": -449.0
+          "buyer_perceived_value": 1874.9,
+          "premium_vs_focal_hold": -121.8,
+          "premium_vs_break_glass": -442.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1873.9,
-          "premium_vs_focal_hold": -161.6,
-          "premium_vs_break_glass": -485.8
+          "buyer_perceived_value": 1837.1,
+          "premium_vs_focal_hold": -159.6,
+          "premium_vs_break_glass": -480.0
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1845.5,
-          "premium_vs_focal_hold": -190.0,
-          "premium_vs_break_glass": -514.2
+          "buyer_perceived_value": 1806.5,
+          "premium_vs_focal_hold": -190.2,
+          "premium_vs_break_glass": -510.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1839.0,
-          "premium_vs_focal_hold": -196.5,
-          "premium_vs_break_glass": -520.7
+          "buyer_perceived_value": 1801.8,
+          "premium_vs_focal_hold": -194.9,
+          "premium_vs_break_glass": -515.3
         },
         {
-          "buyer_user_id": "844785316274483200",
-          "buyer_manager": "MochaSmev",
-          "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1807.4,
-          "premium_vs_focal_hold": -228.1,
-          "premium_vs_break_glass": -552.3
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1770.1,
+          "premium_vs_focal_hold": -226.6,
+          "premium_vs_break_glass": -547.0
         }
       ],
       "market_should_be_tested": false
@@ -670,57 +670,57 @@
       "asset_type": "player",
       "asset": "Hunter Henry",
       "core_status": "liquid_asset",
-      "strategic_score": 0.292,
-      "hold_value": 1335.9,
-      "break_glass_value": 1581.5,
+      "strategic_score": 0.3099,
+      "hold_value": 1383.4,
+      "break_glass_value": 1653.7,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 1112.9,
-        "premium_vs_focal_hold": -223.0,
-        "premium_vs_break_glass": -468.6
+        "buyer_perceived_value": 1152.1,
+        "premium_vs_focal_hold": -231.3,
+        "premium_vs_break_glass": -501.6
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1112.9,
-          "premium_vs_focal_hold": -223.0,
-          "premium_vs_break_glass": -468.6
+          "buyer_perceived_value": 1152.1,
+          "premium_vs_focal_hold": -231.3,
+          "premium_vs_break_glass": -501.6
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1095.9,
-          "premium_vs_focal_hold": -240.0,
-          "premium_vs_break_glass": -485.6
+          "buyer_perceived_value": 1135.3,
+          "premium_vs_focal_hold": -248.1,
+          "premium_vs_break_glass": -518.4
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1085.9,
-          "premium_vs_focal_hold": -250.0,
-          "premium_vs_break_glass": -495.6
+          "buyer_perceived_value": 1125.1,
+          "premium_vs_focal_hold": -258.3,
+          "premium_vs_break_glass": -528.6
         },
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1052.1,
-          "premium_vs_focal_hold": -283.8,
-          "premium_vs_break_glass": -529.4
+          "buyer_perceived_value": 1090.6,
+          "premium_vs_focal_hold": -292.8,
+          "premium_vs_break_glass": -563.1
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1049.8,
-          "premium_vs_focal_hold": -286.1,
-          "premium_vs_break_glass": -531.7
+          "buyer_perceived_value": 1088.0,
+          "premium_vs_focal_hold": -295.4,
+          "premium_vs_break_glass": -565.7
         }
       ],
       "market_should_be_tested": false
@@ -730,57 +730,57 @@
       "asset_type": "player",
       "asset": "Michael Penix",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3277,
-      "hold_value": 1575.6,
-      "break_glass_value": 2032.0,
+      "strategic_score": 0.339,
+      "hold_value": 1672.1,
+      "break_glass_value": 2171.1,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 1556.3,
-        "premium_vs_focal_hold": -19.3,
-        "premium_vs_break_glass": -475.7
+        "buyer_perceived_value": 1651.6,
+        "premium_vs_focal_hold": -20.5,
+        "premium_vs_break_glass": -519.5
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1556.3,
-          "premium_vs_focal_hold": -19.3,
-          "premium_vs_break_glass": -475.7
+          "buyer_perceived_value": 1651.6,
+          "premium_vs_focal_hold": -20.5,
+          "premium_vs_break_glass": -519.5
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1460.0,
-          "premium_vs_focal_hold": -115.6,
-          "premium_vs_break_glass": -572.0
+          "buyer_perceived_value": 1549.4,
+          "premium_vs_focal_hold": -122.7,
+          "premium_vs_break_glass": -621.7
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1440.9,
-          "premium_vs_focal_hold": -134.7,
-          "premium_vs_break_glass": -591.1
+          "buyer_perceived_value": 1529.1,
+          "premium_vs_focal_hold": -143.0,
+          "premium_vs_break_glass": -642.0
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1402.6,
-          "premium_vs_focal_hold": -173.0,
-          "premium_vs_break_glass": -629.4
+          "buyer_perceived_value": 1488.5,
+          "premium_vs_focal_hold": -183.6,
+          "premium_vs_break_glass": -682.6
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1401.1,
-          "premium_vs_focal_hold": -174.5,
-          "premium_vs_break_glass": -630.9
+          "buyer_perceived_value": 1486.9,
+          "premium_vs_focal_hold": -185.2,
+          "premium_vs_break_glass": -684.2
         }
       ],
       "market_should_be_tested": false
@@ -790,117 +790,57 @@
       "asset_type": "player",
       "asset": "Germie Bernard",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3789,
-      "hold_value": 1472.2,
-      "break_glass_value": 2070.8,
+      "strategic_score": 0.3737,
+      "hold_value": 1433.0,
+      "break_glass_value": 2005.7,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1500.4,
-        "premium_vs_focal_hold": 28.2,
-        "premium_vs_break_glass": -570.4
+        "buyer_perceived_value": 1460.5,
+        "premium_vs_focal_hold": 27.5,
+        "premium_vs_break_glass": -545.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1500.4,
-          "premium_vs_focal_hold": 28.2,
-          "premium_vs_break_glass": -570.4
+          "buyer_perceived_value": 1460.5,
+          "premium_vs_focal_hold": 27.5,
+          "premium_vs_break_glass": -545.2
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1448.6,
-          "premium_vs_focal_hold": -23.6,
-          "premium_vs_break_glass": -622.2
+          "buyer_perceived_value": 1410.1,
+          "premium_vs_focal_hold": -22.9,
+          "premium_vs_break_glass": -595.6
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1398.2,
-          "premium_vs_focal_hold": -74.0,
-          "premium_vs_break_glass": -672.6
+          "buyer_perceived_value": 1361.1,
+          "premium_vs_focal_hold": -71.9,
+          "premium_vs_break_glass": -644.6
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1364.4,
-          "premium_vs_focal_hold": -107.8,
-          "premium_vs_break_glass": -706.4
+          "buyer_perceived_value": 1328.1,
+          "premium_vs_focal_hold": -104.9,
+          "premium_vs_break_glass": -677.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1322.7,
-          "premium_vs_focal_hold": -149.5,
-          "premium_vs_break_glass": -748.1
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:9500",
-      "asset_type": "player",
-      "asset": "Josh Downs",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.3742,
-      "hold_value": 2088.6,
-      "break_glass_value": 2749.2,
-      "best_buyer": {
-        "buyer_user_id": "844772511156670464",
-        "buyer_manager": "CoachKoko",
-        "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 2117.5,
-        "premium_vs_focal_hold": 28.9,
-        "premium_vs_break_glass": -631.7
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2117.5,
-          "premium_vs_focal_hold": 28.9,
-          "premium_vs_break_glass": -631.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2028.7,
-          "premium_vs_focal_hold": -59.9,
-          "premium_vs_break_glass": -720.5
-        },
-        {
-          "buyer_user_id": "725401251478605824",
-          "buyer_manager": "PVos",
-          "buyer_team": "STINKS",
-          "buyer_perceived_value": 2012.9,
-          "premium_vs_focal_hold": -75.7,
-          "premium_vs_break_glass": -736.3
-        },
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1950.0,
-          "premium_vs_focal_hold": -138.6,
-          "premium_vs_break_glass": -799.2
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 1932.4,
-          "premium_vs_focal_hold": -156.2,
-          "premium_vs_break_glass": -816.8
+          "buyer_perceived_value": 1287.5,
+          "premium_vs_focal_hold": -145.5,
+          "premium_vs_break_glass": -718.2
         }
       ],
       "market_should_be_tested": false
@@ -910,117 +850,177 @@
       "asset_type": "player",
       "asset": "Davante Adams",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3363,
-      "hold_value": 2369.7,
-      "break_glass_value": 2871.0,
+      "strategic_score": 0.3233,
+      "hold_value": 2348.2,
+      "break_glass_value": 2825.4,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 2218.3,
-        "premium_vs_focal_hold": -151.4,
-        "premium_vs_break_glass": -652.7
+        "buyer_perceived_value": 2197.2,
+        "premium_vs_focal_hold": -151.0,
+        "premium_vs_break_glass": -628.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2218.3,
-          "premium_vs_focal_hold": -151.4,
-          "premium_vs_break_glass": -652.7
+          "buyer_perceived_value": 2197.2,
+          "premium_vs_focal_hold": -151.0,
+          "premium_vs_break_glass": -628.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2190.6,
-          "premium_vs_focal_hold": -179.1,
-          "premium_vs_break_glass": -680.4
+          "buyer_perceived_value": 2172.3,
+          "premium_vs_focal_hold": -175.9,
+          "premium_vs_break_glass": -653.1
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2182.8,
-          "premium_vs_focal_hold": -186.9,
-          "premium_vs_break_glass": -688.2
+          "buyer_perceived_value": 2168.7,
+          "premium_vs_focal_hold": -179.5,
+          "premium_vs_break_glass": -656.7
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 2160.3,
-          "premium_vs_focal_hold": -209.4,
-          "premium_vs_break_glass": -710.7
+          "buyer_perceived_value": 2143.9,
+          "premium_vs_focal_hold": -204.3,
+          "premium_vs_break_glass": -681.5
         },
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2133.6,
-          "premium_vs_focal_hold": -236.1,
-          "premium_vs_break_glass": -737.4
+          "buyer_perceived_value": 2119.2,
+          "premium_vs_focal_hold": -229.0,
+          "premium_vs_break_glass": -706.2
         }
       ],
       "market_should_be_tested": false
     },
     {
-      "asset_id": "player:12533",
+      "asset_id": "player:9500",
       "asset_type": "player",
-      "asset": "Jacory Croskey-Merritt",
+      "asset": "Josh Downs",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3972,
-      "hold_value": 1889.7,
-      "break_glass_value": 2519.7,
+      "strategic_score": 0.3743,
+      "hold_value": 2091.2,
+      "break_glass_value": 2753.3,
+      "best_buyer": {
+        "buyer_user_id": "844772511156670464",
+        "buyer_manager": "CoachKoko",
+        "buyer_team": "Trash Incessant Talkers",
+        "buyer_perceived_value": 2120.3,
+        "premium_vs_focal_hold": 29.1,
+        "premium_vs_break_glass": -633.0
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 2120.3,
+          "premium_vs_focal_hold": 29.1,
+          "premium_vs_break_glass": -633.0
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 2031.5,
+          "premium_vs_focal_hold": -59.7,
+          "premium_vs_break_glass": -721.8
+        },
+        {
+          "buyer_user_id": "725401251478605824",
+          "buyer_manager": "PVos",
+          "buyer_team": "STINKS",
+          "buyer_perceived_value": 2015.1,
+          "premium_vs_focal_hold": -76.1,
+          "premium_vs_break_glass": -738.2
+        },
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1952.3,
+          "premium_vs_focal_hold": -138.9,
+          "premium_vs_break_glass": -801.0
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 1934.3,
+          "premium_vs_focal_hold": -156.9,
+          "premium_vs_break_glass": -819.0
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
+      "asset_id": "player:8228",
+      "asset_type": "player",
+      "asset": "Jaylen Warren",
+      "core_status": "liquid_asset",
+      "strategic_score": 0.3177,
+      "hold_value": 2269.5,
+      "break_glass_value": 2719.6,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1785.3,
-        "premium_vs_focal_hold": -104.4,
-        "premium_vs_break_glass": -734.4
+        "buyer_perceived_value": 2009.1,
+        "premium_vs_focal_hold": -260.4,
+        "premium_vs_break_glass": -710.5
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1785.3,
-          "premium_vs_focal_hold": -104.4,
-          "premium_vs_break_glass": -734.4
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1771.0,
-          "premium_vs_focal_hold": -118.7,
-          "premium_vs_break_glass": -748.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1744.0,
-          "premium_vs_focal_hold": -145.7,
-          "premium_vs_break_glass": -775.7
+          "buyer_perceived_value": 2009.1,
+          "premium_vs_focal_hold": -260.4,
+          "premium_vs_break_glass": -710.5
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1704.4,
-          "premium_vs_focal_hold": -185.3,
-          "premium_vs_break_glass": -815.3
+          "buyer_perceived_value": 1970.6,
+          "premium_vs_focal_hold": -298.9,
+          "premium_vs_break_glass": -749.0
         },
         {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1676.4,
-          "premium_vs_focal_hold": -213.3,
-          "premium_vs_break_glass": -843.3
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1966.7,
+          "premium_vs_focal_hold": -302.8,
+          "premium_vs_break_glass": -752.9
+        },
+        {
+          "buyer_user_id": "709546576091090944",
+          "buyer_manager": "nuckyniners",
+          "buyer_team": "Chef Niners",
+          "buyer_perceived_value": 1939.3,
+          "premium_vs_focal_hold": -330.2,
+          "premium_vs_break_glass": -780.3
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1923.2,
+          "premium_vs_focal_hold": -346.3,
+          "premium_vs_break_glass": -796.4
         }
       ],
       "market_should_be_tested": false
@@ -1031,56 +1031,56 @@
       "asset": "2029 Early 2nd \u2014 original Ball Knower",
       "core_status": "liquid_pick",
       "strategic_score": 0.6694,
-      "hold_value": 1639.6,
-      "break_glass_value": 2367.1,
+      "hold_value": 1640.9,
+      "break_glass_value": 2368.9,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1625.0,
-        "premium_vs_focal_hold": -14.6,
-        "premium_vs_break_glass": -742.1
+        "buyer_perceived_value": 1626.2,
+        "premium_vs_focal_hold": -14.7,
+        "premium_vs_break_glass": -742.7
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1625.0,
-          "premium_vs_focal_hold": -14.6,
-          "premium_vs_break_glass": -742.1
+          "buyer_perceived_value": 1626.2,
+          "premium_vs_focal_hold": -14.7,
+          "premium_vs_break_glass": -742.7
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1596.8,
+          "buyer_perceived_value": 1598.1,
           "premium_vs_focal_hold": -42.8,
-          "premium_vs_break_glass": -770.3
+          "premium_vs_break_glass": -770.8
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1571.2,
-          "premium_vs_focal_hold": -68.4,
-          "premium_vs_break_glass": -795.9
+          "buyer_perceived_value": 1572.4,
+          "premium_vs_focal_hold": -68.5,
+          "premium_vs_break_glass": -796.5
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1512.5,
-          "premium_vs_focal_hold": -127.1,
-          "premium_vs_break_glass": -854.6
+          "buyer_perceived_value": 1513.7,
+          "premium_vs_focal_hold": -127.2,
+          "premium_vs_break_glass": -855.2
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1495.8,
-          "premium_vs_focal_hold": -143.8,
-          "premium_vs_break_glass": -871.3
+          "buyer_perceived_value": 1497.0,
+          "premium_vs_focal_hold": -143.9,
+          "premium_vs_break_glass": -871.9
         }
       ],
       "market_should_be_tested": false
@@ -1091,116 +1091,116 @@
       "asset": "2028 Early 2nd \u2014 original Ball Knower",
       "core_status": "liquid_pick",
       "strategic_score": 0.656,
-      "hold_value": 1699.9,
-      "break_glass_value": 2446.8,
+      "hold_value": 1703.8,
+      "break_glass_value": 2452.4,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1684.7,
+        "buyer_perceived_value": 1688.6,
         "premium_vs_focal_hold": -15.2,
-        "premium_vs_break_glass": -762.1
+        "premium_vs_break_glass": -763.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1684.7,
+          "buyer_perceived_value": 1688.6,
           "premium_vs_focal_hold": -15.2,
-          "premium_vs_break_glass": -762.1
+          "premium_vs_break_glass": -763.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1655.5,
+          "buyer_perceived_value": 1659.4,
           "premium_vs_focal_hold": -44.4,
-          "premium_vs_break_glass": -791.3
+          "premium_vs_break_glass": -793.0
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1629.0,
-          "premium_vs_focal_hold": -70.9,
-          "premium_vs_break_glass": -817.8
+          "buyer_perceived_value": 1632.7,
+          "premium_vs_focal_hold": -71.1,
+          "premium_vs_break_glass": -819.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1568.1,
-          "premium_vs_focal_hold": -131.8,
-          "premium_vs_break_glass": -878.7
+          "buyer_perceived_value": 1571.7,
+          "premium_vs_focal_hold": -132.1,
+          "premium_vs_break_glass": -880.7
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1550.8,
-          "premium_vs_focal_hold": -149.1,
-          "premium_vs_break_glass": -896.0
+          "buyer_perceived_value": 1554.4,
+          "premium_vs_focal_hold": -149.4,
+          "premium_vs_break_glass": -898.0
         }
       ],
       "market_should_be_tested": false
     },
     {
-      "asset_id": "player:8228",
+      "asset_id": "player:12533",
       "asset_type": "player",
-      "asset": "Jaylen Warren",
+      "asset": "Jacory Croskey-Merritt",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3291,
-      "hold_value": 2366.2,
-      "break_glass_value": 2857.6,
+      "strategic_score": 0.3988,
+      "hold_value": 1991.4,
+      "break_glass_value": 2654.8,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 2093.2,
-        "premium_vs_focal_hold": -273.0,
-        "premium_vs_break_glass": -764.4
+        "buyer_perceived_value": 1881.5,
+        "premium_vs_focal_hold": -109.9,
+        "premium_vs_break_glass": -773.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2093.2,
-          "premium_vs_focal_hold": -273.0,
-          "premium_vs_break_glass": -764.4
+          "buyer_perceived_value": 1881.5,
+          "premium_vs_focal_hold": -109.9,
+          "premium_vs_break_glass": -773.3
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2052.0,
-          "premium_vs_focal_hold": -314.2,
-          "premium_vs_break_glass": -805.6
-        },
-        {
-          "buyer_user_id": "846634401482792960",
-          "buyer_manager": "jimmygoodjob",
-          "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2046.7,
-          "premium_vs_focal_hold": -319.5,
-          "premium_vs_break_glass": -810.9
-        },
-        {
-          "buyer_user_id": "709546576091090944",
-          "buyer_manager": "nuckyniners",
-          "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 2009.3,
-          "premium_vs_focal_hold": -356.9,
-          "premium_vs_break_glass": -848.3
+          "buyer_perceived_value": 1866.3,
+          "premium_vs_focal_hold": -125.1,
+          "premium_vs_break_glass": -788.5
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2008.1,
-          "premium_vs_focal_hold": -358.1,
-          "premium_vs_break_glass": -849.5
+          "buyer_perceived_value": 1837.7,
+          "premium_vs_focal_hold": -153.7,
+          "premium_vs_break_glass": -817.1
+        },
+        {
+          "buyer_user_id": "846634401482792960",
+          "buyer_manager": "jimmygoodjob",
+          "buyer_team": "Hurts So Good",
+          "buyer_perceived_value": 1796.4,
+          "premium_vs_focal_hold": -195.0,
+          "premium_vs_break_glass": -858.4
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1766.9,
+          "premium_vs_focal_hold": -224.5,
+          "premium_vs_break_glass": -887.9
         }
       ],
       "market_should_be_tested": false
@@ -1210,57 +1210,57 @@
       "asset_type": "player",
       "asset": "David Montgomery",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3546,
-      "hold_value": 2781.2,
-      "break_glass_value": 3399.7,
+      "strategic_score": 0.373,
+      "hold_value": 2811.2,
+      "break_glass_value": 3473.3,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 2470.5,
-        "premium_vs_focal_hold": -310.7,
-        "premium_vs_break_glass": -929.2
+        "buyer_perceived_value": 2498.4,
+        "premium_vs_focal_hold": -312.8,
+        "premium_vs_break_glass": -974.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2470.5,
-          "premium_vs_focal_hold": -310.7,
-          "premium_vs_break_glass": -929.2
+          "buyer_perceived_value": 2498.4,
+          "premium_vs_focal_hold": -312.8,
+          "premium_vs_break_glass": -974.9
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2452.8,
-          "premium_vs_focal_hold": -328.4,
-          "premium_vs_break_glass": -946.9
+          "buyer_perceived_value": 2485.6,
+          "premium_vs_focal_hold": -325.6,
+          "premium_vs_break_glass": -987.7
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 2436.6,
-          "premium_vs_focal_hold": -344.6,
-          "premium_vs_break_glass": -963.1
+          "buyer_perceived_value": 2472.9,
+          "premium_vs_focal_hold": -338.3,
+          "premium_vs_break_glass": -1000.4
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2402.6,
-          "premium_vs_focal_hold": -378.6,
-          "premium_vs_break_glass": -997.1
+          "buyer_perceived_value": 2427.3,
+          "premium_vs_focal_hold": -383.9,
+          "premium_vs_break_glass": -1046.0
         },
         {
           "buyer_user_id": "845157822193872896",
           "buyer_manager": "Anthonyder",
           "buyer_team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-          "buyer_perceived_value": 2384.8,
-          "premium_vs_focal_hold": -396.4,
-          "premium_vs_break_glass": -1014.9
+          "buyer_perceived_value": 2421.9,
+          "premium_vs_focal_hold": -389.3,
+          "premium_vs_break_glass": -1051.4
         }
       ],
       "market_should_be_tested": false
@@ -1271,56 +1271,56 @@
       "asset": "2027 Late 1st \u2014 original Chef Niners",
       "core_status": "premium_pick",
       "strategic_score": 0.6157,
-      "hold_value": 2528.5,
-      "break_glass_value": 3644.3,
+      "hold_value": 2531.7,
+      "break_glass_value": 3648.9,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2505.9,
+        "buyer_perceived_value": 2509.1,
         "premium_vs_focal_hold": -22.6,
-        "premium_vs_break_glass": -1138.4
+        "premium_vs_break_glass": -1139.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2505.9,
+          "buyer_perceived_value": 2509.1,
           "premium_vs_focal_hold": -22.6,
-          "premium_vs_break_glass": -1138.4
+          "premium_vs_break_glass": -1139.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2462.5,
+          "buyer_perceived_value": 2465.7,
           "premium_vs_focal_hold": -66.0,
-          "premium_vs_break_glass": -1181.8
+          "premium_vs_break_glass": -1183.2
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2423.0,
-          "premium_vs_focal_hold": -105.5,
-          "premium_vs_break_glass": -1221.3
+          "buyer_perceived_value": 2426.1,
+          "premium_vs_focal_hold": -105.6,
+          "premium_vs_break_glass": -1222.8
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2332.4,
-          "premium_vs_focal_hold": -196.1,
-          "premium_vs_break_glass": -1311.9
+          "buyer_perceived_value": 2335.5,
+          "premium_vs_focal_hold": -196.2,
+          "premium_vs_break_glass": -1313.4
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2306.7,
-          "premium_vs_focal_hold": -221.8,
-          "premium_vs_break_glass": -1337.6
+          "buyer_perceived_value": 2309.7,
+          "premium_vs_focal_hold": -222.0,
+          "premium_vs_break_glass": -1339.2
         }
       ],
       "market_should_be_tested": false
@@ -1329,58 +1329,58 @@
       "asset_id": "player:5870",
       "asset_type": "player",
       "asset": "Daniel Jones",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.4412,
-      "hold_value": 2886.0,
-      "break_glass_value": 3837.6,
+      "core_status": "important_asset",
+      "strategic_score": 0.4651,
+      "hold_value": 2866.2,
+      "break_glass_value": 3853.9,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 2600.0,
-        "premium_vs_focal_hold": -286.0,
-        "premium_vs_break_glass": -1237.6
+        "buyer_perceived_value": 2589.8,
+        "premium_vs_focal_hold": -276.4,
+        "premium_vs_break_glass": -1264.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2600.0,
-          "premium_vs_focal_hold": -286.0,
-          "premium_vs_break_glass": -1237.6
+          "buyer_perceived_value": 2589.8,
+          "premium_vs_focal_hold": -276.4,
+          "premium_vs_break_glass": -1264.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2544.4,
-          "premium_vs_focal_hold": -341.6,
-          "premium_vs_break_glass": -1293.2
+          "buyer_perceived_value": 2519.8,
+          "premium_vs_focal_hold": -346.4,
+          "premium_vs_break_glass": -1334.1
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2542.1,
-          "premium_vs_focal_hold": -343.9,
-          "premium_vs_break_glass": -1295.5
+          "buyer_perceived_value": 2499.3,
+          "premium_vs_focal_hold": -366.9,
+          "premium_vs_break_glass": -1354.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 2500.8,
-          "premium_vs_focal_hold": -385.2,
-          "premium_vs_break_glass": -1336.8
+          "buyer_perceived_value": 2469.1,
+          "premium_vs_focal_hold": -397.1,
+          "premium_vs_break_glass": -1384.8
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2484.4,
-          "premium_vs_focal_hold": -401.6,
-          "premium_vs_break_glass": -1353.2
+          "buyer_perceived_value": 2463.6,
+          "premium_vs_focal_hold": -402.6,
+          "premium_vs_break_glass": -1390.3
         }
       ],
       "market_should_be_tested": false
@@ -1391,56 +1391,56 @@
       "asset": "2029 Early 1st \u2014 original Ball Knower",
       "core_status": "premium_pick",
       "strategic_score": 0.8538,
-      "hold_value": 2442.7,
-      "break_glass_value": 4030.5,
+      "hold_value": 2446.5,
+      "break_glass_value": 4036.7,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2420.9,
-        "premium_vs_focal_hold": -21.8,
-        "premium_vs_break_glass": -1609.6
+        "buyer_perceived_value": 2424.6,
+        "premium_vs_focal_hold": -21.9,
+        "premium_vs_break_glass": -1612.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2420.9,
-          "premium_vs_focal_hold": -21.8,
-          "premium_vs_break_glass": -1609.6
+          "buyer_perceived_value": 2424.6,
+          "premium_vs_focal_hold": -21.9,
+          "premium_vs_break_glass": -1612.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2378.9,
-          "premium_vs_focal_hold": -63.8,
-          "premium_vs_break_glass": -1651.6
+          "buyer_perceived_value": 2382.6,
+          "premium_vs_focal_hold": -63.9,
+          "premium_vs_break_glass": -1654.1
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2340.7,
-          "premium_vs_focal_hold": -102.0,
-          "premium_vs_break_glass": -1689.8
+          "buyer_perceived_value": 2344.4,
+          "premium_vs_focal_hold": -102.1,
+          "premium_vs_break_glass": -1692.3
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2253.3,
-          "premium_vs_focal_hold": -189.4,
-          "premium_vs_break_glass": -1777.2
+          "buyer_perceived_value": 2256.8,
+          "premium_vs_focal_hold": -189.7,
+          "premium_vs_break_glass": -1779.9
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2228.4,
-          "premium_vs_focal_hold": -214.3,
-          "premium_vs_break_glass": -1802.1
+          "buyer_perceived_value": 2231.9,
+          "premium_vs_focal_hold": -214.6,
+          "premium_vs_break_glass": -1804.8
         }
       ],
       "market_should_be_tested": false
@@ -1450,57 +1450,57 @@
       "asset_type": "player",
       "asset": "Kenyon Sadiq",
       "core_status": "core_high_hold",
-      "strategic_score": 0.5586,
-      "hold_value": 2893.6,
-      "break_glass_value": 4385.2,
+      "strategic_score": 0.5673,
+      "hold_value": 2923.7,
+      "break_glass_value": 4451.1,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 2633.2,
-        "premium_vs_focal_hold": -260.4,
-        "premium_vs_break_glass": -1752.0
+        "buyer_perceived_value": 2660.8,
+        "premium_vs_focal_hold": -262.9,
+        "premium_vs_break_glass": -1790.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2633.2,
-          "premium_vs_focal_hold": -260.4,
-          "premium_vs_break_glass": -1752.0
+          "buyer_perceived_value": 2660.8,
+          "premium_vs_focal_hold": -262.9,
+          "premium_vs_break_glass": -1790.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2514.1,
-          "premium_vs_focal_hold": -379.5,
-          "premium_vs_break_glass": -1871.1
+          "buyer_perceived_value": 2540.1,
+          "premium_vs_focal_hold": -383.6,
+          "premium_vs_break_glass": -1911.0
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 2471.9,
-          "premium_vs_focal_hold": -421.7,
-          "premium_vs_break_glass": -1913.3
+          "buyer_perceived_value": 2497.2,
+          "premium_vs_focal_hold": -426.5,
+          "premium_vs_break_glass": -1953.9
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2416.1,
-          "premium_vs_focal_hold": -477.5,
-          "premium_vs_break_glass": -1969.1
+          "buyer_perceived_value": 2441.3,
+          "premium_vs_focal_hold": -482.4,
+          "premium_vs_break_glass": -2009.8
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2352.0,
-          "premium_vs_focal_hold": -541.6,
-          "premium_vs_break_glass": -2033.2
+          "buyer_perceived_value": 2375.9,
+          "premium_vs_focal_hold": -547.8,
+          "premium_vs_break_glass": -2075.2
         }
       ],
       "market_should_be_tested": false
@@ -1511,56 +1511,56 @@
       "asset": "2028 Early 1st \u2014 original Ball Knower",
       "core_status": "premium_pick",
       "strategic_score": 0.84,
-      "hold_value": 2752.4,
-      "break_glass_value": 4541.5,
+      "hold_value": 2745.9,
+      "break_glass_value": 4530.7,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2727.8,
-        "premium_vs_focal_hold": -24.6,
-        "premium_vs_break_glass": -1813.7
+        "buyer_perceived_value": 2721.4,
+        "premium_vs_focal_hold": -24.5,
+        "premium_vs_break_glass": -1809.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2727.8,
-          "premium_vs_focal_hold": -24.6,
-          "premium_vs_break_glass": -1813.7
+          "buyer_perceived_value": 2721.4,
+          "premium_vs_focal_hold": -24.5,
+          "premium_vs_break_glass": -1809.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2680.5,
-          "premium_vs_focal_hold": -71.9,
-          "premium_vs_break_glass": -1861.0
+          "buyer_perceived_value": 2674.3,
+          "premium_vs_focal_hold": -71.6,
+          "premium_vs_break_glass": -1856.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2637.5,
-          "premium_vs_focal_hold": -114.9,
-          "premium_vs_break_glass": -1904.0
+          "buyer_perceived_value": 2631.3,
+          "premium_vs_focal_hold": -114.6,
+          "premium_vs_break_glass": -1899.4
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2539.0,
-          "premium_vs_focal_hold": -213.4,
-          "premium_vs_break_glass": -2002.5
+          "buyer_perceived_value": 2533.0,
+          "premium_vs_focal_hold": -212.9,
+          "premium_vs_break_glass": -1997.7
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2510.9,
-          "premium_vs_focal_hold": -241.5,
-          "premium_vs_break_glass": -2030.6
+          "buyer_perceived_value": 2505.1,
+          "premium_vs_focal_hold": -240.8,
+          "premium_vs_break_glass": -2025.6
         }
       ],
       "market_should_be_tested": false
@@ -1569,58 +1569,58 @@
       "asset_id": "player:11584",
       "asset_type": "player",
       "asset": "Bucky Irving",
-      "core_status": "important_asset",
-      "strategic_score": 0.4638,
-      "hold_value": 3790.6,
-      "break_glass_value": 5207.4,
+      "core_status": "core_high_hold",
+      "strategic_score": 0.4728,
+      "hold_value": 3942.4,
+      "break_glass_value": 5451.2,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 3341.4,
-        "premium_vs_focal_hold": -449.2,
-        "premium_vs_break_glass": -1866.0
+        "buyer_perceived_value": 3475.6,
+        "premium_vs_focal_hold": -466.8,
+        "premium_vs_break_glass": -1975.6
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 3341.4,
-          "premium_vs_focal_hold": -449.2,
-          "premium_vs_break_glass": -1866.0
+          "buyer_perceived_value": 3475.6,
+          "premium_vs_focal_hold": -466.8,
+          "premium_vs_break_glass": -1975.6
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 3297.3,
-          "premium_vs_focal_hold": -493.3,
-          "premium_vs_break_glass": -1910.1
+          "buyer_perceived_value": 3428.9,
+          "premium_vs_focal_hold": -513.5,
+          "premium_vs_break_glass": -2022.3
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 3238.8,
-          "premium_vs_focal_hold": -551.8,
-          "premium_vs_break_glass": -1968.6
+          "buyer_perceived_value": 3367.5,
+          "premium_vs_focal_hold": -574.9,
+          "premium_vs_break_glass": -2083.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 3228.4,
-          "premium_vs_focal_hold": -562.2,
-          "premium_vs_break_glass": -1979.0
+          "buyer_perceived_value": 3360.1,
+          "premium_vs_focal_hold": -582.3,
+          "premium_vs_break_glass": -2091.1
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 3159.3,
-          "premium_vs_focal_hold": -631.3,
-          "premium_vs_break_glass": -2048.1
+          "buyer_perceived_value": 3287.3,
+          "premium_vs_focal_hold": -655.1,
+          "premium_vs_break_glass": -2163.9
         }
       ],
       "market_should_be_tested": false
@@ -1630,57 +1630,57 @@
       "asset_type": "player",
       "asset": "Ladd McConkey",
       "core_status": "core_high_hold",
-      "strategic_score": 0.5398,
-      "hold_value": 4669.8,
-      "break_glass_value": 6825.6,
+      "strategic_score": 0.533,
+      "hold_value": 4530.1,
+      "break_glass_value": 6581.1,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 4394.1,
-        "premium_vs_focal_hold": -275.7,
-        "premium_vs_break_glass": -2431.5
+        "buyer_perceived_value": 4260.9,
+        "premium_vs_focal_hold": -269.2,
+        "premium_vs_break_glass": -2320.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 4394.1,
-          "premium_vs_focal_hold": -275.7,
-          "premium_vs_break_glass": -2431.5
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 4204.7,
-          "premium_vs_focal_hold": -465.1,
-          "premium_vs_break_glass": -2620.9
+          "buyer_perceived_value": 4260.9,
+          "premium_vs_focal_hold": -269.2,
+          "premium_vs_break_glass": -2320.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 4202.2,
-          "premium_vs_focal_hold": -467.6,
-          "premium_vs_break_glass": -2623.4
+          "buyer_perceived_value": 4079.3,
+          "premium_vs_focal_hold": -450.8,
+          "premium_vs_break_glass": -2501.8
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 4075.8,
+          "premium_vs_focal_hold": -454.3,
+          "premium_vs_break_glass": -2505.3
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 4065.9,
-          "premium_vs_focal_hold": -603.9,
-          "premium_vs_break_glass": -2759.7
+          "buyer_perceived_value": 3945.7,
+          "premium_vs_focal_hold": -584.4,
+          "premium_vs_break_glass": -2635.4
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 4052.3,
-          "premium_vs_focal_hold": -617.5,
-          "premium_vs_break_glass": -2773.3
+          "buyer_perceived_value": 3937.0,
+          "premium_vs_focal_hold": -593.1,
+          "premium_vs_break_glass": -2644.1
         }
       ],
       "market_should_be_tested": false
@@ -1690,57 +1690,57 @@
       "asset_type": "player",
       "asset": "Bo Nix",
       "core_status": "core_high_hold",
-      "strategic_score": 0.6311,
-      "hold_value": 6549.6,
-      "break_glass_value": 10041.6,
+      "strategic_score": 0.6275,
+      "hold_value": 6515.3,
+      "break_glass_value": 9970.3,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 5916.0,
-        "premium_vs_focal_hold": -633.6,
-        "premium_vs_break_glass": -4125.6
+        "buyer_perceived_value": 5884.2,
+        "premium_vs_focal_hold": -631.1,
+        "premium_vs_break_glass": -4086.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 5916.0,
-          "premium_vs_focal_hold": -633.6,
-          "premium_vs_break_glass": -4125.6
+          "buyer_perceived_value": 5884.2,
+          "premium_vs_focal_hold": -631.1,
+          "premium_vs_break_glass": -4086.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 5748.9,
-          "premium_vs_focal_hold": -800.7,
-          "premium_vs_break_glass": -4292.7
+          "buyer_perceived_value": 5719.5,
+          "premium_vs_focal_hold": -795.8,
+          "premium_vs_break_glass": -4250.8
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 5688.6,
-          "premium_vs_focal_hold": -861.0,
-          "premium_vs_break_glass": -4353.0
+          "buyer_perceived_value": 5661.3,
+          "premium_vs_focal_hold": -854.0,
+          "premium_vs_break_glass": -4309.0
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 5630.6,
-          "premium_vs_focal_hold": -919.0,
-          "premium_vs_break_glass": -4411.0
+          "buyer_perceived_value": 5602.5,
+          "premium_vs_focal_hold": -912.8,
+          "premium_vs_break_glass": -4367.8
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 5627.5,
-          "premium_vs_focal_hold": -922.1,
-          "premium_vs_break_glass": -4414.1
+          "buyer_perceived_value": 5598.3,
+          "premium_vs_focal_hold": -917.0,
+          "premium_vs_break_glass": -4372.0
         }
       ],
       "market_should_be_tested": false
@@ -1751,118 +1751,58 @@
       "asset_id": "player:2307",
       "asset_type": "player",
       "asset": "Marcus Mariota",
-      "core_status": "developmental_or_expendable",
-      "strategic_score": 0.1954,
-      "hold_value": 202.0,
-      "break_glass_value": 232.9,
+      "core_status": "liquid_asset",
+      "strategic_score": 0.315,
+      "hold_value": 224.3,
+      "break_glass_value": 270.5,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 198.1,
-        "premium_vs_focal_hold": -3.9,
-        "premium_vs_break_glass": -34.8
+        "buyer_perceived_value": 219.8,
+        "premium_vs_focal_hold": -4.5,
+        "premium_vs_break_glass": -50.7
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 198.1,
-          "premium_vs_focal_hold": -3.9,
-          "premium_vs_break_glass": -34.8
+          "buyer_perceived_value": 219.8,
+          "premium_vs_focal_hold": -4.5,
+          "premium_vs_break_glass": -50.7
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 189.4,
-          "premium_vs_focal_hold": -12.6,
-          "premium_vs_break_glass": -43.5
+          "buyer_perceived_value": 210.2,
+          "premium_vs_focal_hold": -14.1,
+          "premium_vs_break_glass": -60.3
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 185.7,
-          "premium_vs_focal_hold": -16.3,
-          "premium_vs_break_glass": -47.2
+          "buyer_perceived_value": 206.1,
+          "premium_vs_focal_hold": -18.2,
+          "premium_vs_break_glass": -64.4
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 183.8,
-          "premium_vs_focal_hold": -18.2,
-          "premium_vs_break_glass": -49.1
+          "buyer_perceived_value": 204.0,
+          "premium_vs_focal_hold": -20.3,
+          "premium_vs_break_glass": -66.5
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 183.8,
-          "premium_vs_focal_hold": -18.2,
-          "premium_vs_break_glass": -49.1
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:6803",
-      "asset_type": "player",
-      "asset": "Brandon Aiyuk",
-      "core_status": "developmental_or_expendable",
-      "strategic_score": 0.2361,
-      "hold_value": 552.3,
-      "break_glass_value": 643.7,
-      "best_buyer": {
-        "buyer_user_id": "844772511156670464",
-        "buyer_manager": "CoachKoko",
-        "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 562.7,
-        "premium_vs_focal_hold": 10.4,
-        "premium_vs_break_glass": -81.0
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 562.7,
-          "premium_vs_focal_hold": 10.4,
-          "premium_vs_break_glass": -81.0
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 539.1,
-          "premium_vs_focal_hold": -13.2,
-          "premium_vs_break_glass": -104.6
-        },
-        {
-          "buyer_user_id": "725401251478605824",
-          "buyer_manager": "PVos",
-          "buyer_team": "STINKS",
-          "buyer_perceived_value": 531.3,
-          "premium_vs_focal_hold": -21.0,
-          "premium_vs_break_glass": -112.4
-        },
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 514.9,
-          "premium_vs_focal_hold": -37.4,
-          "premium_vs_break_glass": -128.8
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 507.4,
-          "premium_vs_focal_hold": -44.9,
-          "premium_vs_break_glass": -136.3
+          "buyer_perceived_value": 204.0,
+          "premium_vs_focal_hold": -20.3,
+          "premium_vs_break_glass": -66.5
         }
       ],
       "market_should_be_tested": false
@@ -1872,57 +1812,117 @@
       "asset_type": "player",
       "asset": "Garrett Nussmeier",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3195,
-      "hold_value": 205.4,
-      "break_glass_value": 288.6,
+      "strategic_score": 0.3197,
+      "hold_value": 123.0,
+      "break_glass_value": 172.9,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 203.1,
-        "premium_vs_focal_hold": -2.3,
-        "premium_vs_break_glass": -85.5
+        "buyer_perceived_value": 121.6,
+        "premium_vs_focal_hold": -1.4,
+        "premium_vs_break_glass": -51.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 203.1,
-          "premium_vs_focal_hold": -2.3,
-          "premium_vs_break_glass": -85.5
+          "buyer_perceived_value": 121.6,
+          "premium_vs_focal_hold": -1.4,
+          "premium_vs_break_glass": -51.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 190.0,
-          "premium_vs_focal_hold": -15.4,
-          "premium_vs_break_glass": -98.6
+          "buyer_perceived_value": 113.8,
+          "premium_vs_focal_hold": -9.2,
+          "premium_vs_break_glass": -59.1
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 187.7,
-          "premium_vs_focal_hold": -17.7,
-          "premium_vs_break_glass": -100.9
+          "buyer_perceived_value": 112.4,
+          "premium_vs_focal_hold": -10.6,
+          "premium_vs_break_glass": -60.5
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 182.9,
-          "premium_vs_focal_hold": -22.5,
-          "premium_vs_break_glass": -105.7
+          "buyer_perceived_value": 109.5,
+          "premium_vs_focal_hold": -13.5,
+          "premium_vs_break_glass": -63.4
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 182.2,
-          "premium_vs_focal_hold": -23.2,
-          "premium_vs_break_glass": -106.4
+          "buyer_perceived_value": 109.1,
+          "premium_vs_focal_hold": -13.9,
+          "premium_vs_break_glass": -63.8
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
+      "asset_id": "player:6803",
+      "asset_type": "player",
+      "asset": "Brandon Aiyuk",
+      "core_status": "developmental_or_expendable",
+      "strategic_score": 0.2103,
+      "hold_value": 571.4,
+      "break_glass_value": 659.9,
+      "best_buyer": {
+        "buyer_user_id": "844772511156670464",
+        "buyer_manager": "CoachKoko",
+        "buyer_team": "Trash Incessant Talkers",
+        "buyer_perceived_value": 582.2,
+        "premium_vs_focal_hold": 10.8,
+        "premium_vs_break_glass": -77.7
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 582.2,
+          "premium_vs_focal_hold": 10.8,
+          "premium_vs_break_glass": -77.7
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 557.8,
+          "premium_vs_focal_hold": -13.6,
+          "premium_vs_break_glass": -102.1
+        },
+        {
+          "buyer_user_id": "725401251478605824",
+          "buyer_manager": "PVos",
+          "buyer_team": "STINKS",
+          "buyer_perceived_value": 549.7,
+          "premium_vs_focal_hold": -21.7,
+          "premium_vs_break_glass": -110.2
+        },
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 532.7,
+          "premium_vs_focal_hold": -38.7,
+          "premium_vs_break_glass": -127.2
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 525.0,
+          "premium_vs_focal_hold": -46.4,
+          "premium_vs_break_glass": -134.9
         }
       ],
       "market_should_be_tested": false
@@ -1932,57 +1932,57 @@
       "asset_type": "player",
       "asset": "Aaron Jones",
       "core_status": "developmental_or_expendable",
-      "strategic_score": 0.1506,
-      "hold_value": 1102.9,
-      "break_glass_value": 1227.0,
+      "strategic_score": 0.1633,
+      "hold_value": 1115.7,
+      "break_glass_value": 1246.0,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1048.6,
-        "premium_vs_focal_hold": -54.3,
-        "premium_vs_break_glass": -178.4
+        "buyer_perceived_value": 1061.1,
+        "premium_vs_focal_hold": -54.6,
+        "premium_vs_break_glass": -184.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1048.6,
-          "premium_vs_focal_hold": -54.3,
-          "premium_vs_break_glass": -178.4
+          "buyer_perceived_value": 1061.1,
+          "premium_vs_focal_hold": -54.6,
+          "premium_vs_break_glass": -184.9
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1028.5,
-          "premium_vs_focal_hold": -74.4,
-          "premium_vs_break_glass": -198.5
+          "buyer_perceived_value": 1040.1,
+          "premium_vs_focal_hold": -75.6,
+          "premium_vs_break_glass": -205.9
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1021.1,
-          "premium_vs_focal_hold": -81.8,
-          "premium_vs_break_glass": -205.9
+          "buyer_perceived_value": 1034.6,
+          "premium_vs_focal_hold": -81.1,
+          "premium_vs_break_glass": -211.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1006.2,
-          "premium_vs_focal_hold": -96.7,
-          "premium_vs_break_glass": -220.8
+          "buyer_perceived_value": 1017.3,
+          "premium_vs_focal_hold": -98.4,
+          "premium_vs_break_glass": -228.7
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 999.1,
-          "premium_vs_focal_hold": -103.8,
-          "premium_vs_break_glass": -227.9
+          "buyer_perceived_value": 1013.4,
+          "premium_vs_focal_hold": -102.3,
+          "premium_vs_break_glass": -232.6
         }
       ],
       "market_should_be_tested": false
@@ -1992,57 +1992,57 @@
       "asset_type": "player",
       "asset": "Kenny Gainwell",
       "core_status": "developmental_or_expendable",
-      "strategic_score": 0.2577,
-      "hold_value": 1574.2,
-      "break_glass_value": 1840.6,
+      "strategic_score": 0.249,
+      "hold_value": 1511.2,
+      "break_glass_value": 1757.5,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1492.2,
-        "premium_vs_focal_hold": -82.0,
-        "premium_vs_break_glass": -348.4
+        "buyer_perceived_value": 1432.8,
+        "premium_vs_focal_hold": -78.4,
+        "premium_vs_break_glass": -324.7
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1492.2,
-          "premium_vs_focal_hold": -82.0,
-          "premium_vs_break_glass": -348.4
+          "buyer_perceived_value": 1432.8,
+          "premium_vs_focal_hold": -78.4,
+          "premium_vs_break_glass": -324.7
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1470.9,
-          "premium_vs_focal_hold": -103.3,
-          "premium_vs_break_glass": -369.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1443.4,
-          "premium_vs_focal_hold": -130.8,
-          "premium_vs_break_glass": -397.2
+          "buyer_perceived_value": 1411.8,
+          "premium_vs_focal_hold": -99.4,
+          "premium_vs_break_glass": -345.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1442.2,
-          "premium_vs_focal_hold": -132.0,
-          "premium_vs_break_glass": -398.4
+          "buyer_perceived_value": 1385.9,
+          "premium_vs_focal_hold": -125.3,
+          "premium_vs_break_glass": -371.6
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1385.1,
+          "premium_vs_focal_hold": -126.1,
+          "premium_vs_break_glass": -372.4
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1409.4,
-          "premium_vs_focal_hold": -164.8,
-          "premium_vs_break_glass": -431.2
+          "buyer_perceived_value": 1353.9,
+          "premium_vs_focal_hold": -157.3,
+          "premium_vs_break_glass": -403.6
         }
       ],
       "market_should_be_tested": false
@@ -2052,57 +2052,57 @@
       "asset_type": "player",
       "asset": "Demond Claiborne",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3643,
-      "hold_value": 873.6,
-      "break_glass_value": 1211.0,
+      "strategic_score": 0.3929,
+      "hold_value": 847.6,
+      "break_glass_value": 1185.8,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 823.4,
-        "premium_vs_focal_hold": -50.2,
-        "premium_vs_break_glass": -387.6
+        "buyer_perceived_value": 798.9,
+        "premium_vs_focal_hold": -48.7,
+        "premium_vs_break_glass": -386.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 823.4,
-          "premium_vs_focal_hold": -50.2,
-          "premium_vs_break_glass": -387.6
+          "buyer_perceived_value": 798.9,
+          "premium_vs_focal_hold": -48.7,
+          "premium_vs_break_glass": -386.9
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 820.3,
-          "premium_vs_focal_hold": -53.3,
-          "premium_vs_break_glass": -390.7
+          "buyer_perceived_value": 795.9,
+          "premium_vs_focal_hold": -51.7,
+          "premium_vs_break_glass": -389.9
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 815.8,
-          "premium_vs_focal_hold": -57.8,
-          "premium_vs_break_glass": -395.2
+          "buyer_perceived_value": 791.6,
+          "premium_vs_focal_hold": -56.0,
+          "premium_vs_break_glass": -394.2
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 764.4,
-          "premium_vs_focal_hold": -109.2,
-          "premium_vs_break_glass": -446.6
+          "buyer_perceived_value": 741.7,
+          "premium_vs_focal_hold": -105.9,
+          "premium_vs_break_glass": -444.1
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 761.3,
-          "premium_vs_focal_hold": -112.3,
-          "premium_vs_break_glass": -449.7
+          "buyer_perceived_value": 738.7,
+          "premium_vs_focal_hold": -108.9,
+          "premium_vs_break_glass": -447.1
         }
       ],
       "market_should_be_tested": false
@@ -2112,57 +2112,57 @@
       "asset_type": "player",
       "asset": "Mike Evans",
       "core_status": "developmental_or_expendable",
-      "strategic_score": 0.268,
-      "hold_value": 2035.5,
-      "break_glass_value": 2359.7,
+      "strategic_score": 0.2714,
+      "hold_value": 1996.7,
+      "break_glass_value": 2317.1,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1910.7,
-        "premium_vs_focal_hold": -124.8,
-        "premium_vs_break_glass": -449.0
+        "buyer_perceived_value": 1874.9,
+        "premium_vs_focal_hold": -121.8,
+        "premium_vs_break_glass": -442.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1910.7,
-          "premium_vs_focal_hold": -124.8,
-          "premium_vs_break_glass": -449.0
+          "buyer_perceived_value": 1874.9,
+          "premium_vs_focal_hold": -121.8,
+          "premium_vs_break_glass": -442.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1873.9,
-          "premium_vs_focal_hold": -161.6,
-          "premium_vs_break_glass": -485.8
+          "buyer_perceived_value": 1837.1,
+          "premium_vs_focal_hold": -159.6,
+          "premium_vs_break_glass": -480.0
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1845.5,
-          "premium_vs_focal_hold": -190.0,
-          "premium_vs_break_glass": -514.2
+          "buyer_perceived_value": 1806.5,
+          "premium_vs_focal_hold": -190.2,
+          "premium_vs_break_glass": -510.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1839.0,
-          "premium_vs_focal_hold": -196.5,
-          "premium_vs_break_glass": -520.7
+          "buyer_perceived_value": 1801.8,
+          "premium_vs_focal_hold": -194.9,
+          "premium_vs_break_glass": -515.3
         },
         {
-          "buyer_user_id": "844785316274483200",
-          "buyer_manager": "MochaSmev",
-          "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1807.4,
-          "premium_vs_focal_hold": -228.1,
-          "premium_vs_break_glass": -552.3
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1770.1,
+          "premium_vs_focal_hold": -226.6,
+          "premium_vs_break_glass": -547.0
         }
       ],
       "market_should_be_tested": false
@@ -2172,57 +2172,57 @@
       "asset_type": "player",
       "asset": "Hunter Henry",
       "core_status": "liquid_asset",
-      "strategic_score": 0.292,
-      "hold_value": 1335.9,
-      "break_glass_value": 1581.5,
+      "strategic_score": 0.3099,
+      "hold_value": 1383.4,
+      "break_glass_value": 1653.7,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 1112.9,
-        "premium_vs_focal_hold": -223.0,
-        "premium_vs_break_glass": -468.6
+        "buyer_perceived_value": 1152.1,
+        "premium_vs_focal_hold": -231.3,
+        "premium_vs_break_glass": -501.6
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1112.9,
-          "premium_vs_focal_hold": -223.0,
-          "premium_vs_break_glass": -468.6
+          "buyer_perceived_value": 1152.1,
+          "premium_vs_focal_hold": -231.3,
+          "premium_vs_break_glass": -501.6
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1095.9,
-          "premium_vs_focal_hold": -240.0,
-          "premium_vs_break_glass": -485.6
+          "buyer_perceived_value": 1135.3,
+          "premium_vs_focal_hold": -248.1,
+          "premium_vs_break_glass": -518.4
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1085.9,
-          "premium_vs_focal_hold": -250.0,
-          "premium_vs_break_glass": -495.6
+          "buyer_perceived_value": 1125.1,
+          "premium_vs_focal_hold": -258.3,
+          "premium_vs_break_glass": -528.6
         },
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1052.1,
-          "premium_vs_focal_hold": -283.8,
-          "premium_vs_break_glass": -529.4
+          "buyer_perceived_value": 1090.6,
+          "premium_vs_focal_hold": -292.8,
+          "premium_vs_break_glass": -563.1
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1049.8,
-          "premium_vs_focal_hold": -286.1,
-          "premium_vs_break_glass": -531.7
+          "buyer_perceived_value": 1088.0,
+          "premium_vs_focal_hold": -295.4,
+          "premium_vs_break_glass": -565.7
         }
       ],
       "market_should_be_tested": false
@@ -2232,57 +2232,57 @@
       "asset_type": "player",
       "asset": "Michael Penix",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3277,
-      "hold_value": 1575.6,
-      "break_glass_value": 2032.0,
+      "strategic_score": 0.339,
+      "hold_value": 1672.1,
+      "break_glass_value": 2171.1,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 1556.3,
-        "premium_vs_focal_hold": -19.3,
-        "premium_vs_break_glass": -475.7
+        "buyer_perceived_value": 1651.6,
+        "premium_vs_focal_hold": -20.5,
+        "premium_vs_break_glass": -519.5
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1556.3,
-          "premium_vs_focal_hold": -19.3,
-          "premium_vs_break_glass": -475.7
+          "buyer_perceived_value": 1651.6,
+          "premium_vs_focal_hold": -20.5,
+          "premium_vs_break_glass": -519.5
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1460.0,
-          "premium_vs_focal_hold": -115.6,
-          "premium_vs_break_glass": -572.0
+          "buyer_perceived_value": 1549.4,
+          "premium_vs_focal_hold": -122.7,
+          "premium_vs_break_glass": -621.7
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1440.9,
-          "premium_vs_focal_hold": -134.7,
-          "premium_vs_break_glass": -591.1
+          "buyer_perceived_value": 1529.1,
+          "premium_vs_focal_hold": -143.0,
+          "premium_vs_break_glass": -642.0
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1402.6,
-          "premium_vs_focal_hold": -173.0,
-          "premium_vs_break_glass": -629.4
+          "buyer_perceived_value": 1488.5,
+          "premium_vs_focal_hold": -183.6,
+          "premium_vs_break_glass": -682.6
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1401.1,
-          "premium_vs_focal_hold": -174.5,
-          "premium_vs_break_glass": -630.9
+          "buyer_perceived_value": 1486.9,
+          "premium_vs_focal_hold": -185.2,
+          "premium_vs_break_glass": -684.2
         }
       ],
       "market_should_be_tested": false
@@ -2292,117 +2292,57 @@
       "asset_type": "player",
       "asset": "Germie Bernard",
       "core_status": "core_high_hold",
-      "strategic_score": 0.3789,
-      "hold_value": 1472.2,
-      "break_glass_value": 2070.8,
+      "strategic_score": 0.3737,
+      "hold_value": 1433.0,
+      "break_glass_value": 2005.7,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 1500.4,
-        "premium_vs_focal_hold": 28.2,
-        "premium_vs_break_glass": -570.4
+        "buyer_perceived_value": 1460.5,
+        "premium_vs_focal_hold": 27.5,
+        "premium_vs_break_glass": -545.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1500.4,
-          "premium_vs_focal_hold": 28.2,
-          "premium_vs_break_glass": -570.4
+          "buyer_perceived_value": 1460.5,
+          "premium_vs_focal_hold": 27.5,
+          "premium_vs_break_glass": -545.2
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1448.6,
-          "premium_vs_focal_hold": -23.6,
-          "premium_vs_break_glass": -622.2
+          "buyer_perceived_value": 1410.1,
+          "premium_vs_focal_hold": -22.9,
+          "premium_vs_break_glass": -595.6
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1398.2,
-          "premium_vs_focal_hold": -74.0,
-          "premium_vs_break_glass": -672.6
+          "buyer_perceived_value": 1361.1,
+          "premium_vs_focal_hold": -71.9,
+          "premium_vs_break_glass": -644.6
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1364.4,
-          "premium_vs_focal_hold": -107.8,
-          "premium_vs_break_glass": -706.4
+          "buyer_perceived_value": 1328.1,
+          "premium_vs_focal_hold": -104.9,
+          "premium_vs_break_glass": -677.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 1322.7,
-          "premium_vs_focal_hold": -149.5,
-          "premium_vs_break_glass": -748.1
-        }
-      ],
-      "market_should_be_tested": false
-    },
-    {
-      "asset_id": "player:9500",
-      "asset_type": "player",
-      "asset": "Josh Downs",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.3742,
-      "hold_value": 2088.6,
-      "break_glass_value": 2749.2,
-      "best_buyer": {
-        "buyer_user_id": "844772511156670464",
-        "buyer_manager": "CoachKoko",
-        "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 2117.5,
-        "premium_vs_focal_hold": 28.9,
-        "premium_vs_break_glass": -631.7
-      },
-      "top_buyers": [
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2117.5,
-          "premium_vs_focal_hold": 28.9,
-          "premium_vs_break_glass": -631.7
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2028.7,
-          "premium_vs_focal_hold": -59.9,
-          "premium_vs_break_glass": -720.5
-        },
-        {
-          "buyer_user_id": "725401251478605824",
-          "buyer_manager": "PVos",
-          "buyer_team": "STINKS",
-          "buyer_perceived_value": 2012.9,
-          "premium_vs_focal_hold": -75.7,
-          "premium_vs_break_glass": -736.3
-        },
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1950.0,
-          "premium_vs_focal_hold": -138.6,
-          "premium_vs_break_glass": -799.2
-        },
-        {
-          "buyer_user_id": "858530218330144768",
-          "buyer_manager": "Ballard22",
-          "buyer_team": "King B",
-          "buyer_perceived_value": 1932.4,
-          "premium_vs_focal_hold": -156.2,
-          "premium_vs_break_glass": -816.8
+          "buyer_perceived_value": 1287.5,
+          "premium_vs_focal_hold": -145.5,
+          "premium_vs_break_glass": -718.2
         }
       ],
       "market_should_be_tested": false
@@ -2412,117 +2352,117 @@
       "asset_type": "player",
       "asset": "Davante Adams",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3363,
-      "hold_value": 2369.7,
-      "break_glass_value": 2871.0,
+      "strategic_score": 0.3233,
+      "hold_value": 2348.2,
+      "break_glass_value": 2825.4,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 2218.3,
-        "premium_vs_focal_hold": -151.4,
-        "premium_vs_break_glass": -652.7
+        "buyer_perceived_value": 2197.2,
+        "premium_vs_focal_hold": -151.0,
+        "premium_vs_break_glass": -628.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2218.3,
-          "premium_vs_focal_hold": -151.4,
-          "premium_vs_break_glass": -652.7
+          "buyer_perceived_value": 2197.2,
+          "premium_vs_focal_hold": -151.0,
+          "premium_vs_break_glass": -628.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2190.6,
-          "premium_vs_focal_hold": -179.1,
-          "premium_vs_break_glass": -680.4
+          "buyer_perceived_value": 2172.3,
+          "premium_vs_focal_hold": -175.9,
+          "premium_vs_break_glass": -653.1
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2182.8,
-          "premium_vs_focal_hold": -186.9,
-          "premium_vs_break_glass": -688.2
+          "buyer_perceived_value": 2168.7,
+          "premium_vs_focal_hold": -179.5,
+          "premium_vs_break_glass": -656.7
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 2160.3,
-          "premium_vs_focal_hold": -209.4,
-          "premium_vs_break_glass": -710.7
+          "buyer_perceived_value": 2143.9,
+          "premium_vs_focal_hold": -204.3,
+          "premium_vs_break_glass": -681.5
         },
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2133.6,
-          "premium_vs_focal_hold": -236.1,
-          "premium_vs_break_glass": -737.4
+          "buyer_perceived_value": 2119.2,
+          "premium_vs_focal_hold": -229.0,
+          "premium_vs_break_glass": -706.2
         }
       ],
       "market_should_be_tested": false
     },
     {
-      "asset_id": "player:12533",
+      "asset_id": "player:9500",
       "asset_type": "player",
-      "asset": "Jacory Croskey-Merritt",
+      "asset": "Josh Downs",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3972,
-      "hold_value": 1889.7,
-      "break_glass_value": 2519.7,
+      "strategic_score": 0.3743,
+      "hold_value": 2091.2,
+      "break_glass_value": 2753.3,
       "best_buyer": {
-        "buyer_user_id": "833709164739014656",
-        "buyer_manager": "jaco057",
-        "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 1785.3,
-        "premium_vs_focal_hold": -104.4,
-        "premium_vs_break_glass": -734.4
+        "buyer_user_id": "844772511156670464",
+        "buyer_manager": "CoachKoko",
+        "buyer_team": "Trash Incessant Talkers",
+        "buyer_perceived_value": 2120.3,
+        "premium_vs_focal_hold": 29.1,
+        "premium_vs_break_glass": -633.0
       },
       "top_buyers": [
-        {
-          "buyer_user_id": "833709164739014656",
-          "buyer_manager": "jaco057",
-          "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 1785.3,
-          "premium_vs_focal_hold": -104.4,
-          "premium_vs_break_glass": -734.4
-        },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 1771.0,
-          "premium_vs_focal_hold": -118.7,
-          "premium_vs_break_glass": -748.7
+          "buyer_perceived_value": 2120.3,
+          "premium_vs_focal_hold": 29.1,
+          "premium_vs_break_glass": -633.0
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1744.0,
-          "premium_vs_focal_hold": -145.7,
-          "premium_vs_break_glass": -775.7
+          "buyer_perceived_value": 2031.5,
+          "premium_vs_focal_hold": -59.7,
+          "premium_vs_break_glass": -721.8
         },
         {
-          "buyer_user_id": "846634401482792960",
-          "buyer_manager": "jimmygoodjob",
-          "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1704.4,
-          "premium_vs_focal_hold": -185.3,
-          "premium_vs_break_glass": -815.3
+          "buyer_user_id": "725401251478605824",
+          "buyer_manager": "PVos",
+          "buyer_team": "STINKS",
+          "buyer_perceived_value": 2015.1,
+          "premium_vs_focal_hold": -76.1,
+          "premium_vs_break_glass": -738.2
         },
         {
-          "buyer_user_id": "850548458887704576",
-          "buyer_manager": "jder52",
-          "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 1676.4,
-          "premium_vs_focal_hold": -213.3,
-          "premium_vs_break_glass": -843.3
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1952.3,
+          "premium_vs_focal_hold": -138.9,
+          "premium_vs_break_glass": -801.0
+        },
+        {
+          "buyer_user_id": "858530218330144768",
+          "buyer_manager": "Ballard22",
+          "buyer_team": "King B",
+          "buyer_perceived_value": 1934.3,
+          "premium_vs_focal_hold": -156.9,
+          "premium_vs_break_glass": -819.0
         }
       ],
       "market_should_be_tested": false
@@ -2532,57 +2472,117 @@
       "asset_type": "player",
       "asset": "Jaylen Warren",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3291,
-      "hold_value": 2366.2,
-      "break_glass_value": 2857.6,
+      "strategic_score": 0.3177,
+      "hold_value": 2269.5,
+      "break_glass_value": 2719.6,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 2093.2,
-        "premium_vs_focal_hold": -273.0,
-        "premium_vs_break_glass": -764.4
+        "buyer_perceived_value": 2009.1,
+        "premium_vs_focal_hold": -260.4,
+        "premium_vs_break_glass": -710.5
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2093.2,
-          "premium_vs_focal_hold": -273.0,
-          "premium_vs_break_glass": -764.4
-        },
-        {
-          "buyer_user_id": "844772511156670464",
-          "buyer_manager": "CoachKoko",
-          "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2052.0,
-          "premium_vs_focal_hold": -314.2,
-          "premium_vs_break_glass": -805.6
+          "buyer_perceived_value": 2009.1,
+          "premium_vs_focal_hold": -260.4,
+          "premium_vs_break_glass": -710.5
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2046.7,
-          "premium_vs_focal_hold": -319.5,
-          "premium_vs_break_glass": -810.9
+          "buyer_perceived_value": 1970.6,
+          "premium_vs_focal_hold": -298.9,
+          "premium_vs_break_glass": -749.0
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1966.7,
+          "premium_vs_focal_hold": -302.8,
+          "premium_vs_break_glass": -752.9
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 2009.3,
-          "premium_vs_focal_hold": -356.9,
-          "premium_vs_break_glass": -848.3
+          "buyer_perceived_value": 1939.3,
+          "premium_vs_focal_hold": -330.2,
+          "premium_vs_break_glass": -780.3
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2008.1,
-          "premium_vs_focal_hold": -358.1,
-          "premium_vs_break_glass": -849.5
+          "buyer_perceived_value": 1923.2,
+          "premium_vs_focal_hold": -346.3,
+          "premium_vs_break_glass": -796.4
+        }
+      ],
+      "market_should_be_tested": false
+    },
+    {
+      "asset_id": "player:12533",
+      "asset_type": "player",
+      "asset": "Jacory Croskey-Merritt",
+      "core_status": "liquid_asset",
+      "strategic_score": 0.3988,
+      "hold_value": 1991.4,
+      "break_glass_value": 2654.8,
+      "best_buyer": {
+        "buyer_user_id": "833709164739014656",
+        "buyer_manager": "jaco057",
+        "buyer_team": "HUNGRY DAWGS",
+        "buyer_perceived_value": 1881.5,
+        "premium_vs_focal_hold": -109.9,
+        "premium_vs_break_glass": -773.3
+      },
+      "top_buyers": [
+        {
+          "buyer_user_id": "833709164739014656",
+          "buyer_manager": "jaco057",
+          "buyer_team": "HUNGRY DAWGS",
+          "buyer_perceived_value": 1881.5,
+          "premium_vs_focal_hold": -109.9,
+          "premium_vs_break_glass": -773.3
+        },
+        {
+          "buyer_user_id": "844772511156670464",
+          "buyer_manager": "CoachKoko",
+          "buyer_team": "Trash Incessant Talkers",
+          "buyer_perceived_value": 1866.3,
+          "premium_vs_focal_hold": -125.1,
+          "premium_vs_break_glass": -788.5
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 1837.7,
+          "premium_vs_focal_hold": -153.7,
+          "premium_vs_break_glass": -817.1
+        },
+        {
+          "buyer_user_id": "846634401482792960",
+          "buyer_manager": "jimmygoodjob",
+          "buyer_team": "Hurts So Good",
+          "buyer_perceived_value": 1796.4,
+          "premium_vs_focal_hold": -195.0,
+          "premium_vs_break_glass": -858.4
+        },
+        {
+          "buyer_user_id": "850548458887704576",
+          "buyer_manager": "jder52",
+          "buyer_team": "The Shish Kebab Boys",
+          "buyer_perceived_value": 1766.9,
+          "premium_vs_focal_hold": -224.5,
+          "premium_vs_break_glass": -887.9
         }
       ],
       "market_should_be_tested": false
@@ -2592,57 +2592,57 @@
       "asset_type": "player",
       "asset": "David Montgomery",
       "core_status": "liquid_asset",
-      "strategic_score": 0.3546,
-      "hold_value": 2781.2,
-      "break_glass_value": 3399.7,
+      "strategic_score": 0.373,
+      "hold_value": 2811.2,
+      "break_glass_value": 3473.3,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 2470.5,
-        "premium_vs_focal_hold": -310.7,
-        "premium_vs_break_glass": -929.2
+        "buyer_perceived_value": 2498.4,
+        "premium_vs_focal_hold": -312.8,
+        "premium_vs_break_glass": -974.9
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2470.5,
-          "premium_vs_focal_hold": -310.7,
-          "premium_vs_break_glass": -929.2
+          "buyer_perceived_value": 2498.4,
+          "premium_vs_focal_hold": -312.8,
+          "premium_vs_break_glass": -974.9
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2452.8,
-          "premium_vs_focal_hold": -328.4,
-          "premium_vs_break_glass": -946.9
+          "buyer_perceived_value": 2485.6,
+          "premium_vs_focal_hold": -325.6,
+          "premium_vs_break_glass": -987.7
         },
         {
           "buyer_user_id": "709546576091090944",
           "buyer_manager": "nuckyniners",
           "buyer_team": "Chef Niners",
-          "buyer_perceived_value": 2436.6,
-          "premium_vs_focal_hold": -344.6,
-          "premium_vs_break_glass": -963.1
+          "buyer_perceived_value": 2472.9,
+          "premium_vs_focal_hold": -338.3,
+          "premium_vs_break_glass": -1000.4
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2402.6,
-          "premium_vs_focal_hold": -378.6,
-          "premium_vs_break_glass": -997.1
+          "buyer_perceived_value": 2427.3,
+          "premium_vs_focal_hold": -383.9,
+          "premium_vs_break_glass": -1046.0
         },
         {
           "buyer_user_id": "845157822193872896",
           "buyer_manager": "Anthonyder",
           "buyer_team": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-          "buyer_perceived_value": 2384.8,
-          "premium_vs_focal_hold": -396.4,
-          "premium_vs_break_glass": -1014.9
+          "buyer_perceived_value": 2421.9,
+          "premium_vs_focal_hold": -389.3,
+          "premium_vs_break_glass": -1051.4
         }
       ],
       "market_should_be_tested": false
@@ -2651,58 +2651,58 @@
       "asset_id": "player:5870",
       "asset_type": "player",
       "asset": "Daniel Jones",
-      "core_status": "liquid_asset",
-      "strategic_score": 0.4412,
-      "hold_value": 2886.0,
-      "break_glass_value": 3837.6,
+      "core_status": "important_asset",
+      "strategic_score": 0.4651,
+      "hold_value": 2866.2,
+      "break_glass_value": 3853.9,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 2600.0,
-        "premium_vs_focal_hold": -286.0,
-        "premium_vs_break_glass": -1237.6
+        "buyer_perceived_value": 2589.8,
+        "premium_vs_focal_hold": -276.4,
+        "premium_vs_break_glass": -1264.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2600.0,
-          "premium_vs_focal_hold": -286.0,
-          "premium_vs_break_glass": -1237.6
+          "buyer_perceived_value": 2589.8,
+          "premium_vs_focal_hold": -276.4,
+          "premium_vs_break_glass": -1264.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2544.4,
-          "premium_vs_focal_hold": -341.6,
-          "premium_vs_break_glass": -1293.2
+          "buyer_perceived_value": 2519.8,
+          "premium_vs_focal_hold": -346.4,
+          "premium_vs_break_glass": -1334.1
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2542.1,
-          "premium_vs_focal_hold": -343.9,
-          "premium_vs_break_glass": -1295.5
+          "buyer_perceived_value": 2499.3,
+          "premium_vs_focal_hold": -366.9,
+          "premium_vs_break_glass": -1354.6
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 2500.8,
-          "premium_vs_focal_hold": -385.2,
-          "premium_vs_break_glass": -1336.8
+          "buyer_perceived_value": 2469.1,
+          "premium_vs_focal_hold": -397.1,
+          "premium_vs_break_glass": -1384.8
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 2484.4,
-          "premium_vs_focal_hold": -401.6,
-          "premium_vs_break_glass": -1353.2
+          "buyer_perceived_value": 2463.6,
+          "premium_vs_focal_hold": -402.6,
+          "premium_vs_break_glass": -1390.3
         }
       ],
       "market_should_be_tested": false
@@ -2712,57 +2712,57 @@
       "asset_type": "player",
       "asset": "Kenyon Sadiq",
       "core_status": "core_high_hold",
-      "strategic_score": 0.5586,
-      "hold_value": 2893.6,
-      "break_glass_value": 4385.2,
+      "strategic_score": 0.5673,
+      "hold_value": 2923.7,
+      "break_glass_value": 4451.1,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 2633.2,
-        "premium_vs_focal_hold": -260.4,
-        "premium_vs_break_glass": -1752.0
+        "buyer_perceived_value": 2660.8,
+        "premium_vs_focal_hold": -262.9,
+        "premium_vs_break_glass": -1790.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2633.2,
-          "premium_vs_focal_hold": -260.4,
-          "premium_vs_break_glass": -1752.0
+          "buyer_perceived_value": 2660.8,
+          "premium_vs_focal_hold": -262.9,
+          "premium_vs_break_glass": -1790.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2514.1,
-          "premium_vs_focal_hold": -379.5,
-          "premium_vs_break_glass": -1871.1
+          "buyer_perceived_value": 2540.1,
+          "premium_vs_focal_hold": -383.6,
+          "premium_vs_break_glass": -1911.0
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 2471.9,
-          "premium_vs_focal_hold": -421.7,
-          "premium_vs_break_glass": -1913.3
+          "buyer_perceived_value": 2497.2,
+          "premium_vs_focal_hold": -426.5,
+          "premium_vs_break_glass": -1953.9
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 2416.1,
-          "premium_vs_focal_hold": -477.5,
-          "premium_vs_break_glass": -1969.1
+          "buyer_perceived_value": 2441.3,
+          "premium_vs_focal_hold": -482.4,
+          "premium_vs_break_glass": -2009.8
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2352.0,
-          "premium_vs_focal_hold": -541.6,
-          "premium_vs_break_glass": -2033.2
+          "buyer_perceived_value": 2375.9,
+          "premium_vs_focal_hold": -547.8,
+          "premium_vs_break_glass": -2075.2
         }
       ],
       "market_should_be_tested": false
@@ -2771,58 +2771,58 @@
       "asset_id": "player:11584",
       "asset_type": "player",
       "asset": "Bucky Irving",
-      "core_status": "important_asset",
-      "strategic_score": 0.4638,
-      "hold_value": 3790.6,
-      "break_glass_value": 5207.4,
+      "core_status": "core_high_hold",
+      "strategic_score": 0.4728,
+      "hold_value": 3942.4,
+      "break_glass_value": 5451.2,
       "best_buyer": {
         "buyer_user_id": "833709164739014656",
         "buyer_manager": "jaco057",
         "buyer_team": "HUNGRY DAWGS",
-        "buyer_perceived_value": 3341.4,
-        "premium_vs_focal_hold": -449.2,
-        "premium_vs_break_glass": -1866.0
+        "buyer_perceived_value": 3475.6,
+        "premium_vs_focal_hold": -466.8,
+        "premium_vs_break_glass": -1975.6
       },
       "top_buyers": [
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 3341.4,
-          "premium_vs_focal_hold": -449.2,
-          "premium_vs_break_glass": -1866.0
+          "buyer_perceived_value": 3475.6,
+          "premium_vs_focal_hold": -466.8,
+          "premium_vs_break_glass": -1975.6
         },
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 3297.3,
-          "premium_vs_focal_hold": -493.3,
-          "premium_vs_break_glass": -1910.1
+          "buyer_perceived_value": 3428.9,
+          "premium_vs_focal_hold": -513.5,
+          "premium_vs_break_glass": -2022.3
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 3238.8,
-          "premium_vs_focal_hold": -551.8,
-          "premium_vs_break_glass": -1968.6
+          "buyer_perceived_value": 3367.5,
+          "premium_vs_focal_hold": -574.9,
+          "premium_vs_break_glass": -2083.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 3228.4,
-          "premium_vs_focal_hold": -562.2,
-          "premium_vs_break_glass": -1979.0
+          "buyer_perceived_value": 3360.1,
+          "premium_vs_focal_hold": -582.3,
+          "premium_vs_break_glass": -2091.1
         },
         {
           "buyer_user_id": "850548458887704576",
           "buyer_manager": "jder52",
           "buyer_team": "The Shish Kebab Boys",
-          "buyer_perceived_value": 3159.3,
-          "premium_vs_focal_hold": -631.3,
-          "premium_vs_break_glass": -2048.1
+          "buyer_perceived_value": 3287.3,
+          "premium_vs_focal_hold": -655.1,
+          "premium_vs_break_glass": -2163.9
         }
       ],
       "market_should_be_tested": false
@@ -2832,57 +2832,57 @@
       "asset_type": "player",
       "asset": "Ladd McConkey",
       "core_status": "core_high_hold",
-      "strategic_score": 0.5398,
-      "hold_value": 4669.8,
-      "break_glass_value": 6825.6,
+      "strategic_score": 0.533,
+      "hold_value": 4530.1,
+      "break_glass_value": 6581.1,
       "best_buyer": {
         "buyer_user_id": "844772511156670464",
         "buyer_manager": "CoachKoko",
         "buyer_team": "Trash Incessant Talkers",
-        "buyer_perceived_value": 4394.1,
-        "premium_vs_focal_hold": -275.7,
-        "premium_vs_break_glass": -2431.5
+        "buyer_perceived_value": 4260.9,
+        "premium_vs_focal_hold": -269.2,
+        "premium_vs_break_glass": -2320.2
       },
       "top_buyers": [
         {
           "buyer_user_id": "844772511156670464",
           "buyer_manager": "CoachKoko",
           "buyer_team": "Trash Incessant Talkers",
-          "buyer_perceived_value": 4394.1,
-          "premium_vs_focal_hold": -275.7,
-          "premium_vs_break_glass": -2431.5
-        },
-        {
-          "buyer_user_id": "676939933792964608",
-          "buyer_manager": "chuckthegoat77",
-          "buyer_team": "The Associate ",
-          "buyer_perceived_value": 4204.7,
-          "premium_vs_focal_hold": -465.1,
-          "premium_vs_break_glass": -2620.9
+          "buyer_perceived_value": 4260.9,
+          "premium_vs_focal_hold": -269.2,
+          "premium_vs_break_glass": -2320.2
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 4202.2,
-          "premium_vs_focal_hold": -467.6,
-          "premium_vs_break_glass": -2623.4
+          "buyer_perceived_value": 4079.3,
+          "premium_vs_focal_hold": -450.8,
+          "premium_vs_break_glass": -2501.8
+        },
+        {
+          "buyer_user_id": "676939933792964608",
+          "buyer_manager": "chuckthegoat77",
+          "buyer_team": "The Associate ",
+          "buyer_perceived_value": 4075.8,
+          "premium_vs_focal_hold": -454.3,
+          "premium_vs_break_glass": -2505.3
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 4065.9,
-          "premium_vs_focal_hold": -603.9,
-          "premium_vs_break_glass": -2759.7
+          "buyer_perceived_value": 3945.7,
+          "premium_vs_focal_hold": -584.4,
+          "premium_vs_break_glass": -2635.4
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 4052.3,
-          "premium_vs_focal_hold": -617.5,
-          "premium_vs_break_glass": -2773.3
+          "buyer_perceived_value": 3937.0,
+          "premium_vs_focal_hold": -593.1,
+          "premium_vs_break_glass": -2644.1
         }
       ],
       "market_should_be_tested": false
@@ -2892,57 +2892,57 @@
       "asset_type": "player",
       "asset": "Bo Nix",
       "core_status": "core_high_hold",
-      "strategic_score": 0.6311,
-      "hold_value": 6549.6,
-      "break_glass_value": 10041.6,
+      "strategic_score": 0.6275,
+      "hold_value": 6515.3,
+      "break_glass_value": 9970.3,
       "best_buyer": {
         "buyer_user_id": "676939933792964608",
         "buyer_manager": "chuckthegoat77",
         "buyer_team": "The Associate ",
-        "buyer_perceived_value": 5916.0,
-        "premium_vs_focal_hold": -633.6,
-        "premium_vs_break_glass": -4125.6
+        "buyer_perceived_value": 5884.2,
+        "premium_vs_focal_hold": -631.1,
+        "premium_vs_break_glass": -4086.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 5916.0,
-          "premium_vs_focal_hold": -633.6,
-          "premium_vs_break_glass": -4125.6
+          "buyer_perceived_value": 5884.2,
+          "premium_vs_focal_hold": -631.1,
+          "premium_vs_break_glass": -4086.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 5748.9,
-          "premium_vs_focal_hold": -800.7,
-          "premium_vs_break_glass": -4292.7
+          "buyer_perceived_value": 5719.5,
+          "premium_vs_focal_hold": -795.8,
+          "premium_vs_break_glass": -4250.8
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 5688.6,
-          "premium_vs_focal_hold": -861.0,
-          "premium_vs_break_glass": -4353.0
+          "buyer_perceived_value": 5661.3,
+          "premium_vs_focal_hold": -854.0,
+          "premium_vs_break_glass": -4309.0
         },
         {
           "buyer_user_id": "858530218330144768",
           "buyer_manager": "Ballard22",
           "buyer_team": "King B",
-          "buyer_perceived_value": 5630.6,
-          "premium_vs_focal_hold": -919.0,
-          "premium_vs_break_glass": -4411.0
+          "buyer_perceived_value": 5602.5,
+          "premium_vs_focal_hold": -912.8,
+          "premium_vs_break_glass": -4367.8
         },
         {
           "buyer_user_id": "833709164739014656",
           "buyer_manager": "jaco057",
           "buyer_team": "HUNGRY DAWGS",
-          "buyer_perceived_value": 5627.5,
-          "premium_vs_focal_hold": -922.1,
-          "premium_vs_break_glass": -4414.1
+          "buyer_perceived_value": 5598.3,
+          "premium_vs_focal_hold": -917.0,
+          "premium_vs_break_glass": -4372.0
         }
       ],
       "market_should_be_tested": false
@@ -2955,56 +2955,56 @@
       "asset": "2029 Late 2nd \u2014 original The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
       "core_status": "liquid_pick",
       "strategic_score": 0.5099,
-      "hold_value": 1167.1,
-      "break_glass_value": 1479.7,
+      "hold_value": 1168.1,
+      "break_glass_value": 1481.0,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1156.7,
+        "buyer_perceived_value": 1157.7,
         "premium_vs_focal_hold": -10.4,
-        "premium_vs_break_glass": -323.0
+        "premium_vs_break_glass": -323.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1156.7,
+          "buyer_perceived_value": 1157.7,
           "premium_vs_focal_hold": -10.4,
-          "premium_vs_break_glass": -323.0
+          "premium_vs_break_glass": -323.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1136.6,
+          "buyer_perceived_value": 1137.6,
           "premium_vs_focal_hold": -30.5,
-          "premium_vs_break_glass": -343.1
+          "premium_vs_break_glass": -343.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1118.4,
-          "premium_vs_focal_hold": -48.7,
-          "premium_vs_break_glass": -361.3
+          "buyer_perceived_value": 1119.3,
+          "premium_vs_focal_hold": -48.8,
+          "premium_vs_break_glass": -361.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1076.6,
-          "premium_vs_focal_hold": -90.5,
-          "premium_vs_break_glass": -403.1
+          "buyer_perceived_value": 1077.5,
+          "premium_vs_focal_hold": -90.6,
+          "premium_vs_break_glass": -403.5
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1064.7,
-          "premium_vs_focal_hold": -102.4,
-          "premium_vs_break_glass": -415.0
+          "buyer_perceived_value": 1065.6,
+          "premium_vs_focal_hold": -102.5,
+          "premium_vs_break_glass": -415.4
         }
       ],
       "market_should_be_tested": false
@@ -3075,56 +3075,56 @@
       "asset": "2028 Early 3rd \u2014 original Ball Knower",
       "core_status": "developmental_pick",
       "strategic_score": 0.4871,
-      "hold_value": 1234.8,
-      "break_glass_value": 1564.6,
+      "hold_value": 1238.6,
+      "break_glass_value": 1569.4,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1223.8,
+        "buyer_perceived_value": 1227.6,
         "premium_vs_focal_hold": -11.0,
-        "premium_vs_break_glass": -340.8
+        "premium_vs_break_glass": -341.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1223.8,
+          "buyer_perceived_value": 1227.6,
           "premium_vs_focal_hold": -11.0,
-          "premium_vs_break_glass": -340.8
+          "premium_vs_break_glass": -341.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1202.6,
-          "premium_vs_focal_hold": -32.2,
-          "premium_vs_break_glass": -362.0
+          "buyer_perceived_value": 1206.3,
+          "premium_vs_focal_hold": -32.3,
+          "premium_vs_break_glass": -363.1
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1183.3,
-          "premium_vs_focal_hold": -51.5,
-          "premium_vs_break_glass": -381.3
+          "buyer_perceived_value": 1187.0,
+          "premium_vs_focal_hold": -51.6,
+          "premium_vs_break_glass": -382.4
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1139.1,
-          "premium_vs_focal_hold": -95.7,
-          "premium_vs_break_glass": -425.5
+          "buyer_perceived_value": 1142.6,
+          "premium_vs_focal_hold": -96.0,
+          "premium_vs_break_glass": -426.8
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1126.5,
-          "premium_vs_focal_hold": -108.3,
-          "premium_vs_break_glass": -438.1
+          "buyer_perceived_value": 1130.0,
+          "premium_vs_focal_hold": -108.6,
+          "premium_vs_break_glass": -439.4
         }
       ],
       "market_should_be_tested": false
@@ -3135,56 +3135,56 @@
       "asset": "2027 Late 2nd \u2014 original BING BONG DRIGSY\ud83c\udf4e",
       "core_status": "liquid_pick",
       "strategic_score": 0.4848,
-      "hold_value": 1482.0,
-      "break_glass_value": 1867.5,
+      "hold_value": 1490.7,
+      "break_glass_value": 1878.5,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1468.8,
-        "premium_vs_focal_hold": -13.2,
-        "premium_vs_break_glass": -398.7
+        "buyer_perceived_value": 1477.4,
+        "premium_vs_focal_hold": -13.3,
+        "premium_vs_break_glass": -401.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1468.8,
-          "premium_vs_focal_hold": -13.2,
-          "premium_vs_break_glass": -398.7
+          "buyer_perceived_value": 1477.4,
+          "premium_vs_focal_hold": -13.3,
+          "premium_vs_break_glass": -401.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1443.3,
-          "premium_vs_focal_hold": -38.7,
-          "premium_vs_break_glass": -424.2
+          "buyer_perceived_value": 1451.8,
+          "premium_vs_focal_hold": -38.9,
+          "premium_vs_break_glass": -426.7
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1420.2,
-          "premium_vs_focal_hold": -61.8,
-          "premium_vs_break_glass": -447.3
+          "buyer_perceived_value": 1428.5,
+          "premium_vs_focal_hold": -62.2,
+          "premium_vs_break_glass": -450.0
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1367.1,
-          "premium_vs_focal_hold": -114.9,
-          "premium_vs_break_glass": -500.4
+          "buyer_perceived_value": 1375.2,
+          "premium_vs_focal_hold": -115.5,
+          "premium_vs_break_glass": -503.3
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1352.0,
-          "premium_vs_focal_hold": -130.0,
-          "premium_vs_break_glass": -515.5
+          "buyer_perceived_value": 1360.0,
+          "premium_vs_focal_hold": -130.7,
+          "premium_vs_break_glass": -518.5
         }
       ],
       "market_should_be_tested": false
@@ -3195,56 +3195,56 @@
       "asset": "2029 Early 2nd \u2014 original Ball Knower",
       "core_status": "liquid_pick",
       "strategic_score": 0.6694,
-      "hold_value": 1639.6,
-      "break_glass_value": 2367.1,
+      "hold_value": 1640.9,
+      "break_glass_value": 2368.9,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1625.0,
-        "premium_vs_focal_hold": -14.6,
-        "premium_vs_break_glass": -742.1
+        "buyer_perceived_value": 1626.2,
+        "premium_vs_focal_hold": -14.7,
+        "premium_vs_break_glass": -742.7
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1625.0,
-          "premium_vs_focal_hold": -14.6,
-          "premium_vs_break_glass": -742.1
+          "buyer_perceived_value": 1626.2,
+          "premium_vs_focal_hold": -14.7,
+          "premium_vs_break_glass": -742.7
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1596.8,
+          "buyer_perceived_value": 1598.1,
           "premium_vs_focal_hold": -42.8,
-          "premium_vs_break_glass": -770.3
+          "premium_vs_break_glass": -770.8
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1571.2,
-          "premium_vs_focal_hold": -68.4,
-          "premium_vs_break_glass": -795.9
+          "buyer_perceived_value": 1572.4,
+          "premium_vs_focal_hold": -68.5,
+          "premium_vs_break_glass": -796.5
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1512.5,
-          "premium_vs_focal_hold": -127.1,
-          "premium_vs_break_glass": -854.6
+          "buyer_perceived_value": 1513.7,
+          "premium_vs_focal_hold": -127.2,
+          "premium_vs_break_glass": -855.2
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1495.8,
-          "premium_vs_focal_hold": -143.8,
-          "premium_vs_break_glass": -871.3
+          "buyer_perceived_value": 1497.0,
+          "premium_vs_focal_hold": -143.9,
+          "premium_vs_break_glass": -871.9
         }
       ],
       "market_should_be_tested": false
@@ -3255,56 +3255,56 @@
       "asset": "2028 Early 2nd \u2014 original Ball Knower",
       "core_status": "liquid_pick",
       "strategic_score": 0.656,
-      "hold_value": 1699.9,
-      "break_glass_value": 2446.8,
+      "hold_value": 1703.8,
+      "break_glass_value": 2452.4,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 1684.7,
+        "buyer_perceived_value": 1688.6,
         "premium_vs_focal_hold": -15.2,
-        "premium_vs_break_glass": -762.1
+        "premium_vs_break_glass": -763.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 1684.7,
+          "buyer_perceived_value": 1688.6,
           "premium_vs_focal_hold": -15.2,
-          "premium_vs_break_glass": -762.1
+          "premium_vs_break_glass": -763.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 1655.5,
+          "buyer_perceived_value": 1659.4,
           "premium_vs_focal_hold": -44.4,
-          "premium_vs_break_glass": -791.3
+          "premium_vs_break_glass": -793.0
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 1629.0,
-          "premium_vs_focal_hold": -70.9,
-          "premium_vs_break_glass": -817.8
+          "buyer_perceived_value": 1632.7,
+          "premium_vs_focal_hold": -71.1,
+          "premium_vs_break_glass": -819.7
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 1568.1,
-          "premium_vs_focal_hold": -131.8,
-          "premium_vs_break_glass": -878.7
+          "buyer_perceived_value": 1571.7,
+          "premium_vs_focal_hold": -132.1,
+          "premium_vs_break_glass": -880.7
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 1550.8,
-          "premium_vs_focal_hold": -149.1,
-          "premium_vs_break_glass": -896.0
+          "buyer_perceived_value": 1554.4,
+          "premium_vs_focal_hold": -149.4,
+          "premium_vs_break_glass": -898.0
         }
       ],
       "market_should_be_tested": false
@@ -3315,56 +3315,56 @@
       "asset": "2027 Late 1st \u2014 original Chef Niners",
       "core_status": "premium_pick",
       "strategic_score": 0.6157,
-      "hold_value": 2528.5,
-      "break_glass_value": 3644.3,
+      "hold_value": 2531.7,
+      "break_glass_value": 3648.9,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2505.9,
+        "buyer_perceived_value": 2509.1,
         "premium_vs_focal_hold": -22.6,
-        "premium_vs_break_glass": -1138.4
+        "premium_vs_break_glass": -1139.8
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2505.9,
+          "buyer_perceived_value": 2509.1,
           "premium_vs_focal_hold": -22.6,
-          "premium_vs_break_glass": -1138.4
+          "premium_vs_break_glass": -1139.8
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2462.5,
+          "buyer_perceived_value": 2465.7,
           "premium_vs_focal_hold": -66.0,
-          "premium_vs_break_glass": -1181.8
+          "premium_vs_break_glass": -1183.2
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2423.0,
-          "premium_vs_focal_hold": -105.5,
-          "premium_vs_break_glass": -1221.3
+          "buyer_perceived_value": 2426.1,
+          "premium_vs_focal_hold": -105.6,
+          "premium_vs_break_glass": -1222.8
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2332.4,
-          "premium_vs_focal_hold": -196.1,
-          "premium_vs_break_glass": -1311.9
+          "buyer_perceived_value": 2335.5,
+          "premium_vs_focal_hold": -196.2,
+          "premium_vs_break_glass": -1313.4
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2306.7,
-          "premium_vs_focal_hold": -221.8,
-          "premium_vs_break_glass": -1337.6
+          "buyer_perceived_value": 2309.7,
+          "premium_vs_focal_hold": -222.0,
+          "premium_vs_break_glass": -1339.2
         }
       ],
       "market_should_be_tested": false
@@ -3375,56 +3375,56 @@
       "asset": "2029 Early 1st \u2014 original Ball Knower",
       "core_status": "premium_pick",
       "strategic_score": 0.8538,
-      "hold_value": 2442.7,
-      "break_glass_value": 4030.5,
+      "hold_value": 2446.5,
+      "break_glass_value": 4036.7,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2420.9,
-        "premium_vs_focal_hold": -21.8,
-        "premium_vs_break_glass": -1609.6
+        "buyer_perceived_value": 2424.6,
+        "premium_vs_focal_hold": -21.9,
+        "premium_vs_break_glass": -1612.1
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2420.9,
-          "premium_vs_focal_hold": -21.8,
-          "premium_vs_break_glass": -1609.6
+          "buyer_perceived_value": 2424.6,
+          "premium_vs_focal_hold": -21.9,
+          "premium_vs_break_glass": -1612.1
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2378.9,
-          "premium_vs_focal_hold": -63.8,
-          "premium_vs_break_glass": -1651.6
+          "buyer_perceived_value": 2382.6,
+          "premium_vs_focal_hold": -63.9,
+          "premium_vs_break_glass": -1654.1
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2340.7,
-          "premium_vs_focal_hold": -102.0,
-          "premium_vs_break_glass": -1689.8
+          "buyer_perceived_value": 2344.4,
+          "premium_vs_focal_hold": -102.1,
+          "premium_vs_break_glass": -1692.3
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2253.3,
-          "premium_vs_focal_hold": -189.4,
-          "premium_vs_break_glass": -1777.2
+          "buyer_perceived_value": 2256.8,
+          "premium_vs_focal_hold": -189.7,
+          "premium_vs_break_glass": -1779.9
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2228.4,
-          "premium_vs_focal_hold": -214.3,
-          "premium_vs_break_glass": -1802.1
+          "buyer_perceived_value": 2231.9,
+          "premium_vs_focal_hold": -214.6,
+          "premium_vs_break_glass": -1804.8
         }
       ],
       "market_should_be_tested": false
@@ -3435,56 +3435,56 @@
       "asset": "2028 Early 1st \u2014 original Ball Knower",
       "core_status": "premium_pick",
       "strategic_score": 0.84,
-      "hold_value": 2752.4,
-      "break_glass_value": 4541.5,
+      "hold_value": 2745.9,
+      "break_glass_value": 4530.7,
       "best_buyer": {
         "buyer_user_id": "844785316274483200",
         "buyer_manager": "MochaSmev",
         "buyer_team": "MochaSmevs",
-        "buyer_perceived_value": 2727.8,
-        "premium_vs_focal_hold": -24.6,
-        "premium_vs_break_glass": -1813.7
+        "buyer_perceived_value": 2721.4,
+        "premium_vs_focal_hold": -24.5,
+        "premium_vs_break_glass": -1809.3
       },
       "top_buyers": [
         {
           "buyer_user_id": "844785316274483200",
           "buyer_manager": "MochaSmev",
           "buyer_team": "MochaSmevs",
-          "buyer_perceived_value": 2727.8,
-          "premium_vs_focal_hold": -24.6,
-          "premium_vs_break_glass": -1813.7
+          "buyer_perceived_value": 2721.4,
+          "premium_vs_focal_hold": -24.5,
+          "premium_vs_break_glass": -1809.3
         },
         {
           "buyer_user_id": "725401251478605824",
           "buyer_manager": "PVos",
           "buyer_team": "STINKS",
-          "buyer_perceived_value": 2680.5,
-          "premium_vs_focal_hold": -71.9,
-          "premium_vs_break_glass": -1861.0
+          "buyer_perceived_value": 2674.3,
+          "premium_vs_focal_hold": -71.6,
+          "premium_vs_break_glass": -1856.4
         },
         {
           "buyer_user_id": "676939933792964608",
           "buyer_manager": "chuckthegoat77",
           "buyer_team": "The Associate ",
-          "buyer_perceived_value": 2637.5,
-          "premium_vs_focal_hold": -114.9,
-          "premium_vs_break_glass": -1904.0
+          "buyer_perceived_value": 2631.3,
+          "premium_vs_focal_hold": -114.6,
+          "premium_vs_break_glass": -1899.4
         },
         {
           "buyer_user_id": "846634401482792960",
           "buyer_manager": "jimmygoodjob",
           "buyer_team": "Hurts So Good",
-          "buyer_perceived_value": 2539.0,
-          "premium_vs_focal_hold": -213.4,
-          "premium_vs_break_glass": -2002.5
+          "buyer_perceived_value": 2533.0,
+          "premium_vs_focal_hold": -212.9,
+          "premium_vs_break_glass": -1997.7
         },
         {
           "buyer_user_id": "853063390963277824",
           "buyer_manager": "Drigs24",
           "buyer_team": "BING BONG DRIGSY\ud83c\udf4e",
-          "buyer_perceived_value": 2510.9,
-          "premium_vs_focal_hold": -241.5,
-          "premium_vs_break_glass": -2030.6
+          "buyer_perceived_value": 2505.1,
+          "premium_vs_focal_hold": -240.8,
+          "premium_vs_break_glass": -2025.6
         }
       ],
       "market_should_be_tested": false
@@ -3494,19 +3494,19 @@
   "season": 2026,
   "gm30": {
     "simulator_1_0": {
-      "expected_wins": 6.445,
-      "expected_points_for": 1485.12,
-      "playoff_probability": 0.24154,
-      "bye_probability": 0.017,
-      "championship_probability": 0.00932
+      "expected_wins": 6.66,
+      "expected_points_for": 1500.31,
+      "playoff_probability": 0.2806,
+      "bye_probability": 0.02384,
+      "championship_probability": 0.0114
     },
     "evidence_coverage": {
       "season_phase": "PRESEASON",
       "usage_records": 0,
       "snap_records": 0,
       "prior_snap_records": 419,
-      "preseason_usage_records": 56,
-      "manual_intelligence_records": 90,
+      "preseason_usage_records": 54,
+      "manual_intelligence_records": 95,
       "prospect_count": 47
     }
   }

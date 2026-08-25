@@ -1,8 +1,8 @@
 {
-  "mapped_players": 234,
+  "mapped_players": 233,
   "mapping_methods": {
-    "normalized_name": 234,
-    "unmatched_name": 598
+    "normalized_name": 233,
+    "unmatched_name": 589
   },
   "missing_rostered_players": [
     {
@@ -16,6 +16,12 @@
       "position": "WR",
       "sleeper_id": "3321",
       "team": "FA"
+    },
+    {
+      "player_name": "Brandon Aiyuk",
+      "position": "WR",
+      "sleeper_id": "6803",
+      "team": "SF"
     },
     {
       "player_name": "Kenny Gainwell",
@@ -32,26 +38,26 @@
   ],
   "parsed_rows_by_position": {
     "QB": 95,
-    "RB": 193,
-    "TE": 188,
-    "WR": 356
+    "RB": 192,
+    "TE": 187,
+    "WR": 348
   },
   "quality_gate": {
     "minimum_rostered_coverage": 0.9,
     "passed": true
   },
   "rostered_coverage": {
-    "coverage": 0.98319,
-    "covered": 234,
+    "coverage": 0.97899,
+    "covered": 233,
     "total": 238
   },
   "season": "2026",
   "source": "Razzball",
   "source_last_updated": {
-    "QB": "2026-08-20 12:20:40 PM EST",
-    "RB": "2026-08-20 12:20:40 PM EST",
-    "TE": "2026-08-20 12:20:40 PM EST",
-    "WR": "2026-08-20 12:20:40 PM EST"
+    "QB": "2026-08-24 03:17:05 PM EST",
+    "RB": "2026-08-24 03:17:05 PM EST",
+    "TE": "2026-08-24 03:17:05 PM EST",
+    "WR": "2026-08-24 03:17:05 PM EST"
   },
   "unmatched_source_rows": [
     {
@@ -103,16 +109,16 @@
       "team": "DEN"
     },
     {
-      "player_name": "Tyrod Taylor",
-      "position": "QB",
-      "reason": "unmatched_name",
-      "team": "GB"
-    },
-    {
       "player_name": "Tyson Bagent",
       "position": "QB",
       "reason": "unmatched_name",
       "team": "CHI"
+    },
+    {
+      "player_name": "Tyrod Taylor",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "GB"
     },
     {
       "player_name": "Kyle Allen",
@@ -127,16 +133,22 @@
       "team": "SEA"
     },
     {
+      "player_name": "Trey Lance",
+      "position": "QB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
       "player_name": "Tyler Huntley",
       "position": "QB",
       "reason": "unmatched_name",
       "team": "BAL"
     },
     {
-      "player_name": "Trey Lance",
+      "player_name": "Davis Mills",
       "position": "QB",
       "reason": "unmatched_name",
-      "team": "LAC"
+      "team": "HOU"
     },
     {
       "player_name": "Tanner McKee",
@@ -151,22 +163,16 @@
       "team": "JAX"
     },
     {
-      "player_name": "Tommy DeVito",
-      "position": "QB",
-      "reason": "unmatched_name",
-      "team": "NE"
-    },
-    {
       "player_name": "Jake Browning",
       "position": "QB",
       "reason": "unmatched_name",
       "team": "TB"
     },
     {
-      "player_name": "Davis Mills",
+      "player_name": "Tommy DeVito",
       "position": "QB",
       "reason": "unmatched_name",
-      "team": "HOU"
+      "team": "NE"
     },
     {
       "player_name": "Mitch Trubisky",
@@ -379,12 +385,6 @@
       "team": "CIN"
     },
     {
-      "player_name": "Najee Harris",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "NYG"
-    },
-    {
       "player_name": "Braelon Allen",
       "position": "RB",
       "reason": "unmatched_name",
@@ -395,6 +395,12 @@
       "position": "RB",
       "reason": "unmatched_name",
       "team": "NO"
+    },
+    {
+      "player_name": "Emari Demercado",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "KC"
     },
     {
       "player_name": "Jaylen Wright",
@@ -415,10 +421,16 @@
       "team": "SEA"
     },
     {
-      "player_name": "Brashard Smith",
+      "player_name": "Najee Harris",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "KC"
+      "team": "NYG"
+    },
+    {
+      "player_name": "Malik Davis",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DAL"
     },
     {
       "player_name": "Ray Davis",
@@ -463,6 +475,12 @@
       "team": "SF"
     },
     {
+      "player_name": "Josh Williams",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "TB"
+    },
+    {
       "player_name": "Isaiah Davis",
       "position": "RB",
       "reason": "unmatched_name",
@@ -487,16 +505,16 @@
       "team": "CAR"
     },
     {
-      "player_name": "Jawhar Jordan",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "HOU"
-    },
-    {
       "player_name": "Patrick Ricard",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "NYG"
+    },
+    {
+      "player_name": "Jawhar Jordan",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "HOU"
     },
     {
       "player_name": "Tahj Brooks",
@@ -529,12 +547,6 @@
       "team": "DEN"
     },
     {
-      "player_name": "Phil Mafah",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "DAL"
-    },
-    {
       "player_name": "Zavier Scott",
       "position": "RB",
       "reason": "unmatched_name",
@@ -542,6 +554,12 @@
     },
     {
       "player_name": "Reggie Gilliam",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
+      "player_name": "Jam Miller",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "NE"
@@ -601,6 +619,12 @@
       "team": "SEA"
     },
     {
+      "player_name": "JaMycal Hasty",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
+    },
+    {
       "player_name": "Ronnie Rivers",
       "position": "RB",
       "reason": "unmatched_name",
@@ -613,10 +637,22 @@
       "team": "LAC"
     },
     {
+      "player_name": "Khalil Herbert",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "SF"
+    },
+    {
       "player_name": "Cash Jones",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "ATL"
+    },
+    {
+      "player_name": "Hassan Haskins",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "NE"
     },
     {
       "player_name": "Frank Gore Jr.",
@@ -625,16 +661,22 @@
       "team": "BUF"
     },
     {
-      "player_name": "Craig Reynolds",
+      "player_name": "Sincere McCormick",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "WAS"
+      "team": "SF"
     },
     {
       "player_name": "Jaret Patterson",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "LAC"
+    },
+    {
+      "player_name": "Craig Reynolds",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "WAS"
     },
     {
       "player_name": "Anderson Castle",
@@ -649,10 +691,10 @@
       "team": "NYG"
     },
     {
-      "player_name": "JaMycal Hasty",
+      "player_name": "Corey Kiner",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "NE"
+      "team": "ARI"
     },
     {
       "player_name": "Sione Vaki",
@@ -667,10 +709,10 @@
       "team": "DEN"
     },
     {
-      "player_name": "Sincere McCormick",
+      "player_name": "Eric Gray",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "SF"
+      "team": "NYG"
     },
     {
       "player_name": "Salvon Ahmed",
@@ -683,18 +725,6 @@
       "position": "RB",
       "reason": "unmatched_name",
       "team": "SEA"
-    },
-    {
-      "player_name": "Jam Miller",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "NE"
-    },
-    {
-      "player_name": "Eric Gray",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "NYG"
     },
     {
       "player_name": "Raheem Blackshear",
@@ -715,6 +745,12 @@
       "team": "CAR"
     },
     {
+      "player_name": "Dameon Pierce",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "PHI"
+    },
+    {
       "player_name": "Ben VanSumeren",
       "position": "RB",
       "reason": "unmatched_name",
@@ -725,12 +761,6 @@
       "position": "RB",
       "reason": "unmatched_name",
       "team": "SEA"
-    },
-    {
-      "player_name": "Owen Wright",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "HOU"
     },
     {
       "player_name": "Jarquez Hunter",
@@ -757,40 +787,28 @@
       "team": "BAL"
     },
     {
-      "player_name": "Robert Henry Jr.",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "WAS"
-    },
-    {
       "player_name": "Lew Nichols",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "PIT"
     },
     {
-      "player_name": "Isaac Guerendo",
+      "player_name": "Robert Henry Jr.",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "SF"
+      "team": "WAS"
     },
     {
-      "player_name": "Hassan Haskins",
+      "player_name": "Julius Chestnut",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "NE"
+      "team": "TEN"
     },
     {
       "player_name": "Brittain Brown",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "CHI"
-    },
-    {
-      "player_name": "Ulysses Bentley IV",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "IND"
     },
     {
       "player_name": "Dontae McMillan",
@@ -805,6 +823,18 @@
       "team": "BAL"
     },
     {
+      "player_name": "Ulysses Bentley IV",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "IND"
+    },
+    {
+      "player_name": "Amar Johnson",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "LAC"
+    },
+    {
       "player_name": "Jaydn Ott",
       "position": "RB",
       "reason": "unmatched_name",
@@ -817,10 +847,10 @@
       "team": "KC"
     },
     {
-      "player_name": "Amar Johnson",
+      "player_name": "Jashaun Corbin",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "LAC"
+      "team": "DAL"
     },
     {
       "player_name": "Ahmani Marshall",
@@ -835,6 +865,12 @@
       "team": "CLE"
     },
     {
+      "player_name": "Phil Mafah",
+      "position": "RB",
+      "reason": "unmatched_name",
+      "team": "DAL"
+    },
+    {
       "player_name": "Jacob Saylors",
       "position": "RB",
       "reason": "unmatched_name",
@@ -847,22 +883,16 @@
       "team": "CIN"
     },
     {
-      "player_name": "Noah Whittington",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "HOU"
-    },
-    {
       "player_name": "Pierre Strong Jr.",
       "position": "RB",
       "reason": "unmatched_name",
       "team": "GB"
     },
     {
-      "player_name": "Dameon Pierce",
+      "player_name": "Owen Wright",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "PHI"
+      "team": "HOU"
     },
     {
       "player_name": "Damien Martinez",
@@ -883,10 +913,10 @@
       "team": "CIN"
     },
     {
-      "player_name": "Josh Williams",
+      "player_name": "Carson Steele",
       "position": "RB",
       "reason": "unmatched_name",
-      "team": "TB"
+      "team": "PHI"
     },
     {
       "player_name": "Jaden Nixon",
@@ -919,12 +949,6 @@
       "team": "LAC"
     },
     {
-      "player_name": "Jashaun Corbin",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "DAL"
-    },
-    {
       "player_name": "Michael Burton",
       "position": "RB",
       "reason": "unmatched_name",
@@ -935,24 +959,6 @@
       "position": "RB",
       "reason": "unmatched_name",
       "team": "DEN"
-    },
-    {
-      "player_name": "Julius Chestnut",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "TEN"
-    },
-    {
-      "player_name": "Roman Hemby",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "LV"
-    },
-    {
-      "player_name": "AJ Dillon",
-      "position": "RB",
-      "reason": "unmatched_name",
-      "team": "CAR"
     }
   ]
 }
