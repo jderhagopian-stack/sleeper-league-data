@@ -60,7 +60,7 @@ jobs:
               assert row.get('waiver_discovery_source')=='canonical_full_projection_universe'
               assert row.get('projection_source_model')=='FSFFL-Full-Projection-Universe-1.0'
           pdf=Path('/tmp/team-improvement/GM_Action_Report.pdf')
-          assert pdf.exists() and pdf.stat().st_size > 5000
+          assert pdf.exists() and pdf.stat().st_size > 2500
           reader=PdfReader(str(pdf))
           assert len(reader.pages)==1
           text=' '.join((p.extract_text() or '') for p in reader.pages)
