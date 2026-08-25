@@ -3,6 +3,7 @@ name: Test Automatic Trade PDF Report
 on:
   pull_request:
     paths:
+      - 'script/render_trade_decision_report_v14.py'
       - 'script/render_trade_decision_report_v13.py'
       - 'script/run_trade_report.py'
       - 'script/run_trade_market_sweep_v27.py'
@@ -27,7 +28,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v13.py script/run_trade_report.py script/run_trade_market_sweep_v27.py script/run_trade_market_sweep_v26.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v14.py script/render_trade_decision_report_v13.py script/run_trade_report.py script/run_trade_market_sweep_v27.py script/run_trade_market_sweep_v26.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Build production BI3 cache
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
       - name: Run trade query pipeline
@@ -49,9 +50,9 @@ jobs:
           partner=str(a.get('current_offer_partner_user_id') or '')
           assert all(str(x.get('buyer_user_id') or '')==partner for x in a.get('suggested_counteroffers') or [])
           assert all(str(x.get('buyer_user_id') or '')!=partner for x in a.get('market_sweep_alternatives') or [])
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.10';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.3';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v27.py')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.11';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.4';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v27.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
-          print('Market Sweep 1.21 / BI3 / split counter-market report 1.3 test passed')
+          print('Market Sweep 1.21 / BI3 / plain-English report 1.4 test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
