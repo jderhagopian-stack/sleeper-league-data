@@ -18,7 +18,7 @@ import alternate_history_performance_runtime as perf
 import alternate_history_weekly_cow_runtime as weekly_cow
 import alternate_history_ledger_key_runtime as ledger_key
 import alternate_history_simulator_dp_runtime as simulator_dp
-import alternate_history_trade_persistence_runtime as trade_persistence
+import alternate_history_trade_persistence_v3_runtime as trade_persistence
 
 DEFAULT_PARTICLES = 100
 DEFAULT_SIMS = 500
