@@ -1,29 +1,21 @@
 {
-  "scenario_id": "dak_lamb_full_validation",
-  "description": "Full 5,000-simulation validation of Dak Prescott + CeeDee Lamb for Travis Hunter + Aaron Rodgers + Drigs picks.",
-  "focus_user_id": "846634401482792960",
+  "scenario_id": "hungry_dawgs_mcbride_bi3",
+  "description": "Evaluate Hungry Dawgs sending Breece Hall and Trey McBride for Cam Skattebo, TreVeyon Henderson, and Tucker Kraft using current production BI3.",
+  "focus_user_id": "833709164739014656",
   "actions": [
     {
       "type": "trade",
-      "from_user_id": "846634401482792960",
-      "to_user_id": "853063390963277824",
-      "players": ["3294", "6786"],
+      "from_user_id": "833709164739014656",
+      "to_user_id": "709546576091090944",
+      "players": ["8155", "8130"],
       "picks": []
     },
     {
       "type": "trade",
-      "from_user_id": "853063390963277824",
-      "to_user_id": "846634401482792960",
-      "players": ["12530", "96"],
-      "picks": [
-        "pick:2027:R1:orig11",
-        "pick:2027:R3:orig11",
-        "pick:2028:R1:orig11",
-        "pick:2028:R2:orig11",
-        "pick:2028:R3:orig11",
-        "pick:2029:R1:orig11",
-        "pick:2029:R2:orig11"
-      ]
+      "from_user_id": "709546576091090944",
+      "to_user_id": "833709164739014656",
+      "players": ["12481", "12529", "9484"],
+      "picks": []
     }
   ]
 }
