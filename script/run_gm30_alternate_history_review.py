@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 
 import alternate_history_performance_runtime as perf
+import alternate_history_weekly_cow_runtime as weekly_cow
 
 DEFAULT_PARTICLES = 100
 DEFAULT_SIMS = 500
@@ -38,6 +39,7 @@ def run_review(
     # Performance patches are accuracy-neutral and already equivalence-tested.
     # Install them only inside this explicit Alternate History process.
     perf.install()
+    weekly_cow.install()
 
     # Import after the opt-in performance runtime is installed. Keeping this
     # import local also prevents Alternate History from entering normal GM 3.0
