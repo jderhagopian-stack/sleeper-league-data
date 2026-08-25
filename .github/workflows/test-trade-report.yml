@@ -3,12 +3,13 @@ name: Test Automatic Trade PDF Report
 on:
   pull_request:
     paths:
+      - 'script/render_trade_decision_report_v17.py'
       - 'script/render_trade_decision_report_v16.py'
-      - 'script/render_trade_decision_report_v15.py'
       - 'script/run_trade_report.py'
+      - 'script/run_trade_market_sweep_v29.py'
       - 'script/run_trade_market_sweep_v28.py'
-      - 'script/run_trade_market_sweep_v27.py'
-      - 'script/run_trade_market_sweep_v26.py'
+      - 'script/run_trade_market_sweep_v13.py'
+      - 'script/roster_aware_trade.py'
       - 'script/historical_state_behavior.py'
       - 'script/behavioral_intelligence.py'
       - 'script/behavioral_intelligence_v3.py'
@@ -29,7 +30,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v16.py script/render_trade_decision_report_v15.py script/run_trade_report.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v27.py script/run_trade_market_sweep_v26.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v13.py script/roster_aware_trade.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test adaptive trigger logic
         run: |
           python - <<'PY'
@@ -41,6 +42,26 @@ jobs:
           assert 'championship_probability_conflicts_with_expected_points' in reasons
           print('adaptive trigger unit test passed',reasons)
           PY
+      - name: Unit test roster legalization
+        run: |
+          python - <<'PY'
+          import copy,importlib.util
+          spec=importlib.util.spec_from_file_location('r','script/roster_aware_trade.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          class DL:
+              @staticmethod
+              def roster_maps(rs):return ({str(x['owner_id']):x for x in rs},{int(x['roster_id']):x for x in rs})
+              @staticmethod
+              def remove_player(r,p):
+                  r['players']=[x for x in r.get('players',[]) if str(x)!=str(p)];r['taxi']=[x for x in r.get('taxi',[]) if str(x)!=str(p)];r['reserve']=[x for x in r.get('reserve',[]) if str(x)!=str(p)]
+              @staticmethod
+              def gm_asset_map(uid):
+                  return {'player:1':{'name':'KEEP','base_franchise_value':5000,'break_glass_value':7000,'market_dynasty':5000,'market_redraft':5000,'is_current_optimal_starter':True,'core_status':'core_high_hold'},'player:2':{'name':'CUTME','base_franchise_value':100,'break_glass_value':100,'market_dynasty':100,'market_redraft':50}}
+          before=[{'owner_id':'u','roster_id':1,'players':['1'],'taxi':[],'reserve':[]}]
+          after=[{'owner_id':'u','roster_id':1,'players':['1','2'],'taxi':[],'reserve':[]}]
+          league={'roster_positions':['QB']};legal,res,acts=m.legalize_trade_rosters(DL,before,after,['u'],league,{})
+          assert legal[0]['players']==['1'];assert res['u']['required_cuts']==1;assert res['u']['selected_cuts'][0]['name']=='CUTME';assert acts[0]['players']==['2'];assert res['u']['roster_legal'] is True
+          print('roster legalization unit test passed')
+          PY
       - name: Build production BI3 cache
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
       - name: Run trade query pipeline
@@ -49,25 +70,25 @@ jobs:
           SECONDS=0
           python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 100 --adaptive-confirm-sims 1000 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
           test "$SECONDS" -le 180
-      - name: Validate JSON PDF comparison and confirmation policy
+      - name: Validate JSON PDF roster comparison and confirmation policy
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-trade-report');a=json.loads((root/'validation-trade.json').read_text());s=json.loads((root/'validation-trade-summary.json').read_text());pdf=root/'validation-trade.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.22'
-          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['bi3_opportunity_normalized'] is True;assert p['counter_and_market_pools_separate'] is True;assert p['suggested_counteroffers_max']==2;assert p['market_sweep_max']==5;assert p['market_sweep_excludes_current_partner'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['option_comparison_includes_reason'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['final_report_uses_confirmed_metrics_when_triggered'] is True
-          assert len(a.get('suggested_counteroffers') or [])<=2;assert len(a.get('market_sweep_alternatives') or [])<=5
-          partner=str(a.get('current_offer_partner_user_id') or '')
-          assert all(str(x.get('buyer_user_id') or '')==partner for x in a.get('suggested_counteroffers') or [])
-          assert all(str(x.get('buyer_user_id') or '')!=partner for x in a.get('market_sweep_alternatives') or [])
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.23'
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True
+          rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
+          for x in rows:
+              sim=x.get('simulation') or {};rr=sim.get('roster_resolution') or {};assert rr
+              assert all(v.get('roster_legal') is True for v in rr.values())
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
-              c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason');assert c.get('comparison_basis')
-          ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True;assert ac.get('final_metrics_source') in {'quick_screen','deep_confirmation_rerun'}
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.13';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.6';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v28.py')
+              c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
+          ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.14';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.7';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v29.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
-          print('Market Sweep 1.22 / adaptive confirmation / explicit comparison report 1.6 test passed')
+          print('Market Sweep 1.23 / roster-aware resolution / adaptive report 1.7 test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
