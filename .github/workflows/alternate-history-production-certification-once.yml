@@ -1,9 +1,7 @@
 name: Alternate History Production Certification Once
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/alternate-history-production-certification-once.yml'
+  workflow_dispatch:
 
 jobs:
   certify-production-100x500:
