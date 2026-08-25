@@ -57,7 +57,7 @@ jobs:
       - name: Validate complete 2023-to-present weighted protocol in one pass
         run: python script/validate_fsffl_end_to_end_protocol.py
 
-  profile-production-hotspots:
+  benchmark-representative-runtime:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -75,23 +75,17 @@ jobs:
           key: alternate-history-sleeper-completed-2022-2025-v1
       - name: Backfill authoritative raw Sleeper history
         run: python script/backfill_alternate_history_sleeper.py
-      - name: Profile representative production review
+      - name: Run unprofiled representative production review
         run: |
           mkdir -p data/alternate_history/results/puka_vs_van_2023
-          /usr/bin/time -v python -m cProfile -o /tmp/alternate_history_20x100.prof \
-            script/run_gm30_alternate_history_review.py \
+          /usr/bin/time -v python script/run_gm30_alternate_history_review.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
             --particles 20 --sims 100 --seed 20260824 \
             2> /tmp/alternate_history_20x100.time
-      - name: Print cumulative hotspot profile
+      - name: Print representative resource usage
         run: |
-          python - <<'PY'
-          import pstats
-          print('ALTERNATE_HISTORY_20x100_CPROFILE_TOP_CUMULATIVE')
-          pstats.Stats('/tmp/alternate_history_20x100.prof').strip_dirs().sort_stats('cumulative').print_stats(60)
-          print('ALTERNATE_HISTORY_20x100_RESOURCE_USAGE')
-          print(open('/tmp/alternate_history_20x100.time').read())
-          PY
+          echo 'ALTERNATE_HISTORY_20x100_UNPROFILED_RESOURCE_USAGE'
+          cat /tmp/alternate_history_20x100.time
 
   certify-production-scale:
     if: github.event_name == 'workflow_dispatch'
