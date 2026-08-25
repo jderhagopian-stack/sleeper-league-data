@@ -45,7 +45,7 @@ jobs:
       - name: Unit test roster legalization
         run: |
           python - <<'PY'
-          import copy,importlib.util
+          import importlib.util
           spec=importlib.util.spec_from_file_location('r','script/roster_aware_trade.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
           class DL:
               @staticmethod
@@ -55,12 +55,32 @@ jobs:
                   r['players']=[x for x in r.get('players',[]) if str(x)!=str(p)];r['taxi']=[x for x in r.get('taxi',[]) if str(x)!=str(p)];r['reserve']=[x for x in r.get('reserve',[]) if str(x)!=str(p)]
               @staticmethod
               def gm_asset_map(uid):
-                  return {'player:1':{'name':'KEEP','base_franchise_value':5000,'break_glass_value':7000,'market_dynasty':5000,'market_redraft':5000,'is_current_optimal_starter':True,'core_status':'core_high_hold'},'player:2':{'name':'CUTME','base_franchise_value':100,'break_glass_value':100,'market_dynasty':100,'market_redraft':50}}
-          before=[{'owner_id':'u','roster_id':1,'players':['1'],'taxi':[],'reserve':[]}]
-          after=[{'owner_id':'u','roster_id':1,'players':['1','2'],'taxi':[],'reserve':[]}]
-          league={'roster_positions':['QB']};legal,res,acts=m.legalize_trade_rosters(DL,before,after,['u'],league,{})
-          assert legal[0]['players']==['1'];assert res['u']['required_cuts']==1;assert res['u']['selected_cuts'][0]['name']=='CUTME';assert acts[0]['players']==['2'];assert res['u']['roster_legal'] is True
-          print('roster legalization unit test passed')
+                  return {
+                    'player:1':{'name':'CORE','base_franchise_value':5000,'break_glass_value':7000,'market_dynasty':5000,'market_redraft':5000,'is_current_optimal_starter':True,'core_status':'core_high_hold'},
+                    'player:2':{'name':'WEAK_INCUMBENT','base_franchise_value':100,'break_glass_value':100,'market_dynasty':100,'market_redraft':50},
+                    'player:3':{'name':'INCOMING','base_franchise_value':1,'break_glass_value':1,'market_dynasty':1,'market_redraft':1}
+                  }
+          # Normal legal roster: incoming player is protected; weakest incumbent is cut.
+          before=[{'owner_id':'u','roster_id':1,'players':['1','2'],'taxi':[],'reserve':[]}]
+          after=[{'owner_id':'u','roster_id':1,'players':['1','2','3'],'taxi':[],'reserve':[]}]
+          league={'roster_positions':['QB','BN']};legal,res,acts=m.legalize_trade_rosters(DL,before,after,['u'],league,{})
+          assert legal[0]['players']==['1','3']
+          assert res['u']['required_cuts']==1
+          assert res['u']['selected_cuts'][0]['name']=='WEAK_INCUMBENT'
+          assert res['u']['newly_acquired_protected_from_automatic_cut']==['3']
+          assert acts[0]['players']==['2']
+          assert res['u']['roster_legal'] is True
+          # Pre-existing offseason overage belongs to HOLD too; only incremental burden is charged.
+          before2=[{'owner_id':'u','roster_id':1,'players':['1','2','4'],'taxi':[],'reserve':[]}]
+          after2=[{'owner_id':'u','roster_id':1,'players':['1','2','4','3'],'taxi':[],'reserve':[]}]
+          legal2,res2,acts2=m.legalize_trade_rosters(DL,before2,after2,['u'],league,{})
+          assert res2['u']['baseline_active_overage']==1
+          assert res2['u']['effective_hypothetical_active_limit']==3
+          assert res2['u']['required_cuts']==1
+          assert res2['u']['preexisting_overage_not_charged_to_hypothetical'] is True
+          assert '3' in res2['u']['newly_acquired_protected_from_automatic_cut']
+          assert res2['u']['roster_legal'] is True
+          print('baseline-aware roster legalization unit tests passed')
           PY
       - name: Build production BI3 cache
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
@@ -88,7 +108,7 @@ jobs:
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.14';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.7';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v29.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
-          print('Market Sweep 1.23 / roster-aware resolution / adaptive report 1.7 test passed')
+          print('Market Sweep 1.23 / baseline-aware roster resolution / adaptive report 1.7 test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
