@@ -2,9 +2,9 @@
 """Historical-safe roster compliance for Fantasy Alternate History.
 
 Rookie drafts temporarily expand branch rosters. Completed seasons contract to
-that franchise's observed Week 1 roster-membership count before Week 1 is
-scored. The active season contracts to the current canonical Sleeper roster
-count after completed transactions are replayed.
+that franchise's observed Week 1 roster-membership count immediately before
+Week 1 is scored. The active season contracts to the current canonical Sleeper
+roster count at the present-day handoff.
 
 Capacity is contemporaneous league evidence only. Player retention never uses
 points from the season about to be replayed. Selection priority is:
@@ -18,12 +18,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
 import alternate_history_engine as ah
-import run_fsffl_multiseason_particle_replay_v3 as season_v3
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_historical_usage_policy import HistoricalPoints
 
 DRAFT_KEY = "_alternate_history_rookie_draft"
-SeasonParticleGroup = season_v3.SeasonParticleGroup
 
 
 def week1_rosters(season: str) -> Dict[str, set[str]]:
@@ -87,7 +85,7 @@ def retention_key(pid: str, *, actual_kept: set[str], drafted: Dict[str, Tuple[i
     )
 
 
-def _enforce(groups: List[SeasonParticleGroup], *, season: str, particles: int, actual: Dict[str, set[str]], capacity_source: str) -> Tuple[List[SeasonParticleGroup], Dict[str, Any]]:
+def _enforce(groups: List[Any], *, season: str, actual: Dict[str, set[str]], capacity_source: str) -> Dict[str, Any]:
     prior_totals = prior_season_totals(HistoricalPoints(), str(season))
     total_removed = 0
     particle_rosters_trimmed = 0
@@ -130,9 +128,6 @@ def _enforce(groups: List[SeasonParticleGroup], *, season: str, particles: int, 
                 "removed_player_ids": removed,
             })
 
-    groups, merged = season_v3.merge_groups(groups)
-    if sum(group.count for group in groups) != particles:
-        raise ah.AlternateHistoryError(f"Roster compliance lost particle mass for {season}")
     for group in groups:
         for rid, actual_players in actual.items():
             size = len((group.state.get("roster_players") or {}).get(rid) or [])
@@ -141,7 +136,7 @@ def _enforce(groups: List[SeasonParticleGroup], *, season: str, particles: int, 
                     f"Roster compliance failed for {season} roster {rid}: {size}>{len(actual_players)}"
                 )
 
-    return groups, {
+    return {
         "season": str(season),
         "capacity_source": capacity_source,
         "future_season_points_used": False,
@@ -154,26 +149,23 @@ def _enforce(groups: List[SeasonParticleGroup], *, season: str, particles: int, 
         "weighted_players_removed": total_removed,
         "max_roster_size_before": max_before,
         "max_roster_size_after": max_after,
-        "particles_merged_after_compliance": merged,
         "audit": audits,
     }
 
 
-def enforce_week1_roster_envelope(groups: List[SeasonParticleGroup], *, season: str, particles: int):
+def enforce_week1_roster_envelope(groups: List[Any], *, season: str) -> Dict[str, Any]:
     return _enforce(
         groups,
         season=str(season),
-        particles=particles,
         actual=week1_rosters(str(season)),
         capacity_source="actual_week1_roster_membership_count",
     )
 
 
-def enforce_current_roster_envelope(groups: List[SeasonParticleGroup], *, season: str, particles: int):
+def enforce_current_roster_envelope(groups: List[Any], *, season: str) -> Dict[str, Any]:
     return _enforce(
         groups,
         season=str(season),
-        particles=particles,
         actual=current_rosters(),
         capacity_source="canonical_current_roster_membership_count",
     )
