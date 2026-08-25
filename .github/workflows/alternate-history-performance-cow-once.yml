@@ -1,15 +1,14 @@
 name: Alternate History Runtime Performance Benchmark Once
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/alternate-history-performance-cow-once.yml'
-      - 'script/alternate_history_performance_runtime.py'
-      - 'script/run_fsffl_alternate_history_optimized.py'
+  workflow_dispatch:
 
 concurrency:
   group: alternate-history-runtime-performance-once
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   benchmark:
