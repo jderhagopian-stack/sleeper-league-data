@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """FSFFL Behavioral Intelligence 3.0 research model.
 
-BI3 keeps BI2's persistent + competitive-state layers, then adds a third layer:
-context-normalized revealed preference. A positional acquisition is compared
-with the manager's reconstructed pre-action positional needs, so need-driven
-behavior is discounted and redundant/surplus accumulation receives more weight.
+BI3 preserves BI2 persistent + state-conditioned traits, then adds context-
+normalized revealed preference. This revision also controls for the league's
+observed opportunity environment by decision type using leave-one-manager-out
+position priors. A manager is therefore compared with what other managers tend
+to acquire in trades, drafts, and waivers/free agency under similar action types,
+then roster need modifies that expectation.
 
-This module consumes a PRECOMPUTED action-context artifact. It never rebuilds
+The model consumes a PRECOMPUTED action-context artifact. It never rebuilds
 historical ownership in Market Sweep's interactive path.
 """
 from __future__ import annotations
@@ -23,6 +25,8 @@ BI2_PATH = SCRIPT / "behavioral_intelligence.py"
 MODEL_VERSION = "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
 POSITIONS = ("QB", "RB", "WR", "TE")
 SOURCE_WEIGHT = {"trade": 1.0, "draft": .58, "acquisition": .22}
+OPPORTUNITY_SMOOTHING = 1.0
+NEED_FLOOR = .30
 
 
 def loadj(path, default):
@@ -61,19 +65,76 @@ def confidence(weight, avg_context):
     return round(min(.98, sample_conf * (.45 + .55 * clamp(avg_context, 0, 1))), 4)
 
 
+def valid_acquired(row):
+    return [p for p in (row.get("positions_acquired") or []) if p in POSITIONS]
+
+
+def build_opportunity_environment(actions):
+    """Observed position mix by action type, with per-owner contributions retained.
+
+    This is not claimed to be a pure availability model. It is a league-specific
+    empirical opportunity prior: the acquisition mix other managers actually
+    encounter/execute for each action type. Leave-one-manager-out use prevents a
+    manager's own historical choices from defining their benchmark.
+    """
+    totals = defaultdict(lambda: defaultdict(float))
+    owner = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+    owner_weight = defaultdict(lambda: defaultdict(float))
+    for row in actions:
+        uid = str(row.get("user_id") or "")
+        kind = str(row.get("event_type") or "")
+        acquired = valid_acquired(row)
+        if not uid or kind not in SOURCE_WEIGHT or not acquired:
+            continue
+        cc = max(0.05, sf(row.get("context_confidence"), 0.0))
+        share = cc / len(acquired)
+        for p in acquired:
+            totals[kind][p] += share
+            owner[uid][kind][p] += share
+        owner_weight[uid][kind] += cc
+    return {"totals": totals, "owner": owner, "owner_weight": owner_weight}
+
+
+def loo_opportunity_share(env, uid, kind):
+    numer = {}
+    for p in POSITIONS:
+        numer[p] = max(
+            0.0,
+            sf(env["totals"][kind].get(p)) - sf(env["owner"][uid][kind].get(p))
+        ) + OPPORTUNITY_SMOOTHING
+    den = sum(numer.values()) or 1.0
+    return {p: numer[p] / den for p in POSITIONS}
+
+
+def expected_position_share(needs, opportunity):
+    raw = {}
+    for p in POSITIONS:
+        need = clamp(sf(needs.get(p), .5), 0, 1)
+        need_factor = NEED_FLOOR + (1 - NEED_FLOOR) * need
+        raw[p] = max(.0001, sf(opportunity.get(p), .25)) * need_factor
+    den = sum(raw.values()) or 1.0
+    return {p: raw[p] / den for p in POSITIONS}
+
+
 def new_acc():
     return {
         "weight": 0.0,
         "context_weight": 0.0,
         "context_sum": 0.0,
         "source_weight": defaultdict(float),
+        "opportunity_samples": defaultdict(float),
         "position": {p: {
             "chosen_weight": 0.0,
             "need_sum": 0.0,
             "redundancy_sum": 0.0,
             "preference_residual_sum": 0.0,
+            "raw_need_residual_sum": 0.0,
+            "expected_share_sum": 0.0,
+            "expected_share_weight": 0.0,
             "exit_weight": 0.0,
             "exit_need_sum": 0.0,
+            "source_residual": defaultdict(float),
+            "source_weight": defaultdict(float),
         } for p in POSITIONS},
         "draft_weight": 0.0,
         "draft_redundancy_sum": 0.0,
@@ -81,7 +142,8 @@ def new_acc():
     }
 
 
-def add_action(acc, row):
+def add_action(acc, row, env):
+    uid = str(row.get("user_id") or "")
     kind = str(row.get("event_type") or "")
     base = SOURCE_WEIGHT.get(kind, .16)
     cc = sf(row.get("context_confidence"), 0.0)
@@ -91,8 +153,7 @@ def add_action(acc, row):
     pre = row.get("pre_action") or {}
     needs = pre.get("position_need") or {}
     surplus = pre.get("position_surplus") or {}
-    need_total = sum(max(.02, sf(needs.get(p), .5)) for p in POSITIONS)
-    acquired = [p for p in (row.get("positions_acquired") or []) if p in POSITIONS]
+    acquired = valid_acquired(row)
     exited = [p for p in (row.get("positions_sent_or_dropped") or []) if p in POSITIONS]
 
     acc["weight"] += w
@@ -101,11 +162,21 @@ def add_action(acc, row):
     acc["source_weight"][kind] += w
 
     if acquired:
+        opp = loo_opportunity_share(env, uid, kind)
+        expected = expected_position_share(needs, opp)
+        need_total = sum(max(.02, sf(needs.get(p), .5)) for p in POSITIONS)
         obs_each = 1.0 / len(acquired)
+        acc["opportunity_samples"][kind] += w
         for p in POSITIONS:
-            exp = max(.02, sf(needs.get(p), .5)) / need_total
             obs = obs_each if p in acquired else 0.0
-            acc["position"][p]["preference_residual_sum"] += w * (obs - exp)
+            need_only = max(.02, sf(needs.get(p), .5)) / need_total
+            pa = acc["position"][p]
+            pa["preference_residual_sum"] += w * (obs - expected[p])
+            pa["raw_need_residual_sum"] += w * (obs - need_only)
+            pa["expected_share_sum"] += w * expected[p]
+            pa["expected_share_weight"] += w
+            pa["source_residual"][kind] += w * (obs - expected[p])
+            pa["source_weight"][kind] += w
         for p in acquired:
             need = sf(needs.get(p), .5)
             sur = sf(surplus.get(p), 0.0)
@@ -138,16 +209,26 @@ def finalize(acc):
         cw = a["chosen_weight"]
         ew = a["exit_weight"]
         residual = clamp(a["preference_residual_sum"] / max(.001, acc["weight"]) * 3.0)
+        raw_need_residual = clamp(a["raw_need_residual_sum"] / max(.001, acc["weight"]) * 3.0)
         need_response = a["need_sum"] / cw if cw else None
         redundancy = a["redundancy_sum"] / cw if cw else None
         exit_need = a["exit_need_sum"] / ew if ew else None
+        expected_share = a["expected_share_sum"] / a["expected_share_weight"] if a["expected_share_weight"] else None
+        by_source = {}
+        for kind in SOURCE_WEIGHT:
+            sw = a["source_weight"].get(kind, 0.0)
+            if sw:
+                by_source[kind] = round(clamp(a["source_residual"][kind] / sw * 3.0), 4)
         out_pos[p] = {
-            "need_adjusted_preference": {
+            "opportunity_and_need_adjusted_preference": {
                 "score": round(residual, 4),
                 "strength": strength(residual),
                 "confidence": confidence(acc["weight"], avg_ctx),
-                "interpretation": "positive means acquired more often than positional need alone predicts",
+                "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
             },
+            "need_only_preference_for_comparison": round(raw_need_residual, 4),
+            "average_expected_choice_share": round(expected_share, 4) if expected_share is not None else None,
+            "opportunity_adjusted_score_by_action_type": by_source,
             "need_response": round(need_response, 4) if need_response is not None else None,
             "surplus_or_redundant_accumulation": round(redundancy, 4) if redundancy is not None else None,
             "acquisition_weight": round(cw, 3),
@@ -158,6 +239,7 @@ def finalize(acc):
         "weighted_context_sample": round(acc["weight"], 3),
         "average_context_confidence": round(avg_ctx, 4),
         "weighted_source_mix": {k: round(v, 3) for k, v in sorted(acc["source_weight"].items())},
+        "opportunity_normalization_sample": {k: round(v, 3) for k, v in sorted(acc["opportunity_samples"].items())},
         "positions": out_pos,
         "draft_context": {
             "weighted_draft_sample": round(acc["draft_weight"], 3),
@@ -169,16 +251,40 @@ def finalize(acc):
     }
 
 
+def environment_summary(env):
+    out = {}
+    for kind in SOURCE_WEIGHT:
+        vals = {p: sf(env["totals"][kind].get(p)) + OPPORTUNITY_SMOOTHING for p in POSITIONS}
+        den = sum(vals.values()) or 1.0
+        out[kind] = {p: round(vals[p] / den, 4) for p in POSITIONS}
+    return out
+
+
+def league_bias_audit(owners):
+    num = {p: 0.0 for p in POSITIONS}
+    den = {p: 0.0 for p in POSITIONS}
+    for row in owners.values():
+        cn = row.get("context_normalized") or {}
+        wt = sf(cn.get("weighted_context_sample"), 0)
+        for p in POSITIONS:
+            score = sf((((cn.get("positions") or {}).get(p) or {}).get("opportunity_and_need_adjusted_preference") or {}).get("score"), 0)
+            num[p] += wt * score
+            den[p] += wt
+    return {p: round(num[p] / den[p], 4) if den[p] else 0.0 for p in POSITIONS}
+
+
 def build(context_path):
     ctx = loadj(context_path, {})
     if ctx.get("model_version") != "FSFFL-Behavioral-Action-Context-1.1":
         raise RuntimeError(f"Unexpected action-context model: {ctx.get('model_version')}")
+    actions = ctx.get("actions") or []
+    env = build_opportunity_environment(actions)
     bi2 = load_bi2().build()
     accs = defaultdict(new_acc)
-    for row in ctx.get("actions") or []:
+    for row in actions:
         uid = str(row.get("user_id") or "")
         if uid:
-            add_action(accs[uid], row)
+            add_action(accs[uid], row, env)
     owners = {}
     all_uids = sorted(set((bi2.get("owners") or {}).keys()) | set(accs.keys()))
     for uid in all_uids:
@@ -198,18 +304,28 @@ def build(context_path):
             "state_conditioned_traits_preserved": True,
             "context_normalized_traits_added": True,
             "need_driven_acquisitions_discount_intrinsic_preference": True,
+            "action_type_opportunity_normalization": True,
+            "leave_one_manager_out_opportunity_prior": True,
             "surplus_accumulation_strengthens_intrinsic_preference": True,
             "shared_historical_state_provider": True,
             "independent_bi3_historical_replay": False,
             "interactive_historical_replay": False,
             "history_can_override_current_state_utility": False,
         },
+        "opportunity_environment": {
+            "method": "leave-one-manager-out empirical position priors by action type, smoothed and combined with pre-action roster need",
+            "league_action_type_position_mix": environment_summary(env),
+            "smoothing_per_position": OPPORTUNITY_SMOOTHING,
+            "need_floor": NEED_FLOOR,
+        },
         "action_context_model_version": ctx.get("model_version"),
         "historical_state_provider": ctx.get("historical_state_provider"),
         "action_context_audit": ctx.get("audit"),
         "owner_count": len(owners),
+        "league_bias_audit": league_bias_audit(owners),
         "owners": owners,
         "limitations": [
+            "The action-type opportunity prior is empirical league behavior, not a perfect reconstruction of every available alternative at each decision timestamp.",
             "Historical ownership facts come from the shared point-in-time state provider derived from Alternate History reconstruction logic.",
             "Historical player quality uses prior completed-season FSFFL production only; unknown quality is retained as unknown.",
             "Exact historical market-value-at-time is not available.",
@@ -226,7 +342,12 @@ def main():
     payload = build(args.context)
     Path(args.output).write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     audit = payload.get("action_context_audit") or {}
-    print(json.dumps({"model_version": payload["model_version"], "owner_count": payload["owner_count"], **audit}, indent=2))
+    print(json.dumps({
+        "model_version": payload["model_version"],
+        "owner_count": payload["owner_count"],
+        "league_bias_audit": payload["league_bias_audit"],
+        **audit,
+    }, indent=2))
 
 
 if __name__ == "__main__":
