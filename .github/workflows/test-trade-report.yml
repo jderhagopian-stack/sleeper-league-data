@@ -34,8 +34,8 @@ jobs:
         run: |
           mkdir -p /tmp/fsffl-trade-report
           SECONDS=0
-          python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 100 --confirm-sims 0 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
-          test "$SECONDS" -le 60
+          python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 1000 --confirm-sims 0 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
+          test "$SECONDS" -le 360
       - name: Validate JSON PDF and behavioral policy
         run: |
           python - <<'PY'
@@ -68,7 +68,7 @@ jobs:
           assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.7'
           assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v26.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and len(PdfReader(str(pdf)).pages)==1
-          print('Automatic Market Sweep 1.20 / Behavioral Intelligence 3.0 report test passed')
+          print('Automatic Market Sweep 1.20 / Behavioral Intelligence 3.0 1000-sim confirmation passed')
           PY
       - name: Upload trade report artifacts
         if: always()
