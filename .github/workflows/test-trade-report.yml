@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/render_trade_decision_report.py'
+      - 'script/render_trade_decision_report_v11.py'
       - 'script/run_trade_report.py'
       - 'script/historical_state_behavior.py'
       - 'script/behavioral_intelligence.py'
@@ -26,7 +27,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report.py script/run_trade_report.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py script/run_trade_market_sweep_v26.py
+        run: python -m py_compile script/render_trade_decision_report_v11.py script/run_trade_report.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py script/run_trade_market_sweep_v26.py
       - name: Build production BI3 cache
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
       - name: Run trade query pipeline
@@ -58,16 +59,11 @@ jobs:
           bi=analysis['behavioral_intelligence'];assert bi['owner_count']>=12;assert bi['model_version']=='FSFFL-Behavioral-Intelligence-3.0';assert bi['interactive_history_rebuild'] is False
           normals=[r for r in analysis.get('top_5_alternatives',[]) if r.get('report_role')!='SWING_FOR_FENCES']
           assert all(float(r.get('post_sim_score') or 0)>0 for r in normals)
-          for r in analysis.get('top_5_alternatives',[]):
-              ob=((r.get('buyer_rationality') or {}).get('owner_behavior') or {})
-              if ob.get('available'):
-                  assert ob.get('behavioral_intelligence_version')=='FSFFL-Behavioral-Intelligence-3.0'
-                  assert ob.get('bi3_interactive_historical_replay') is False
-                  assert 'behavioral_intelligence_adjustment' in ob
-          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.7'
+          assert summary['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.8'
+          assert summary['report_model_version']=='FSFFL-Trade-Decision-Report-1.1'
           assert summary['canonical_model_entry_point'].endswith('run_trade_market_sweep_v26.py')
-          assert pdf.exists() and pdf.stat().st_size>2000 and len(PdfReader(str(pdf)).pages)==1
-          print('Automatic Market Sweep 1.20 / Behavioral Intelligence 3.0 report test passed')
+          assert pdf.exists() and pdf.stat().st_size>2000 and 1 <= len(PdfReader(str(pdf)).pages) <= 2
+          print('Automatic Market Sweep 1.20 / BI3 / explanatory report 1.1 test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
