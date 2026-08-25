@@ -63,7 +63,7 @@ jobs:
           p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['bi2_persistent_manager_traits_retained'] is True;assert p['bi2_state_conditioned_full_action_behavior_retained'] is True;assert p['bi3_opportunity_normalized'] is True;assert p['bi3_interactive_historical_replay'] is False;assert p['behavioral_history_can_override_current_state_utility'] is False;assert p['bi3_cache_status'] in {'AVAILABLE','MISSING'}
           if p['bi3_cache_status']=='AVAILABLE':assert p['bi3_context_normalized_position_signal_enabled'] is True
           else:assert p['bi3_context_normalized_position_signal_enabled'] is False
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.8';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.1';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v26.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=2
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.9';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.2';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v26.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=2
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
