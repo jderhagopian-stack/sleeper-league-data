@@ -47,11 +47,7 @@ jobs:
       - name: Install report dependencies
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Build full fantasy-relevant projection universe
-        run: |
-          python script/build_fsffl_full_projection_universe.py \
-            --output /tmp/player_weekly_projections_full.json \
-            --audit-output /tmp/full_projection_universe_audit.json
-          cp /tmp/player_weekly_projections_full.json data/simulator/2026/inputs/player_weekly_projections_full.json
+        run: python script/build_fsffl_full_projection_universe.py
       - name: Run Team Improvement Lab
         run: |
           mkdir -p /tmp/team-improvement
@@ -69,7 +65,7 @@ jobs:
           python script/render_gm_action_report_v10.py \
             --input /tmp/team-improvement/gm-action-report.json \
             --output /tmp/team-improvement/FSFFL_GM_Action_Report.pdf
-          cp /tmp/full_projection_universe_audit.json /tmp/team-improvement/full_projection_universe_audit.json
+          find data/simulator -name full_projection_universe_audit.json -exec cp {} /tmp/team-improvement/full_projection_universe_audit.json \;
       - name: Validate production output
         run: |
           python - <<'PY'
