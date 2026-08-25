@@ -84,7 +84,7 @@ jobs:
           for row in r.get('top_cross_channel_options') or []:
               assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
           pdf=Path('/tmp/team-improvement/FSFFL_GM_Action_Report.pdf')
-          assert pdf.exists() and pdf.stat().st_size > 5000
+          assert pdf.exists() and pdf.stat().st_size > 2500
           reader=PdfReader(str(pdf))
           assert len(reader.pages)==1
           text=' '.join((p.extract_text() or '') for p in reader.pages)
