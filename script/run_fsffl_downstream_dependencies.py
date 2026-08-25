@@ -37,11 +37,23 @@ def player_owner(state: ah.LeagueState, pid: str) -> Optional[str]:
     return None
 
 
+def _clear_nonactive_membership(state: ah.LeagueState, pid: str) -> None:
+    """Remove stale IR/taxi placement whenever ownership changes."""
+    pid = str(pid)
+    for players in state.roster_taxi.values():
+        players.discard(pid)
+    for players in state.roster_reserve.values():
+        players.discard(pid)
+
+
 def apply_forward_event(state: ah.LeagueState, event: Dict[str, Any]) -> None:
-    # Player moves.
+    # Player moves. Slot placement is not transferable with ownership; a player
+    # who is traded/dropped must leave the old roster's taxi/IR subset too.
     for pid, rid in (event.get("drops") or {}).items():
+        _clear_nonactive_membership(state, str(pid))
         state.roster_players.setdefault(str(rid), set()).discard(str(pid))
     for pid, rid in (event.get("adds") or {}).items():
+        _clear_nonactive_membership(state, str(pid))
         # Defensive uniqueness: remove from any prior roster first.
         for players in state.roster_players.values():
             players.discard(str(pid))
@@ -169,16 +181,12 @@ def run(scenario_path: Path) -> Path:
         if not legal:
             classification = "forced_invalid"
             invalid_count += 1
-            # An invalid event creates additional causal dirtiness because its
-            # historical recipient/sender states no longer materialize.
             dirty_rosters |= event_rosters
             dirty_assets |= event_assets
             applied = False
         elif touches_dirty:
             classification = "behavioral_review"
             behavioral_count += 1
-            # 0.5a preserves the historical action provisionally when legal so
-            # the dependency walk can continue. 0.5b may branch or suppress it.
             apply_forward_event(alternate, event)
             dirty_rosters |= event_rosters
             dirty_assets |= event_assets
@@ -218,6 +226,9 @@ def run(scenario_path: Path) -> Path:
         "scenario_id": scenario.scenario_id,
         "design_invariants": {
             "completed_nfl_history_is_immutable": True,
+            "historical_events_processed_chronologically": True,
+            "transaction_legality_uses_branch_state": True,
+            "taxi_reserve_membership_cleared_on_ownership_change": True,
             "no_gm_judgment_in_0_5a": True,
             "mechanical_legality_checked_before_behavioral_model": True,
             "canonical_data_is_read_only": True,
