@@ -1,0 +1,34 @@
+{
+  "contract_version": "GM3-AH-1.0",
+  "integration_mode": "EXPLICIT_OPT_IN_ONLY",
+  "normal_gm30_entrypoints": [
+    "script/build_fsffl_gm30.py",
+    "script/run_fsffl_gm30_counterfactual.py",
+    "script/run_gm300_production_pipeline.sh"
+  ],
+  "alternate_history_entrypoint": "script/run_gm30_alternate_history_review.py",
+  "normal_gm30_behavior_must_remain_unchanged": true,
+  "alternate_history_activation": [
+    "explicit_historical_review",
+    "explicit_what_if_request"
+  ],
+  "forbidden_implicit_activation": [
+    "normal_roster_evaluation",
+    "normal_trade_recommendation",
+    "normal_player_valuation",
+    "normal_draft_strategy",
+    "normal_waiver_analysis",
+    "daily_update_pipeline"
+  ],
+  "information_firewall": {
+    "completed_nfl_history_immutable": true,
+    "current_gm3_numeric_values_may_not_drive_historical_decisions": true,
+    "alternate_history_outputs_may_not_mutate_gm30_canonical_outputs": true,
+    "alternate_history_results_are_request_scoped": true
+  },
+  "shared_infrastructure": {
+    "simulator_1_0": "canonical_present_day_outcome_engine",
+    "sleeper_canonical_data": "read_only_input_for_alternate_history",
+    "gm30": "consumer_of_alternate_history_only_when_explicitly_invoked"
+  }
+}
