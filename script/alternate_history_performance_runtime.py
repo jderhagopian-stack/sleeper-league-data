@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Accuracy-neutral runtime optimizations for Alternate History.
 
-This module changes only redundant data movement/hash work. It does not alter
-particle counts, branch probabilities, decision policies, historical inputs,
-lineup logic, draft logic, or Simulator behavior.
+This module changes only redundant data movement/hash/scoring work. It does not
+alter particle counts, branch probabilities, decision policies, historical
+inputs, lineup logic, draft logic, MaxPF logic, or Simulator behavior.
 
 The optimizations are installed explicitly by production/benchmark wrappers so
 we can A/B them against the validated engine before folding them into core.
@@ -11,11 +11,23 @@ we can A/B them against the validated engine before folding them into core.
 
 from __future__ import annotations
 
+import copy
 from typing import Any, Dict, Iterable, Tuple
 
 import alternate_history_engine as ah
 import run_fsffl_multiseason_branch_replay as branch_v1
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
+import run_fsffl_season_boundary_particles as boundary_core
+
+# Keep referenced immutable source objects alive while their identity is used in
+# cache keys. That prevents Python id reuse from ever aliasing two source maps.
+_SOURCE_OBJECTS: Dict[int, Any] = {}
+_SEASON_OBSERVED: Dict[int, frozenset[str]] = {}
+_LINEUP_CACHE: Dict[Tuple[Any, ...], Tuple[Tuple[str, ...], Any]] = {}
+_MAXPF_CACHE: Dict[Tuple[Any, ...], Tuple[float, Tuple[str, ...]]] = {}
+
+_ORIGINAL_CHOOSE = season_v3.choose_branch_lineup
+_ORIGINAL_BEST_LINEUP = season_v3.best_lineup_points
 
 
 def apply_preserving_ledger_cow(
@@ -64,13 +76,7 @@ def _state_key_with_memo(
 def merge_groups_memoized(
     groups: Iterable[season_v3.SeasonParticleGroup],
 ) -> Tuple[list[season_v3.SeasonParticleGroup], int]:
-    """Merge exact-equivalent states while hashing shared ledgers only once.
-
-    Descendants of one branch share the same immutable ledger between scoring
-    boundaries. The validated implementation serializes/hashes that identical
-    growing ledger separately for every descendant. Identity memoization is
-    local to this merge call, so it cannot become stale across a ledger write.
-    """
+    """Merge exact-equivalent states while hashing shared ledgers only once."""
     by_key: Dict[str, season_v3.SeasonParticleGroup] = {}
     ledger_hash_by_identity: Dict[int, str] = {}
     merged_particles = 0
@@ -99,7 +105,112 @@ def merge_groups_memoized(
     return list(by_key.values()), merged_particles
 
 
+def realized_lineup_points_cached(
+    lineup,
+    *,
+    week: int,
+    weekly_points: Dict[int, Dict[str, float]],
+):
+    """Exact realized scoring with a once-per-season observed-player index."""
+    source_id = id(weekly_points)
+    _SOURCE_OBJECTS[source_id] = weekly_points
+    observed = _SEASON_OBSERVED.get(source_id)
+    if observed is None:
+        observed = frozenset(
+            str(pid)
+            for week_rows in weekly_points.values()
+            for pid in week_rows.keys()
+        )
+        _SEASON_OBSERVED[source_id] = observed
+
+    missing = []
+    total = 0.0
+    realized = weekly_points.get(int(week), {})
+    for pid in lineup:
+        if pid in {"0", "None", ""}:
+            continue
+        pid = str(pid)
+        if pid in realized:
+            total += float(realized[pid])
+        elif pid not in observed:
+            missing.append(pid)
+    return round(total, 2), missing
+
+
+def choose_branch_lineup_cached(
+    actual_row,
+    roster_players,
+    *,
+    week,
+    slots,
+    positions,
+    weekly_points,
+    previous_alt_starters,
+):
+    """Memoize the exact no-hindsight lineup decision for identical inputs."""
+    wp_id = id(weekly_points)
+    pos_id = id(positions)
+    _SOURCE_OBJECTS[wp_id] = weekly_points
+    _SOURCE_OBJECTS[pos_id] = positions
+    key = (
+        wp_id,
+        pos_id,
+        int(week),
+        tuple(str(x) for x in slots),
+        tuple(sorted(str(x) for x in roster_players)),
+        tuple(sorted(str(x) for x in previous_alt_starters)),
+        tuple(str(x) for x in (actual_row.get("starters") or [])),
+        tuple(sorted(str(x) for x in (actual_row.get("players") or []))),
+    )
+    cached = _LINEUP_CACHE.get(key)
+    if cached is None:
+        lineup, changes = _ORIGINAL_CHOOSE(
+            actual_row,
+            roster_players,
+            week=week,
+            slots=slots,
+            positions=positions,
+            weekly_points=weekly_points,
+            previous_alt_starters=previous_alt_starters,
+        )
+        cached = (tuple(lineup), copy.deepcopy(changes))
+        _LINEUP_CACHE[key] = cached
+    return list(cached[0]), copy.deepcopy(cached[1])
+
+
+def best_lineup_points_cached(roster_players, slots, positions, realized):
+    """Memoize exact MaxPF for identical immutable roster/week inputs."""
+    pos_id = id(positions)
+    realized_id = id(realized)
+    _SOURCE_OBJECTS[pos_id] = positions
+    _SOURCE_OBJECTS[realized_id] = realized
+    key = (
+        pos_id,
+        realized_id,
+        tuple(str(x) for x in slots),
+        tuple(sorted(str(x) for x in roster_players)),
+    )
+    cached = _MAXPF_CACHE.get(key)
+    if cached is None:
+        max_pf, lineup = _ORIGINAL_BEST_LINEUP(
+            roster_players,
+            slots,
+            positions,
+            realized,
+        )
+        cached = (float(max_pf), tuple(lineup))
+        _MAXPF_CACHE[key] = cached
+    return cached[0], list(cached[1])
+
+
 def install() -> None:
     """Install the accuracy-neutral runtime replacements for this process."""
     season_v3.apply_preserving_ledger = apply_preserving_ledger_cow
     season_v3.merge_groups = merge_groups_memoized
+    season_v3.realized_lineup_points = realized_lineup_points_cached
+    season_v3.choose_branch_lineup = choose_branch_lineup_cached
+    season_v3.best_lineup_points = best_lineup_points_cached
+    # Postseason scoring imported these functions directly, so patch its module
+    # globals as well to reuse the same exact caches.
+    boundary_core.realized_lineup_points = realized_lineup_points_cached
+    boundary_core.choose_branch_lineup = choose_branch_lineup_cached
