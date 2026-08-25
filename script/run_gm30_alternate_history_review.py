@@ -45,10 +45,10 @@ def run_review(
     ledger_key.install()
     simulator_dp.install()
 
-    # Import after the opt-in performance runtime is installed. Keeping this
-    # import local also prevents Alternate History from entering normal GM 3.0
-    # module import graphs.
-    import run_fsffl_alternate_history_final_report as final_report
+    # Import after the opt-in performance runtime is installed. The narrative
+    # report is presentation-only and consumes the same validated groups and
+    # Simulator boundary as the original final-report implementation.
+    import run_fsffl_alternate_history_report_v2 as final_report
 
     return final_report.run(
         scenario,
