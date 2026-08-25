@@ -12,12 +12,14 @@ on:
         default: 'trade-decision-report'
         type: string
       quick_sims:
+        description: 'Fast screening simulations'
         required: false
-        default: '100'
+        default: '200'
         type: string
-      confirm_sims:
+      adaptive_confirm_sims:
+        description: 'Deep simulation count used automatically for contradictory/close screens'
         required: false
-        default: '0'
+        default: '1000'
         type: string
       search_depth:
         required: false
@@ -49,7 +51,7 @@ jobs:
       - name: Run standardized trade pipeline
         run: |
           mkdir -p /tmp/fsffl-trade-output
-          python script/run_trade_report.py --scenario /tmp/fsffl-trade-scenario.json --out-dir /tmp/fsffl-trade-output --basename '${{ inputs.basename }}' --quick-sims '${{ inputs.quick_sims }}' --confirm-sims '${{ inputs.confirm_sims }}' --search-depth '${{ inputs.search_depth }}' > /tmp/fsffl-trade-output/pipeline.log
+          python script/run_trade_report.py --scenario /tmp/fsffl-trade-scenario.json --out-dir /tmp/fsffl-trade-output --basename '${{ inputs.basename }}' --quick-sims '${{ inputs.quick_sims }}' --adaptive-confirm-sims '${{ inputs.adaptive_confirm_sims }}' --search-depth '${{ inputs.search_depth }}' > /tmp/fsffl-trade-output/pipeline.log
       - name: Validate production output
         env:
           BASENAME: ${{ inputs.basename }}
@@ -59,10 +61,11 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           base=os.environ['BASENAME'] or 'trade-decision-report';root=Path('/tmp/fsffl-trade-output');a=json.loads((root/f'{base}.json').read_text());s=json.loads((root/f'{base}-summary.json').read_text());pdf=root/f'{base}.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.21';assert a['simulation']['canonical_state_mutated'] is False
-          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['bi3_opportunity_normalized'] is True;assert p['counter_and_market_pools_separate'] is True;assert p['suggested_counteroffers_max']==2;assert p['market_sweep_max']==5;assert p['market_sweep_excludes_current_partner'] is True
-          assert len(a.get('suggested_counteroffers') or [])<=2;assert len(a.get('market_sweep_alternatives') or [])<=5
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.12';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.5';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v27.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.22';assert a['simulation']['canonical_state_mutated'] is False
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['bi3_opportunity_normalized'] is True;assert p['counter_and_market_pools_separate'] is True;assert p['suggested_counteroffers_max']==2;assert p['market_sweep_max']==5;assert p['market_sweep_excludes_current_partner'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True
+          for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
+              c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.13';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.6';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v28.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
