@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Refresh the cached Behavioral Intelligence 3.0 profile.
+"""Refresh the cached production Behavioral Intelligence 3.0 profile.
 
 This is a refresh-time job, never an interactive Market Sweep dependency. It
 reconstructs historical action context using the shared historical-state provider,
-builds the opportunity-normalized BI3 research profile, and persists only the
-compact manager profile + manifest under data/behavioral/.
+builds the validated opportunity-normalized BI3 production profile, and persists
+only the compact manager profile + manifest under data/behavioral/.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import build_behavioral_action_context as context_builder
-import behavioral_intelligence_v3 as bi3
+import behavioral_intelligence_v3_production as bi3
 
 DATA = Path("data") / "behavioral"
 PROFILE = DATA / "behavioral_intelligence_v3.json"
@@ -32,6 +32,11 @@ def main():
     finally:
         context_path.unlink(missing_ok=True)
 
+    if profile.get("model_version") != "FSFFL-Behavioral-Intelligence-3.0":
+        raise RuntimeError(f"Unexpected BI3 production profile: {profile.get('model_version')}")
+    if profile.get("production_status") != "PRODUCTION":
+        raise RuntimeError(f"BI3 profile is not production: {profile.get('production_status')}")
+
     now = datetime.now(timezone.utc).isoformat()
     profile["cache_generated_at_utc"] = now
     profile["cache_policy"] = {
@@ -46,6 +51,7 @@ def main():
         "profile_path": str(PROFILE),
         "profile_model_version": profile.get("model_version"),
         "production_status": profile.get("production_status"),
+        "validated_research_model_version": profile.get("validated_research_model_version"),
         "action_context_model_version": profile.get("action_context_model_version"),
         "historical_state_provider": profile.get("historical_state_provider"),
         "owner_count": profile.get("owner_count"),
