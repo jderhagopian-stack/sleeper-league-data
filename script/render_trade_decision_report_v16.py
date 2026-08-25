@@ -9,7 +9,7 @@ MODEL_VERSION='FSFFL-Trade-Decision-Report-1.6'
 
 def load():
     s=importlib.util.spec_from_file_location('trade_report_v15_base',BASE);m=importlib.util.module_from_spec(s);assert s.loader;s.loader.exec_module(m);return m
-b=load();sf=b.sf;clean=b.clean;names=b.names
+b=load();sf=b.sf;clean=b.clean;names=b.names;BASE_NARRATIVE=b.narrative
 
 def comparison_sentence(row):
     c=row.get('comparison_to_current_offer') or {};v=str(c.get('verdict_vs_current_offer') or 'MIXED');reason=clean(c.get('reason') or '')
@@ -27,7 +27,7 @@ def market_text(row,i):
     return f'<b>{i}. {clean(row.get("buyer_team"))}</b> - send {names(row.get("outgoing_asset_names"))}; receive {names(row.get("return_asset_names"))}. Impact on your team: {sf(d.get("expected_wins")):+.2f} expected wins and {sf(st.get("strategic_value_delta")):+,.0f} overall franchise impact. {comparison_sentence(row)} <font color="#5F6B76">{b.confidence_phrase(row.get("acceptance_likelihood"))}.</font>'
 
 def narrative(r,cur):
-    text=b.narrative(r,cur)
+    text=BASE_NARRATIVE(r,cur)
     ac=(r.get('simulation') or {}).get('adaptive_confirmation') or {}
     if ac.get('triggered'):
         text += f" Final decision metrics shown here were automatically re-run at {int(ac.get('confirmation_sims') or 0):,} simulations because the {int(ac.get('screening_sims') or 0):,}-simulation screen showed a close or internally conflicting signal."
