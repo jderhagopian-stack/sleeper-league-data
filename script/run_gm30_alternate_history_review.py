@@ -16,6 +16,7 @@ from pathlib import Path
 
 import alternate_history_performance_runtime as perf
 import alternate_history_weekly_cow_runtime as weekly_cow
+import alternate_history_ledger_key_runtime as ledger_key
 import alternate_history_simulator_dp_runtime as simulator_dp
 
 DEFAULT_PARTICLES = 100
@@ -41,6 +42,7 @@ def run_review(
     # Install them only inside this explicit Alternate History process.
     perf.install()
     weekly_cow.install()
+    ledger_key.install()
     simulator_dp.install()
 
     # Import after the opt-in performance runtime is installed. Keeping this
