@@ -34,6 +34,7 @@ _ORIGINAL_BEST_LINEUP = season_v3.best_lineup_points
 _ORIGINAL_SIM_OPTIMIZE = simulator.optimize_fsffl_fast
 _ORIGINAL_SIM_BACKUPS = simulator.build_backup_chains
 _ORIGINAL_DRAFT_PICK = draft_runner.apply_draft_pick
+_ORIGINAL_SCORE_REGULAR_WEEK = season_v3.score_regular_week
 
 
 def apply_preserving_ledger_cow(
@@ -291,6 +292,133 @@ def best_lineup_points_cached(roster_players, slots, positions, realized):
     return cached[0], list(cached[1])
 
 
+def score_regular_week_cow(
+    groups,
+    *,
+    season: str,
+    week: int,
+    matchup_rows,
+    slots,
+    positions,
+    weekly_points,
+):
+    """Exact weekly scoring with copy-on-write only for the active season row.
+
+    Completed prior-season ledger rows are immutable after their season closes.
+    The reference implementation deep-copies every completed season on every
+    subsequent scoring week. This keeps those rows shared and detaches only the
+    season row that is about to be mutated.
+    """
+    season_league, _ = season_v3.roster_compliance.season_league_profile(str(season))
+    slots = season_v3.starter_slots(season_league)
+
+    compliance_audit = None
+    if int(week) == 1:
+        compliance_audit = season_v3.roster_compliance.enforce_completed_season_roster_rules(
+            groups,
+            season=str(season),
+        )
+
+    missing_point_particles = 0
+    lineup_change_particles = 0
+    rows_by_roster = {str(row.get("roster_id")): row for row in matchup_rows}
+    realized = weekly_points.get(int(week), {})
+
+    for group in groups:
+        source_ledger = group.state.get(season_v3.LEDGER_KEY) or {}
+        ledger = dict(source_ledger)
+        source_season_row = source_ledger.get(str(season))
+        if source_season_row is None:
+            season_row = {
+                "weekly_lineups": {},
+                "weekly_scores": {},
+                "weekly_max_pf": {},
+                "season_max_pf": {},
+                "records": {},
+                "previous_alt_starters": {},
+                "data_gaps": [],
+            }
+        else:
+            season_row = copy.deepcopy(source_season_row)
+        ledger[str(season)] = season_row
+
+        weekly_lineups = season_row.setdefault("weekly_lineups", {})
+        weekly_scores = season_row.setdefault("weekly_scores", {})
+        weekly_max = season_row.setdefault("weekly_max_pf", {})
+        season_max = season_row.setdefault("season_max_pf", {})
+        previous = season_row.setdefault("previous_alt_starters", {})
+        records = season_row.setdefault("records", {})
+        scores: Dict[str, float] = {}
+
+        for rid, actual_row in rows_by_roster.items():
+            owned_players = {
+                str(x)
+                for x in ((group.state.get("roster_players") or {}).get(str(rid), []) or [])
+            }
+            taxi = {
+                str(x)
+                for x in ((group.state.get("roster_taxi") or {}).get(str(rid), []) or [])
+            }
+            reserve = {
+                str(x)
+                for x in ((group.state.get("roster_reserve") or {}).get(str(rid), []) or [])
+            }
+            active_roster_players = sorted(owned_players - taxi - reserve)
+            prev = {str(x) for x in (previous.get(str(rid)) or [])}
+            lineup, changes = season_v3.choose_branch_lineup(
+                actual_row,
+                active_roster_players,
+                week=week,
+                slots=slots,
+                positions=positions,
+                weekly_points=weekly_points,
+                previous_alt_starters=prev,
+            )
+            score, missing = season_v3.realized_lineup_points(
+                lineup,
+                week=week,
+                weekly_points=weekly_points,
+            )
+            max_pf, max_lineup = season_v3.best_lineup_points(
+                sorted(owned_players),
+                slots,
+                positions,
+                realized,
+            )
+            scores[str(rid)] = score
+            weekly_lineups.setdefault(str(rid), {})[str(week)] = {
+                "starters": lineup,
+                "changes": changes,
+            }
+            weekly_scores.setdefault(str(rid), {})[str(week)] = score
+            weekly_max.setdefault(str(rid), {})[str(week)] = {
+                "max_pf": max_pf,
+                "lineup": max_lineup,
+            }
+            season_max[str(rid)] = round(float(season_max.get(str(rid)) or 0.0) + float(max_pf), 2)
+            previous[str(rid)] = [pid for pid in lineup if pid not in {"0", "None", ""}]
+            if changes:
+                lineup_change_particles += group.count
+            if missing:
+                missing_point_particles += group.count
+                season_row.setdefault("data_gaps", []).append({
+                    "week": week,
+                    "roster_id": str(rid),
+                    "missing_player_ids": missing,
+                })
+
+        season_v3.update_records_from_week(records, matchup_rows, scores)
+        group.state[season_v3.LEDGER_KEY] = ledger
+
+    result = {
+        "missing_point_particle_roster_instances": missing_point_particles,
+        "lineup_change_particle_roster_instances": lineup_change_particles,
+    }
+    if compliance_audit is not None:
+        result["roster_compliance"] = compliance_audit
+    return result
+
+
 def _sim_roster_signature(roster: Dict[str, Any]) -> Tuple[Tuple[str, ...], ...]:
     return (
         tuple(sorted(str(x) for x in (roster.get("players") or []))),
@@ -343,12 +471,25 @@ def simulator_backups_cached(roster, week, lineup, players, projections):
     return cached
 
 
+def cache_stats() -> Dict[str, int]:
+    return {
+        "source_objects": len(_SOURCE_OBJECTS),
+        "season_observed": len(_SEASON_OBSERVED),
+        "lineup_cache": len(_LINEUP_CACHE),
+        "maxpf_cache": len(_MAXPF_CACHE),
+        "sim_lineup_cache": len(_SIM_LINEUP_CACHE),
+        "sim_backup_cache": len(_SIM_BACKUP_CACHE),
+        "ledger_hash_cache": len(_LEDGER_HASH_CACHE),
+    }
+
+
 def install() -> None:
     season_v3.apply_preserving_ledger = apply_preserving_ledger_cow
     season_v3.merge_groups = merge_groups_memoized
     season_v3.realized_lineup_points = realized_lineup_points_cached
     season_v3.choose_branch_lineup = choose_branch_lineup_cached
     season_v3.best_lineup_points = best_lineup_points_cached
+    season_v3.score_regular_week = score_regular_week_cow
     boundary_core.realized_lineup_points = realized_lineup_points_cached
     boundary_core.choose_branch_lineup = choose_branch_lineup_cached
     draft_runner.apply_draft_pick = apply_draft_pick_cow
