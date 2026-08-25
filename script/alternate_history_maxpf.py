@@ -84,6 +84,12 @@ def best_lineup_points(
     unused or assigned to one eligible unfilled slot. This preserves the same
     legal-lineup semantics as the old remaining-player recursion while making
     runtime depend primarily on the small number of starter slots.
+
+    A candidate lineup tuple is materialized only when its score can tie or beat
+    the incumbent for that slot mask. Strictly dominated candidates cannot win
+    either the score comparison or the exact lexical tie-break, so skipping
+    their list/tuple construction is behavior-preserving and removes a large
+    amount of redundant allocation in historical MaxPF replay.
     """
     global _CACHE_HITS, _CACHE_MISSES
 
@@ -124,11 +130,18 @@ def best_lineup_points(
                 if mask & bit:
                     continue
                 new_mask = mask | bit
+                candidate_score = score + points
+                incumbent = next_dp.get(new_mask)
+
+                # Avoid constructing a lineup for candidates that are already
+                # strictly dominated by score. The legacy _better rule only
+                # consults lineup ordering when scores tie within 1e-9.
+                if incumbent is not None and candidate_score < incumbent[0] - 1e-9:
+                    continue
+
                 new_lineup_list = list(lineup)
                 new_lineup_list[slot_idx] = pid
                 new_lineup = tuple(new_lineup_list)
-                candidate_score = score + points
-                incumbent = next_dp.get(new_mask)
                 if _better(candidate_score, new_lineup, incumbent):
                     next_dp[new_mask] = (candidate_score, new_lineup)
         dp = next_dp
