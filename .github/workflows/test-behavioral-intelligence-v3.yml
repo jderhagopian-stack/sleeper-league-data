@@ -39,7 +39,7 @@ jobs:
             > /tmp/bi3-build.log
           echo "$SECONDS" > /tmp/bi3-build-seconds.txt
           cat /tmp/bi3-build.log
-      - name: Validate shared provider, context, and non-leakage
+      - name: Validate shared provider, opportunity normalization, and non-leakage
         run: |
           python - <<'PY'
           import json
@@ -56,11 +56,18 @@ jobs:
           assert c['policy']['historical_quality_uses_prior_completed_season_only'] is True
           assert c['policy']['unknown_player_quality_is_not_treated_as_bad'] is True
           assert c['policy']['interactive_market_sweep_should_rebuild_this_artifact'] is False
-          assert b['architecture']['context_normalized_traits_added'] is True
-          assert b['architecture']['shared_historical_state_provider'] is True
-          assert b['architecture']['independent_bi3_historical_replay'] is False
-          assert b['architecture']['interactive_historical_replay'] is False
-          assert b['architecture']['history_can_override_current_state_utility'] is False
+          arch=b['architecture']
+          assert arch['context_normalized_traits_added'] is True
+          assert arch['action_type_opportunity_normalization'] is True
+          assert arch['leave_one_manager_out_opportunity_prior'] is True
+          assert arch['shared_historical_state_provider'] is True
+          assert arch['independent_bi3_historical_replay'] is False
+          assert arch['interactive_historical_replay'] is False
+          assert arch['history_can_override_current_state_utility'] is False
+          env=b['opportunity_environment']['league_action_type_position_mix']
+          for kind in ('trade','draft','acquisition'):
+              assert set(env[kind]) == {'QB','RB','WR','TE'}
+              assert abs(sum(float(v) for v in env[kind].values())-1.0) < .01
           p=c['historical_state_provider']
           assert p['model_version']=='FSFFL-Historical-State-Provider-1.0'
           assert len(p['seasons']) >= 5
@@ -80,17 +87,30 @@ jobs:
           h=b['owners']['846634401482792960']['context_normalized']
           assert h['weighted_context_sample'] > 5
           assert len(h['weighted_source_mix']) >= 2
+          assert len(h['opportunity_normalization_sample']) >= 2
           for pos in ('QB','RB','WR','TE'):
-              t=h['positions'][pos]['need_adjusted_preference']
+              t=h['positions'][pos]['opportunity_and_need_adjusted_preference']
               assert -1 <= float(t['score']) <= 1
               assert 0 <= float(t['confidence']) <= 1
+              assert 'need_only_preference_for_comparison' in h['positions'][pos]
+          # Research sanity gate: after opportunity normalization the league-wide
+          # weighted positional residual should not retain the large systematic
+          # position bias that motivated this revision.
+          bias=b['league_bias_audit']
+          assert all(abs(float(bias[p])) <= .20 for p in ('QB','RB','WR','TE')), bias
           offline=int(Path('/tmp/context-build-seconds.txt').read_text().strip())
           profile=int(Path('/tmp/bi3-build-seconds.txt').read_text().strip())
-          # Refresh-time work may be materially slower than an interactive trade run,
-          # but it must not become pathological. Interactive Market Sweep reads cache only.
           assert offline <= 240
           assert profile <= 60
-          print(json.dumps({'provider':p,'audit':a,'context_build_seconds':offline,'bi3_profile_seconds':profile,'hsg_context':h},indent=2))
+          print(json.dumps({
+              'provider':p,
+              'audit':a,
+              'opportunity_environment':b['opportunity_environment'],
+              'league_bias_audit':bias,
+              'context_build_seconds':offline,
+              'bi3_profile_seconds':profile,
+              'hsg_context':h,
+          },indent=2))
           PY
       - name: Upload BI3 audit artifacts
         if: always()
