@@ -11,7 +11,7 @@ from __future__ import annotations
 import copy
 
 import alternate_history_performance_runtime as perf
-import alternate_history_ledger_key_runtime as ledger_perf
+import alternate_history_weekly_cow_runtime as weekly_cow
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
 from run_fsffl_downstream_dependencies import load
 from run_fsffl_counterfactual_replay import player_positions
@@ -78,39 +78,6 @@ def validate_state_key_equivalence() -> None:
         raise AssertionError("optimized structural key changed state equivalence classes")
 
 
-def validate_ledger_fingerprint_equivalence() -> None:
-    ledgers = [
-        {
-            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
-            "2024": {"season_max_pf": {"1": 1800.5}},
-        },
-        {
-            "2024": {"season_max_pf": {"1": 1800.5}},
-            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
-        },
-        {
-            "2023": {"standings": [{"roster_id": "1", "wins": 8}]},
-            "2024": {"season_max_pf": {"1": 1800.5}},
-        },
-        {
-            "2023": {"standings": [{"roster_id": "1", "wins": 9}]},
-            "2024": {"season_max_pf": {"1": 1800.5}},
-            "2025": {},
-        },
-    ]
-    for i, left in enumerate(ledgers):
-        for j, right in enumerate(ledgers):
-            reference_equal = perf._ledger_hash(left) == perf._ledger_hash(right)
-            optimized_equal = (
-                ledger_perf.ledger_fingerprint(left)
-                == ledger_perf.ledger_fingerprint(right)
-            )
-            if reference_equal != optimized_equal:
-                raise AssertionError(
-                    f"per-season ledger fingerprint changed equality class for cases {i}/{j}"
-                )
-
-
 def validate_maxpf() -> None:
     positions = {
         "1": "QB", "2": "QB", "3": "RB", "4": "RB", "5": "RB",
@@ -132,11 +99,9 @@ def validate_maxpf() -> None:
             )
 
 
-def validate_weekly_ledger_cow() -> None:
-    season = "2025"
-    week = 2
+def _reference_roster_state():
     rosters = load(season_v3.DATA / "rosters.json") or []
-    state = {
+    return {
         "roster_players": {
             str(row.get("roster_id")): [str(x) for x in (row.get("players") or [])]
             for row in rosters
@@ -156,28 +121,53 @@ def validate_weekly_ledger_cow() -> None:
             }
         },
     }
+
+
+def validate_weekly_ledger_cow() -> None:
+    season = "2025"
     matchups = load(season_v3.DATA / "stats" / "fsffl" / season / "league_matchups_raw.json") or {}
     weekly_points = HistoricalPoints().season(season)
     positions = player_positions()
+    ref_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(_reference_roster_state()), [[]])]
+    opt_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(_reference_roster_state()), [[]])]
+
+    for week in (2, 3, 4):
+        kwargs = dict(
+            season=season,
+            week=week,
+            matchup_rows=matchups.get(str(week), []),
+            slots=[],
+            positions=positions,
+            weekly_points=weekly_points,
+        )
+        source_snapshot = copy.deepcopy(opt_groups[0].state.get(season_v3.LEDGER_KEY) or {})
+        reference_audit = perf._ORIGINAL_SCORE_REGULAR_WEEK(ref_groups, **kwargs)
+        optimized_audit = weekly_cow.score_regular_week_fine_cow(opt_groups, **kwargs)
+        if optimized_audit != reference_audit:
+            raise AssertionError(f"fine weekly ledger COW changed scoring audit at week {week}")
+        if opt_groups[0].state != ref_groups[0].state:
+            raise AssertionError(f"fine weekly ledger COW changed exact scored state at week {week}")
+        if source_snapshot.get("2024") != opt_groups[0].state[season_v3.LEDGER_KEY].get("2024"):
+            raise AssertionError("fine weekly ledger COW mutated a completed prior-season row")
+
+    # A detached source row must remain unchanged after the next optimized week.
+    old_ledger = opt_groups[0].state[season_v3.LEDGER_KEY]
+    old_season_row = old_ledger[season]
+    old_snapshot = copy.deepcopy(old_season_row)
     kwargs = dict(
         season=season,
-        week=week,
-        matchup_rows=matchups.get(str(week), []),
+        week=5,
+        matchup_rows=matchups.get("5", []),
         slots=[],
         positions=positions,
         weekly_points=weekly_points,
     )
-    ref_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(state), [[]])]
-    opt_groups = [season_v3.SeasonParticleGroup(1, copy.deepcopy(state), [[]])]
-    reference_audit = perf._ORIGINAL_SCORE_REGULAR_WEEK(ref_groups, **kwargs)
-    optimized_audit = perf.score_regular_week_cow(opt_groups, **kwargs)
-    if optimized_audit != reference_audit:
-        raise AssertionError("weekly ledger COW changed scoring audit output")
+    perf._ORIGINAL_SCORE_REGULAR_WEEK(ref_groups, **kwargs)
+    weekly_cow.score_regular_week_fine_cow(opt_groups, **kwargs)
     if opt_groups[0].state != ref_groups[0].state:
-        raise AssertionError("weekly ledger COW changed exact scored state")
-    prior = opt_groups[0].state[season_v3.LEDGER_KEY]["2024"]
-    if prior != state[season_v3.LEDGER_KEY]["2024"]:
-        raise AssertionError("weekly ledger COW mutated a completed prior-season row")
+        raise AssertionError("fine weekly ledger COW changed exact state at week 5")
+    if old_season_row != old_snapshot:
+        raise AssertionError("fine weekly ledger COW mutated the prior source season row through sharing")
 
 
 def validate_simulator_cache() -> None:
@@ -200,7 +190,6 @@ def validate_simulator_cache() -> None:
 def main() -> None:
     validate_draft_cow()
     validate_state_key_equivalence()
-    validate_ledger_fingerprint_equivalence()
     validate_maxpf()
     validate_weekly_ledger_cow()
     validate_simulator_cache()
