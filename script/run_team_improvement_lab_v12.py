@@ -7,7 +7,10 @@ discovered from the full normalized FantasyPros redraft ranking source and are
 given an ephemeral, audit-friendly weekly projection calibrated from nearby
 rostered players at the same position and similar preseason ECR.
 
-No canonical projection file is modified.
+No canonical projection file is modified. During waiver evaluation, the added
+candidate is protected from automatic roster legalization so the optimizer
+compares ADD candidate + DROP weakest incumbent against HOLD, rather than
+trivially adding and immediately cutting the same player.
 """
 from __future__ import annotations
 
@@ -126,7 +129,6 @@ def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
             "fsffl_value": base.sf(catalog.get("fsffl_value")), "owner_user_id": None,
             "market_value_available": bool(catalog),
         }
-        # ECR and calibrated scoring both contribute. Lower ECR is better.
         ecr_signal = max(0.0, 350.0 - min(350.0, ecr))
         screen = projected * 240 + ecr_signal * 3.0 + base.sf(asset.get("market_dynasty")) * .25
         rows.append({
@@ -149,6 +151,48 @@ def main():
         base, focus_uid, players_catalog, model_inputs, limit
     )
 
+    def simulate_actions_protect_add(dl, v13, rosteraware, model_inputs, baseline_lineups, baseline,
+                                     focus_uid, actions, sims, seed):
+        simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
+        hypothetical, _ = dl.apply_actions(canonical_rosters, actions)
+        touched = dl.touched_users(focus_uid, actions)
+        protected = {}
+        for action in actions:
+            if str(action.get("type") or "").lower() == "add":
+                uid = str(action.get("user_id"))
+                ids = action.get("players") or ([action.get("player_id")] if action.get("player_id") is not None else [])
+                protected.setdefault(uid, set()).update(str(x) for x in ids)
+        legal, resolutions, cut_actions = rosteraware.legalize_trade_rosters(
+            dl, canonical_rosters, hypothetical, touched, league, players,
+            protected_player_ids_by_uid=protected,
+        )
+        effective_actions = list(actions) + list(cut_actions)
+        lineups, reoptimized = base.fast_reoptimize(
+            v13, dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
+        )
+        hyp = dl.simulate_from_lineups(simmod, league, legal, users, raw_schedule, lineups, sims, seed)
+        bidx, hidx = base.team_index(baseline), base.team_index(hyp)
+        b, h = bidx[str(focus_uid)], hidx[str(focus_uid)]
+        st = dl.strategic_summary(str(focus_uid), effective_actions)
+        return {
+            "focus_before": b,
+            "focus_after": h,
+            "focus_delta": {
+                "expected_wins": base.delta(b.get("expected_wins"), h.get("expected_wins")),
+                "expected_points_for": base.delta(b.get("expected_points_for"), h.get("expected_points_for")),
+                "playoff_probability": base.delta(b.get("playoff_probability"), h.get("playoff_probability")),
+                "bye_probability": base.delta(b.get("bye_probability"), h.get("bye_probability")),
+                "championship_probability": base.delta(b.get("championship_probability"), h.get("championship_probability")),
+            },
+            "strategic": st,
+            "roster_resolution": resolutions,
+            "effective_actions": effective_actions,
+            "teams_reoptimized": reoptimized,
+            "simulation_count": sims,
+        }
+
+    base.simulate_actions = simulate_actions_protect_add
+
     def evaluate_with_waiver_projection(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
         if row.get("channel") != "WAIVER" or not row.get("synthetic_projection"):
             return saved_evaluate(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed)
@@ -159,8 +203,6 @@ def main():
         return saved_evaluate(row, focus_uid, dl, v13, rosteraware, tuple(mi), baseline_lineups, baseline, sims, seed)
 
     base.evaluate_row = evaluate_with_waiver_projection
-    # rerun_candidate resolves base.evaluate_row dynamically, so deep confirmation
-    # also uses the ephemeral calibrated waiver projection.
     base.main()
 
 
