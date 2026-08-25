@@ -39,6 +39,8 @@ jobs:
         run: python script/validate_alternate_history_ledger_key_equivalence.py
       - name: Validate memoized Simulator fallback equivalence
         run: python script/validate_alternate_history_simulator_dp_equivalence.py
+      - name: Validate MaxPF dominance pruning equivalence
+        run: python script/validate_alternate_history_maxpf_equivalence.py
       - name: Benchmark optimized review at 20 particles / 100 draws
         shell: bash
         run: |
