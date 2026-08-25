@@ -7,12 +7,7 @@ on:
       - feature/alternate-history-0.1
     paths:
       - script/alternate_history_trade_persistence_runtime.py
-      - script/validate_alternate_history_trade_persistence.py
-      - script/run_gm30_alternate_history_review.py
-      - .github/workflows/alternate-history-trade-persistence-validation.yml
-  pull_request:
-    paths:
-      - script/alternate_history_trade_persistence_runtime.py
+      - script/alternate_history_trade_persistence_v3_runtime.py
       - script/validate_alternate_history_trade_persistence.py
       - script/run_gm30_alternate_history_review.py
       - .github/workflows/alternate-history-trade-persistence-validation.yml
@@ -29,7 +24,7 @@ jobs:
       - name: Install Simulator runtime dependency
         run: python -m pip install --disable-pip-version-check numpy
       - name: Compile trade-persistence modules
-        run: python -m py_compile script/alternate_history_trade_persistence_runtime.py script/validate_alternate_history_trade_persistence.py script/run_gm30_alternate_history_review.py
+        run: python -m py_compile script/alternate_history_trade_persistence_runtime.py script/alternate_history_trade_persistence_v3_runtime.py script/validate_alternate_history_trade_persistence.py script/run_gm30_alternate_history_review.py
       - name: Validate behavioral trade persistence invariants
         run: PYTHONPATH=script python script/validate_alternate_history_trade_persistence.py
       - name: Restore completed-season Sleeper history cache
