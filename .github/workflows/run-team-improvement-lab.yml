@@ -1,0 +1,79 @@
+name: Run Team Improvement Lab
+
+on:
+  workflow_dispatch:
+    inputs:
+      focus_user_id:
+        description: 'Sleeper user id of franchise to optimize'
+        required: true
+        default: '846634401482792960'
+        type: string
+      quick_sims:
+        description: 'Screening simulations per move'
+        required: false
+        default: '200'
+        type: string
+      confirm_sims:
+        description: 'Deep simulations for top candidates'
+        required: false
+        default: '1000'
+        type: string
+      trade_screen:
+        required: false
+        default: '30'
+        type: string
+      waiver_screen:
+        required: false
+        default: '30'
+        type: string
+      confirm_top:
+        required: false
+        default: '5'
+        type: string
+
+jobs:
+  improve-team:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Team Improvement Lab
+        run: |
+          mkdir -p /tmp/team-improvement
+          python script/run_team_improvement_lab_v12.py \
+            --focus-user-id '${{ inputs.focus_user_id }}' \
+            --quick-sims '${{ inputs.quick_sims }}' \
+            --confirm-sims '${{ inputs.confirm_sims }}' \
+            --trade-screen '${{ inputs.trade_screen }}' \
+            --waiver-screen '${{ inputs.waiver_screen }}' \
+            --confirm-top '${{ inputs.confirm_top }}' \
+            --output /tmp/team-improvement/team-improvement-report.json \
+            | tee /tmp/team-improvement/summary.log
+      - name: Validate production output
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/team-improvement/team-improvement-report.json'))
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.2'
+          assert r['policy']['canonical_state_mutated'] is False
+          assert r['policy']['roster_aware_trade_resolution'] is True
+          assert r['policy']['hold_is_explicit_benchmark'] is True
+          assert r['search_summary']['waiver_candidates_screened'] > 0
+          assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
+          for row in r.get('top_cross_channel_options') or []:
+              assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
+          print(r['recommended_action']['description'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-team-improvement-lab
+          path: /tmp/team-improvement/*
+          if-no-files-found: error
+          retention-days: 30

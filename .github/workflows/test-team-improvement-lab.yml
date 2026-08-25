@@ -1,0 +1,57 @@
+name: Test Team Improvement Lab
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_team_improvement_lab.py'
+      - 'script/run_team_improvement_lab_v12.py'
+      - 'script/roster_aware_trade.py'
+      - 'script/run_roster_decision_lab.py'
+      - 'script/run_trade_market_sweep_v13.py'
+      - '.github/workflows/test-team-improvement-lab.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Team Improvement Lab
+        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v12.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+      - name: Run Team Improvement Lab smoke test
+        run: |
+          mkdir -p /tmp/team-improvement
+          python script/run_team_improvement_lab_v12.py --focus-user-id 846634401482792960 --quick-sims 50 --confirm-sims 100 --trade-screen 8 --waiver-screen 8 --confirm-top 3 --output /tmp/team-improvement/report.json
+      - name: Validate output invariants
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/team-improvement/report.json'))
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.2'
+          assert r['hold_benchmark']['team_improvement_score']==0
+          assert r['policy']['roster_aware_trade_resolution'] is True
+          assert r['policy']['waiver_adds_include_endogenous_optimal_drop'] is True
+          assert r['policy']['canonical_state_mutated'] is False
+          assert r['search_summary']['waiver_candidates_screened'] > 0
+          assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
+          for row in r.get('top_cross_channel_options') or []:
+              assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
+              if row.get('channel')=='TRADE': assert row.get('acceptance_fit') in {'HIGH','MEDIUM','LOW','VERY_LOW'}
+          for row in r.get('best_waiver_options') or []:
+              assert row.get('waiver_discovery_source')=='normalized_full_redraft_rankings'
+              assert row.get('synthetic_projection',{}).get('calibration',{}).get('ephemeral_only') is True
+          print('Team Improvement Lab 1.2 validation passed')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: team-improvement-lab-smoke-test
+          path: /tmp/team-improvement/*
+          if-no-files-found: error
+          retention-days: 14
