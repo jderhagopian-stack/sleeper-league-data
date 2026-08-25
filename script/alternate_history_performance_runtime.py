@@ -315,11 +315,9 @@ def simulator_lineup_cached(roster, week, league, players, projections):
     )
     cached = _SIM_LINEUP_CACHE.get(key)
     if cached is None:
-        cached = copy.deepcopy(
-            _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
-        )
+        cached = _ORIGINAL_SIM_OPTIMIZE(roster, week, league, players, projections)
         _SIM_LINEUP_CACHE[key] = cached
-    return copy.deepcopy(cached)
+    return cached
 
 
 def simulator_backups_cached(roster, week, lineup, players, projections):
@@ -340,11 +338,9 @@ def simulator_backups_cached(roster, week, lineup, players, projections):
     )
     cached = _SIM_BACKUP_CACHE.get(key)
     if cached is None:
-        cached = copy.deepcopy(
-            _ORIGINAL_SIM_BACKUPS(roster, week, lineup, players, projections)
-        )
+        cached = _ORIGINAL_SIM_BACKUPS(roster, week, lineup, players, projections)
         _SIM_BACKUP_CACHE[key] = cached
-    return copy.deepcopy(cached)
+    return cached
 
 
 def install() -> None:
