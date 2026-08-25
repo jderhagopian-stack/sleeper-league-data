@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 import alternate_history_engine as ah
+import alternate_history_performance_runtime as perf
 import run_fsffl_present_day_particles as present
 import run_fsffl_third_season_particles as third_season
 import run_fsffl_weighted_alternate_outlook as weighted
@@ -24,8 +25,26 @@ PARTICLES = 8
 SIMS = 16
 SEED = 20260824
 
+REFERENCE_ACTUAL = {
+    "bye_probability": 0.1875,
+    "championship_probability": 0.1875,
+    "expected_points_for": 1658.56,
+    "expected_wins": 9.0,
+    "playoff_probability": 0.875,
+}
+REFERENCE_ALTERNATE = {
+    "bye_probability": 0.375,
+    "championship_probability": 0.1875,
+    "expected_points_for": 1610.7575,
+    "expected_wins": 9.375,
+    "playoff_probability": 0.9375,
+}
+
 
 def main() -> None:
+    # Production Alternate History installs only accuracy-neutral runtime patches.
+    perf.install()
+
     timings = {}
     total_started = time.perf_counter()
 
@@ -106,6 +125,17 @@ def main() -> None:
     if not alternate or all(value is None for value in alternate.values()):
         raise ah.AlternateHistoryError("weighted Simulator outlook is empty")
 
+    # Exact A/B reference from the immediately preceding unoptimized run.
+    # Timing may change; model outputs may not.
+    if actual != REFERENCE_ACTUAL:
+        raise ah.AlternateHistoryError(
+            f"optimized runtime changed actual Simulator reference: {actual}"
+        )
+    if alternate != REFERENCE_ALTERNATE:
+        raise ah.AlternateHistoryError(
+            f"optimized runtime changed alternate Simulator reference: {alternate}"
+        )
+
     timings["total_seconds"] = round(time.perf_counter() - total_started, 4)
     report = {
         "model_version": "Fantasy-Alternate-History-0.9c-end-to-end-validation",
@@ -114,6 +144,7 @@ def main() -> None:
             "historical_particles": PARTICLES,
             "simulator_total_sims": SIMS,
             "seed": SEED,
+            "optimized_runtime": True,
         },
         "design_invariants": {
             "completed_nfl_history_is_immutable": True,
@@ -126,6 +157,7 @@ def main() -> None:
             "alternate_outlook_weighted_by_particle_probability": True,
             "current_gm3_numeric_values_used_for_historical_decisions": False,
             "future_nfl_outcomes_used_for_historical_decisions": False,
+            "optimized_runtime_exact_output_reference_passed": True,
         },
         "summary": {
             "final_particles": final_particles,
