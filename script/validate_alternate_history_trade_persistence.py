@@ -33,7 +33,6 @@ def probs(rows):
 def main():
     tp._POSITIONS = {"A": "WR", "B": "WR", "X": "RB"}
     tp._POINTS = StubPoints()
-    # Make the behavioral-context test deterministic and independent of fixture history.
     tp._need_similarity = lambda payload, event: 1.0
     tp._competitive_similarity = lambda payload, event: 1.0
 
@@ -48,9 +47,12 @@ def main():
         {"outcome": "no_trade", "probability": 0.32, "mode": "no_action"},
     ]
 
-    # Missing A, but same-position/same-value B is owned by the same sender and
-    # the target X still exists. Most historical intent should survive.
     s = state({"1": {"B"}, "2": {"X"}})
+    st = branch_v1.to_state(s)
+    legal0, reasons0 = branch_v1.event_legality(st, trade)
+    print("DIAG original legality", legal0, reasons0)
+    print("DIAG candidates", tp._player_candidates(st, "1", "A", {"A", "X"}, "2024", 8))
+    print("DIAG equivalents", tp._equivalent_events(s, trade))
     rows = tp.branch_specific_outcomes_v2(s, trade, copy.deepcopy(proposed))
     assert abs(probs(rows) - 1.0) < 1e-9
     equivalent = [x for x in rows if x.get("equivalent_trade")]
@@ -63,21 +65,15 @@ def main():
         assert row["event"]["drops"].get("B") == "1"
         assert row["event"]["adds"].get("B") == "2"
 
-    # A still-legal historical trade is bit-for-bit governed by the old branch
-    # filter; persistence must not perturb it.
     legal_state = state({"1": {"A", "B"}, "2": {"X"}})
     old = tp._ORIGINAL(legal_state, trade, copy.deepcopy(proposed))
     new = tp.branch_specific_outcomes_v2(legal_state, trade, copy.deepcopy(proposed))
     assert new == old
 
-    # If target-side and payment-side historical assets both disappeared, do not
-    # fabricate an entirely new bilateral bargain.
     both_missing = state({"1": {"B"}, "2": set()})
     rows = tp.branch_specific_outcomes_v2(both_missing, trade, copy.deepcopy(proposed))
     assert not [x for x in rows if x.get("equivalent_trade")]
 
-    # Same-season/same-round branch-owned draft capital can substitute for an
-    # unavailable exact pick while the historical incoming player remains.
     pick_trade = {
         "transaction_id": "t2", "created": 1000, "type": "trade",
         "source_season": "2024", "leg": 8, "roster_ids": ["1", "2"],
@@ -91,8 +87,8 @@ def main():
     rows = tp.branch_specific_outcomes_v2(pick_state, pick_trade, copy.deepcopy(proposed))
     eq = [x for x in rows if x.get("equivalent_trade")]
     assert eq, rows
-    assert any((x["event"].get("draft_picks") or [{}])[0].get("roster_id") == "3" for x in eq)
-    assert all(abs(probs(rows) - 1.0) < 1e-9 for _ in [0])
+    assert any(str((x["event"].get("draft_picks") or [{}])[0].get("roster_id")) == "3" for x in eq)
+    assert abs(probs(rows) - 1.0) < 1e-9
 
     print("PASS: behavioral trade persistence preserves legal history and repairs comparable illegal payment legs")
 
