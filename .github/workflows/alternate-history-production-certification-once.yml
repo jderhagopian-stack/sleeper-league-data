@@ -2,6 +2,11 @@ name: Alternate History Production Certification Once
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/alternate-history-0.1
+    paths:
+      - '.github/workflows/alternate-history-production-certification-once.yml'
 
 jobs:
   certify-production-100x500:
@@ -25,6 +30,8 @@ jobs:
         run: python script/validate_alternate_history_performance_equivalence.py
       - name: Validate memoized Simulator fallback equivalence
         run: python script/validate_alternate_history_simulator_dp_equivalence.py
+      - name: Validate MaxPF dominance pruning equivalence
+        run: python script/validate_alternate_history_maxpf_equivalence.py
       - name: Run 100-particle / 500-draw production certification
         run: |
           mkdir -p data/alternate_history/results/puka_vs_van_2023
