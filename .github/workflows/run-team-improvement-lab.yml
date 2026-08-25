@@ -47,7 +47,7 @@ jobs:
       - name: Run Team Improvement Lab
         run: |
           mkdir -p /tmp/team-improvement
-          python script/run_team_improvement_lab_v11.py \
+          python script/run_team_improvement_lab_v12.py \
             --focus-user-id '${{ inputs.focus_user_id }}' \
             --quick-sims '${{ inputs.quick_sims }}' \
             --confirm-sims '${{ inputs.confirm_sims }}' \
@@ -60,10 +60,8 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          from pathlib import Path
-          p=Path('/tmp/team-improvement/team-improvement-report.json')
-          r=json.loads(p.read_text())
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.1'
+          r=json.load(open('/tmp/team-improvement/team-improvement-report.json'))
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.2'
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['roster_aware_trade_resolution'] is True
           assert r['policy']['hold_is_explicit_benchmark'] is True
