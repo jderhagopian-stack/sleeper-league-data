@@ -24,6 +24,36 @@ jobs:
           python-version: '3.11'
       - name: Compile shared history and BI3 research pipeline
         run: python -m py_compile script/fsffl_historical_state_provider.py script/build_behavioral_action_context.py script/behavioral_intelligence_v3.py script/behavioral_intelligence.py
+      - name: Validate contextual preference semantics
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'script')
+          import behavioral_intelligence_v3 as b
+
+          uniform={p:.25 for p in b.POSITIONS}
+          # Acquiring a QB while QB-needy should be less revealing than making
+          # the same acquisition with a healthy/surplus QB room.
+          qb_needy={'QB':1.0,'RB':.4,'WR':.4,'TE':.4}
+          qb_healthy={'QB':0.0,'RB':.4,'WR':.4,'TE':.4}
+          exp_needy=b.expected_position_share(qb_needy, uniform)['QB']
+          exp_healthy=b.expected_position_share(qb_healthy, uniform)['QB']
+          assert exp_needy > exp_healthy
+          residual_needy=1-exp_needy
+          residual_healthy=1-exp_healthy
+          assert residual_healthy > residual_needy
+
+          # A position that is commonly acquired in the decision channel should
+          # carry a higher expectation and therefore less preference evidence.
+          common_qb={'QB':.55,'RB':.15,'WR':.15,'TE':.15}
+          rare_qb={'QB':.10,'RB':.30,'WR':.30,'TE':.30}
+          need={'QB':.5,'RB':.5,'WR':.5,'TE':.5}
+          assert b.expected_position_share(need, common_qb)['QB'] > b.expected_position_share(need, rare_qb)['QB']
+
+          # Confidence must remain sample-aware.
+          assert b.confidence(2,.9) < b.confidence(20,.9)
+          print('contextual preference semantics passed')
+          PY
       - name: Build pre-action context cache
         run: |
           SECONDS=0
@@ -93,9 +123,6 @@ jobs:
               assert -1 <= float(t['score']) <= 1
               assert 0 <= float(t['confidence']) <= 1
               assert 'need_only_preference_for_comparison' in h['positions'][pos]
-          # Research sanity gate: after opportunity normalization the league-wide
-          # weighted positional residual should not retain the large systematic
-          # position bias that motivated this revision.
           bias=b['league_bias_audit']
           assert all(abs(float(bias[p])) <= .20 for p in ('QB','RB','WR','TE')), bias
           offline=int(Path('/tmp/context-build-seconds.txt').read_text().strip())
