@@ -9,6 +9,7 @@ on:
       - .github/workflows/alternate-history-publication-once.yml
       - script/run_fsffl_alternate_history_magazine.py
       - script/run_fsffl_alternate_history_magazine_v2.py
+      - script/run_fsffl_alternate_history_magazine_v3.py
 
 jobs:
   publication-production:
@@ -30,7 +31,7 @@ jobs:
         run: python script/backfill_alternate_history_sleeper.py
       - name: Build full 100x500 publication edition
         run: |
-          python script/run_fsffl_alternate_history_magazine_v2.py \
+          python script/run_fsffl_alternate_history_magazine_v3.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
             --particles 100 --sims 500 --seed 20260824
       - name: Validate full publication artifact contract
@@ -56,11 +57,14 @@ jobs:
           assert all((s.get('modal_postseason') or {}).get('postseason', {}).get('championship') for s in data['seasons'])
           assert len(data['drafts']) >= len(data['seasons'])
           assert all(len(d['picks']) == 36 for d in data['drafts'])
+          assert all(all(p.get('alternate_choices') for p in d['picks']) for d in data['drafts'])
+          assert all(all(p.get('alternate_controllers') for p in d['picks']) for d in data['drafts'])
+          assert any(any(p.get('most_likely_selection_changed') for p in d['picks']) for d in data['drafts'])
           assert data['transactions']
           assert data['butterflies']
           pages = len(PdfReader(str(p)).pages)
           assert pages >= 15
-          print({'pdf_pages': pages, 'seasons': len(data['seasons']), 'drafts': len(data['drafts']), 'transactions': len(data['transactions']), 'butterflies': len(data['butterflies']), 'particles': data['configuration']['particles'], 'sims': data['configuration']['simulator_sims']})
+          print({'pdf_pages': pages, 'seasons': len(data['seasons']), 'drafts': len(data['drafts']), 'changed_draft_picks': sum(sum(bool(p.get('most_likely_selection_changed')) for p in d['picks']) for d in data['drafts']), 'transactions': len(data['transactions']), 'butterflies': len(data['butterflies']), 'particles': data['configuration']['particles'], 'sims': data['configuration']['simulator_sims']})
           PY
       - name: Upload full publication artifact
         uses: actions/upload-artifact@v4
