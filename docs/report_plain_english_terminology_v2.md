@@ -1,0 +1,1 @@
+This file intentionally supersedes nothing; report terminology policy is maintained in report_plain_english_terminology.md.
