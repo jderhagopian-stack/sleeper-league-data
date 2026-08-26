@@ -43,20 +43,28 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/trade-review/review.json'))
-          assert r['model_version']=='FSFFL-GM-Trade-Review-1.0'
+          assert r['model_version']=='FSFFL-GM-Trade-Review-1.1'
           assert len(r['participant_user_ids'])==2
           assert set(r['team_reviews'])==set(r['participant_user_ids'])
           assert r['policy']['both_sides_evaluated_symmetrically'] is True
           assert r['policy']['canonical_state_mutated'] is False
+          assert r['policy']['forced_cut_candidates_simulated_when_required'] is True
+          assert r['policy']['forced_cut_candidate_shortlist_size']==3
           assert r['simulation']['n_sims']==250
+          assert r['simulation']['roster_resolution_model_version']=='FSFFL-Roster-Aware-Trade-Resolution-1.3'
           for uid,row in r['team_reviews'].items():
               rr=row['roster_resolution']
               assert rr.get('roster_legal') is True
               assert 'state_aware_utility_delta' in row
+              if int(rr.get('required_cuts') or 0)==1:
+                  assert len(rr.get('cut_candidate_shortlist') or [])>=1
+                  assert uid in r['cut_selection_analysis']
+                  assert r['cut_selection_analysis'][uid]['candidate_count']<=3
+                  assert rr.get('simulation_selected_cut') is True
           pdf=Path('/tmp/trade-review/GM_Trade_Review.pdf')
           assert pdf.exists() and pdf.stat().st_size>2500
           assert len(PdfReader(str(pdf)).pages)==1
-          print('GM Trade Review 1.0 validation passed')
+          print('GM Trade Review 1.1 validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
