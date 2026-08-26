@@ -13,10 +13,8 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.0"
 NAVY = colors.HexColor("#132238")
-BLUE = colors.HexColor("#245C8A")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
-GREEN = colors.HexColor("#1F6B4F")
 INK = colors.HexColor("#18222C")
 MUTED = colors.HexColor("#5D6A75")
 WHITE = colors.white
@@ -32,7 +30,9 @@ def num(v, d=2): return f"{sf(v):+.{d}f}"
 def val(v): return f"{sf(v):+,.0f}"
 
 def clean(x, n=100):
-    s=str(x or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+    s=str(x or "").replace("\u2013","-").replace("\u2014","-").replace("\u2019","'")
+    s=s.encode("ascii","ignore").decode("ascii")
+    s=s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
     return s if len(s)<=n else s[:n-1].rstrip()+"..."
 
 
@@ -71,7 +71,7 @@ def side_card(uid,row,report,s):
     ]
     t=Table([
       [Paragraph(clean(row.get("team_name") or row.get("manager") or uid,55),s["team"])],
-      [Paragraph(f"{str(row.get('team_state') or 'unknown').replace('_',' ').title()} | {asset_line}",s["body"])],
+      [Paragraph(f"{clean(str(row.get('team_state') or 'unknown').replace('_',' ').title(),30)} | {asset_line}",s["body"])],
       [Table(metrics,colWidths=[0.62*inch,0.72*inch,0.68*inch,0.92*inch],style=TableStyle([
         ("FONTNAME",(0,0),(-1,-1),"Helvetica"),("FONTSIZE",(0,0),(-1,-1),6.8),("TEXTCOLOR",(0,0),(-1,-1),INK),
         ("FONTNAME",(0,0),(0,-1),"Helvetica-Bold"),("FONTNAME",(2,0),(2,-1),"Helvetica-Bold"),
@@ -89,7 +89,7 @@ def build(report,out):
     s=styles(); doc=SimpleDocTemplate(str(out),pagesize=letter,leftMargin=.42*inch,rightMargin=.42*inch,topMargin=.34*inch,bottomMargin=.30*inch)
     story=[]; reviews=report.get("team_reviews") or {}; uids=list(report.get("participant_user_ids") or reviews.keys()); ass=report.get("bilateral_assessment") or {}
     story += [Paragraph("FSFFL GM TRADE REVIEW",s["title"]),Paragraph("Completed-transaction retrospective | Same GM 3.0 intelligence, bilateral lens",s["sub"]),Spacer(1,.08*inch)]
-    verdict=ass.get("classification","TRADE REVIEW").replace("_"," ")
+    verdict=clean(ass.get("classification","TRADE REVIEW").replace("_"," "),80)
     hero=Table([[Paragraph(verdict,s["hero"])],[Paragraph(clean(ass.get("summary"),180),s["hero2"])],[Paragraph(f"Dynasty value: <b>{clean(ass.get('pure_dynasty_value_winner'),45)}</b> &nbsp;&nbsp; Title equity: <b>{clean(ass.get('current_title_equity_winner'),45)}</b> &nbsp;&nbsp; State-aware: <b>{clean(ass.get('state_aware_utility_winner'),45)}</b>",s["hero2"])]],colWidths=[7.62*inch],style=TableStyle([
       ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),5)
     ]))
