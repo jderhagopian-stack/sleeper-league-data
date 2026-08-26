@@ -4,16 +4,17 @@
 The builder reconstructs only information knowable at the transaction timestamp.
 For the April 10, 2023 Josh Allen calibration case it uses:
 - exact pre-trade roster/pick state from HistoricalStateProvider;
-- April 5, 2023 PFF 2QB dynasty values for the traded players;
-- April 5 PFF 2023 rookie-pick values;
-- April 1 FantasyPros superflex future-pick values for later picks;
-- prior-completed-season FSFFL production as the projection/redraft fallback;
+- historical competitive state reconstructed by the existing pre-trade state engine;
+- prior-completed-season FSFFL production to rebuild the football/projection universe;
 - only manager behavior observed before the transaction;
 - the prior season's fantasy schedule as a neutral schedule proxy, avoiding the
-  not-yet-known 2023 schedule.
+  not-yet-known 2023 schedule;
+- contemporaneous PFF/FantasyPros values only as market ANCHORS and validation
+  evidence, never as the final team-specific GM value.
 
 The output is an input bundle, not a trade score. Historical Trade Analysis then
-passes it through the same GM 3.0 / Decision Lab logic used by current analysis.
+passes it through the same GM 3.0 / Decision Lab / What-If logic used by current
+analysis. The final value is produced by GM 3.0 from the reconstructed world.
 """
 from __future__ import annotations
 
@@ -355,6 +356,7 @@ def build(season: str, transaction_id: str, source_path: Path):
     values, exact_count = build_player_values(rosters, players, prior, baselines, source)
 
     gm = load_module(SCRIPT / "build_fsffl_gm_engine.py", "historical_bundle_gm")
+    hist_state_mod = load_module(SCRIPT / "historical_state_behavior.py", "historical_bundle_state")
     profile_by_uid = {}
     owners = owner_directory(data)
     for uid, row in owners.items():
@@ -462,13 +464,34 @@ def build(season: str, transaction_id: str, source_path: Path):
     }
 
     gm_asset_maps = {}
-    team_states = {}
+    derived_team_states = {}
     strategic_profiles = {}
     for uid in all_uids:
         payload = gm.build_strategic_asset_profiles_for_team(uid, ctx)
         strategic_profiles[uid] = payload
-        team_states[uid] = payload.get("team_state")
+        derived_team_states[uid] = payload.get("team_state")
         gm_asset_maps[uid] = {str(a.get("asset_id")): a for a in (payload.get("assets") or [])}
+
+    # Canonical historical competitive-state layer: use the already-built
+    # pre-trade reconstruction rather than inferring contender/rebuild status
+    # from today's framework or from the external market anchors.
+    historical_state_index = hist_state_mod.build_index()
+    historical_side_rows = [
+        row for row in (historical_state_index.get("sides") or [])
+        if str(row.get("transaction_id")) == str(transaction_id)
+    ]
+    historical_state_by_uid = {
+        str(row.get("user_id")): str(row.get("historical_state") or "unknown")
+        for row in historical_side_rows
+    }
+    historical_state_confidence = {
+        str(row.get("user_id")): float(row.get("historical_state_confidence") or 0.0)
+        for row in historical_side_rows
+    }
+    team_states = {
+        uid: historical_state_by_uid.get(uid) or derived_team_states.get(uid) or "unknown"
+        for uid in all_uids
+    }
 
     market_player_values = {
         f"player:{pid}": {
@@ -509,18 +532,24 @@ def build(season: str, transaction_id: str, source_path: Path):
         "provenance": {
             "historical_state": state.reconstruction,
             "market_source_file": str(source_path.relative_to(ROOT)),
-            "dated_exact_trade_player_values": exact_count,
+            "market_source_role": "anchor_and_validation_only_not_final_gm_value",
+            "dated_exact_trade_player_market_anchors": exact_count,
+            "historical_team_state_source": historical_state_index.get("model_version"),
+            "historical_team_state_confidence": historical_state_confidence,
             "projection_basis": f"{int(season)-1} completed-season FSFFL PPG",
             "schedule_basis": f"{int(season)-1} FSFFL schedule reused as neutral known proxy",
             "behavior_basis": "only actions with timestamp strictly before trade",
             "current_market_values_used": False,
             "same_season_results_used": False,
             "future_schedule_used": False,
+            "external_market_anchor_is_final_value": False,
+            "final_team_specific_value_source": "GM3_owner_value_plus_strategic_profile_plus_counterfactual_simulation",
         },
         "confidence": {
             "historical_roster_state": state.reconstruction.get("confidence"),
-            "traded_player_market_values": "high",
-            "2023_pick_market_value": "high when exact slot resolved",
+            "traded_player_market_anchors": "high",
+            "historical_competitive_state": "explicit per-team confidence in provenance",
+            "2023_pick_market_anchor": "high when exact slot resolved",
             "future_pick_market_values": "medium",
             "full_roster_market_values": "medium-low proxy",
             "season_projection": "medium-low prior-season proxy",
