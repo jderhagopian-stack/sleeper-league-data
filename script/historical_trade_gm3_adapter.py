@@ -129,6 +129,57 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
     )
     bidx, aidx = dl.team_index(before), dl.team_index(after)
 
+    # Expose the What-If machine's point-in-time marginal impact for each traded
+    # player. Each player transfer is replayed alone against the same frozen
+    # baseline with common random numbers. This is team-specific football value,
+    # not an external market price, and is never learned from future results.
+    single_asset_counterfactuals = []
+    for action in actions:
+        if str(action.get("type") or "").lower() != "trade":
+            continue
+        src = str(action.get("from_user_id"))
+        dst = str(action.get("to_user_id"))
+        for pid in action.get("players") or []:
+            one = {
+                "type": "trade",
+                "from_user_id": src,
+                "to_user_id": dst,
+                "players": [str(pid)],
+                "picks": [],
+            }
+            one_rosters, _ = dl.apply_actions(canonical, [one])
+            one_lineups, one_reopt = dl.reoptimize_touched_lineups(
+                simmod, baseline_lineups, one_rosters, [src, dst],
+                league, users, players, projections
+            )
+            one_after = dl.simulate_from_lineups(
+                simmod, league, one_rosters, users, schedule, one_lineups, sims, seed
+            )
+            oidx = dl.team_index(one_after)
+            def team_delta(uid):
+                b, a = bidx.get(str(uid)) or {}, oidx.get(str(uid)) or {}
+                return {
+                    "expected_wins": dl.delta(b.get("expected_wins"), a.get("expected_wins")),
+                    "expected_points_for": dl.delta(b.get("expected_points_for"), a.get("expected_points_for")),
+                    "playoff_probability": dl.delta(b.get("playoff_probability"), a.get("playoff_probability")),
+                    "bye_probability": dl.delta(b.get("bye_probability"), a.get("bye_probability")),
+                    "championship_probability": dl.delta(b.get("championship_probability"), a.get("championship_probability")),
+                }
+            meta = (players.get(str(pid)) or {})
+            single_asset_counterfactuals.append({
+                "asset_id": f"player:{pid}",
+                "player_id": str(pid),
+                "name": meta.get("full_name") or meta.get("name") or str(pid),
+                "from_user_id": src,
+                "to_user_id": dst,
+                "sender_delta_if_moved": team_delta(src),
+                "receiver_delta_if_acquired": team_delta(dst),
+                "teams_reoptimized": one_reopt,
+                "simulations": int(sims),
+                "common_random_numbers": True,
+                "as_of_only": True,
+            })
+
     rows = {}
     for uid in participants:
         uid = str(uid)
@@ -195,6 +246,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         "teams_reoptimized": reoptimized,
         "pick_transfers": pick_transfers,
         "team_results": rows,
+        "single_asset_counterfactuals": single_asset_counterfactuals,
         "bilateral_assessment": assessment,
         "team_improvement_model_version": teamlab.MODEL_VERSION,
         "input_bundle_provenance": bundle.get("provenance") or {},
