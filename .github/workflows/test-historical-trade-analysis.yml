@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - 'script/run_historical_trade_analysis.py'
+      - 'script/historical_trade_gm3_adapter.py'
       - 'script/render_historical_trade_report.py'
+      - 'script/run_roster_decision_lab.py'
       - 'script/fsffl_historical_state_provider.py'
       - 'script/build_behavioral_action_context.py'
       - '.github/workflows/test-historical-trade-analysis.yml'
@@ -21,7 +23,7 @@ jobs:
           python-version: '3.11'
       - run: pip install reportlab pypdf
       - name: Compile
-        run: python -m py_compile script/run_historical_trade_analysis.py script/render_historical_trade_report.py
+        run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
       - name: Run known 2023 Josh Allen trade
         run: |
           python script/run_historical_trade_analysis.py \
@@ -31,43 +33,49 @@ jobs:
           python script/render_historical_trade_report.py \
             --input /tmp/historical-trade.json \
             --output /tmp/FSFFL_Historical_Trade_Analysis.pdf
-      - name: Validate no hindsight leakage and point-in-time state
+      - name: Validate GM3 wrapper and no fallback scoring
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from pypdf import PdfReader
           d=json.loads(Path('/tmp/historical-trade.json').read_text())
-          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.0'
+          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.1'
           assert d['transaction_id']=='950954472107368448'
           assert d['season']==2023
-          assert d['policy']['decision_quality_uses_only_information_available_before_trade'] is True
+          assert d['policy']['historical_module_is_time_travel_wrapper_not_scoring_model'] is True
+          assert d['policy']['same_gm3_core_as_current_trade_analysis'] is True
           assert d['policy']['same_season_future_results_leakage_forbidden'] is True
-          assert d['policy']['outcome_grade_separate_from_process_grade'] is True
-          assert d['policy']['exact_historical_market_values_are_not_invented'] is True
+          assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
+          assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
+          assert d['policy']['standalone_v1_process_score_retired'] is True
+          assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
           assert d['policy']['alternate_history_state_provider_reused'] is True
+          assert d['gm3_evaluation']['standalone_historical_score_used'] is False
+          assert d['gm3_evaluation']['current_values_used'] is False
+          # Until a complete frozen GM3 bundle is supplied, the old A/F result
+          # must never reappear as a fallback.
+          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
-          for side in d['sides'].values():
-              q=side['decision_quality_at_time']
-              assert q['uses_same_season_future_results'] is False
-              assert q['exact_historical_market_value_used'] is False
-              assert q['grade'] in {'A','B','C','D','F'}
-              assert 0.25 <= float(q['confidence']) <= 1.0
-              assert side['pretrade_roster']['summary']['roster_size'] > 0
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
           assert len(pdf.pages)==1
+          text='\n'.join((p.extract_text() or '') for p in pdf.pages)
+          assert 'NOT GRADED' in text
+          assert 'standalone v1 score retired' in text
           print(json.dumps({
               'trade_time_utc':d['trade_time_utc'],
               'state':d['historical_state_provider'],
-              'grades':{u:s['decision_quality_at_time'] for u,s in d['sides'].items()},
+              'gm3_status':d['gm3_evaluation']['status'],
+              'missing':d['gm3_evaluation'].get('missing_time_frozen_inputs'),
           },indent=2))
           PY
       - name: Upload audit artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: historical-trade-analysis-audit
+          name: historical-trade-analysis-gm3-wrapper-audit
           path: |
             /tmp/historical-trade.json
             /tmp/FSFFL_Historical_Trade_Analysis.pdf
