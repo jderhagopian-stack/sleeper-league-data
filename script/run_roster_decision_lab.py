@@ -243,10 +243,14 @@ def action_assets_for_user(actions, uid):
     return sent, received
 
 
-def strategic_summary(uid, actions):
+def strategic_summary_from_maps(uid, actions, gm, players, picks):
+    """Canonical GM 3.0 strategic-summary calculation with injectable value maps.
+
+    Current analysis calls this with live GM/market maps. Historical analysis may
+    call the exact same calculation with time-frozen maps, preventing a second
+    historical scoring formula from drifting away from GM 3.0.
+    """
     sent, received = action_assets_for_user(actions, uid)
-    gm = gm_asset_map(uid)
-    players, picks = asset_value_maps()
 
     def val(aid):
         g = gm.get(aid) or {}
@@ -272,6 +276,12 @@ def strategic_summary(uid, actions):
         "base_franchise_value_delta": round(total(rec_rows, "base_franchise_value") - total(sent_rows, "base_franchise_value"), 2),
         "break_glass_delta": round(total(rec_rows, "break_glass_value") - total(sent_rows, "break_glass_value"), 2),
     }
+
+
+def strategic_summary(uid, actions):
+    gm = gm_asset_map(uid)
+    players, picks = asset_value_maps()
+    return strategic_summary_from_maps(uid, actions, gm, players, picks)
 
 
 def resolve_schedule_path(season: str) -> Path:
