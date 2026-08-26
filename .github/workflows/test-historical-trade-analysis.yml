@@ -80,6 +80,7 @@ jobs:
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
+          assert d['historical_state_provider']['analysis_state_source_mode']=='frozen_bundle_snapshot'
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
           assert len(pdf.pages)==1
           text='\n'.join((p.extract_text() or '') for p in pdf.pages)
