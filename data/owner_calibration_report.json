@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-25T11:51:07.789050+00:00",
+  "generated_at_utc": "2026-08-26T11:53:19.508103+00:00",
   "model_version": "GM-2.0",
   "methodology_note": "Behavioral confidence is based on completed league transactions. GM-2.0 keeps owner psychology transparent rather than fitting an opaque model to a small sample.",
   "owners": [
@@ -70,22 +70,22 @@
       "calibration_policy": "full_owner_adjustments"
     },
     {
+      "user_id": "840356119955251200",
+      "manager": "ddersimon",
+      "team_name": "Ball Knower",
+      "completed_trade_sample": 22,
+      "recent_trade_sample": 13,
+      "initiation_rate": 0.0,
+      "multi_asset_rate": 0.773,
+      "behavior_confidence": "high",
+      "calibration_policy": "full_owner_adjustments"
+    },
+    {
       "user_id": "725401251478605824",
       "manager": "PVos",
       "team_name": "STINKS",
       "completed_trade_sample": 21,
       "recent_trade_sample": 8,
-      "initiation_rate": 0.0,
-      "multi_asset_rate": 0.762,
-      "behavior_confidence": "high",
-      "calibration_policy": "full_owner_adjustments"
-    },
-    {
-      "user_id": "840356119955251200",
-      "manager": "ddersimon",
-      "team_name": "Ball Knower",
-      "completed_trade_sample": 21,
-      "recent_trade_sample": 12,
       "initiation_rate": 0.0,
       "multi_asset_rate": 0.762,
       "behavior_confidence": "high",
@@ -117,10 +117,10 @@
       "user_id": "853063390963277824",
       "manager": "Drigs24",
       "team_name": "BING BONG DRIGSY\ud83c\udf4e",
-      "completed_trade_sample": 9,
-      "recent_trade_sample": 3,
+      "completed_trade_sample": 10,
+      "recent_trade_sample": 4,
       "initiation_rate": 0.0,
-      "multi_asset_rate": 0.778,
+      "multi_asset_rate": 0.8,
       "behavior_confidence": "medium",
       "calibration_policy": "moderated_owner_adjustments"
     },

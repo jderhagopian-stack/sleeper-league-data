@@ -1,7 +1,41 @@
 {
-  "completed_trade_count": 143,
+  "completed_trade_count": 144,
   "interpretation_warning": "This is observed league pricing structure, not a dollar or universal dynasty-value model. Exact asset values require an external or historical valuation source.",
   "observations": [
+    {
+      "created": 1787711037935,
+      "faab_received": 0,
+      "faab_sent": 0,
+      "manager": "ddersimon",
+      "phase": "camp_preseason",
+      "received_positions": {
+        "R1": 2,
+        "R3": 2
+      },
+      "season": "2026",
+      "sent_positions": {
+        "WR": 1
+      },
+      "team_name": "Ball Knower",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "faab_received": 0,
+      "faab_sent": 0,
+      "manager": "Drigs24",
+      "phase": "camp_preseason",
+      "received_positions": {
+        "WR": 1
+      },
+      "season": "2026",
+      "sent_positions": {
+        "R1": 2,
+        "R3": 2
+      },
+      "team_name": "BING BONG DRIGSY\ud83c\udf4e",
+      "transaction_id": "1398165067039563776"
+    },
     {
       "created": 1786300590229,
       "faab_received": 0,
@@ -4879,15 +4913,15 @@
     }
   ],
   "pick_rounds_received_across_trade_sides": {
-    "R1": 73,
+    "R1": 75,
     "R2": 93,
-    "R3": 99
+    "R3": 101
   },
   "player_positions_received_across_trade_sides": {
     "QB": 59,
     "RB": 81,
     "TE": 21,
-    "WR": 83
+    "WR": 84
   },
   "trade_side_template_counts": {
     "recv:QBx1,R1x1,R2x1,RBx1,TEx1|send:R2x1,RBx1,WRx1": 1,
@@ -4973,7 +5007,7 @@
     "recv:R1x1|send:RBx1": 2,
     "recv:R1x2,R2x1,RBx1|send:RBx1": 1,
     "recv:R1x2,R2x2,TEx1|send:QBx1,WRx1": 1,
-    "recv:R1x2,R3x2|send:WRx1": 1,
+    "recv:R1x2,R3x2|send:WRx1": 2,
     "recv:R1x2,RBx1|send:R2x1,R3x1,RBx1": 1,
     "recv:R1x2,WRx1|send:WRx1": 1,
     "recv:R1x2|send:R1x1": 1,
@@ -5074,7 +5108,7 @@
     "recv:WRx1|send:R1x1,R2x1,R3x3,WRx2": 1,
     "recv:WRx1|send:R1x1,R2x1,RBx1": 1,
     "recv:WRx1|send:R1x1,WRx1": 1,
-    "recv:WRx1|send:R1x2,R3x2": 1,
+    "recv:WRx1|send:R1x2,R3x2": 2,
     "recv:WRx1|send:R1x2,WRx1": 1,
     "recv:WRx1|send:R2x1": 1,
     "recv:WRx1|send:R2x1,R3x1": 1,
@@ -5104,7 +5138,7 @@
     "1x1x1": 1,
     "1x2": 43,
     "1x3": 14,
-    "1x4": 3,
+    "1x4": 4,
     "1x6": 1,
     "1x7": 1,
     "2x2": 6,
@@ -5122,7 +5156,7 @@
     "4x6": 1
   },
   "trades_by_phase": {
-    "camp_preseason": 27,
+    "camp_preseason": 28,
     "early_offseason": 28,
     "early_regular_season": 30,
     "rookie_draft_offseason": 42,

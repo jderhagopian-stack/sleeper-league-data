@@ -1,6 +1,102 @@
 {
   "edges": [
     {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "player:11635",
+      "lineage_note": "single_input_trade_return",
+      "owner_manager": "ddersimon",
+      "owner_user_id": "840356119955251200",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "pick:2027:R1:orig11",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "player:11635",
+      "lineage_note": "single_input_trade_return",
+      "owner_manager": "ddersimon",
+      "owner_user_id": "840356119955251200",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "pick:2027:R3:orig11",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "player:11635",
+      "lineage_note": "single_input_trade_return",
+      "owner_manager": "ddersimon",
+      "owner_user_id": "840356119955251200",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "pick:2028:R1:orig11",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "player:11635",
+      "lineage_note": "single_input_trade_return",
+      "owner_manager": "ddersimon",
+      "owner_user_id": "840356119955251200",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "pick:2028:R3:orig11",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "pick:2027:R1:orig11",
+      "lineage_note": "mixed_inputs_return_not_fully_attributable",
+      "owner_manager": "Drigs24",
+      "owner_user_id": "853063390963277824",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "player:11635",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "pick:2027:R3:orig11",
+      "lineage_note": "mixed_inputs_return_not_fully_attributable",
+      "owner_manager": "Drigs24",
+      "owner_user_id": "853063390963277824",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "player:11635",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "pick:2028:R1:orig11",
+      "lineage_note": "mixed_inputs_return_not_fully_attributable",
+      "owner_manager": "Drigs24",
+      "owner_user_id": "853063390963277824",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "player:11635",
+      "transaction_id": "1398165067039563776"
+    },
+    {
+      "created": 1787711037935,
+      "created_utc": "2026-08-26T02:23:57Z",
+      "from_asset_key": "pick:2028:R3:orig11",
+      "lineage_note": "mixed_inputs_return_not_fully_attributable",
+      "owner_manager": "Drigs24",
+      "owner_user_id": "853063390963277824",
+      "phase": "camp_preseason",
+      "season": "2026",
+      "to_asset_key": "player:11635",
+      "transaction_id": "1398165067039563776"
+    },
+    {
       "created": 1786065720472,
       "created_utc": "2026-08-07T01:22:00Z",
       "from_asset_key": "player:4943",
@@ -17119,6 +17215,46 @@
   },
   "nodes": [
     {
+      "asset_key": "player:11635",
+      "asset_type": "player",
+      "label": "Ladd McConkey",
+      "nfl_team": "LAC",
+      "player_id": "11635",
+      "position": "WR"
+    },
+    {
+      "asset_key": "pick:2027:R1:orig11",
+      "asset_type": "pick",
+      "label": "2027 Round 1 (original roster 11)",
+      "original_roster_id": "11",
+      "round": 1,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2027:R3:orig11",
+      "asset_type": "pick",
+      "label": "2027 Round 3 (original roster 11)",
+      "original_roster_id": "11",
+      "round": 3,
+      "season": "2027"
+    },
+    {
+      "asset_key": "pick:2028:R1:orig11",
+      "asset_type": "pick",
+      "label": "2028 Round 1 (original roster 11)",
+      "original_roster_id": "11",
+      "round": 1,
+      "season": "2028"
+    },
+    {
+      "asset_key": "pick:2028:R3:orig11",
+      "asset_type": "pick",
+      "label": "2028 Round 3 (original roster 11)",
+      "original_roster_id": "11",
+      "round": 3,
+      "season": "2028"
+    },
+    {
       "asset_key": "player:12510",
       "asset_type": "player",
       "label": "Jalen Milroe",
@@ -19605,14 +19741,6 @@
       "original_roster_id": "5",
       "round": 2,
       "season": "2024"
-    },
-    {
-      "asset_key": "player:11635",
-      "asset_type": "player",
-      "label": "Ladd McConkey",
-      "nfl_team": "LAC",
-      "player_id": "11635",
-      "position": "WR"
     },
     {
       "asset_key": "player:11626",

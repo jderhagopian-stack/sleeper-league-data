@@ -32144,5 +32144,181 @@
     "return_asset_key": "player:4943",
     "return_asset_label": "Sam Darnold",
     "transaction_id": "1391264105423200256"
+  },
+  {
+    "created": 1787711037935,
+    "created_utc": "2026-08-26T02:23:57Z",
+    "lineage_asset_key": "pick:2027:R1:orig11",
+    "lineage_asset_label": "2027 1st",
+    "note": "2027 1st was packaged with 2027 3rd, 2028 1st, 2028 3rd",
+    "other_outgoing_assets": [
+      {
+        "asset_key": "pick:2027:R3:orig11",
+        "asset_type": "pick",
+        "label": "2027 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2028:R1:orig11",
+        "asset_type": "pick",
+        "label": "2028 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2028"
+      },
+      {
+        "asset_key": "pick:2028:R3:orig11",
+        "asset_type": "pick",
+        "label": "2028 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2028"
+      }
+    ],
+    "owner_manager": "Drigs24",
+    "owner_user_id": "853063390963277824",
+    "return_asset_key": "player:11635",
+    "return_asset_label": "Ladd McConkey",
+    "transaction_id": "1398165067039563776"
+  },
+  {
+    "created": 1787711037935,
+    "created_utc": "2026-08-26T02:23:57Z",
+    "lineage_asset_key": "pick:2027:R3:orig11",
+    "lineage_asset_label": "2027 3rd",
+    "note": "2027 3rd was packaged with 2027 1st, 2028 1st, 2028 3rd",
+    "other_outgoing_assets": [
+      {
+        "asset_key": "pick:2027:R1:orig11",
+        "asset_type": "pick",
+        "label": "2027 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2028:R1:orig11",
+        "asset_type": "pick",
+        "label": "2028 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2028"
+      },
+      {
+        "asset_key": "pick:2028:R3:orig11",
+        "asset_type": "pick",
+        "label": "2028 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2028"
+      }
+    ],
+    "owner_manager": "Drigs24",
+    "owner_user_id": "853063390963277824",
+    "return_asset_key": "player:11635",
+    "return_asset_label": "Ladd McConkey",
+    "transaction_id": "1398165067039563776"
+  },
+  {
+    "created": 1787711037935,
+    "created_utc": "2026-08-26T02:23:57Z",
+    "lineage_asset_key": "pick:2028:R1:orig11",
+    "lineage_asset_label": "2028 1st",
+    "note": "2028 1st was packaged with 2027 1st, 2027 3rd, 2028 3rd",
+    "other_outgoing_assets": [
+      {
+        "asset_key": "pick:2027:R1:orig11",
+        "asset_type": "pick",
+        "label": "2027 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2027:R3:orig11",
+        "asset_type": "pick",
+        "label": "2027 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2028:R3:orig11",
+        "asset_type": "pick",
+        "label": "2028 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2028"
+      }
+    ],
+    "owner_manager": "Drigs24",
+    "owner_user_id": "853063390963277824",
+    "return_asset_key": "player:11635",
+    "return_asset_label": "Ladd McConkey",
+    "transaction_id": "1398165067039563776"
+  },
+  {
+    "created": 1787711037935,
+    "created_utc": "2026-08-26T02:23:57Z",
+    "lineage_asset_key": "pick:2028:R3:orig11",
+    "lineage_asset_label": "2028 3rd",
+    "note": "2028 3rd was packaged with 2027 1st, 2027 3rd, 2028 1st",
+    "other_outgoing_assets": [
+      {
+        "asset_key": "pick:2027:R1:orig11",
+        "asset_type": "pick",
+        "label": "2027 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2027:R3:orig11",
+        "asset_type": "pick",
+        "label": "2027 3rd",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 3,
+        "season": "2027"
+      },
+      {
+        "asset_key": "pick:2028:R1:orig11",
+        "asset_type": "pick",
+        "label": "2028 1st",
+        "original_roster_id": "11",
+        "player_id": null,
+        "position": null,
+        "round": 1,
+        "season": "2028"
+      }
+    ],
+    "owner_manager": "Drigs24",
+    "owner_user_id": "853063390963277824",
+    "return_asset_key": "player:11635",
+    "return_asset_label": "Ladd McConkey",
+    "transaction_id": "1398165067039563776"
   }
 ]
