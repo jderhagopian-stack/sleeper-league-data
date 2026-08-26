@@ -1,4 +1,4 @@
-name: Alternate History V2 Draft Integrity
+name: Alternate History V2 Publication Integrity
 
 on:
   workflow_dispatch:
@@ -8,13 +8,14 @@ on:
     paths:
       - .github/workflows/alternate-history-v2-draft-integrity.yml
       - script/run_fsffl_alternate_history_magazine_v4.py
+      - script/run_fsffl_alternate_history_magazine_v5.py
       - script/run_fsffl_alternate_history_magazine_v3.py
       - script/run_fsffl_next_draft_handoff.py
       - script/run_fsffl_alternate_rookie_draft_particles.py
       - script/alternate_history_rookie_draft_policy.py
 
 jobs:
-  coherent-draft-smoke:
+  reader-publication-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -31,21 +32,24 @@ jobs:
           key: alternate-history-sleeper-completed-2022-2025-v1
       - name: Backfill authoritative raw Sleeper history
         run: python script/backfill_alternate_history_sleeper.py
-      - name: Build V2 coherent-draft smoke edition
+      - name: Build reader-first coherent smoke edition
         run: |
-          python script/run_fsffl_alternate_history_magazine_v4.py \
+          time python script/run_fsffl_alternate_history_magazine_v5.py \
             data/alternate_history/scenarios/puka_vs_van_2023.json \
             --particles 20 --sims 20 --seed 20260824
-      - name: Enforce sequential draft publication contract
+      - name: Enforce V2 publication contract
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
+          from pypdf import PdfReader
 
-          path = Path('data/alternate_history/results/puka_vs_van_2023/alternate_history_magazine_1_0.json')
+          root = Path('data/alternate_history/results/puka_vs_van_2023')
+          path = root / 'alternate_history_magazine_1_0.json'
+          pdf = root / 'alternate_history_magazine_1_0.pdf'
           data = json.loads(path.read_text())
           drafts = data.get('drafts') or []
-          assert drafts, 'no drafts published'
+          assert [d['draft_season'] for d in drafts] == ['2024', '2025', '2026']
           for draft in drafts:
               season = draft['draft_season']
               picks = draft.get('picks') or []
@@ -57,14 +61,31 @@ jobs:
               assert all(p.get('representative_controller_roster_id') for p in picks), f'{season}: missing alternate controller'
               assert all(p.get('representative_team') for p in picks), f'{season}: missing alternate team name'
               assert all(p.get('actual_team') for p in picks), f'{season}: missing historical team name'
-              # The coherent representative player must be the first displayed
-              # alternate so legacy renderer code cannot reintroduce duplicate
-              # per-pick marginal modes into the published table.
               assert all((p.get('alternate_choices') or [{}])[0].get('player_id') == p.get('representative_player_id') for p in picks)
+          for season in data.get('seasons') or []:
+              assert all(r.get('most_likely_seed') for r in season.get('alternate_expected_standings') or []), season['season']
+          rosters = data['present_day']['rosters']
+          assert len(rosters) == 12
+          assert all(r.get('reader_roster_semantics') == 'players present in at least half of retained timelines' for r in rosters)
+          reader = PdfReader(str(pdf))
+          text = '\n'.join((p.extract_text() or '') for p in reader.pages)
+          assert 'WHERE EVERYONE ENDS UP' in text
+          assert 'PRESENT-DAY POWER RANKINGS' in text
+          assert 'modal roster 1.0%' not in text.lower()
+          assert 'forced_no_action' not in text
+          assert 'preserve_historical_trade' not in text
           print({
+              'pages': len(reader.pages),
               'drafts': [d['draft_season'] for d in drafts],
-              'unique_representative_players': {d['draft_season']: len({p['representative_player_id'] for p in d['picks']}) for d in drafts},
-              'actual_team_attribution_complete': True,
-              'alternate_team_attribution_complete': True,
+              'unique_players_each_draft': {d['draft_season']: len({p['representative_player_id'] for p in d['picks']}) for d in drafts},
+              'reader_rosters': len(rosters),
+              'technical_jargon_blocked': True,
           })
           PY
+      - name: Upload V2 smoke publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: alternate-history-v2-reader-smoke
+          path: |
+            data/alternate_history/results/puka_vs_van_2023/alternate_history_magazine_1_0.json
+            data/alternate_history/results/puka_vs_van_2023/alternate_history_magazine_1_0.pdf
