@@ -1,6 +1,6 @@
 {
   "as_of_utc": "2023-04-10T00:48:43Z",
-  "market_scale": "0-100 source units; bundle builder rescales to GM3 0-10000 convention",
+  "market_scale": "0-100 source units; used only as contemporaneous market anchors/calibration evidence before GM3 team-specific valuation",
   "player_source": {
     "publisher": "PFF",
     "published": "2023-04-05",
@@ -52,8 +52,11 @@
   "policy": {
     "same_season_results_forbidden": true,
     "current_market_values_forbidden": true,
-    "source_exact_values_override_prior_season_proxy": true,
-    "unlisted_players_use_prior_completed_season_proxy": true,
-    "future_pick_values_beyond_2024_use_time_discounted_2024_source_values": true
+    "external_values_are_market_anchors_not_final_gm_values": true,
+    "reconstructed_historical_state_is_primary_context": true,
+    "gm3_produces_final_team_specific_value": true,
+    "what_if_counterfactual_produces_point_in_time_football_impact": true,
+    "unlisted_players_use_prior_completed_season_proxy_for_market_anchor": true,
+    "future_pick_values_beyond_2024_use_time_discounted_2024_source_values_as_market_anchor": true
   }
 }
