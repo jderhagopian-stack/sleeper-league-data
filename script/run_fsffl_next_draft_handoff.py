@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""FSFFL Alternate History 0.8c: stateful 2025 rookie-draft handoff.
+"""FSFFL Alternate History 0.8c: stateful rookie-draft handoff.
 
-Consumes the complete weighted particle state produced at the end of the 2024
-alternate-history season and replays the 2025 rookie draft inside each state.
-This is a dependency stage: it advances the branch state without introducing
-future NFL information, current GM 3.0 values, or probability-mass pruning.
+Consumes a complete weighted particle state at the end of a completed season
+and replays the following rookie draft inside each state. Every selection draws
+from the full remaining rookie class for that historical draft; historical
+round is market evidence, never an eligibility wall. The branch then applies a
+historical-safe local market window, revealed preference, prior manager
+position tendencies, and branch-specific roster need.
+
+This stage advances branch state without introducing future NFL information,
+current GM 3.0 values, or probability-mass pruning.
 """
 
 from __future__ import annotations
@@ -54,7 +59,6 @@ def replay_rookie_draft_groups(
         raise ah.AlternateHistoryError(
             "0.8c FSFFL adapter currently expects the league's historical 12-team draft"
         )
-
     if sum(group.count for group in groups) != particles:
         raise ah.AlternateHistoryError("0.8c input particle mass does not match configuration")
 
@@ -62,11 +66,21 @@ def replay_rookie_draft_groups(
     tendencies = prior_draft_tendencies(int(draft_season))
     roster_to_user = draft_runner.roster_to_user_for_season(draft_season)
     revealed = draft_runner.actual_revealed_by_controller_round(picks)
-    by_round: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
-    for pick in picks:
-        by_round[int(pick.get("round") or 0)].append(pick)
-    for rows in by_round.values():
-        rows.sort(key=lambda p: int(p.get("pick_no") or 0))
+
+    # Critical invariant: every pick sees the entire same-draft rookie class,
+    # minus players already selected in that branch. Historical round/pick is
+    # used only by candidate_distribution as contemporaneous market evidence.
+    draft_pool = sorted(
+        [dict(pick) for pick in picks if str(pick.get("player_id") or "")],
+        key=lambda p: int(p.get("pick_no") or 9999),
+    )
+    pool_ids = [str(p.get("player_id")) for p in draft_pool]
+    if len(draft_pool) < teams * rounds:
+        raise ah.AlternateHistoryError(
+            f"0.8c draft pool has only {len(draft_pool)} rookies for {teams * rounds} selections"
+        )
+    if len(pool_ids) != len(set(pool_ids)):
+        raise ah.AlternateHistoryError("0.8c historical rookie pool contains duplicate player ids")
 
     rng = random.Random(seed ^ 0x2025C)
     pick_audit: List[Dict[str, Any]] = []
@@ -78,6 +92,7 @@ def replay_rookie_draft_groups(
             next_groups: List[SeasonParticleGroup] = []
             controller_counts: Dict[str, int] = defaultdict(int)
             selection_counts: Dict[str, int] = defaultdict(int)
+            available_pool_sizes: Dict[int, int] = defaultdict(int)
 
             for group in groups:
                 season_row = (
@@ -101,10 +116,15 @@ def replay_rookie_draft_groups(
 
                 unavailable: Set[str] = draft_runner.drafted_ids(group.state)
                 available = [
-                    player
-                    for player in by_round.get(rnd, [])
+                    player for player in draft_pool
                     if str(player.get("player_id")) not in unavailable
                 ]
+                available_pool_sizes[len(available)] += group.count
+                if not available:
+                    raise ah.AlternateHistoryError(
+                        f"0.8c full rookie pool exhausted before pick {current_pick_no}"
+                    )
+
                 dist = candidate_distribution(
                     available,
                     current_pick_no=current_pick_no,
@@ -117,7 +137,8 @@ def replay_rookie_draft_groups(
                 )
                 if not dist:
                     raise ah.AlternateHistoryError(
-                        f"0.8c empty candidate distribution at pick {current_pick_no}"
+                        f"0.8c empty candidate distribution at pick {current_pick_no} "
+                        f"despite {len(available)} undrafted rookies"
                     )
 
                 counts = particle_v1.multinomial_counts(
@@ -156,6 +177,8 @@ def replay_rookie_draft_groups(
                         "controller_roster_id": controller,
                         "player_id": pid,
                         "player_name": player.get("player_name"),
+                        "historical_pick_no": int(player.get("pick_no") or 0),
+                        "historical_round": int(player.get("round") or 0),
                         "conditional_probability": round(float(row.get("probability") or 0.0), 8),
                         "particles": count,
                     }
@@ -179,6 +202,9 @@ def replay_rookie_draft_groups(
                 "particles_in_merged_duplicates": merged,
                 "controller_counts": dict(controller_counts),
                 "selection_counts": dict(selection_counts),
+                "full_remaining_pool_size_distribution": {
+                    str(size): count for size, count in sorted(available_pool_sizes.items(), reverse=True)
+                },
             })
 
     groups, final_merged = season_v3.merge_groups(groups)
@@ -190,6 +216,7 @@ def replay_rookie_draft_groups(
         "draft_season": str(draft_season),
         "draft_start_timestamp_ms": int(draft.get("start_time") or draft.get("created") or 0),
         "draft_picks_simulated": teams * rounds,
+        "draft_pool_size": len(draft_pool),
         "draft_pick_audit": pick_audit,
         "max_unique_states": max_unique_states,
         "final_particles_merged": final_merged,
@@ -253,6 +280,8 @@ def run(
         "design_invariants": {
             "completed_nfl_outcomes_are_immutable": True,
             "historical_same_draft_market_only": True,
+            "historical_round_is_not_eligibility_boundary": True,
+            "full_remaining_rookie_pool_considered_each_pick": True,
             "future_nfl_outcomes_used_for_draft_decisions": False,
             "current_gm3_numeric_values_used": False,
             "particle_probability_mass_pruned": False,
@@ -263,6 +292,7 @@ def run(
             "input_particles": particles,
             "final_particles": sum(group.count for group in groups),
             "final_probability_mass": 1.0,
+            "draft_pool_size": draft_meta["draft_pool_size"],
             "draft_picks_simulated": draft_meta["draft_picks_simulated"],
             "final_unique_postdraft_states": draft_meta["final_unique_states"],
             "max_unique_states": draft_meta["max_unique_states"],
@@ -308,7 +338,7 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Replay the 2025 alternate rookie draft handoff")
+    parser = argparse.ArgumentParser(description="Replay the alternate rookie draft handoff")
     parser.add_argument("scenario", type=Path)
     parser.add_argument("--particles", type=int, default=DEFAULT_PARTICLES)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
