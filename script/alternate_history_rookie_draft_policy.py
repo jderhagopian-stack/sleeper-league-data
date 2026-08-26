@@ -9,11 +9,14 @@ available by that draft:
 - manager positional tendencies from drafts strictly before the target draft;
 - branch-specific roster composition at draft time as the need proxy.
 
-Important V2 rule: historical *round* is not a hard eligibility boundary. The
-actual same-draft pick number is a market anchor, so a player near a round
-boundary may rise or fall across that boundary while still remaining inside a
-small contemporaneous market window. Selected rookies remain unavailable later
-in the same particle, preserving a coherent sequential draft.
+Important V2 rule: every pick is scored against the complete remaining rookie
+pool from that historical draft. Historical round is never an eligibility wall.
+The actual same-draft pick number remains the market anchor: reaching well ahead
+of market is strongly penalized, while a player who has already slid past his
+historical market slot remains live and becomes progressively better value. This
+prevents elite rookies from disappearing outside a local window and resurfacing
+absurdly late. Selected rookies remain unavailable later in the same particle,
+preserving a coherent sequential draft.
 
 No future NFL outcomes or current GM 3.0 values are used.
 """
@@ -67,7 +70,19 @@ def candidate_logit(
 ) -> float:
     pos = str(player.get("position") or "")
     actual_pick_no = int(player.get("pick_no") or 0)
-    market = -0.42 * abs(actual_pick_no - int(current_pick_no))
+    current = int(current_pick_no)
+
+    # Same-draft market evidence is intentionally asymmetric. Reaching several
+    # picks ahead of the historical market should be uncommon. A player who has
+    # already slid, however, should not become *less* selectable the farther he
+    # falls; he becomes value. The capped overdue bonus keeps the policy stable
+    # without using any future performance information.
+    if actual_pick_no > current:
+        market = -0.70 * float(actual_pick_no - current)
+    else:
+        overdue = max(0, current - actual_pick_no)
+        market = 0.28 * float(min(overdue, 5))
+
     revealed = 1.55 if str(player.get("player_id")) in revealed_player_ids else 0.0
 
     hist = tendencies.get(str(controller_user_id)) or Counter()
@@ -156,15 +171,7 @@ def expanded_available_market(
     *,
     state: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
-    """Return all still-undrafted players from the same historical draft.
-
-    Callers historically passed only the player's actual round. That made the
-    actual round an accidental hard wall. We recover the complete same-draft
-    market here, then let `market_radius` impose the intended local uncertainty
-    window around the current pick. This permits, for example, an actual 2.01
-    player to be considered at 1.12 without allowing a hindsight-driven leap
-    from the bottom of the draft to the top.
-    """
+    """Return all still-undrafted players from the same historical draft."""
     season = _infer_draft_season(available_players, state)
     if not season:
         return list(available_players)
@@ -190,19 +197,13 @@ def candidate_distribution(
     if not available_players:
         return []
 
-    # V2: expand from the legacy actual-round pool to the complete same-draft
-    # market. The radius below, not historical round labels, controls who is a
-    # plausible contemporaneous candidate.
+    # Every still-undrafted rookie from this same historical draft is scored on
+    # every pick. `market_radius` remains in the signature for compatibility
+    # with older callers, but market plausibility is now expressed continuously
+    # in candidate_logit rather than by dropping players from consideration.
     market_players = expanded_available_market(available_players, state=state)
-    local = [
-        player for player in market_players
-        if abs(int(player.get("pick_no") or 0) - int(current_pick_no)) <= int(market_radius)
-    ]
-    for player in market_players:
-        if str(player.get("player_id")) in revealed_player_ids and player not in local:
-            local.append(player)
-    if not local:
-        local = sorted(market_players, key=lambda p: abs(int(p.get("pick_no") or 9999) - int(current_pick_no)))[:5]
+    if not market_players:
+        return []
 
     counts = branch_roster_counts(state, positions)
     medians = branch_position_medians(counts)
@@ -220,6 +221,6 @@ def candidate_distribution(
             ),
             player,
         )
-        for player in local
+        for player in market_players
     ]
     return normalize_logits(scored)
