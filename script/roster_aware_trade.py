@@ -12,13 +12,19 @@ from being selected as the corresponding forced cut. This prevents the model
 from "accepting" a trade and then immediately discarding the acquired asset.
 Taxi and reserve remain outside the active count. Canonical rosters are never
 mutated.
+
+Version 1.3 also exposes the three lowest-retention-cost incumbent cut
+candidates. Callers that need maximum decision fidelity can simulate those
+candidate legal rosters and override the prescreen choice without brute-forcing
+the entire roster. Existing callers keep the fast retention-cost selection.
 """
 from __future__ import annotations
 
 import copy
 from typing import Any, Dict, Iterable, List, Tuple
 
-MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.2"
+MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.3"
+CUT_SHORTLIST_SIZE = 3
 
 
 def sf(v, d=0.0):
@@ -124,6 +130,7 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
         newly_acquired = set(pre_cut_ids) - set(before_ids)
         protected = set(explicit_protected.get(uid, set())) | newly_acquired
         selected = []
+        shortlist = []
         if incremental_overflow:
             eligible_ids = [pid for pid in pre_cut_ids if pid not in protected]
             if len(eligible_ids) < incremental_overflow:
@@ -133,6 +140,7 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
                 )
             profiles = [cut_profile(dl, uid, pid, players) for pid in eligible_ids]
             profiles.sort(key=lambda x: (sf(x.get("retention_cost")), sf(x.get("base_franchise_value")), str(x.get("player_id"))))
+            shortlist = profiles[:max(CUT_SHORTLIST_SIZE, incremental_overflow)]
             selected = profiles[:incremental_overflow]
             for row in selected:
                 dl.remove_player(roster, str(row["player_id"]))
@@ -154,6 +162,9 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
             "active_players_after_trade_before_cuts": active_pre_cut,
             "required_cuts": incremental_overflow,
             "selected_cuts": selected,
+            "cut_candidate_shortlist": shortlist,
+            "cut_shortlist_size": CUT_SHORTLIST_SIZE,
+            "cut_selection_method": "retention_cost_prescreen",
             "newly_acquired_protected_from_automatic_cut": sorted(newly_acquired),
             "protected_from_automatic_cut": sorted(protected),
             "cut_base_franchise_value": round(sum(sf(x.get("base_franchise_value")) for x in selected), 2),
