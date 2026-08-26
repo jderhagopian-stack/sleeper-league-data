@@ -75,25 +75,32 @@ def team_doc(focus_uid: str, key: str):
     return load_json(Path(path), {}) if path else {}
 
 
-def state_weights(focus_uid: str):
-    cc = team_doc(focus_uid, "command_center")
-    state = str(cc.get("team_state") or "unknown")
+def weights_for_state(state: str):
+    """Canonical GM 3.0 objective weights for an explicit team-state label."""
+    state = str(state or "unknown")
     # Ranking is intentionally dominated by football outcomes for contenders,
     # while retaining meaningful franchise/future value so short-lived upgrades
     # do not automatically win the search.
     if state == "elite_contender":
-        return state, dict(wins=1450, playoff=6500, bye=5000, title=36000, base=.20, dynasty=.08, break_glass=.025)
+        return dict(wins=1450, playoff=6500, bye=5000, title=36000, base=.20, dynasty=.08, break_glass=.025)
     if state == "contender":
-        return state, dict(wins=1300, playoff=6000, bye=4500, title=33000, base=.23, dynasty=.10, break_glass=.03)
+        return dict(wins=1300, playoff=6000, bye=4500, title=33000, base=.23, dynasty=.10, break_glass=.03)
     if state == "retool":
-        return state, dict(wins=800, playoff=3500, bye=2200, title=22000, base=.32, dynasty=.18, break_glass=.05)
+        return dict(wins=800, playoff=3500, bye=2200, title=22000, base=.32, dynasty=.18, break_glass=.05)
     if state == "rebuild":
-        return state, dict(wins=250, playoff=800, bye=300, title=7000, base=.46, dynasty=.30, break_glass=.08)
-    return state, dict(wins=900, playoff=4000, bye=2500, title=24000, base=.30, dynasty=.16, break_glass=.05)
+        return dict(wins=250, playoff=800, bye=300, title=7000, base=.46, dynasty=.30, break_glass=.08)
+    return dict(wins=900, playoff=4000, bye=2500, title=24000, base=.30, dynasty=.16, break_glass=.05)
 
 
-def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
-    _, w = state_weights(focus_uid)
+def state_weights(focus_uid: str):
+    cc = team_doc(focus_uid, "command_center")
+    state = str(cc.get("team_state") or "unknown")
+    return state, weights_for_state(state)
+
+
+def unified_score_with_state(state: str, sim: Dict[str, Any]) -> float:
+    """Same GM 3.0 unified score, with a supplied frozen historical state."""
+    w = weights_for_state(state)
     d = sim.get("focus_delta") or {}
     st = sim.get("strategic") or {}
     return round(
@@ -106,6 +113,11 @@ def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
         + sf(st.get("break_glass_delta")) * w["break_glass"],
         2,
     )
+
+
+def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
+    state, _ = state_weights(focus_uid)
+    return unified_score_with_state(state, sim)
 
 
 def contender_guardrail(focus_uid: str, sim: Dict[str, Any]) -> Dict[str, Any]:
