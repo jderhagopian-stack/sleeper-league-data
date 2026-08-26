@@ -47,15 +47,25 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/trade-review/trade-review.json'))
-          assert r['model_version']=='FSFFL-GM-Trade-Review-1.0'
+          assert r['model_version']=='FSFFL-GM-Trade-Review-1.1'
           assert r['policy']['both_sides_evaluated_symmetrically'] is True
           assert r['policy']['roster_aware_resolution'] is True
+          assert r['policy']['forced_cut_candidates_simulated_when_required'] is True
+          assert r['policy']['no_extra_cut_simulations_when_no_cut_required'] is True
           assert r['policy']['canonical_state_mutated'] is False
+          assert r['simulation']['roster_resolution_model_version']=='FSFFL-Roster-Aware-Trade-Resolution-1.3'
           assert len(r['team_reviews'])==2
+          for uid,row in r['team_reviews'].items():
+              rr=row['roster_resolution']
+              assert rr.get('roster_legal') is True
+              if int(rr.get('required_cuts') or 0)==1:
+                  assert uid in r['cut_selection_analysis']
+                  assert r['cut_selection_analysis'][uid]['candidate_count']<=3
           pdf=Path('/tmp/trade-review/FSFFL_GM_Trade_Review.pdf')
           assert pdf.exists() and pdf.stat().st_size>2500
           assert len(PdfReader(str(pdf)).pages)==1
           print(r['bilateral_assessment'])
+          print(r.get('cut_selection_analysis'))
           PY
       - uses: actions/upload-artifact@v4
         with:
