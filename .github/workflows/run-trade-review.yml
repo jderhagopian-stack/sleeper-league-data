@@ -1,0 +1,65 @@
+name: Run GM Trade Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Scenario JSON path'
+        required: true
+        default: 'data/decision_lab/mcconkey_drags_trade_review.json'
+        type: string
+      sims:
+        description: 'Paired Monte Carlo simulations'
+        required: false
+        default: '1000'
+        type: string
+
+jobs:
+  review-trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install report dependencies
+        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Run GM Trade Review
+        run: |
+          mkdir -p /tmp/trade-review
+          python script/run_trade_review.py \
+            --scenario '${{ inputs.scenario }}' \
+            --sims '${{ inputs.sims }}' \
+            --output /tmp/trade-review/trade-review.json \
+            | tee /tmp/trade-review/summary.log
+          python script/render_trade_review_report.py \
+            --input /tmp/trade-review/trade-review.json \
+            --output /tmp/trade-review/FSFFL_GM_Trade_Review.pdf
+      - name: Validate production report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          r=json.load(open('/tmp/trade-review/trade-review.json'))
+          assert r['model_version']=='FSFFL-GM-Trade-Review-1.0'
+          assert r['policy']['both_sides_evaluated_symmetrically'] is True
+          assert r['policy']['roster_aware_resolution'] is True
+          assert r['policy']['canonical_state_mutated'] is False
+          assert len(r['team_reviews'])==2
+          pdf=Path('/tmp/trade-review/FSFFL_GM_Trade_Review.pdf')
+          assert pdf.exists() and pdf.stat().st_size>2500
+          assert len(PdfReader(str(pdf)).pages)==1
+          print(r['bilateral_assessment'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-gm-trade-review
+          path: /tmp/trade-review/*
+          if-no-files-found: error
+          retention-days: 30

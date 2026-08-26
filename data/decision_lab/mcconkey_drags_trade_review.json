@@ -1,0 +1,30 @@
+{
+  "scenario_id": "2026-08-26-mcconkey-for-drags-picks",
+  "description": "Completed trade: Ball Knower sends Ladd McConkey to BING BONG DRIGSY for Drigs24 2027 1st, 2027 3rd, 2028 1st, and 2028 3rd.",
+  "transaction_status": "completed",
+  "participant_user_ids": [
+    "840356119955251200",
+    "853063390963277824"
+  ],
+  "actions": [
+    {
+      "type": "trade",
+      "from_user_id": "840356119955251200",
+      "to_user_id": "853063390963277824",
+      "players": ["11635"],
+      "picks": []
+    },
+    {
+      "type": "trade",
+      "from_user_id": "853063390963277824",
+      "to_user_id": "840356119955251200",
+      "players": [],
+      "picks": [
+        "pick:2027:R1:orig11",
+        "pick:2027:R3:orig11",
+        "pick:2028:R1:orig11",
+        "pick:2028:R3:orig11"
+      ]
+    }
+  ]
+}

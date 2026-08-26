@@ -1,0 +1,67 @@
+name: Test GM Trade Review
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_trade_review.py'
+      - 'script/render_trade_review_report.py'
+      - 'script/roster_aware_trade.py'
+      - 'data/decision_lab/mcconkey_drags_trade_review.json'
+      - '.github/workflows/test-trade-review.yml'
+      - '.github/workflows/run-trade-review.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install report dependencies
+        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Compile
+        run: python -m py_compile script/run_trade_review.py script/render_trade_review_report.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py script/run_team_improvement_lab.py script/roster_aware_trade.py
+      - name: Run bilateral review
+        run: |
+          mkdir -p /tmp/trade-review
+          python script/run_trade_review.py \
+            --scenario data/decision_lab/mcconkey_drags_trade_review.json \
+            --sims 250 \
+            --output /tmp/trade-review/review.json
+          python script/render_trade_review_report.py \
+            --input /tmp/trade-review/review.json \
+            --output /tmp/trade-review/GM_Trade_Review.pdf
+      - name: Validate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          r=json.load(open('/tmp/trade-review/review.json'))
+          assert r['model_version']=='FSFFL-GM-Trade-Review-1.0'
+          assert len(r['participant_user_ids'])==2
+          assert set(r['team_reviews'])==set(r['participant_user_ids'])
+          assert r['policy']['both_sides_evaluated_symmetrically'] is True
+          assert r['policy']['canonical_state_mutated'] is False
+          assert r['simulation']['n_sims']==250
+          for uid,row in r['team_reviews'].items():
+              rr=row['roster_resolution']
+              assert rr.get('roster_legal') is True
+              assert 'state_aware_utility_delta' in row
+          pdf=Path('/tmp/trade-review/GM_Trade_Review.pdf')
+          assert pdf.exists() and pdf.stat().st_size>2500
+          assert len(PdfReader(str(pdf)).pages)==1
+          print('GM Trade Review 1.0 validation passed')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gm-trade-review-smoke-test
+          path: /tmp/trade-review/*
+          if-no-files-found: error
+          retention-days: 14
