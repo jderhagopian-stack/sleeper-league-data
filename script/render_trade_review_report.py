@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Render one-page FSFFL GM Trade Review Report 1.1.
+"""Render one-page FSFFL GM Trade Review Report 1.2.
 
 User-facing language is plain English. Raw model fields remain unchanged.
 Value deltas include percentage context versus the effective assets surrendered,
 and roster impact explicitly states any model-required cut and its consequences.
+When Trade Review 1.1 supplies simulated cut-selection analysis, the report
+shows the shortlisted cuts and explains that the chosen legal roster won the
+conditional simulation rather than merely the retention-cost prescreen.
 """
 from __future__ import annotations
 
@@ -16,7 +19,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.1"
+MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.2"
 NAVY = colors.HexColor("#132238")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
@@ -49,9 +52,9 @@ def styles():
     return {
       "title": ParagraphStyle("title",fontName="Helvetica-Bold",fontSize=17,leading=19,textColor=NAVY),
       "sub": ParagraphStyle("sub",fontName="Helvetica",fontSize=8.2,leading=10,textColor=MUTED),
-      "section": ParagraphStyle("section",fontName="Helvetica-Bold",fontSize=8.7,leading=10.3,textColor=NAVY,spaceBefore=2,spaceAfter=3),
-      "body": ParagraphStyle("body",fontName="Helvetica",fontSize=7.25,leading=9,textColor=INK),
-      "small": ParagraphStyle("small",fontName="Helvetica",fontSize=6.25,leading=7.7,textColor=MUTED),
+      "section": ParagraphStyle("section",fontName="Helvetica-Bold",fontSize=8.6,leading=10.1,textColor=NAVY,spaceBefore=2,spaceAfter=3),
+      "body": ParagraphStyle("body",fontName="Helvetica",fontSize=7.15,leading=8.8,textColor=INK),
+      "small": ParagraphStyle("small",fontName="Helvetica",fontSize=6.15,leading=7.5,textColor=MUTED),
       "hero": ParagraphStyle("hero",fontName="Helvetica-Bold",fontSize=10.7,leading=12.5,textColor=WHITE),
       "hero2": ParagraphStyle("hero2",fontName="Helvetica",fontSize=7.3,leading=9.1,textColor=WHITE),
       "team": ParagraphStyle("team",fontName="Helvetica-Bold",fontSize=9,leading=11,textColor=NAVY),
@@ -59,8 +62,7 @@ def styles():
 
 
 def effective_cost_bases(row):
-    st=row.get("strategic") or {}
-    sent=st.get("sent") or []
+    st=row.get("strategic") or {}; sent=st.get("sent") or []
     dynasty=sum(sf(x.get("market_dynasty"), sf(x.get("dynasty_value"))) for x in sent)
     franchise=sum(sf(x.get("base_franchise_value"), sf(x.get("strategic_value"))) for x in sent)
     return dynasty, franchise
@@ -79,8 +81,7 @@ def side_card(uid,row,s):
     sent=[x.get("name") or x.get("asset_id") for x in st.get("sent") or []]
     rec=[x.get("name") or x.get("asset_id") for x in st.get("received") or []]
     dyn_base, team_base=effective_cost_bases(row)
-    dyn_pct=pct_change(st.get("market_dynasty_delta"),dyn_base)
-    team_pct=pct_change(st.get("base_franchise_value_delta"),team_base)
+    dyn_pct=pct_change(st.get("market_dynasty_delta"),dyn_base); team_pct=pct_change(st.get("base_franchise_value_delta"),team_base)
     cuts=[x.get("name") for x in rr.get("selected_cuts") or [] if x.get("name")]
     roster="CUT " + ", ".join(cuts) if cuts else "No additional cut"
     metrics=[
@@ -104,20 +105,22 @@ def side_card(uid,row,s):
     ]))
 
 
-def roster_paragraph(row,s):
-    rr=row.get("roster_resolution") or {}
-    cuts=rr.get("selected_cuts") or []
+def roster_paragraph(uid,row,report,s):
+    rr=row.get("roster_resolution") or {}; cuts=rr.get("selected_cuts") or []
     name=clean(row.get("team_name") or row.get("manager"),45)
     if not cuts:
         return Paragraph(f"<b>{name}:</b> no additional active-roster cut is required by this trade.",s["body"])
     names=', '.join(clean(x.get('name'),35) for x in cuts)
-    dyn=sum(sf(x.get("market_dynasty")) for x in cuts)
-    franchise=sum(sf(x.get("base_franchise_value")) for x in cuts)
+    dyn=sum(sf(x.get("market_dynasty")) for x in cuts); franchise=sum(sf(x.get("base_franchise_value")) for x in cuts)
+    selection=(report.get("cut_selection_analysis") or {}).get(str(uid)) or {}
+    candidates=[clean(x.get("name"),30) for x in selection.get("candidates") or [] if x.get("name")]
+    tested = f" The model prescreened and simulated <b>{', '.join(candidates)}</b>; cutting <b>{names}</b> produced the strongest legal post-trade roster." if candidates else ""
+    confirm = " A close top-two result was rechecked at the full simulation depth." if selection.get("confirmation_triggered") else ""
     return Paragraph(
-      f"<b>{name}:</b> the model requires <b>cutting {names}</b> to create the legal post-trade roster. "
+      f"<b>{name}:</b> must free one active-roster spot, so the model selects <b>CUT {names}</b>. "
       f"That player is removed from the active roster and would become available through the league's normal waiver/free-agent process. "
-      f"The model counts the cut as an additional cost of about <b>{dyn:,.0f} long-term trade value</b> and <b>{franchise:,.0f} value to this team</b>. "
-      "This is the model's required follow-up move, not evidence the manager has already made that cut in Sleeper.",s["body"])
+      f"The cut costs about <b>{dyn:,.0f} long-term trade value</b> and <b>{franchise:,.0f} value to this team</b>, already included in the trade result."
+      f"{tested}{confirm} This is a modeled follow-up move, not evidence the manager has already made the cut in Sleeper.",s["body"])
 
 
 def build(report,out):
@@ -131,9 +134,9 @@ def build(report,out):
     story += [hero,Spacer(1,.08*inch)]
     if len(uids)>=2:
         story.append(Table([[side_card(uids[0],reviews[uids[0]],s),side_card(uids[1],reviews[uids[1]],s)]],colWidths=[3.78*inch,3.78*inch],style=TableStyle([("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),4)])))
-    story += [Spacer(1,.06*inch),Paragraph("VALUE CONTEXT",s["section"]),Paragraph("The percentage beside <b>Long-Term Trade Value</b> and <b>Value to This Team</b> shows the modeled gain or loss relative to the effective assets surrendered by that team. Required cuts are included in the effective cost. <b>Overall Team Fit</b> is a composite decision score with no honest percentage denominator, so the report gives the score change plus an intuitive magnitude label instead of inventing a percentage.",s["body"]),Spacer(1,.05*inch),Paragraph("ROSTER IMPACT - WHAT ACTUALLY HAPPENS",s["section"])]
-    for uid in uids: story.append(roster_paragraph(reviews[uid],s))
-    story += [Spacer(1,.05*inch),Paragraph("HOW THE CUT IS CHOSEN",s["section"]),Paragraph("When a trade creates an extra active-roster spot, newly acquired players are protected. The model then ranks eligible incumbent players by <b>retention cost</b>: value to the team, resale value, depth/insurance value, long-term trade value and tradeability, with strong extra protection for current optimal starters and core/cornerstone assets. The lowest retention-cost incumbent is the modeled cut. The post-cut legal roster is then re-optimized and simulated.",s["body"]),Spacer(1,.04*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version')} | {sim.get('n_sims',0):,} paired simulations | roster resolver {sim.get('roster_resolution_model_version')} | model-generated presentation",s["small"])]
+    story += [Spacer(1,.05*inch),Paragraph("VALUE CONTEXT",s["section"]),Paragraph("The percentage beside <b>Long-Term Trade Value</b> and <b>Value to This Team</b> shows the modeled gain or loss relative to the effective assets surrendered by that team. Required cuts are included in the effective cost. <b>Overall Team Fit</b> is a composite decision score with no honest percentage denominator, so the report gives the score change plus an intuitive magnitude label instead of inventing a percentage.",s["body"]),Spacer(1,.04*inch),Paragraph("ROSTER IMPACT - WHAT ACTUALLY HAPPENS",s["section"])]
+    for uid in uids: story.append(roster_paragraph(uid,reviews[uid],report,s))
+    story += [Spacer(1,.04*inch),Paragraph("HOW A FORCED CUT IS CHOSEN",s["section"]),Paragraph("Only trades that create an incremental roster spot trigger extra work. Newly acquired players are protected. The retention-cost model ranks eligible incumbents using value to the team, resale value, depth/insurance value, long-term trade value and tradeability, with extra protection for optimal starters and core assets. The three lowest-cost candidates are then tested as separate legal post-trade rosters; the roster with the best Overall Team Fit is selected. If the top two are close, they are confirmed at the full simulation depth. Trades requiring no cut run normally with no added cut simulations.",s["body"]),Spacer(1,.035*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version')} | {sim.get('n_sims',0):,} paired simulations | roster resolver {sim.get('roster_resolution_model_version')} | model-generated presentation",s["small"])]
     doc.build(story)
 
 
