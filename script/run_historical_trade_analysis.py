@@ -19,6 +19,7 @@ import importlib.util
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict
 
 from fsffl_historical_state_provider import (
@@ -144,10 +145,38 @@ def default_bundle_path(season: str, transaction_id: str) -> Path:
 
 
 def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None):
-    provider = HistoricalStateProvider()
-    tx = find_trade(provider, str(season), str(transaction_id))
-    state = provider.pre_transaction_state(str(season), str(transaction_id))
-    data = provider.data(str(season))
+    requested = Path(bundle_path) if bundle_path else default_bundle_path(str(season), str(transaction_id))
+    bundle = loadj(requested, None) if requested.exists() else None
+
+    # Fast path: the bundle builder already paid the cost to reconstruct the
+    # exact historical state. Reuse that immutable snapshot instead of fetching
+    # the entire Sleeper league chain a second time.
+    snap = (bundle or {}).get("historical_state_snapshot") or {}
+    bundled_tx = (bundle or {}).get("historical_transaction")
+    bundled_rosters = (bundle or {}).get("historical_rosters")
+    if snap and bundled_tx and bundled_rosters:
+        tx = bundled_tx
+        state = SimpleNamespace(
+            roster_players={str(k): set(map(str, v or [])) for k, v in (snap.get("roster_players") or {}).items()},
+            roster_taxi={str(k): set(map(str, v or [])) for k, v in (snap.get("roster_taxi") or {}).items()},
+            roster_reserve={str(k): set(map(str, v or [])) for k, v in (snap.get("roster_reserve") or {}).items()},
+            pick_owners={str(k): str(v) for k, v in (snap.get("pick_owners") or {}).items()},
+            faab_used={str(k): v for k, v in (snap.get("faab_used") or {}).items()},
+            reconstruction=snap.get("reconstruction") or {},
+        )
+        data = {
+            "league": (bundle or {}).get("league") or {},
+            "users": (bundle or {}).get("users") or [],
+            "rosters": bundled_rosters,
+        }
+        state_source_mode = "frozen_bundle_snapshot"
+    else:
+        provider = HistoricalStateProvider()
+        tx = find_trade(provider, str(season), str(transaction_id))
+        state = provider.pre_transaction_state(str(season), str(transaction_id))
+        data = provider.data(str(season))
+        state_source_mode = "provider_reload"
+
     players = player_index()
     qidx = prior_season_quality(players)
     r2u = roster_to_user(data)
@@ -186,8 +215,6 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             "realized_outcome": realized_outcome(str(transaction_id), uid),
         }
 
-    requested = Path(bundle_path) if bundle_path else default_bundle_path(str(season), str(transaction_id))
-    bundle = loadj(requested, None) if requested.exists() else None
     adapter = load_module(SCRIPT / "historical_trade_gm3_adapter.py", "historical_trade_gm3_adapter")
     gm3 = adapter.evaluate(
         state, data, actions, participant_uids, bundle, sims=int(sims), seed=int(seed)
@@ -209,6 +236,7 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             "source": (state.reconstruction or {}).get("source"),
             "reconstruction_confidence": (state.reconstruction or {}).get("confidence"),
             "future_draftees_removed": (state.reconstruction or {}).get("future_draftees_removed"),
+            "analysis_state_source_mode": state_source_mode,
         },
         "actions": actions,
         "participant_user_ids": participant_uids,
