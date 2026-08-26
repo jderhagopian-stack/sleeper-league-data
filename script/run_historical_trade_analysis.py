@@ -1,36 +1,37 @@
 #!/usr/bin/env python3
-"""Historical FSFFL trade analysis using point-in-time league state.
+"""Historical FSFFL trade analysis as a time-travel wrapper around GM 3.0.
 
-This module intentionally separates two questions:
-1. Decision quality at the time, using only information available before the trade.
-2. Realized outcome afterward, which is reported separately and never leaks into (1).
+Historical Trade Analysis does not own a separate valuation or grading formula.
+Its responsibilities are:
+1. reconstruct the exact pre-trade league state,
+2. load time-frozen GM3 inputs that were knowable at the trade timestamp,
+3. delegate the decision evaluation to the canonical GM3/Decision Lab core,
+4. report realized outcome afterward as a strictly separate hindsight layer.
 
-The canonical pre-trade state comes from FSFFL-Historical-State-Provider-1.0,
-which was extracted from the validated Alternate History reconstruction.  The
-context layer reuses the same conservative prior-completed-season player-quality
-logic used by Behavioral Intelligence 3.0.
-
-Version 1.0 is an evidence-first historical audit.  It does NOT invent historical
-market values that were not archived.  Where exact historical valuation inputs
-are unavailable, the decision grade is based on roster fit, prior-season quality,
-pick-capital structure, and contemporaneous roster construction, with an explicit
-confidence penalty and a limitations block.
+If adequate frozen GM3 inputs are unavailable, the trade is NOT GRADED. The
+module never substitutes present-day values and never falls back to the retired
+v1.0 pick/need/player-quality composite.
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
-from fsffl_historical_state_provider import HistoricalStateProvider, completed_transactions, roster_to_user
+from fsffl_historical_state_provider import (
+    HistoricalStateProvider,
+    completed_transactions,
+    roster_to_user,
+)
 from build_behavioral_action_context import player_index, prior_season_quality, summarize_roster, owner_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.0"
+SCRIPT = ROOT / "script"
+MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.1"
 
 
 def loadj(path: Path, default):
@@ -40,11 +41,20 @@ def loadj(path: Path, default):
         return default
 
 
+def load_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to import {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def iso_ms(ms: int) -> str:
     return datetime.fromtimestamp(int(ms) / 1000, tz=timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def find_trade(provider: HistoricalStateProvider, season: str, transaction_id: str) -> dict[str, Any]:
+def find_trade(provider: HistoricalStateProvider, season: str, transaction_id: str) -> Dict[str, Any]:
     for tx in completed_transactions(provider.data(str(season))):
         if str(tx.get("transaction_id") or "") == str(transaction_id):
             if str(tx.get("type") or "") != "trade":
@@ -53,7 +63,7 @@ def find_trade(provider: HistoricalStateProvider, season: str, transaction_id: s
     raise KeyError(f"Trade {season}/{transaction_id} not found")
 
 
-def asset_names(players: dict[str, Any], ids: list[str]) -> list[str]:
+def asset_names(players: Dict[str, Any], ids):
     out = []
     for pid in ids:
         p = players.get(str(pid)) or {}
@@ -61,7 +71,7 @@ def asset_names(players: dict[str, Any], ids: list[str]) -> list[str]:
     return out
 
 
-def side_assets(tx: dict[str, Any], rid: str) -> dict[str, Any]:
+def side_assets(tx: Dict[str, Any], rid: str) -> Dict[str, Any]:
     adds, drops = tx.get("adds") or {}, tx.get("drops") or {}
     received_players = [str(pid) for pid, rr in adds.items() if str(rr) == str(rid)]
     sent_players = [str(pid) for pid, rr in drops.items() if str(rr) == str(rid)]
@@ -80,99 +90,60 @@ def side_assets(tx: dict[str, Any], rid: str) -> dict[str, Any]:
     }
 
 
-def prior_quality_score(pid: str, season: int, qidx: dict[int, dict[str, Any]]) -> float | None:
-    q = (qidx.get(int(season) - 1) or {}).get(str(pid))
-    if q is None:
-        return None
-    # 0..1, higher is better. Uses only prior completed season.
-    return float(q.get("position_percentile") or 0.0)
+def transaction_actions(tx: Dict[str, Any], data: Dict[str, Any]):
+    """Translate a Sleeper transaction into canonical Decision Lab trade actions."""
+    r2u = roster_to_user(data)
+    moves = {}
+
+    def add_move(src_rid, dst_rid, player=None, pick=None):
+        src, dst = r2u.get(str(src_rid)), r2u.get(str(dst_rid))
+        if not src or not dst:
+            raise RuntimeError(f"Unable to resolve historical roster transfer {src_rid}->{dst_rid}")
+        key = (src, dst)
+        row = moves.setdefault(key, {"type": "trade", "from_user_id": src, "to_user_id": dst, "players": [], "picks": []})
+        if player is not None:
+            row["players"].append(str(player))
+        if pick is not None:
+            row["picks"].append(str(pick))
+
+    adds, drops = tx.get("adds") or {}, tx.get("drops") or {}
+    for pid, dst in adds.items():
+        src = drops.get(pid)
+        if src is not None and str(src) != str(dst):
+            add_move(src, dst, player=pid)
+
+    for p in tx.get("draft_picks") or []:
+        prev, new = p.get("previous_owner_id"), p.get("owner_id")
+        if prev is None or new is None or str(prev) == str(new):
+            continue
+        aid = f"pick:{p.get('season')}:R{p.get('round')}:orig{p.get('roster_id')}"
+        add_move(prev, new, pick=aid)
+
+    return list(moves.values())
 
 
-def pick_weight(asset_id: str, trade_season: int) -> float:
-    # Structural capital only; no claim this is a reconstructed historical market price.
-    try:
-        _, year, rnd, _ = asset_id.split(":", 3)
-        rnd_n = int(rnd.lstrip("R"))
-        years_out = max(0, int(year) - int(trade_season))
-    except Exception:
-        return 0.0
-    base = {1: 1.0, 2: 0.48, 3: 0.22}.get(rnd_n, 0.08)
-    return base * (0.88 ** years_out)
-
-
-def need_fit(roster_summary: dict[str, Any], acquired: list[str], players: dict[str, Any]) -> float | None:
-    vals = []
-    need = roster_summary.get("position_need") or {}
-    for pid in acquired:
-        pos = str((players.get(str(pid)) or {}).get("position") or "")
-        if pos in need:
-            vals.append(float(need[pos]))
-    return sum(vals) / len(vals) if vals else None
-
-
-def process_score(side: dict[str, Any], roster_summary: dict[str, Any], season: int,
-                  players: dict[str, Any], qidx: dict[int, dict[str, Any]]) -> dict[str, Any]:
-    acquired = side["received_players"]
-    sent = side["sent_players"]
-    aq = [prior_quality_score(x, season, qidx) for x in acquired]
-    sq = [prior_quality_score(x, season, qidx) for x in sent]
-    aq_known = [x for x in aq if x is not None]
-    sq_known = [x for x in sq if x is not None]
-    player_quality_delta = (sum(aq_known) / len(aq_known) if aq_known else 0.0) - (sum(sq_known) / len(sq_known) if sq_known else 0.0)
-    pick_delta = sum(pick_weight(x, season) for x in side["received_picks"]) - sum(pick_weight(x, season) for x in side["sent_picks"])
-    fit = need_fit(roster_summary, acquired, players)
-    fit_component = 0.0 if fit is None else (float(fit) - 0.5)
-
-    # Evidence-first composite.  Deliberately moderate weights because exact historical market values are not reconstructed.
-    raw = 42.0 * player_quality_delta + 28.0 * pick_delta + 30.0 * fit_component
-    quality_known = len(aq_known) + len(sq_known)
-    quality_total = len(aq) + len(sq)
-    coverage = quality_known / quality_total if quality_total else 1.0
-    context_coverage = float(roster_summary.get("quality_coverage") or 0.0)
-    confidence = max(0.25, min(1.0, 0.55 * coverage + 0.45 * context_coverage))
-    adjusted = raw * (0.65 + 0.35 * confidence)
-
-    if adjusted >= 18:
-        grade, label = "A", "Strong process"
-    elif adjusted >= 8:
-        grade, label = "B", "Good process"
-    elif adjusted > -8:
-        grade, label = "C", "Reasonable / mixed process"
-    elif adjusted > -18:
-        grade, label = "D", "Questionable process"
-    else:
-        grade, label = "F", "Poor process"
-
-    return {
-        "grade": grade,
-        "label": label,
-        "score": round(adjusted, 2),
-        "confidence": round(confidence, 3),
-        "components": {
-            "prior_completed_season_player_quality_delta": round(player_quality_delta, 4),
-            "structural_pick_capital_delta": round(pick_delta, 4),
-            "acquisition_need_fit": None if fit is None else round(fit, 4),
-            "player_quality_coverage": round(coverage, 4),
-            "pretrade_roster_quality_coverage": round(context_coverage, 4),
-        },
-        "uses_same_season_future_results": False,
-        "exact_historical_market_value_used": False,
-    }
-
-
-def realized_outcome(transaction_id: str, uid: str) -> dict[str, Any]:
+def realized_outcome(transaction_id: str, uid: str) -> Dict[str, Any]:
     rows = loadj(DATA / "transaction_performance_index.json", [])
-    hits = [r for r in rows if str(r.get("transaction_id") or "") == str(transaction_id)
-            and str(r.get("acquiring_user_id") or "") == str(uid)]
+    hits = [
+        r for r in rows
+        if str(r.get("transaction_id") or "") == str(transaction_id)
+        and str(r.get("acquiring_user_id") or "") == str(uid)
+    ]
     return {
         "player_acquisition_rows": hits,
-        "acquired_player_fsffl_points_after_trade": round(sum(float(r.get("fsffl_points_for_acquirer_after_trade") or 0) for r in hits), 2),
+        "acquired_player_fsffl_points_after_trade": round(
+            sum(float(r.get("fsffl_points_for_acquirer_after_trade") or 0) for r in hits), 2
+        ),
         "tracked_player_count": len(hits),
-        "note": "Outcome is descriptive hindsight and is excluded from the decision-quality grade.",
+        "note": "Descriptive hindsight only; never fed into the at-the-time GM3 evaluation.",
     }
 
 
-def analyze(season: str, transaction_id: str) -> dict[str, Any]:
+def default_bundle_path(season: str, transaction_id: str) -> Path:
+    return DATA / "historical_gm3" / str(season) / f"{transaction_id}.json"
+
+
+def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None):
     provider = HistoricalStateProvider()
     tx = find_trade(provider, str(season), str(transaction_id))
     state = provider.pre_transaction_state(str(season), str(transaction_id))
@@ -181,10 +152,12 @@ def analyze(season: str, transaction_id: str) -> dict[str, Any]:
     qidx = prior_season_quality(players)
     r2u = roster_to_user(data)
     owners = owner_directory(data)
+    actions = transaction_actions(tx, data)
 
     touched = {str(x) for x in (tx.get("roster_ids") or [])}
     touched |= {str(x) for x in (tx.get("adds") or {}).values() if x is not None}
     touched |= {str(x) for x in (tx.get("drops") or {}).values() if x is not None}
+    participant_uids = sorted({r2u[rid] for rid in touched if rid in r2u})
 
     sides = {}
     for rid in sorted(touched):
@@ -210,8 +183,20 @@ def analyze(season: str, transaction_id: str) -> dict[str, Any]:
                 "received_player_names": asset_names(players, assets["received_players"]),
                 "sent_player_names": asset_names(players, assets["sent_players"]),
             },
-            "decision_quality_at_time": process_score(assets, summary, int(season), players, qidx),
             "realized_outcome": realized_outcome(str(transaction_id), uid),
+        }
+
+    requested = Path(bundle_path) if bundle_path else default_bundle_path(str(season), str(transaction_id))
+    bundle = loadj(requested, None) if requested.exists() else None
+    adapter = load_module(SCRIPT / "historical_trade_gm3_adapter.py", "historical_trade_gm3_adapter")
+    gm3 = adapter.evaluate(
+        state, data, actions, participant_uids, bundle, sims=int(sims), seed=int(seed)
+    )
+
+    for uid, side in sides.items():
+        side["gm3_decision_at_time"] = (gm3.get("team_results") or {}).get(uid) if gm3.get("status") == "GRADED_BY_GM3_CORE" else {
+            "status": "NOT_GRADED",
+            "reason": gm3.get("reason"),
         }
 
     return {
@@ -225,19 +210,26 @@ def analyze(season: str, transaction_id: str) -> dict[str, Any]:
             "reconstruction_confidence": (state.reconstruction or {}).get("confidence"),
             "future_draftees_removed": (state.reconstruction or {}).get("future_draftees_removed"),
         },
+        "actions": actions,
+        "participant_user_ids": participant_uids,
+        "gm3_evaluation": gm3,
+        "time_frozen_bundle_path": str(requested.relative_to(ROOT)) if requested.is_absolute() and str(requested).startswith(str(ROOT)) else str(requested),
+        "sides": sides,
         "policy": {
+            "historical_module_is_time_travel_wrapper_not_scoring_model": True,
+            "same_gm3_core_as_current_trade_analysis": True,
             "decision_quality_uses_only_information_available_before_trade": True,
             "same_season_future_results_leakage_forbidden": True,
-            "outcome_grade_separate_from_process_grade": True,
-            "exact_historical_market_values_are_not_invented": True,
+            "outcome_layer_separate_from_decision_layer": True,
             "current_player_values_not_backfilled_into_historical_grade": True,
+            "standalone_v1_process_score_retired": True,
+            "missing_historical_inputs_result_in_not_graded": True,
             "alternate_history_state_provider_reused": True,
         },
-        "sides": sides,
         "limitations": [
-            "Exact historical external dynasty-market values are not yet archived for every trade date, so v1.0 does not fabricate them.",
-            "Decision grades are evidence-first composites of prior-season player quality, structural pick capital, and contemporaneous roster need.",
-            "Realized outcomes are reported separately and never alter the at-the-time process grade.",
+            "Historical reconstruction alone is not sufficient to grade a trade.",
+            "A grade is produced only when the trade date has a complete time-frozen GM3 input bundle.",
+            "Until those inputs exist, the report preserves the reconstructed facts and realized outcome but explicitly returns NOT GRADED.",
         ],
     }
 
@@ -247,14 +239,18 @@ def main():
     ap.add_argument("--season", required=True)
     ap.add_argument("--transaction-id", required=True)
     ap.add_argument("--output", required=True)
+    ap.add_argument("--sims", type=int, default=1000)
+    ap.add_argument("--seed", type=int, default=20260821)
+    ap.add_argument("--gm3-bundle", default=None)
     args = ap.parse_args()
-    result = analyze(args.season, args.transaction_id)
+    result = analyze(args.season, args.transaction_id, args.sims, args.seed, args.gm3_bundle)
     Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps({
         "model_version": result["model_version"],
         "transaction_id": result["transaction_id"],
         "trade_time_utc": result["trade_time_utc"],
-        "teams": {uid: {"team": r["team_name"], "grade": r["decision_quality_at_time"]["grade"], "confidence": r["decision_quality_at_time"]["confidence"]} for uid, r in result["sides"].items()},
+        "gm3_status": result["gm3_evaluation"]["status"],
+        "reason": result["gm3_evaluation"].get("reason"),
     }, indent=2))
 
 
