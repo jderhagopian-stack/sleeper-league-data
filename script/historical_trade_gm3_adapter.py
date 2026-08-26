@@ -93,6 +93,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         }
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "historical_gm3_dl")
+    teamlab = load_module(SCRIPT / "run_team_improvement_lab.py", "historical_gm3_teamlab")
     simmod = dl.import_simulator()
 
     league = bundle["league"]
@@ -151,12 +152,34 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "championship_probability": dl.delta(b.get("championship_probability"), a.get("championship_probability")),
         }
         state_label = str((bundle.get("team_states") or {}).get(uid) or "unknown")
-        cmp = {"before": b, "after": a, "delta": delta, "strategic": strategic}
+        cmp = {
+            "focus_before": b,
+            "focus_after": a,
+            "focus_delta": delta,
+            "strategic": strategic,
+            "roster_resolution": {},
+        }
         rows[uid] = {
-            **cmp,
-            "decision": dl.classify_decision(cmp, state_label),
+            "before": b,
+            "after": a,
+            "delta": delta,
+            "strategic": strategic,
+            "decision": dl.classify_decision({"delta": delta, "strategic": strategic}, state_label),
+            "state_aware_utility_delta": teamlab.unified_score_with_state(state_label, cmp),
             "team_state": state_label,
         }
+
+    uids = list(rows)
+    utility_winner = None
+    if len(uids) == 2:
+        ordered = sorted(uids, key=lambda u: float(rows[u].get("state_aware_utility_delta") or 0.0), reverse=True)
+        utility_winner = ordered[0] if abs(float(rows[ordered[0]].get("state_aware_utility_delta") or 0.0) - float(rows[ordered[1]].get("state_aware_utility_delta") or 0.0)) > 1e-9 else "TIE"
+    rational = [u for u in uids if float(rows[u].get("state_aware_utility_delta") or 0.0) > 0]
+    assessment = {
+        "classification": "WIN_WIN_STATE_RATIONAL" if len(rational) == 2 else "ONE_SIDED_STATE_AWARE" if len(rational) == 1 else "MUTUALLY_COSTLY",
+        "both_sides_state_rational": len(rational) == 2,
+        "state_aware_utility_winner_user_id": utility_winner,
+    }
 
     return {
         "adapter_model_version": MODEL_VERSION,
@@ -172,5 +195,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         "teams_reoptimized": reoptimized,
         "pick_transfers": pick_transfers,
         "team_results": rows,
+        "bilateral_assessment": assessment,
+        "team_improvement_model_version": teamlab.MODEL_VERSION,
         "input_bundle_provenance": bundle.get("provenance") or {},
     }
