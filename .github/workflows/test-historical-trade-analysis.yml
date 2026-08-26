@@ -5,6 +5,8 @@ on:
     paths:
       - 'script/run_historical_trade_analysis.py'
       - 'script/historical_trade_gm3_adapter.py'
+      - 'script/build_historical_gm3_bundle.py'
+      - 'data/historical_gm3/sources/**'
       - 'script/render_historical_trade_report.py'
       - 'script/run_roster_decision_lab.py'
       - 'script/fsffl_historical_state_provider.py'
@@ -23,12 +25,19 @@ jobs:
           python-version: '3.11'
       - run: pip install reportlab pypdf
       - name: Compile
-        run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
-      - name: Run known 2023 Josh Allen trade
+        run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/build_historical_gm3_bundle.py script/render_historical_trade_report.py script/run_roster_decision_lab.py script/run_team_improvement_lab.py
+      - name: Build frozen April 2023 GM3 inputs
+        run: |
+          python script/build_historical_gm3_bundle.py \
+            --season 2023 \
+            --transaction-id 950954472107368448 \
+            --output data/historical_gm3/2023/950954472107368448.json
+      - name: Run known 2023 Josh Allen trade through GM3
         run: |
           python script/run_historical_trade_analysis.py \
             --season 2023 \
             --transaction-id 950954472107368448 \
+            --sims 1000 \
             --output /tmp/historical-trade.json
           python script/render_historical_trade_report.py \
             --input /tmp/historical-trade.json \
@@ -53,31 +62,43 @@ jobs:
           assert d['policy']['alternate_history_state_provider_reused'] is True
           assert d['gm3_evaluation']['standalone_historical_score_used'] is False
           assert d['gm3_evaluation']['current_values_used'] is False
-          # Until a complete frozen GM3 bundle is supplied, the old A/F result
-          # must never reappear as a fallback.
-          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert d['gm3_evaluation']['status']=='GRADED_BY_GM3_CORE'
+          assert d['gm3_evaluation']['n_sims']==1000
+          assert d['gm3_evaluation']['same_gm3_core_as_current_trade_analysis'] is True
+          assert d['gm3_evaluation']['standalone_historical_score_used'] is False
+          assert d['gm3_evaluation']['current_values_used'] is False
+          assert d['gm3_evaluation']['input_bundle_provenance']['same_season_results_used'] is False
+          assert d['gm3_evaluation']['input_bundle_provenance']['future_schedule_used'] is False
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
           assert len(pdf.pages)==1
           text='\n'.join((p.extract_text() or '') for p in pdf.pages)
-          assert 'NOT GRADED' in text
+          assert 'GM 3.0 HISTORICAL EVALUATION COMPLETE' in text
           assert 'standalone v1 score retired' in text
           print(json.dumps({
               'trade_time_utc':d['trade_time_utc'],
               'state':d['historical_state_provider'],
               'gm3_status':d['gm3_evaluation']['status'],
-              'missing':d['gm3_evaluation'].get('missing_time_frozen_inputs'),
+              'assessment':d['gm3_evaluation'].get('bilateral_assessment'),
+              'team_results':{u:{
+                  'state':r.get('team_state'),
+                  'decision':r.get('decision'),
+                  'utility':r.get('state_aware_utility_delta'),
+                  'delta':r.get('delta'),
+                  'strategic':r.get('strategic')
+              } for u,r in d['gm3_evaluation'].get('team_results',{}).items()},
           },indent=2))
           PY
       - name: Upload audit artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: historical-trade-analysis-gm3-wrapper-audit
+          name: historical-trade-analysis-josh-allen-gm3
           path: |
             /tmp/historical-trade.json
             /tmp/FSFFL_Historical_Trade_Analysis.pdf
+            data/historical_gm3/2023/950954472107368448.json
           if-no-files-found: error
           retention-days: 14
