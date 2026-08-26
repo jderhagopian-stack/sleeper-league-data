@@ -63,8 +63,13 @@ jobs:
                   assert rr.get('simulation_selected_cut') is True
           pdf=Path('/tmp/trade-review/GM_Trade_Review.pdf')
           assert pdf.exists() and pdf.stat().st_size>2500
-          assert len(PdfReader(str(pdf)).pages)==1
-          print('GM Trade Review 1.1 validation passed')
+          reader=PdfReader(str(pdf))
+          assert len(reader.pages)==1
+          text='\n'.join((p.extract_text() or '') for p in reader.pages)
+          assert 'post-trade total' in text.lower()
+          assert 'Playoff odds' in text and 'Championship odds' in text
+          assert '%' in text and 'pp' in text
+          print('GM Trade Review 1.3 presentation validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
