@@ -202,6 +202,13 @@ def curated_findings():
         "required_action":"Replace these multipliers with one canonical, calibrated utility framework shared with other decision modules. Until calibrated, expose raw metric tradeoffs and treat the composite rank as provisional."
       },
       {
+        "id":"DECISION-GATES-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"Roster Decision Lab accept/reject bands",
+        "evidence":"run_roster_decision_lab.py uses fixed championship-probability thresholds such as -3%, -1% and +1%, combined with dynasty and break-glass signs, to assign accept/lean/reject bands.",
+        "why_it_matters":"A deal can cross from one recommendation band to another because of a one-percentage-point threshold even though simulation uncertainty may be larger than that boundary.",
+        "required_action":"Calibrate decision thresholds to simulation uncertainty and historical decision outcomes, or replace hard bands with confidence intervals and continuous utility."
+      },
+      {
         "id":"TRADE-PRESCREEN-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
         "component":"Trade discovery and plausibility prescreen",
         "evidence":"Market Sweep uses fixed package-size limits, plausibility thresholds, value-ratio bands, protected-asset penalties, need bonuses and top-N pools before deep simulation.",
