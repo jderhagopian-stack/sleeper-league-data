@@ -330,6 +330,7 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
                 })
                 events.append({
                     "created":max(int(created)-1,0),
+                    "season":int(c.get("season") or 0) or None,
                     "event_type":"draft_selection",
                     "from_assets":[pick],"to_assets":[str(player_aid)],
                     "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
@@ -396,19 +397,15 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
             })
             events.append({
                 "created":0,
+                "season":int(c.get("season") or 0) or None,
                 "event_type":"draft_selection",
                 "from_assets":[pick],"to_assets":[player],
                 "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
                 "attribution":"direct",
             })
 
-    current_assets=loadj(DATA / "fsffl_asset_values.json", {}) or {}
-    current_map={}
-    for p in current_assets.get("players") or []:
-        current_map[f"player:{p.get('player_id')}"]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
-    for p in current_assets.get("picks") or []:
-        if p.get("asset_id"):
-            current_map[str(p.get("asset_id"))]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
+    current_map=_current_intrinsic_map()
+    production=_lineage_production(roster_id,root_created,root_assets,events,conversions)
 
     return {
         "root_assets":[{"asset_key":a,"label":_asset_label(a,players,conversion_map)} for a in root_assets],
@@ -418,6 +415,7 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
             for a in sorted(live)
         ],
         "terminal_current_intrinsic_value":round(sum(current_map.get(a,0.0) for a in live),1),
+        "captured_production":production,
         "mixed_attribution_events":mixed,
         "methodology_note":"Downstream asset lineage is factual. Mixed-package returns are retained but explicitly marked mixed; exact economic attribution is not claimed.",
     }
