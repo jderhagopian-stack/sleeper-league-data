@@ -190,6 +190,109 @@ def _current_intrinsic_map():
     return out
 
 
+def _starter_benchmarks():
+    """League-average started points per start by season and position."""
+    rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
+    agg={}
+    for r in rows:
+        season=str(r.get("season") or "")
+        pos=str(r.get("position") or "").upper()
+        starts=float(r.get("starts") or 0)
+        if not season or not pos or starts<=0:
+            continue
+        key=(season,pos)
+        a=agg.setdefault(key,{"started_points":0.0,"starts":0.0})
+        a["started_points"]+=float(r.get("fsffl_points_while_started") or 0)
+        a["starts"]+=starts
+    return {
+        key:(v["started_points"]/v["starts"] if v["starts"] else 0.0)
+        for key,v in agg.items()
+    }
+
+
+def _wins_per_point_by_season():
+    """Observed FSFFL regular-season wins sensitivity to point differential."""
+    comp=loadj(DATA / "record_book" / "competition_records.json", {}) or {}
+    grouped={}
+    for r in comp.get("season_records") or []:
+        s=str(r.get("season") or "")
+        if s:
+            grouped.setdefault(s,[]).append(r)
+    out={}
+    for season,rows in grouped.items():
+        xs=[float(r.get("point_diff") or 0) for r in rows]
+        ys=[float(r.get("wins") or 0) for r in rows]
+        if len(xs)<2:
+            continue
+        mx=sum(xs)/len(xs); my=sum(ys)/len(ys)
+        den=sum((x-mx)**2 for x in xs)
+        if den<=0:
+            continue
+        slope=sum((x-mx)*(y-my) for x,y in zip(xs,ys))/den
+        out[season]=max(0.0,slope)
+    return out
+
+
+def _replacement_adjusted_impact(roster_id: str, player_rows):
+    """Estimate value added versus the league-average starter at each player's position."""
+    roster_rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
+    benchmarks=_starter_benchmarks()
+    wins_per_point=_wins_per_point_by_season()
+    total_above=0.0; total_wins=0.0; rows_out=[]
+    for p in player_rows:
+        pid=str(p.get("player_id") or "")
+        seasons=set(str(x) for x in (p.get("seasons_counted") or []))
+        pos_hint=str(p.get("position") or "").upper()
+        hits=[
+            r for r in roster_rows
+            if str(r.get("roster_id"))==str(roster_id)
+            and str(r.get("player_id"))==pid
+            and (not seasons or str(r.get("season")) in seasons)
+        ]
+        player_above=0.0; player_wins=0.0; starts_total=0.0
+        details=[]
+        for r in hits:
+            season=str(r.get("season") or "")
+            pos=str(r.get("position") or pos_hint).upper()
+            starts=float(r.get("starts") or 0)
+            if starts<=0:
+                continue
+            actual=float(r.get("fsffl_points_while_started") or 0)
+            avg=benchmarks.get((season,pos),0.0)
+            expected=starts*avg
+            above=actual-expected
+            win_est=above*wins_per_point.get(season,0.0)
+            starts_total+=starts; player_above+=above; player_wins+=win_est
+            details.append({
+                "season":season,"position":pos,"starts":int(starts),
+                "started_points":round(actual,2),
+                "avg_starter_ppg":round(avg,2),
+                "points_above_avg_starter":round(above,2),
+                "estimated_wins_added":round(win_est,3),
+            })
+        if hits:
+            pos=pos_hint or str(hits[0].get("position") or "").upper()
+        else:
+            pos=pos_hint
+        rows_out.append({
+            "player_id":pid,
+            "player_name":p.get("player_name"),
+            "position":pos,
+            "starts":int(starts_total),
+            "points_above_avg_starter":round(player_above,2),
+            "estimated_wins_added":round(player_wins,3),
+            "season_detail":details,
+        })
+        total_above+=player_above; total_wins+=player_wins
+    rows_out.sort(key=lambda x:x.get("estimated_wins_added") or 0,reverse=True)
+    return {
+        "points_above_average_starter":round(total_above,2),
+        "estimated_wins_added_vs_average_starter":round(total_wins,2),
+        "player_rows":rows_out,
+        "methodology_note":"Estimated wins added compares actual started production with the league-average starter at the same position in each season, then converts that scoring advantage using that season's observed FSFFL relationship between point differential and wins. It is a benchmark estimate, not an alternate-history simulation.",
+    }
+
+
 def _lineage_production(uid: str, roster_id: str, root_transaction_id: str, root_created: int, root_assets, events, conversions):
     """Actual FSFFL production captured from players in the lineage.
 
@@ -242,10 +345,17 @@ def _lineage_production(uid: str, roster_id: str, root_transaction_id: str, root
             name=(hits[0].get("player_name") if hits else pid)
             method="drafted_descendant_while_rostered"
         if pts or seasons:
+            pos=""
+            rr=next((r for r in roster_rows if str(r.get("roster_id"))==str(roster_id) and str(r.get("player_id"))==str(pid)),None)
+            if rr:
+                pos=str(rr.get("position") or "").upper()
+            elif hit if src["kind"]=="trade" else False:
+                pos=str((hit or {}).get("position") or "").upper()
             player_rows.append({
                 "asset_key":aid,
                 "player_id":pid,
                 "player_name":name,
+                "position":pos,
                 "fsffl_points_while_rostered":round(pts,2),
                 "fsffl_points_while_started":round(spts,2),
                 "seasons_counted":seasons,
@@ -253,10 +363,12 @@ def _lineage_production(uid: str, roster_id: str, root_transaction_id: str, root
             })
             total+=pts; started+=spts
     player_rows.sort(key=lambda x:x["fsffl_points_while_rostered"], reverse=True)
+    replacement=_replacement_adjusted_impact(roster_id,player_rows)
     return {
         "captured_fsffl_points":round(total,2),
         "captured_started_points":round(started,2),
         "player_rows":player_rows,
+        "replacement_adjusted_impact":replacement,
         "methodology_note":"Trade-acquired lineage players are counted only from their actual acquisition transaction forward; drafted descendants use FSFFL points while rostered after their draft.",
     }
 
