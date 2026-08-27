@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-MODEL_VERSION = "FSFFL-GM-Action-Report-1.1"
+MODEL_VERSION = "FSFFL-GM-Action-Report-1.2"
 NAVY = colors.HexColor("#132238")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
@@ -33,9 +33,10 @@ def num(v, digits=2): return f"{sf(v):+.{digits}f}"
 def money(v): return f"{sf(v):+,.0f}"
 
 
-def clean(text, n=110):
+def clean(text, n=None):
+    # Never truncate user-facing prose. Let ReportLab wrap text or add space/pages.
     text = str(text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    return text if len(text) <= n else text[:n-1].rstrip() + "..."
+    return text
 
 
 def styles():
