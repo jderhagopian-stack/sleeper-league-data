@@ -104,12 +104,12 @@ def hindsight_verdict(report,sides):
         )
     if cls=="SPLIT_HINDSIGHT_RESULT":
         return "HINDSIGHT RESULT: SPLIT", (
-            "One side leads in production already realized while the other leads in remaining descendant value. "
-            "The model does not force those different dimensions into one artificial score."
+            "One side has received more fantasy production so far, while the other still owns more long-term value from what the trade eventually became. "
+            "Those are different kinds of wins, so the report does not force them into one combined score."
         )
     if cls=="NEAR_EVEN_HINDSIGHT":
         return "HINDSIGHT RESULT: NEAR EVEN", (
-            "The two sides are within the model's materiality band on both realized production and remaining descendant value."
+            "The two sides are close both in fantasy production received so far and in the long-term value they still own from the trade."
         )
     return "HINDSIGHT RESULT: STILL DEVELOPING", (
         "Too many of the players and picks from the trade are still unresolved to name a clear hindsight winner."
@@ -152,16 +152,22 @@ def score_context(v):
     if a>=250:return "slight positive overall effect" if v>0 else "slight negative overall effect"
     return "roughly neutral overall effect"
 
+def current_value_context(v):
+    a=abs(sf(v))
+    if a>=12000:return "very high remaining value"
+    if a>=8000:return "high remaining value"
+    if a>=4000:return "strong remaining value"
+    if a>=1500:return "moderate remaining value"
+    if a>0:return "limited remaining value"
+    return "no remaining model value"
+
 def at_time_bottom_line(uids,results,sides,winner):
     if not winner or winner=="TIE" or len(uids)<2:
-        return (
-            "At the time, GM 3.0 viewed the deal as essentially even once immediate competitive impact, "
-            "team fit and long-term asset value were weighed together."
-        )
+        return "At the time, the deal graded as essentially even after balancing immediate competitive impact against long-term value."
     winner_uid=str(winner)
     loser_uid=next((str(u) for u in uids if str(u)!=winner_uid),None)
     if loser_uid is None:
-        return f"At the time, GM 3.0 gave the overall edge to {team_label(winner_uid,sides)}."
+        return f"At the time, the overall edge went to {team_label(winner_uid,sides)}."
     wr=results.get(winner_uid) or {}
     lr=results.get(loser_uid) or {}
     wd=wr.get("delta") or {}; ld=lr.get("delta") or {}
@@ -173,33 +179,29 @@ def at_time_bottom_line(uids,results,sides,winner):
     pkg=sf(ls.get("package_effective_value_delta",ls.get("intrinsic_dynasty_delta")))
     winner_wins=sf(wd.get("expected_wins"))
     winner_pkg=sf(ws.get("package_effective_value_delta",ws.get("intrinsic_dynasty_delta")))
-    pieces=[f"At the time, GM 3.0 gave the overall edge to {winner_name}."]
+    pieces=[f"At the time, the overall edge went to {winner_name}."]
     if wins>=0.5:
         pieces.append(
-            f"{loser_name} still acquired a meaningful competitive upgrade, adding about {wins:.2f} expected wins "
-            f"({win_context(wins)})"
+            f"{loser_name} gained about {wins:.2f} expected wins ({win_context(wins)})"
             + (f" and {playoff*100:.1f} percentage points of playoff probability ({odds_context(playoff)})" if playoff>=0.03 else "")
             + "."
         )
     elif wins<=-0.5:
-        pieces.append(f"{loser_name} gave up about {abs(wins):.2f} expected wins in the exchange.")
+        pieces.append(f"{loser_name} lost about {abs(wins):.2f} expected wins ({win_context(wins)}).")
     if pkg<=-1000:
         pieces.append(
-            f"The problem was the price: {loser_name} gave up about {abs(pkg):,.0f} more long-term value points than it received "
-            f"({value_label(pkg).lower()} on the model's relative value scale). "
-            "That scale is not fantasy points or dollars; it measures the size of the value gap between the two sides. "
-            "GM 3.0 judged the competitive benefit insufficient to justify that premium."
+            f"But {loser_name} gave up about {abs(pkg):,.0f} more long-term value points than it received - "
+            f"a {value_label(pkg).lower()} on the model's relative value scale."
         )
     elif pkg>=1000:
         pieces.append(
-            f"{loser_name} also gained about {pkg:,.0f} long-term value points ({value_label(pkg).lower()} on the model's relative value scale), "
-            "making the case more balanced than the headline verdict alone suggests."
+            f"{loser_name} also gained about {pkg:,.0f} long-term value points - "
+            f"a {value_label(pkg).lower()} on the model's relative value scale."
         )
     if winner_wins<=-0.5 and winner_pkg>=1000:
         pieces.append(
-            f"{winner_name} accepted a short-term hit of about {abs(winner_wins):.2f} expected wins ({win_context(winner_wins)}), "
-            f"but was compensated with roughly {winner_pkg:,.0f} long-term value points "
-            f"({value_label(winner_pkg).lower()} on the model's relative value scale)."
+            f"{winner_name} accepted a short-term cost of about {abs(winner_wins):.2f} expected wins, "
+            "but received enough long-term value to justify that sacrifice."
         )
     return " ".join(pieces)
 
@@ -282,7 +284,7 @@ def lineage_card(uid,side,s):
     roots=", ".join(pick_only_label(x.get("label") or x.get("asset_key")) for x in lin.get("root_assets") or [])
     root_labels={str(x.get("asset_key")):str(x.get("label") or "") for x in lin.get("root_assets") or []}
     terminals=", ".join(
-        f"{x.get('label')} ({sf(x.get('current_intrinsic_value')):,.0f} current value pts)"
+        f"{x.get('label')} ({sf(x.get('current_intrinsic_value')):,.0f} value pts; {current_value_context(x.get('current_intrinsic_value'))})"
         for x in lin.get("terminal_assets") or []
     ) or "No tracked descendant player/pick remains in the lineage."
     events=lin.get("events") or []
@@ -298,16 +300,16 @@ def lineage_card(uid,side,s):
         for x in top[:4]
     ) or "No recorded lineage-player production."
     mixed=int(lin.get("mixed_attribution_events") or 0)
-    warning=(f"<br/><b>Attribution note:</b> {mixed} downstream trade(s) mixed lineage assets with unrelated assets. The full return is shown, but the original trade is not credited with 100% of that package."
+    warning=(f"<br/><b>Trade-chain note:</b> {mixed} later trade(s) combined assets from this deal with unrelated pieces. The full return is shown, but this original trade is not given credit for the entire later package."
              if mixed else "")
     return Table([
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
-                   f"<b>Production actually captured:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} while started)<br/>"
+                   f"<b>Fantasy production received since the trade:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} scored while in the starting lineup)<br/>"
                    f"<b>Top lineage contributors:</b> {clean(top_text,180)}<br/>"
-                   f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts<br/>"
+                   f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
-        [Paragraph("<b>Asset trail</b><br/>"+bullets+warning,s["body"])],
+        [Paragraph("<b>What the original assets became</b><br/>"+bullets+warning,s["body"])],
     ],colWidths=[3.70*inch],style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT),("BOX",(0,0),(-1,-1),.55,MID),
         ("LEFTPADDING",(0,0),(-1,-1),7),("RIGHTPADDING",(0,0),(-1,-1),7),
@@ -381,7 +383,7 @@ def build(report,out):
     story += [
         Spacer(1,.08*inch),
         Paragraph("BOTTOM LINE AT THE TIME",s["section"]),
-        Paragraph(clean(at_time_bottom_line(uids,results,sides,winner),620),s["body"]),
+        Paragraph(clean(at_time_bottom_line(uids,results,sides,winner),760),s["body"]),
         Spacer(1,.05*inch),
         PageBreak(),
         Paragraph("DEAL IN HINDSIGHT",s["title"]),
@@ -389,13 +391,13 @@ def build(report,out):
         Spacer(1,.07*inch),
         Table([[Paragraph(hindsight_verdict(report,sides)[0],s["hero"])],
                [Paragraph(hindsight_verdict(report,sides)[1],s["hero2"])],
-               [Paragraph("The report follows draft-pick conversions, later trades, actual production captured from descendant players, and value still remaining in the asset tree. Mixed-package attribution is explicitly flagged.",s["hero2"])]],
+               [Paragraph("This section follows what each original player or pick eventually became, the fantasy points those resulting players produced, and the long-term value that still remains. If a later trade mixed these assets with unrelated pieces, the original deal is not given credit for the entire return.",s["hero2"])]],
               colWidths=[7.7*inch],style=TableStyle([
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
         Spacer(1,.08*inch),
-        Paragraph("ASSET GENEALOGY & REALIZED PRODUCTION",s["section"])
+        Paragraph("WHAT THE ASSETS BECAME & WHAT THEY PRODUCED",s["section"])
     ]
     if len(uids)>=2:
         story.append(Table([[lineage_card(uids[0],sides.get(uids[0]) or {},s),
@@ -413,7 +415,7 @@ def build(report,out):
     story += [
         Paragraph("HOW TO READ THE HOLD REFERENCE",s["section"]),
         Paragraph(
-            "The hold reference reports what the surrendered players actually produced after the trade and, for surrendered draft picks, the player actually selected at that slot. It is not a full alternate-history simulation: without the original trade, later trades, draft choices, waiver moves and lineup decisions could also have changed. Asset genealogy is factual; this hold reference is a disciplined comparison point.",
+            "The hold reference shows what the surrendered players actually produced after the trade and, for surrendered draft picks, the player actually selected at that slot. It is not a claim about exactly what would have happened if the trade had never occurred, because later trades, draft choices, waiver moves and lineup decisions could also have changed. It is simply a useful reference point.",
             s["body"]),
         Spacer(1,.05*inch),
         Paragraph("FINAL RETROSPECTIVE VERDICT",s["section"]),
@@ -424,9 +426,9 @@ def build(report,out):
                 + (
                     f"{team_label(next((u for u in uids if str(u)!=str(winner)),uids[0]),sides)} still received the immediate competitive improvement it paid for "
                     f"({sf((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins')):+.2f} expected wins), "
-                    f"but {winner_name} won both the process grade and the realized asset-tree outcome."
+                    f"but {winner_name} won both the original trade grade and the actual results that followed."
                     if winner and winner!="TIE" and str((report.get("hindsight_assessment") or {}).get("winner_user_id"))==str(winner)
-                    else "The process grade and realized outcome remain intentionally separate so later results never rewrite the original decision."
+                    else "The original trade grade and what happened afterward remain separate so later results never rewrite what was knowable at the time."
                 )
             ),
             s["body"]),
