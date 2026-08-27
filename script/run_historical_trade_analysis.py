@@ -190,24 +190,69 @@ def _current_intrinsic_map():
     return out
 
 
-def _starter_benchmarks():
-    """League-average started points per start by season and position."""
-    rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
-    agg={}
+def _replacement_benchmarks():
+    """FSFFL replacement-level started PPG by season and position.
+
+    Replacement depth is inferred from how many players at each position were
+    actually started concurrently in the league that season. This automatically
+    captures SUPER_FLEX and FLEX usage (for example, roughly 24 QBs in a typical
+    12-team Superflex season) rather than hard-coding a generic positional rank.
+    """
+    rows=loadj(DATA / "record_book" / "franchise_started_scoring.json", [])
+    by_season={}
     for r in rows:
         season=str(r.get("season") or "")
         pos=str(r.get("position") or "").upper()
-        starts=float(r.get("starts") or 0)
+        starts=int(r.get("starts") or 0)
+        pts=float(r.get("fsffl_points_while_started") or 0)
         if not season or not pos or starts<=0:
             continue
-        key=(season,pos)
-        a=agg.setdefault(key,{"started_points":0.0,"starts":0.0})
-        a["started_points"]+=float(r.get("fsffl_points_while_started") or 0)
-        a["starts"]+=starts
-    return {
-        key:(v["started_points"]/v["starts"] if v["starts"] else 0.0)
-        for key,v in agg.items()
-    }
+        by_season.setdefault(season,[]).append({
+            "position":pos,"starts":starts,"points":pts,
+            "ppg":pts/starts,"player_id":str(r.get("player_id") or ""),
+        })
+
+    out={}
+    meta={}
+    for season,srows in by_season.items():
+        total_starts=sum(x["starts"] for x in srows)
+        # FSFFL has nine starting slots per team. Dividing all recorded starts
+        # by 108 (12 teams x 9 starters) estimates the number of lineup weeks
+        # represented, including playoffs where present.
+        lineup_weeks=(total_starts/108.0) if total_starts else 0.0
+        if lineup_weeks<=0:
+            continue
+        for pos in sorted({x["position"] for x in srows}):
+            prows=[x for x in srows if x["position"]==pos]
+            positional_starts=sum(x["starts"] for x in prows)
+            concurrent=positional_starts/lineup_weeks
+            rank=max(1,int(round(concurrent)))
+
+            # Avoid one-week spike performances defining replacement level.
+            # Players need at least roughly one quarter-season of starts to
+            # qualify for the marginal-starter band.
+            min_starts=max(3,int(round(lineup_weeks*0.25)))
+            eligible=[x for x in prows if x["starts"]>=min_starts]
+            if len(eligible)<rank:
+                eligible=prows
+            eligible.sort(key=lambda x:(x["ppg"],x["starts"]),reverse=True)
+
+            # Smooth the exact cutoff with a small band around the marginal
+            # starter so replacement is stable rather than dependent on one player.
+            lo=max(0,rank-3); hi=min(len(eligible),rank+2)
+            band=eligible[lo:hi] if hi>lo else eligible[max(0,rank-1):rank]
+            if not band:
+                continue
+            weight=sum(x["starts"] for x in band)
+            repl=(sum(x["ppg"]*x["starts"] for x in band)/weight) if weight else 0.0
+            out[(season,pos)]=repl
+            meta[(season,pos)]={
+                "replacement_rank":rank,
+                "estimated_concurrent_starters":round(concurrent,1),
+                "replacement_ppg":round(repl,2),
+                "band_player_count":len(band),
+            }
+    return out,meta
 
 
 def _wins_per_point_by_season():
@@ -234,11 +279,11 @@ def _wins_per_point_by_season():
 
 
 def _replacement_adjusted_impact(roster_id: str, player_rows):
-    """Estimate value added versus the league-average starter at each player's position."""
+    """Estimate FSFFL Wins Above Replacement from actual started production."""
     roster_rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
-    benchmarks=_starter_benchmarks()
+    benchmarks,benchmark_meta=_replacement_benchmarks()
     wins_per_point=_wins_per_point_by_season()
-    total_above=0.0; total_wins=0.0; rows_out=[]
+    total_above=0.0; total_war=0.0; rows_out=[]
     for p in player_rows:
         pid=str(p.get("player_id") or "")
         seasons=set(str(x) for x in (p.get("seasons_counted") or []))
@@ -249,7 +294,7 @@ def _replacement_adjusted_impact(roster_id: str, player_rows):
             and str(r.get("player_id"))==pid
             and (not seasons or str(r.get("season")) in seasons)
         ]
-        player_above=0.0; player_wins=0.0; starts_total=0.0
+        player_above=0.0; player_war=0.0; starts_total=0.0
         details=[]
         for r in hits:
             season=str(r.get("season") or "")
@@ -258,38 +303,38 @@ def _replacement_adjusted_impact(roster_id: str, player_rows):
             if starts<=0:
                 continue
             actual=float(r.get("fsffl_points_while_started") or 0)
-            avg=benchmarks.get((season,pos),0.0)
-            expected=starts*avg
+            repl=benchmarks.get((season,pos),0.0)
+            expected=starts*repl
             above=actual-expected
-            win_est=above*wins_per_point.get(season,0.0)
-            starts_total+=starts; player_above+=above; player_wins+=win_est
+            war=above*wins_per_point.get(season,0.0)
+            starts_total+=starts; player_above+=above; player_war+=war
+            bm=benchmark_meta.get((season,pos)) or {}
             details.append({
                 "season":season,"position":pos,"starts":int(starts),
                 "started_points":round(actual,2),
-                "avg_starter_ppg":round(avg,2),
-                "points_above_avg_starter":round(above,2),
-                "estimated_wins_added":round(win_est,3),
+                "replacement_ppg":round(repl,2),
+                "replacement_rank":bm.get("replacement_rank"),
+                "estimated_concurrent_starters":bm.get("estimated_concurrent_starters"),
+                "points_above_replacement":round(above,2),
+                "war":round(war,3),
             })
-        if hits:
-            pos=pos_hint or str(hits[0].get("position") or "").upper()
-        else:
-            pos=pos_hint
+        pos=pos_hint or (str(hits[0].get("position") or "").upper() if hits else "")
         rows_out.append({
             "player_id":pid,
             "player_name":p.get("player_name"),
             "position":pos,
             "starts":int(starts_total),
-            "points_above_avg_starter":round(player_above,2),
-            "estimated_wins_added":round(player_wins,3),
+            "points_above_replacement":round(player_above,2),
+            "war":round(player_war,3),
             "season_detail":details,
         })
-        total_above+=player_above; total_wins+=player_wins
-    rows_out.sort(key=lambda x:x.get("estimated_wins_added") or 0,reverse=True)
+        total_above+=player_above; total_war+=player_war
+    rows_out.sort(key=lambda x:x.get("war") or 0,reverse=True)
     return {
-        "points_above_average_starter":round(total_above,2),
-        "estimated_wins_added_vs_average_starter":round(total_wins,2),
+        "points_above_replacement":round(total_above,2),
+        "war":round(total_war,2),
         "player_rows":rows_out,
-        "methodology_note":"Estimated wins added compares actual started production with the league-average starter at the same position in each season, then converts that scoring advantage using that season's observed FSFFL relationship between point differential and wins. It is a benchmark estimate, not an alternate-history simulation.",
+        "methodology_note":"FSFFL WAR compares actual started production with a season- and position-specific replacement starter inferred from how many players at that position were actually started concurrently in FSFFL. The scoring advantage is converted to estimated wins using that season's observed relationship between point differential and wins. It is deterministic historical benchmarking, not an alternate-history simulation.",
     }
 
 
