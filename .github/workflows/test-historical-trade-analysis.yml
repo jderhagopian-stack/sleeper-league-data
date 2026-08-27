@@ -70,6 +70,7 @@ jobs:
           assert d['gm3_evaluation']['current_values_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['same_season_results_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['future_schedule_used'] is False
+          assert d['gm3_evaluation']['input_bundle_provenance']['completed_draft_pick_rows_used_for_slot_resolution'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_is_final_value'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_owner_value_plus_strategic_profile_plus_trade_impact'
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
@@ -88,6 +89,7 @@ jobs:
               'assessment':d['gm3_evaluation'].get('bilateral_assessment'),
               'team_results':{u:{
                   'state':r.get('team_state'),
+                  'state_evidence':r.get('team_state_evidence'),
                   'decision':r.get('decision'),
                   'utility':r.get('state_aware_utility_delta'),
                   'delta':r.get('delta'),
