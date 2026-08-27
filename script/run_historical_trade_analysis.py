@@ -418,7 +418,7 @@ def build_asset_lineage(root_created: int, root_transaction_id: str, uid: str, r
                 "season":int(c.get("season") or 0) or None,
                 "event_type":"draft_selection",
                 "from_assets":[pick],"to_assets":[player],
-                "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
+                "description":f"{_asset_label(pick,players,conversion_map)} became {c.get('player_name')} at pick {c.get('pick_no')}.",
                 "attribution":"direct",
             })
 
