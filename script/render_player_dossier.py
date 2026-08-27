@@ -58,7 +58,7 @@ def render(pid,output):
         gt=Table(rows,colWidths=[1.55*inch,1.35*inch]); gt.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),LIGHT_GRAY),('GRID',(0,0),(-1,-1),.35,MID_GRAY),('LEFTPADDING',(0,0),(-1,-1),5),('RIGHTPADDING',(0,0),(-1,-1),5)]))
         right=[P(s,'PLAYER VALUE PROFILE','FS_Section'),gt,Spacer(1,4),P(s,'READING GUIDE','FS_Section'),P(s,"This page summarizes the model's existing player value, recent football context and roster-specific value in everyday fantasy-football terms. It does not create a new grade or change the underlying model.",'FS_Small')]
     else:
-        right=[P(s,'PLAYER VALUE PROFILE','FS_Section'),P(s,'No roster-specific value profile is available for this player.','FS_Body'),Spacer(1,4),P(s,'READING GUIDE','FS_Section'),P(s,'This page summarizes the player's existing market value and recent football context without changing the underlying model.','FS_Small')]
+        right=[P(s,'PLAYER VALUE PROFILE','FS_Section'),P(s,'No roster-specific value profile is available for this player.','FS_Body'),Spacer(1,4),P(s,'READING GUIDE','FS_Section'),P(s,"This page summarizes the player's existing market value and recent football context without changing the underlying model.",'FS_Small')]
     cols=Table([[left,right]],colWidths=[3.45*inch,3.99*inch]); cols.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('RIGHTPADDING',(0,0),(0,0),9),('LEFTPADDING',(1,0),(1,0),9),('LINEBEFORE',(1,0),(1,0),.7,MID_GRAY),('LEFTPADDING',(0,0),(0,0),0),('RIGHTPADDING',(1,0),(1,0),0)])); story.append(cols)
     doc.build(story,onFirstPage=lambda c,d: footer(c,f'{MODEL_VERSION} | Model output | Plain-English presentation'))
 def main():
