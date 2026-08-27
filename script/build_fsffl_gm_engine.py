@@ -503,34 +503,14 @@ def build_intrinsic_player_values(
     return player_values
 
 
-def intrinsic_pick_value(
-    year: int,
+def _pick_slot_outcome_value(
+    slot: int,
     rnd: int,
-    player_values: Dict[str, Dict[str, Any]],
-    current_year: int,
-    slot: int | None = None,
-    tier: str | None = None,
+    vals: List[float],
 ) -> float:
-    """Price a pick from expected rookie outcomes on the intrinsic player scale.
-
-    A rookie pick is not treated as if it already *is* the player at its target
-    percentile. The model discounts that upside for the probability of merely
-    useful, replacement-level, or failed outcomes, then discounts years of
-    waiting. This keeps picks comparable with established players without using
-    an external trade chart as the valuation foundation.
-    """
-    vals = sorted(
-        safe_float(x.get("intrinsic_dynasty"))
-        for x in player_values.values()
-        if safe_float(x.get("intrinsic_dynasty")) > 0
-    )
-    if not vals:
-        return 0.0
-    if slot is None:
-        slot = {"early": 3, "mid": 6, "late": 10}.get(str(tier or "mid"), 6)
+    """Expected realized rookie value for one draft slot on the intrinsic scale."""
     slot = max(1, min(12, int(slot)))
     rnd = int(rnd)
-
     if rnd == 1:
         q = 0.965 - (slot - 1) * (0.315 / 11.0)
         realization = 0.84 - (slot - 1) * (0.20 / 11.0)
@@ -540,16 +520,67 @@ def intrinsic_pick_value(
     else:
         q = 0.36 - (slot - 1) * (0.18 / 11.0)
         realization = 0.36 - (slot - 1) * (0.14 / 11.0)
-
     q = clamp(q, 0.05, 0.99)
     realization = clamp(realization, 0.18, 0.90)
     idx = int(round(q * (len(vals) - 1)))
-    upside_reference = vals[idx]
+    return vals[idx] * realization
 
+
+def intrinsic_pick_value(
+    year: int,
+    rnd: int,
+    player_values: Dict[str, Dict[str, Any]],
+    current_year: int,
+    slot: int | None = None,
+    tier: str | None = None,
+    scenario_weights: Dict[str, float] | None = None,
+) -> float:
+    """Price a pick from expected rookie outcomes on the intrinsic player scale.
+
+    Known draft slots use their exact slot. Unknown future picks are valued as a
+    probability-weighted distribution of early/mid/late outcomes rather than as
+    a falsely certain "mid" pick. Distant picks also receive both a time-value
+    discount and an uncertainty discount. No external trade-chart price enters
+    this calculation.
+    """
+    vals = sorted(
+        safe_float(x.get("intrinsic_dynasty"))
+        for x in player_values.values()
+        if safe_float(x.get("intrinsic_dynasty")) > 0
+    )
+    if not vals:
+        return 0.0
+
+    rnd = int(rnd)
     years_out = max(0, int(year) - int(current_year))
-    time_discount = 0.88 ** years_out
-    optionality = {1: 1.05, 2: 1.03, 3: 1.01}.get(rnd, 1.0)
-    return round(upside_reference * realization * time_discount * optionality, 1)
+
+    if slot is not None:
+        expected_realized = _pick_slot_outcome_value(int(slot), rnd, vals)
+        slot_uncertainty = 1.0
+    else:
+        defaults = {
+            "early": {"early": 0.56, "mid": 0.30, "late": 0.14},
+            "mid":   {"early": 0.25, "mid": 0.50, "late": 0.25},
+            "late":  {"early": 0.14, "mid": 0.30, "late": 0.56},
+        }
+        weights = dict(scenario_weights or defaults.get(str(tier or "mid"), defaults["mid"]))
+        total = sum(max(0.0, safe_float(v)) for v in weights.values()) or 1.0
+        weights = {k: max(0.0, safe_float(v)) / total for k, v in weights.items()}
+        reps = {"early": 3, "mid": 7, "late": 11}
+        expected_realized = sum(
+            weights.get(k, 0.0) * _pick_slot_outcome_value(reps[k], rnd, vals)
+            for k in ("early", "mid", "late")
+        )
+        # A future unknown pick has useful upside, but uncertainty is not free
+        # value. The farther away the draft, the less precisely we know slot,
+        # class strength, and roster need at selection time.
+        slot_uncertainty = max(0.76, 0.94 - 0.055 * years_out)
+
+    # Waiting has real opportunity cost: the pick cannot score, fill a lineup
+    # slot, or be converted into a known rookie until its draft arrives.
+    time_discount = 0.84 ** years_out
+    optionality = {1: 1.04, 2: 1.02, 3: 1.00}.get(rnd, 1.0)
+    return round(expected_realized * time_discount * slot_uncertainty * optionality, 1)
 
 
 def current_owner_by_player(rosters: List[Dict[str, Any]]) -> Dict[str, str]:
@@ -1389,7 +1420,10 @@ def build_future_pick_assets(
         tier = expected_pick_tier(original_uid, team_profiles)
         base = fallback_pick_value(year, tier, rnd, detected_pick_values)
         asset_id = f"pick:{year}:R{rnd}:orig{orig_rid}"
-        intrinsic = intrinsic_pick_value(year, rnd, _ACTIVE_INTRINSIC_PLAYER_VALUES, _ACTIVE_INTRINSIC_YEAR, tier=tier)
+        intrinsic = intrinsic_pick_value(
+            year, rnd, _ACTIVE_INTRINSIC_PLAYER_VALUES, _ACTIVE_INTRINSIC_YEAR,
+            tier=tier,
+        )
         assets[asset_id] = {
             "asset_type": "pick",
             "asset_id": asset_id,
@@ -1441,7 +1475,7 @@ def owner_pick_value(
         mult += 0.035  # small endowment / flexibility premium for a pick already owned
 
     return base * mult, {
-        "market_base": round(base, 1),
+        "intrinsic_base": round(base, 1),
         "pick_preference": round(pref, 3),
         "pick_preference_adjustment": round(pref_adj, 4),
         "competitive_window_adjustment": round(window_adj, 4),
