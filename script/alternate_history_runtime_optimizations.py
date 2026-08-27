@@ -3,8 +3,10 @@
 
 These optimizations memoize deterministic calculations and avoid repeatedly
 copying/hashing the completed-season ledger while it is unchanged between
-scoring boundaries. They do not alter random number consumption, branch
-probabilities, model policy, historical evidence, or publication semantics.
+scoring boundaries. They also reuse Simulator lineup/backup preparation for
+identical roster-week inputs across counterfactual states. They do not alter
+random number consumption, branch probabilities, model policy, historical
+evidence, Simulator draws, or publication semantics.
 """
 from __future__ import annotations
 
@@ -14,6 +16,7 @@ from typing import Any, Dict, Tuple
 import alternate_history_engine as ah
 import run_fsffl_multiseason_branch_replay as branch_v1
 import run_fsffl_multiseason_particle_replay_v3 as season_v3
+import run_fsffl_season_simulator_preproduction as simulator
 from run_fsffl_historical_usage_policy import HistoricalPoints
 
 _INSTALLED = False
@@ -27,11 +30,23 @@ _STATS: Dict[str, int] = {
     "ledger_digest_hits": 0,
     "ledger_digest_misses": 0,
     "ledger_copy_avoided": 0,
+    "sim_lineup_hits": 0,
+    "sim_lineup_misses": 0,
+    "sim_backup_hits": 0,
+    "sim_backup_misses": 0,
 }
 
 
 def stats() -> Dict[str, int]:
     return dict(_STATS)
+
+
+def _sim_roster_key(roster: Dict[str, Any]) -> Tuple[Any, ...]:
+    """Canonical identity for fields that affect Simulator lineup eligibility."""
+    players = tuple(sorted(str(x) for x in (roster.get("players") or [])))
+    taxi = tuple(sorted(str(x) for x in (roster.get("taxi") or [])))
+    reserve = tuple(sorted(str(x) for x in (roster.get("reserve") or [])))
+    return players, taxi, reserve
 
 
 def install() -> None:
@@ -43,9 +58,13 @@ def install() -> None:
     orig_choose = season_v3.choose_branch_lineup
     orig_maxpf = season_v3.best_lineup_points
     orig_trailing = HistoricalPoints.trailing
+    orig_sim_lineup = simulator.optimize_fsffl_fast
+    orig_sim_backups = simulator.build_backup_chains
 
     lineup_cache: Dict[Tuple[Any, ...], Any] = {}
     maxpf_cache: Dict[Tuple[Any, ...], Any] = {}
+    sim_lineup_cache: Dict[Tuple[Any, ...], Any] = {}
+    sim_backup_cache: Dict[Tuple[Any, ...], Any] = {}
     # Keep the object reference alongside its digest so Python id reuse cannot
     # cause a stale hit. Between scoring boundaries the ledger is treated as
     # immutable; scoring already deep-copies it before modification.
@@ -159,8 +178,60 @@ def install() -> None:
         cache[key] = copy.deepcopy(value)
         return value
 
+    def cached_sim_lineup(roster, week, league, players, projections):
+        # optimize_fsffl_fast depends only on the lineup-eligible roster, week,
+        # league lineup configuration, player metadata, and projections.
+        key = (
+            _sim_roster_key(roster),
+            int(week),
+            tuple(simulator.core.lineup_slots(league)),
+            id(players),
+            id(projections),
+        )
+        cached = sim_lineup_cache.get(key)
+        if cached is not None:
+            _STATS["sim_lineup_hits"] += 1
+            return copy.deepcopy(cached)
+        _STATS["sim_lineup_misses"] += 1
+        value = orig_sim_lineup(roster, week, league, players, projections)
+        sim_lineup_cache[key] = copy.deepcopy(value)
+        return value
+
+    def cached_sim_backups(roster, week, lineup, players, projections):
+        # Backup chains are deterministic for the exact active roster and exact
+        # optimized lineup. The full lineup signature includes values used for
+        # ranking so this remains content-equivalent rather than approximate.
+        lineup_key = tuple(
+            (
+                str(row.get("slot") or ""),
+                str(row.get("player_id") or ""),
+                str(row.get("position") or ""),
+                float(row.get("mean") or 0.0),
+                float(row.get("sd") or 0.0),
+                float(row.get("active_probability") or 0.0),
+            )
+            for row in lineup
+        )
+        key = (
+            _sim_roster_key(roster),
+            int(week),
+            lineup_key,
+            id(players),
+            id(projections),
+        )
+        cached = sim_backup_cache.get(key)
+        if cached is not None:
+            _STATS["sim_backup_hits"] += 1
+            return copy.deepcopy(cached)
+        _STATS["sim_backup_misses"] += 1
+        value = orig_sim_backups(roster, week, lineup, players, projections)
+        sim_backup_cache[key] = copy.deepcopy(value)
+        return value
+
     season_v3.apply_preserving_ledger = fast_apply_preserving_ledger
     season_v3.season_state_key = fast_season_state_key
     season_v3.choose_branch_lineup = cached_choose_branch_lineup
     season_v3.best_lineup_points = cached_best_lineup_points
     HistoricalPoints.trailing = cached_trailing
+    simulator.optimize_fsffl_fast = cached_sim_lineup
+    simulator.build_backup_chains = cached_sim_backups
