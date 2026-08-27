@@ -109,7 +109,7 @@ def unified_score_with_state(state: str, sim: Dict[str, Any]) -> float:
         + sf(d.get("bye_probability")) * w["bye"]
         + sf(d.get("championship_probability")) * w["title"]
         + sf(st.get("base_franchise_value_delta")) * w["base"]
-        + sf(st.get("intrinsic_dynasty_delta")) * w["dynasty"]
+        + sf(st.get("package_effective_value_delta"), sf(st.get("intrinsic_dynasty_delta"))) * w["dynasty"]
         + sf(st.get("break_glass_delta")) * w["break_glass"],
         2,
     )
