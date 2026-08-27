@@ -74,7 +74,7 @@ def team_label(uid,sides):
 def pick_only_label(label):
     """Return a draft asset without revealing the player it later became."""
     s=str(label or "")
-    if re.match(r"^20\\d{2} \\d+\\.\\d{2} - ",s):
+    if re.match(r"^20\d{2} \d+\.\d{2} - ",s):
         return s.split(" - ",1)[0]
     return s
 
@@ -123,6 +123,9 @@ def fit_label(v):
     if a>=250:return "Slight positive" if v>0 else "Slight negative"
     return "Near neutral"
 
+def value_label(v):
+    return fit_label(v).replace("positive","surplus").replace("negative","deficit")
+
 def plain_reason(row):
     d=row.get("delta") or {}; st=row.get("strategic") or {}
     wins=sf(d.get("expected_wins")); playoff=sf(d.get("playoff_probability"))
@@ -160,8 +163,10 @@ def at_time_card(uid,row,side,s):
          Paragraph("Playoff odds",s["label"]),Paragraph(pp(d.get("playoff_probability")),s["metric"])],
         [Paragraph("Championship odds",s["label"]),Paragraph(pp(d.get("championship_probability")),s["metric"]),
          Paragraph("Overall Team Fit",s["label"]),Paragraph(f"{sf(row.get('state_aware_utility_delta')):+,.0f}",s["metric"])],
-        [Paragraph("Package value",s["label"]),Paragraph(val(st.get("package_effective_value_delta",st.get("intrinsic_dynasty_delta"))),s["metric"]),
-         Paragraph("Value to this team",s["label"]),Paragraph(val(st.get("base_franchise_value_delta")),s["metric"])],
+        [Paragraph("Package value",s["label"]),Paragraph(
+             f"{val(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))}<br/><font size='6.2'>{value_label(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))}</font>",s["metric"]),
+         Paragraph("Value to this team",s["label"]),Paragraph(
+             f"{val(st.get('base_franchise_value_delta'))}<br/><font size='6.2'>{value_label(st.get('base_franchise_value_delta'))}</font>",s["metric"])],
     ]
     body=[
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
@@ -174,7 +179,7 @@ def at_time_card(uid,row,side,s):
             ("RIGHTPADDING",(0,0),(-1,-1),2),("TOPPADDING",(0,0),(-1,-1),2),
             ("BOTTOMPADDING",(0,0),(-1,-1),2)
         ]))],
-        [Paragraph("<b>Why:</b> "+clean(plain_reason(row),260),s["body"])],
+        [Paragraph("<b>Why:</b> "+clean(plain_reason(row),380),s["body"])],
     ]
     return Table(body,colWidths=[3.70*inch],style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT),("BOX",(0,0),(-1,-1),.55,MID),
@@ -243,7 +248,7 @@ def keep_reference(side,s):
             outcome="no completed draft conversion yet"
         rows.append(f"<b>{clean(pick_only_label(x.get('label')),75)}:</b> {outcome}")
     text="<br/>".join(rows) or "No keep-reference assets were available."
-    summary=(f"<br/><b>Keep-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
+    summary=(f"<br/><b>Hold-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
              f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current intrinsic value.")
     return Paragraph(text+summary+"<br/><font size='6.3'>"+clean(ref.get("note"),300)+"</font>",s["body"])
 
@@ -282,7 +287,8 @@ def build(report,out):
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
-        Spacer(1,.08*inch)
+        Spacer(1,.08*inch),
+        Paragraph("ASSET GENEALOGY & REALIZED PRODUCTION",s["section"])
     ]
     if len(uids)>=2:
         story.append(Table([[at_time_card(uids[0],results.get(uids[0]) or {},sides.get(uids[0]) or {},s),
@@ -331,9 +337,17 @@ def build(report,out):
         Spacer(1,.05*inch),
         Paragraph("FINAL RETROSPECTIVE VERDICT",s["section"]),
         Paragraph(
-            f"<b>At the time:</b> GM 3.0 gave the overall edge to {winner_name}. "
-            f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
-            "Those answers are intentionally kept separate: the first grades the decision process using only information available then; the second summarizes what the asset trees actually produced and still retain.",
+            (
+                f"<b>At the time:</b> GM 3.0 gave the overall edge to {winner_name}. "
+                f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
+                + (
+                    f"{team_label(next((u for u in uids if str(u)!=str(winner)),uids[0]),sides)} still received the immediate competitive improvement it paid for "
+                    f"({sf((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins')):+.2f} expected wins), "
+                    f"but {winner_name} won both the process grade and the realized asset-tree outcome."
+                    if winner and winner!="TIE" and str((report.get("hindsight_assessment") or {}).get("winner_user_id"))==str(winner)
+                    else "The process grade and realized outcome remain intentionally separate so later results never rewrite the original decision."
+                )
+            ),
             s["body"]),
     ]
     doc.build(story,onFirstPage=audit_footer,onLaterPages=audit_footer)
