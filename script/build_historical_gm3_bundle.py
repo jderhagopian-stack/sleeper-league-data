@@ -582,7 +582,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             "same_season_results_used": False,
             "future_schedule_used": False,
             "external_market_anchor_is_final_value": False,
-            "final_team_specific_value_source": "GM3_owner_value_plus_strategic_profile_plus_counterfactual_simulation",
+            "final_team_specific_value_source": "GM3_owner_value_plus_strategic_profile_plus_trade_impact",
         },
         "confidence": {
             "historical_roster_state": state.reconstruction.get("confidence"),
