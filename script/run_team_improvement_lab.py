@@ -282,8 +282,10 @@ def waiver_candidates(focus_uid: str, players_catalog, model_inputs, limit: int)
             continue
         future_means = [sf(v.get("mean", v.get("median"))) * sf(v.get("active_probability"), 1.0) for v in weeks.values()]
         projected = sum(future_means) / max(1, len(future_means))
+        intrinsic_dynasty = sf(a.get("intrinsic_dynasty"), sf(a.get("fsffl_value")))
+        intrinsic_current = sf(a.get("intrinsic_current"))
         market = sf(a.get("market_dynasty")); redraft = sf(a.get("market_redraft"))
-        screen = projected * 150 + market * .45 + redraft * .20
+        screen = projected * 150 + intrinsic_dynasty * .45 + intrinsic_current * .20
         rows.append({"channel": "WAIVER", "target": a, "projected_weekly_mean": round(projected, 3), "pre_screen_score": round(screen, 2)})
     rows.sort(key=lambda x: x["pre_screen_score"], reverse=True)
     return rows[:limit]
@@ -369,7 +371,7 @@ def main():
     hold = {
         "channel": "HOLD", "description": "Hold current roster", "team_improvement_score": 0.0,
         "actionable": True, "simulation": {"focus_delta": {"expected_wins": 0.0, "expected_points_for": 0.0, "playoff_probability": 0.0, "bye_probability": 0.0, "championship_probability": 0.0},
-                                               "strategic": {"market_dynasty_delta": 0.0, "base_franchise_value_delta": 0.0, "break_glass_delta": 0.0}}
+                                               "strategic": {"intrinsic_dynasty_delta": 0.0, "market_dynasty_delta": 0.0, "base_franchise_value_delta": 0.0, "break_glass_delta": 0.0}}
     }
     recommendation = best if best and sf(best.get("team_improvement_score")) > 0 else hold
     cc = team_doc(focus_uid, "command_center")
