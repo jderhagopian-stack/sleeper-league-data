@@ -3,7 +3,7 @@ name: Test FSFFL Reporting Layer
 on:
   pull_request:
     paths:
-      - 'script/fsffl_report_style.py'
+      - 'script/fsffl_report_style.py'\n      - 'script/report_language.py'
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
       - 'script/render_roster_decision_report.py'
@@ -12,7 +12,7 @@ on:
       - 'script/render_market_movement_report.py'
       - 'script/render_draft_recap_report.py'
       - 'script/render_record_book_report.py'
-      - 'script/render_multiverse_outliers_report.py'
+      - 'script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py'\n      - 'script/render_trade_review_report.py'\n      - 'script/render_historical_trade_report.py'\n      - 'script/render_gm_action_report_v10.py'
       - 'data/reporting/fsffl_reporting_architecture.json'
       - '.github/workflows/build-standardized-reports.yml'
       - '.github/workflows/test-reporting-layer.yml'
@@ -35,7 +35,7 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py
+        run: python -m py_compile script/report_language.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py
 
       - name: Render standardized reports
         run: |
@@ -70,7 +70,11 @@ jobs:
               p=Path('/tmp/fsffl-reports')/name
               assert p.exists() and p.stat().st_size > 2500
               assert p.read_bytes()[:4] == b'%PDF'
-              assert len(PdfReader(str(p)).pages) == 1
+              reader=PdfReader(str(p))
+              assert len(reader.pages) == 1
+              text='\n'.join((pg.extract_text() or '') for pg in reader.pages).lower()
+              banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
+              assert not [x for x in banned if x in text], f"{name}: {text}"
           print('FSFFL reporting layer standardized smoke test passed')
           PY
 
