@@ -19,7 +19,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
 )
 
-MODEL_VERSION="FSFFL-GM-Historical-Trade-Report-2.0"
+MODEL_VERSION="FSFFL-GM-Historical-Trade-Report-2.1"
 NAVY=colors.HexColor("#132238")
 LIGHT=colors.HexColor("#F2F5F8")
 MID=colors.HexColor("#D9E1E8")
@@ -71,6 +71,44 @@ def team_label(uid,sides):
     x=sides.get(str(uid)) or {}
     return clean(x.get("team_name") or x.get("manager") or uid,60)
 
+def display_asset_name(raw,side):
+    name=str(raw or "")
+    if not name.startswith("pick:"):
+        return name
+    h=side.get("hindsight") or {}
+    candidates=[]
+    candidates.extend(((h.get("asset_lineage") or {}).get("root_assets") or []))
+    candidates.extend(((h.get("asset_lineage") or {}).get("terminal_assets") or []))
+    candidates.extend(((h.get("keep_assets_reference") or {}).get("assets") or []))
+    for x in candidates:
+        if str(x.get("asset_key"))==name and x.get("label"):
+            return str(x.get("label"))
+    return name
+
+
+def hindsight_verdict(report,sides):
+    h=report.get("hindsight_assessment") or {}
+    cls=str(h.get("classification") or "")
+    winner=h.get("winner_user_id")
+    if cls=="CLEAR_HINDSIGHT_EDGE" and winner:
+        return f"HINDSIGHT EDGE: {team_label(winner,sides).upper()}", (
+            f"{team_label(winner,sides)} leads on both actual production captured from the trade's asset tree "
+            "and the value still remaining in descendant assets."
+        )
+    if cls=="SPLIT_HINDSIGHT_RESULT":
+        return "HINDSIGHT RESULT: SPLIT", (
+            "One side leads in production already realized while the other leads in remaining descendant value. "
+            "The model does not force those different dimensions into one artificial score."
+        )
+    if cls=="NEAR_EVEN_HINDSIGHT":
+        return "HINDSIGHT RESULT: NEAR EVEN", (
+            "The two sides are within the model's materiality band on both realized production and remaining descendant value."
+        )
+    return "HINDSIGHT RESULT: STILL DEVELOPING", (
+        "The available asset tree is not yet complete enough for a clean retrospective winner."
+    )
+
+
 def fit_label(v):
     v=sf(v); a=abs(v)
     if a>=2500:return "Major positive" if v>0 else "Major negative"
@@ -103,8 +141,8 @@ def plain_reason(row):
 def at_time_card(uid,row,side,s):
     st=row.get("strategic") or {}; d=row.get("delta") or {}
     dec=(row.get("decision") or {}).get("band")
-    rec=[x.get("name") or x.get("asset_id") for x in st.get("received") or []]
-    sent=[x.get("name") or x.get("asset_id") for x in st.get("sent") or []]
+    rec=[display_asset_name(x.get("name") or x.get("asset_id"),side) for x in st.get("received") or []]
+    sent=[display_asset_name(x.get("name") or x.get("asset_id"),side) for x in st.get("sent") or []]
     metrics=[
         [Paragraph("Expected wins",s["label"]),Paragraph(num(d.get("expected_wins"),2),s["metric"]),
          Paragraph("Playoff odds",s["label"]),Paragraph(pp(d.get("playoff_probability")),s["metric"])],
@@ -144,19 +182,26 @@ def lineage_card(uid,side,s):
         for x in lin.get("terminal_assets") or []
     ) or "No tracked descendant player/pick remains in the lineage."
     events=lin.get("events") or []
-    bullets="<br/>".join(f"- {event_sentence(e)}" for e in events[:7]) or "- No downstream transformation was recorded."
-    if len(events)>7:
-        bullets+=f"<br/>- ...plus {len(events)-7} additional lineage events."
-    ro=side.get("realized_outcome") or {}
-    direct_pts=sf(ro.get("acquired_player_fsffl_points_after_trade"))
+    bullets="<br/>".join(f"- {event_sentence(e)}" for e in events[:6]) or "- No downstream transformation was recorded."
+    if len(events)>6:
+        bullets+=f"<br/>- ...plus {len(events)-6} additional lineage events."
+    prod=(lin.get("captured_production") or {})
+    total_pts=sf(prod.get("captured_fsffl_points"))
+    started_pts=sf(prod.get("captured_started_points"))
+    top=prod.get("player_rows") or []
+    top_text=", ".join(
+        f"{clean(x.get('player_name'),24)} {sf(x.get('fsffl_points_while_rostered')):,.1f}"
+        for x in top[:4]
+    ) or "No recorded lineage-player production."
     mixed=int(lin.get("mixed_attribution_events") or 0)
-    warning=(f"<br/><b>Attribution note:</b> {mixed} downstream trade(s) mixed lineage assets with unrelated assets, so the report tracks the full return but does not claim the original trade deserves 100% of that return."
+    warning=(f"<br/><b>Attribution note:</b> {mixed} downstream trade(s) mixed lineage assets with unrelated assets. The full return is shown, but the original trade is not credited with 100% of that package."
              if mixed else "")
     return Table([
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
-        [Paragraph(f"<b>Original return:</b> {clean(roots,170)}<br/>"
-                   f"<b>Direct acquired-player production:</b> {direct_pts:,.1f} FSFFL points<br/>"
-                   f"<b>Tracked descendant value today:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f}<br/>"
+        [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
+                   f"<b>Production actually captured:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} while started)<br/>"
+                   f"<b>Top lineage contributors:</b> {clean(top_text,180)}<br/>"
+                   f"<b>Value still in the asset tree:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f}<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>Asset trail</b><br/>"+bullets+warning,s["body"])],
     ],colWidths=[3.70*inch],style=TableStyle([
@@ -165,19 +210,26 @@ def lineage_card(uid,side,s):
         ("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5),
     ]))
 
+
 def keep_reference(side,s):
     ref=((side.get("hindsight") or {}).get("keep_assets_reference") or {})
     rows=[]
     for x in ref.get("assets") or []:
         if x.get("reference_type")=="observed_player_output_after_trade":
-            outcome=f"{sf(x.get('observed_post_trade_points')):,.1f} observed FSFFL points after the trade"
+            outcome=(f"{sf(x.get('observed_post_trade_points')):,.1f} observed FSFFL points after the trade; "
+                     f"current intrinsic value {sf(x.get('current_intrinsic_value')):,.0f}")
         elif x.get("drafted_player"):
-            outcome=f"slot became {clean(x.get('drafted_player'),45)} (pick {x.get('pick_no')})"
+            outcome=(f"slot became {clean(x.get('drafted_player'),38)}; "
+                     f"{sf(x.get('observed_drafted_player_points')):,.1f} FSFFL points since drafted; "
+                     f"current intrinsic value {sf(x.get('current_intrinsic_value')):,.0f}")
         else:
             outcome="no completed draft conversion yet"
-        rows.append(f"<b>{clean(x.get('label'),55)}:</b> {outcome}")
+        rows.append(f"<b>{clean(x.get('label'),75)}:</b> {outcome}")
     text="<br/>".join(rows) or "No keep-reference assets were available."
-    return Paragraph(text+"<br/><font size='6.3'>"+clean(ref.get("note"),280)+"</font>",s["body"])
+    summary=(f"<br/><b>Keep-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
+             f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current intrinsic value.")
+    return Paragraph(text+summary+"<br/><font size='6.3'>"+clean(ref.get("note"),300)+"</font>",s["body"])
+
 
 def build(report,out):
     s=styles()
@@ -219,8 +271,9 @@ def build(report,out):
         Paragraph("DEAL IN HINDSIGHT",s["title"]),
         Paragraph("What actually happened to the assets after the trade | This section never changes the original GM 3.0 grade",s["sub"]),
         Spacer(1,.07*inch),
-        Table([[Paragraph("HINDSIGHT IS AN ASSET TREE, NOT JUST A POINT TOTAL",s["hero"])],
-               [Paragraph("The report follows draft-pick conversions and later trades. When an acquired asset is packaged with unrelated assets, the downstream return is shown with mixed attribution instead of pretending the original trade alone created it.",s["hero2"])]],
+        Table([[Paragraph(hindsight_verdict(report,sides)[0],s["hero"])],
+               [Paragraph(hindsight_verdict(report,sides)[1],s["hero2"])],
+               [Paragraph("The report follows draft-pick conversions, later trades, actual production captured from descendant players, and value still remaining in the asset tree. Mixed-package attribution is explicitly flagged.",s["hero2"])]],
               colWidths=[7.7*inch],style=TableStyle([
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
@@ -246,9 +299,11 @@ def build(report,out):
             "The keep reference reports what the surrendered players actually produced after the trade and what surrendered draft slots actually became. It is deliberately not labeled a full alternate-history simulation: if the original trade never happened, later trades, draft choices, waiver moves and lineup decisions could also have changed. The asset-lineage section is factual; the keep reference is a disciplined comparison point.",
             s["body"]),
         Spacer(1,.05*inch),
-        Paragraph("PROCESS VS. OUTCOME",s["section"]),
+        Paragraph("FINAL RETROSPECTIVE VERDICT",s["section"]),
         Paragraph(
-            "The final retrospective judgment should preserve both answers: Was the decision sensible with the information available at the time? And what did the franchise ultimately turn those assets into? Those answers are allowed to disagree.",
+            f"<b>At the time:</b> GM 3.0 gave the overall edge to {winner_name}. "
+            f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
+            "Those answers are intentionally kept separate: the first grades the decision process using only information available then; the second summarizes what the asset trees actually produced and still retain.",
             s["body"]),
         Spacer(1,.04*inch),
         Paragraph(f"{MODEL_VERSION} | asset-lineage hindsight | mixed attribution explicitly flagged | no hindsight leakage into the at-the-time grade",s["small"])
