@@ -22,6 +22,7 @@ MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.0"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
+    "optimized_lineup_cache",
 }
 
 
@@ -79,6 +80,16 @@ def build_all_lineups(simmod, rosters, league, players, projections):
     return lineups
 
 
+def cached_lineups(bundle):
+    raw = ((bundle.get("optimized_lineup_cache") or {}).get("lineups") or {})
+    if not raw:
+        raise RuntimeError("Frozen historical bundle is missing optimized baseline lineups")
+    return {
+        int(rid): {int(week): rows for week, rows in weeks.items()}
+        for rid, weeks in raw.items()
+    }
+
+
 def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=20260821):
     status = bundle_status(bundle)
     if not status["ready"]:
@@ -116,7 +127,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         }
 
     hypothetical, pick_transfers = dl.apply_actions(canonical, actions)
-    baseline_lineups = build_all_lineups(simmod, canonical, league, players, projections)
+    baseline_lineups = cached_lineups(bundle)
     hypothetical_lineups, reoptimized = dl.reoptimize_touched_lineups(
         simmod, baseline_lineups, hypothetical, participants,
         league, users, players, projections
@@ -198,6 +209,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         "current_values_used": False,
         "standalone_historical_score_used": False,
         "teams_reoptimized": reoptimized,
+        "baseline_lineup_source": "frozen_bundle_cache",
         "pick_transfers": pick_transfers,
         "team_results": rows,
         "bilateral_assessment": assessment,
