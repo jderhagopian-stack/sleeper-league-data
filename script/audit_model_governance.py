@@ -195,6 +195,27 @@ def curated_findings():
         "required_action":"Treat v1.4 as a safer provisional calibration, not a validated one. Backtest recommendation rankings against historical decisions/outcomes and run parameter-stability analysis."
       },
       {
+        "id":"TRADE-SCORE-001","severity":"CRITICAL","status":"HEURISTIC_ACTIVE",
+        "component":"Trade Market Sweep post-simulation ranking",
+        "evidence":"run_trade_market_sweep.py ranks simulated deals with hard-coded terms including dynasty + .35*break_glass + 25000*title + 5000*playoff - 12000*competitive_externality, plus additional fixed penalties around contender guardrails.",
+        "why_it_matters":"This is another high-leverage utility function where a few percentage points of simulated title probability can outweigh thousands of dynasty-value points. It can reorder alternatives even when the raw simulations are unchanged.",
+        "required_action":"Replace these multipliers with one canonical, calibrated utility framework shared with other decision modules. Until calibrated, expose raw metric tradeoffs and treat the composite rank as provisional."
+      },
+      {
+        "id":"TRADE-PRESCREEN-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"Trade discovery and plausibility prescreen",
+        "evidence":"Market Sweep uses fixed package-size limits, plausibility thresholds, value-ratio bands, protected-asset penalties, need bonuses and top-N pools before deep simulation.",
+        "why_it_matters":"A prescreen error is worse than a bad final weight because a good trade can be removed before the simulator ever evaluates it. This creates hidden false negatives.",
+        "required_action":"Measure recall against exhaustive searches on historical/small test universes. Tune thresholds for high recall first, then use simulation to rank precision."
+      },
+      {
+        "id":"ROSTER-CUT-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"Automatic roster-cut selection",
+        "evidence":"roster_aware_trade.py computes retention cost as base + .12*break_glass + .06*depth + .04*market_dynasty*liquidity, then multiplies starters by 1.75 and core-status categories by 2.00/1.70/1.35/1.12.",
+        "why_it_matters":"When a trade forces a cut, this formula chooses which player disappears. A wrong cut choice changes the simulated lineup, franchise value and final trade verdict.",
+        "required_action":"Use exhaustive or top-k simulated cut resolution whenever feasible and validate the prescreen against the true best post-cut roster. Treat the retention formula only as a search accelerator."
+      },
+      {
         "id":"ROSTER-INTERACTION-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
         "component":"Backfield/roster interaction value",
         "evidence":"MAX_PAIR_INSURANCE_PCT=.12, PAIR_CAPTURE_SCALE=.30, MAX_PORTFOLIO_ADJUSTMENT=600 and MAX_ACCEPTANCE_FIT_SHIFT=.04 are hard-coded.",
