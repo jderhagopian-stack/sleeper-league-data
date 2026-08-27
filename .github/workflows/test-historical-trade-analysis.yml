@@ -161,7 +161,7 @@ jobs:
           assert 'WHAT REINFORCED OR CHANGED THE VERDICT' in page2
           assert 'Fantasy production received since the trade' in page2_flat
           assert 'HINDSIGHT SCORECARD' in page2
-          assert 'Estimated wins added vs. average starter' in page2_flat
+          assert 'FSFFL WAR' in page2_flat
           assert 'Biggest hindsight contributor' in page2_flat
           assert 'Hold-reference totals' in page2
           assert 'AUDIT / METHODOLOGY NOTES' not in page1
