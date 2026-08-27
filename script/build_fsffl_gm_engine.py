@@ -72,10 +72,13 @@ PROTECTED_HSG_PLAYERS = set()
 FUTURE_PICK_YEARS = [2027, 2028, 2029]
 ROUNDS = [1, 2, 3]
 POSITIONS = ("QB", "RB", "WR", "TE")
+_ACTIVE_INTRINSIC_PLAYER_VALUES = {}
+_ACTIVE_INTRINSIC_YEAR = 2026
 
 CONFIG = {
     "model_version": "GM-1.0",
-    "market_source": "FantasyCalc current values",
+    "market_source": "FantasyCalc current values — sanity check / execution reference only",
+    "valuation_architecture": "Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value",
     "market_settings": {
         "dynasty": True,
         "num_qbs": 2,
@@ -119,7 +122,8 @@ CONFIG = {
     "package_effective_value_weights": [1.0, 0.92, 0.84],
     "notes": [
         "Values are estimates, not probabilities or guaranteed trade prices.",
-        "FantasyCalc provides the market anchor; FSFFL and owner values are model adjustments.",
+        "FSFFL intrinsic value is calculated independently of market prices.",
+        "FantasyCalc is retained only as a sanity check and execution reference; it does not set intrinsic value.",
         "Current-owner hold value intentionally includes a modest endowment/replacement premium.",
         "Owner behavior is inferred from completed transactions, drafts and waivers; rejected offers are not available.",
     ],
@@ -368,6 +372,169 @@ def build_player_values(
             "market_match": "sleeper_id" if drow and drow.get("sleeper_id") == pid else ("name_position" if drow else "unmatched"),
         }
     return values
+
+
+
+def load_intrinsic_projection_bundle(active_season: int):
+    """Load the canonical FSFFL simulator projection universe.
+
+    This is the primary football input for intrinsic valuation. Market data is
+    intentionally not consulted here.
+    """
+    path = DATA / "simulator" / str(active_season) / "inputs" / "player_weekly_projections.json"
+    return load_json(path, {}) or {}
+
+
+def _projection_ppg(projections: Dict[str, Any], pid: str) -> float:
+    row = ((projections or {}).get("players") or {}).get(str(pid)) or {}
+    if row.get("season_baseline_ppg") is not None:
+        return safe_float(row.get("season_baseline_ppg"))
+    vals = []
+    for w in (row.get("weeks") or {}).values():
+        if not isinstance(w, dict) or w.get("is_bye"):
+            continue
+        ap = clamp(safe_float(w.get("active_probability"), 1.0), 0.0, 1.0)
+        vals.append(safe_float(w.get("mean")) * ap)
+    return statistics.mean(vals) if vals else 0.0
+
+
+def _intrinsic_age_multiplier(position: str, age: float) -> float:
+    """Dynasty horizon adjustment independent of market prices."""
+    age = safe_float(age, 26.0)
+    pos = str(position or "")
+    if pos == "QB":
+        if age <= 24: return 1.10
+        if age <= 29: return 1.08
+        return clamp(1.08 - 0.055 * (age - 29), 0.58, 1.08)
+    if pos == "RB":
+        if age <= 23: return 1.13
+        if age <= 25: return 1.04
+        return clamp(1.04 - 0.105 * (age - 25), 0.42, 1.04)
+    if pos == "WR":
+        if age <= 23: return 1.12
+        if age <= 27: return 1.08
+        return clamp(1.08 - 0.075 * (age - 27), 0.48, 1.08)
+    if pos == "TE":
+        if age <= 24: return 1.10
+        if age <= 28: return 1.08
+        return clamp(1.08 - 0.065 * (age - 28), 0.50, 1.08)
+    return 1.0
+
+
+def market_sanity_check(intrinsic: float, market: float) -> Dict[str, Any]:
+    """Compare, never blend, intrinsic FSFFL value with observed market price."""
+    intrinsic = safe_float(intrinsic)
+    market = safe_float(market)
+    if intrinsic <= 0 or market <= 0:
+        return {
+            "available": False,
+            "intrinsic_value": round(intrinsic, 1),
+            "market_value": round(market, 1),
+            "market_adjusted_intrinsic_value": False,
+        }
+    deviation = (market - intrinsic) / intrinsic
+    ad = abs(deviation)
+    band = "aligned" if ad <= 0.20 else "watch" if ad <= 0.40 else "material_divergence"
+    return {
+        "available": True,
+        "intrinsic_value": round(intrinsic, 1),
+        "market_value": round(market, 1),
+        "market_minus_intrinsic": round(market - intrinsic, 1),
+        "market_vs_intrinsic_pct": round(deviation, 4),
+        "band": band,
+        "market_adjusted_intrinsic_value": False,
+    }
+
+
+def build_intrinsic_player_values(
+    player_values: Dict[str, Dict[str, Any]],
+    projections: Dict[str, Any],
+) -> Dict[str, Dict[str, Any]]:
+    """Calculate league-format intrinsic player values without market prices.
+
+    Current value is driven by projected FSFFL scoring above a dynamic
+    position replacement level. Dynasty value then applies a position-specific
+    age horizon. The final 0-10k-ish scale is internal and comparable across
+    players and picks; external market values remain a separate sanity check.
+    """
+    demand_rank = {"QB": 24, "RB": 36, "WR": 48, "TE": 18}
+    ppg = {pid: _projection_ppg(projections, pid) for pid in player_values}
+    by_pos = defaultdict(list)
+    for pid, row in player_values.items():
+        pos = row.get("position")
+        if pos in POSITIONS and ppg.get(pid, 0.0) > 0:
+            by_pos[pos].append(ppg[pid])
+    replacement = {}
+    for pos in POSITIONS:
+        vals = sorted(by_pos.get(pos) or [], reverse=True)
+        if not vals:
+            replacement[pos] = 0.0
+            continue
+        idx = min(max(demand_rank[pos] - 1, 0), len(vals) - 1)
+        replacement[pos] = vals[idx]
+
+    raw_utility = {}
+    for pid, row in player_values.items():
+        pos = row.get("position")
+        proj = ppg.get(pid, 0.0)
+        repl = replacement.get(pos, 0.0)
+        # VORP is the primary signal. A small absolute-production term prevents
+        # cliff effects around replacement and preserves elite QB scoring.
+        vorp = max(0.0, proj - repl)
+        scarcity = {"QB": 1.18, "RB": 1.00, "WR": 1.00, "TE": 1.04}.get(pos, 1.0)
+        raw_utility[pid] = scarcity * (vorp + 0.22 * proj)
+
+    utilities = list(raw_utility.values())
+    for pid, row in player_values.items():
+        pct = percentile_rank(raw_utility.get(pid, 0.0), utilities)
+        pos = row.get("position")
+        proj = ppg.get(pid, 0.0)
+        repl = replacement.get(pos, 0.0)
+        vorp_ratio = max(0.0, proj - repl) / max(repl, 1.0)
+        current = 400.0 + 7600.0 * (pct ** 1.55) + 1100.0 * clamp(vorp_ratio / 1.5, 0.0, 1.0)
+        current = clamp(current, 250.0, 10000.0)
+        dynasty = clamp(current * _intrinsic_age_multiplier(pos, row.get("age")), 200.0, 10000.0)
+        row["projection_ppg"] = round(proj, 3)
+        row["position_replacement_ppg"] = round(repl, 3)
+        row["intrinsic_current"] = round(current, 1)
+        row["intrinsic_dynasty"] = round(dynasty, 1)
+        row["intrinsic_value_source"] = "FSFFL_projection_VORP_age_curve_no_market"
+        row["market_sanity_check"] = market_sanity_check(dynasty, row.get("market_dynasty"))
+    return player_values
+
+
+def intrinsic_pick_value(
+    year: int,
+    rnd: int,
+    player_values: Dict[str, Dict[str, Any]],
+    current_year: int,
+    slot: int | None = None,
+    tier: str | None = None,
+) -> float:
+    """Price a pick from the model's own player-value distribution, not market."""
+    vals = sorted(
+        safe_float(x.get("intrinsic_dynasty"))
+        for x in player_values.values()
+        if safe_float(x.get("intrinsic_dynasty")) > 0
+    )
+    if not vals:
+        return 0.0
+    if slot is None:
+        slot = {"early": 3, "mid": 6, "late": 10}.get(str(tier or "mid"), 6)
+    slot = max(1, min(12, int(slot)))
+    if int(rnd) == 1:
+        q = 0.965 - (slot - 1) * (0.315 / 11.0)
+    elif int(rnd) == 2:
+        q = 0.62 - (slot - 1) * (0.24 / 11.0)
+    else:
+        q = 0.36 - (slot - 1) * (0.18 / 11.0)
+    q = clamp(q, 0.05, 0.99)
+    idx = int(round(q * (len(vals) - 1)))
+    expected_player_value = vals[idx]
+    years_out = max(0, int(year) - int(current_year))
+    time_discount = 0.90 ** years_out
+    optionality = {1: 1.04, 2: 1.02, 3: 1.00}.get(int(rnd), 1.0)
+    return round(expected_player_value * time_discount * optionality, 1)
 
 
 def current_owner_by_player(rosters: List[Dict[str, Any]]) -> Dict[str, str]:
@@ -806,14 +973,15 @@ def manual_intelligence_adjustment(asset, manual):
 def football_intelligence_adjustment(asset, usage, snaps, manual):
     inj_adj, inj_meta = injury_adjustment(asset)
     use_adj, use_meta = usage_adjustment(asset, usage, snaps)
-    mom_adj, mom_meta = market_momentum_adjustment(asset)
+    _mom_adj, mom_meta = market_momentum_adjustment(asset)
+    mom_adj = 0.0
     man_adj, man_meta = manual_intelligence_adjustment(asset, manual)
 
     total = clamp(inj_adj + use_adj + mom_adj + man_adj, -0.22, 0.22)
     return total, {
         "injury": inj_meta,
         "usage_and_snaps": use_meta,
-        "market_momentum": mom_meta,
+        "market_momentum": {**mom_meta, "used_in_intrinsic_value": False},
         "manual_news_signal": man_meta,
         "total_adjustment": round(total, 4),
     }
@@ -1029,8 +1197,8 @@ def player_window_fit(asset: Dict[str, Any], contender_score: float) -> float:
     Returns -1..1. Positive means the player's current-production/dynasty mix
     aligns with this team's competitive window.
     """
-    dynasty = safe_float(asset.get("market_dynasty"))
-    redraft = safe_float(asset.get("market_redraft"))
+    dynasty = safe_float(asset.get("intrinsic_dynasty"))
+    redraft = safe_float(asset.get("intrinsic_current"))
     if dynasty <= 0:
         return 0.0
 
@@ -1065,21 +1233,12 @@ def fsffl_league_value(
       + independent recent performance
       + injuries / usage / snap trend / market momentum / qualitative intelligence
     """
-    base = safe_float(asset.get("market_dynasty"))
-    rank = asset.get("market_rank")
+    base = safe_float(asset.get("intrinsic_dynasty"))
     if not base:
         return 0.0
-
-    if isinstance(rank, int) and rank <= 24:
-        mult = 1.04
-    elif isinstance(rank, int) and rank <= 60:
-        mult = 1.02
-    elif isinstance(rank, int) and rank > 180:
-        mult = 0.90
-    elif isinstance(rank, int) and rank > 120:
-        mult = 0.95
-    else:
-        mult = 1.0
+    # Intrinsic FSFFL value is the valuation foundation. External market rank
+    # is deliberately excluded; the market is a diagnostic sanity check only.
+    mult = 1.0
 
     perf_adj = 0.0
     if performance is not None and baselines is not None:
@@ -1213,6 +1372,7 @@ def build_future_pick_assets(
         tier = expected_pick_tier(original_uid, team_profiles)
         base = fallback_pick_value(year, tier, rnd, detected_pick_values)
         asset_id = f"pick:{year}:R{rnd}:orig{orig_rid}"
+        intrinsic = intrinsic_pick_value(year, rnd, _ACTIVE_INTRINSIC_PLAYER_VALUES, _ACTIVE_INTRINSIC_YEAR, tier=tier)
         assets[asset_id] = {
             "asset_type": "pick",
             "asset_id": asset_id,
@@ -1228,6 +1388,9 @@ def build_future_pick_assets(
             "current_owner_team": team_label(current_uid, profile_by_uid),
             "projected_pick_tier": tier,
             "market_dynasty": round(base, 1),
+            "intrinsic_dynasty": round(intrinsic, 1),
+            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_from_intrinsic_player_distribution",
+            "market_sanity_check": market_sanity_check(intrinsic, base),
             "name": f"{year} {tier.title()} {ordinal(rnd)} — original {team_label(original_uid, profile_by_uid)}",
         }
     return assets
@@ -1244,7 +1407,7 @@ def owner_pick_value(
     prefs: Dict[str, Dict[str, Any]],
     hold: bool,
 ) -> Tuple[float, Dict[str, float]]:
-    base = safe_float(pick.get("market_dynasty"))
+    base = safe_float(pick.get("intrinsic_dynasty"))
     pref = safe_float(prefs.get(uid, {}).get("pick_preference"), 0.0)
     contender = safe_float(team_profiles.get(uid, {}).get("contender_score"), 0.5)
 
@@ -1567,6 +1730,13 @@ def base_main():
     detected_pick_values = infer_fc_pick_values(market)
 
     player_values = build_player_values(rosters, players, market_idx)
+    league = load_json(DATA / "league.json", {}) or {}
+    active_season = int(league.get("season") or 2026)
+    projections = load_intrinsic_projection_bundle(active_season)
+    player_values = build_intrinsic_player_values(player_values, projections)
+    global _ACTIVE_INTRINSIC_PLAYER_VALUES, _ACTIVE_INTRINSIC_YEAR
+    _ACTIVE_INTRINSIC_PLAYER_VALUES = player_values
+    _ACTIVE_INTRINSIC_YEAR = active_season
     # GM-2.2 retains the fix: optimized_starter_sets must see current player values on its
     # first call. Without this, the owner-matrix starter-dependency layer can
     # be built from an empty valuation cache.
@@ -1575,10 +1745,10 @@ def base_main():
     owner_by_player = current_owner_by_player(rosters)
     starters = starter_sets(rosters)
 
-    performance = load_recent_performance(active_season=2026)
+    performance = load_recent_performance(active_season=active_season)
     performance_baselines = build_performance_baselines(performance, player_values)
-    usage = fetch_nflverse_usage(active_season=2026)
-    snaps = fetch_nflverse_snaps(active_season=2026)
+    usage = fetch_nflverse_usage(active_season=active_season)
+    snaps = fetch_nflverse_snaps(active_season=active_season)
     manual_intelligence = load_manual_football_intelligence()
 
     team_profiles = build_team_strengths(rosters, player_values, profile_by_uid)
