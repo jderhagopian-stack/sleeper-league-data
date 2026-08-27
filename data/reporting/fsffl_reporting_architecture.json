@@ -1,6 +1,6 @@
 {
   "name": "FSFFL Reporting Layer",
-  "version": "1.1",
+  "version": "1.2",
   "principles": {
     "raw_model_output_is_source_of_truth": true,
     "chatgpt_reads_raw_output_not_pdf": true,
@@ -9,7 +9,9 @@
     "conversational_response_precedes_attachment": true,
     "aesthetic_quality_is_required": true,
     "plain_language_is_required": true,
-    "technical_model_terms_stay_in_source_json": true
+    "technical_model_terms_stay_in_source_json": true,
+    "user_facing_prose_must_not_be_truncated": true,
+    "multi_page_reports_preferred_over_cutoff_text": true
   },
   "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach a standardized plain-English PDF. User-facing reports must lead with football meaning and decisions; technical field names and implementation details stay in the source JSON or footer unless a short explanation is necessary.",
   "design_system": {
@@ -28,7 +30,8 @@
       "avoid spreadsheet-dump layouts",
       "shareable without verbal explanation",
       "plain English before model terminology",
-      "define any unavoidable technical term in one sentence"
+      "define any unavoidable technical term in one sentence",
+      "never truncate user-facing prose with ellipses"
     ]
   },
   "supported_reports": [
