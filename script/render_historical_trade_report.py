@@ -298,7 +298,7 @@ def hindsight_scorecard(report,sides,uids,s):
             "uid":uid,"team":team_label(uid,sides),
             "points":sf(prod.get("captured_fsffl_points")),
             "remaining":sf(lin.get("terminal_current_intrinsic_value")),
-            "wins":sf(impact.get("estimated_wins_added_vs_average_starter")),
+            "wins":sf(impact.get("war")),
         })
     if len(metrics)<2:
         return Paragraph("Hindsight scorecard unavailable.",s["body"])
@@ -310,10 +310,10 @@ def hindsight_scorecard(report,sides,uids,s):
     hw=(report.get("hindsight_assessment") or {}).get("winner_user_id")
     overall="Still developing" if not hw else team_label(str(hw),sides)
     data=[
-        [Paragraph("<b>PRODUCTION</b>",s["label"]),Paragraph("<b>EST. WINS ADDED</b>",s["label"]),
+        [Paragraph("<b>PRODUCTION</b>",s["label"]),Paragraph("<b>FSFFL WAR</b>",s["label"]),
          Paragraph("<b>VALUE STILL OWNED</b>",s["label"]),Paragraph("<b>OVERALL</b>",s["label"])],
         [Paragraph(lead("points",lambda v:f"{v:,.0f} pts"),s["body"]),
-         Paragraph(lead("wins",lambda v:f"{v:+.2f} vs avg starter"),s["body"]),
+         Paragraph(lead("wins",lambda v:f"{v:+.2f} WAR"),s["body"]),
          Paragraph(lead("remaining",lambda v:f"{v:,.0f} value pts"),s["body"]),
          Paragraph(overall,s["body"])],
     ]
@@ -339,13 +339,13 @@ def verdict_change_story(report,sides,uids,winner):
         top=impact.get("player_rows") or []
         if top:
             x=top[0]
-            leaders.append(f"{x.get('player_name')} ({sf(x.get('estimated_wins_added')):+.2f} wins)")
+            leaders.append(f"{x.get('player_name')} ({sf(x.get('war')):+.2f} wins)")
     if winner and winner!="TIE" and str(hw)==str(winner):
         lead=f"The original verdict held: {at_name} remains the hindsight winner."
     else:
         lead=f"The hindsight result changed from {at_name} at the time to {hi_name}."
     if len(leaders)>=2:
-        lead+=f" Biggest on-field contributors: {leaders[0]} vs. {leaders[1]}, each measured against an average starter."
+        lead+=f" Biggest on-field contributors: {leaders[0]} vs. {leaders[1]}, each measured against replacement."
     return lead
 
 
@@ -380,10 +380,10 @@ def lineage_card(uid,side,s):
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
                    f"<b>Fantasy production received since the trade:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} scored while in the starting lineup)<br/>"
-                   f"<b>Estimated wins added vs. average starter:</b> {sf(impact.get('estimated_wins_added_vs_average_starter')):+.2f} "
-                   f"({sf(impact.get('points_above_average_starter')):+.1f} started points above benchmark)<br/>"
+                   f"<b>FSFFL WAR:</b> {sf(impact.get('war')):+.2f} "
+                   f"({sf(impact.get('points_above_replacement')):+.1f} started points above benchmark)<br/>"
                    + (f"<b>Biggest hindsight contributor:</b> {clean(biggest.get('player_name'),28)} "
-                      f"({sf(biggest.get('estimated_wins_added')):+.2f} estimated wins above average)<br/>" if biggest else "")
+                      f"({sf(biggest.get('war')):+.2f} WAR)<br/>" if biggest else "")
                    + f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>What the original assets became</b><br/>"+bullets+warning,s["body"])],
