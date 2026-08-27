@@ -22,8 +22,25 @@ def sf(v,d=0.0):
     except:return d
 
 def clean(x,n=220):
-    s=str(x or '').replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
-    return s if len(s)<=n else s[:n-1].rstrip()+'...'
+    # Preserve the small set of ReportLab paragraph tags used by this renderer
+    # while sanitizing names/text to fonts that are guaranteed to render.
+    import re
+    s=str(x or '')
+    tags={}
+    def hold(m):
+        key=f"__TAG{len(tags)}__"
+        tags[key]=m.group(0)
+        return key
+    s=re.sub(r'<(?:/?b|br\s*/?|font\b[^>]*|/font)>',hold,s,flags=re.I)
+    s=(s.replace('\u2192','->').replace('\u2014','-').replace('\u2013','-')
+         .replace('\u2019',"'").replace('\u2018',"'").replace('\u201c','"').replace('\u201d','"'))
+    s=s.encode('ascii','ignore').decode('ascii')
+    s=s.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+    for key,tag in tags.items():
+        s=s.replace(key,tag)
+    if len(s)>n:
+        s=s[:n-3].rstrip()+'...'
+    return s
 
 def names(xs):
     vals=[str(x) for x in (xs or []) if x]
@@ -140,7 +157,7 @@ def render(r,out):
     box.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),vc),('BACKGROUND',(1,0),(1,0),LIGHT),('BOX',(0,0),(-1,-1),.7,MID),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),8),('RIGHTPADDING',(0,0),(-1,-1),8)]))
     story += [box,Spacer(1,5)]
     cards=[
-      card('EXPECTED WINS',f"{sf(before.get('expected_wins')):.2f} → {sf(after.get('expected_wins')):.2f}",sf(after.get('expected_wins'))>=sf(before.get('expected_wins'))),
+      card('EXPECTED WINS',f"{sf(before.get('expected_wins')):.2f} -> {sf(after.get('expected_wins')):.2f}",sf(after.get('expected_wins'))>=sf(before.get('expected_wins'))),
       card('PLAYOFF ODDS',f"{sf(before.get('playoff_probability'))*100:.1f}% → {sf(after.get('playoff_probability'))*100:.1f}%",sf(after.get('playoff_probability'))>=sf(before.get('playoff_probability'))),
       card('CHAMPIONSHIP ODDS',f"{sf(before.get('championship_probability'))*100:.1f}% → {sf(after.get('championship_probability'))*100:.1f}%",sf(after.get('championship_probability'))>=sf(before.get('championship_probability'))),
       card(label('strategic_value_delta').upper(),f"{sf(st.get('strategic_value_delta')):+,.0f}",sf(st.get('strategic_value_delta'))>=0),
