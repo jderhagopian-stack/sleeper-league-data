@@ -190,48 +190,66 @@ def _current_intrinsic_map():
     return out
 
 
-def _lineage_production(roster_id: str, root_created: int, root_assets, events, conversions):
-    rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
+def _lineage_production(uid: str, roster_id: str, root_transaction_id: str, root_created: int, root_assets, events, conversions):
+    """Actual FSFFL production captured from players in the lineage.
+
+    Trade-acquired players use transaction_performance_index, which starts at
+    the actual acquisition timestamp. Drafted descendants use while-rostered
+    season scoring because the draft occurs before their rookie season.
+    """
+    perf=loadj(DATA / "transaction_performance_index.json", [])
+    roster_rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
     root_season=datetime.fromtimestamp(int(root_created)/1000, tz=timezone.utc).year
-    conversion_map={str(x.get("pick_asset_key")):x for x in conversions if x.get("pick_asset_key")}
-    acquired={}
+    source={}
     for aid in root_assets:
         if str(aid).startswith("player:"):
-            acquired[str(aid)]=root_season
+            source[str(aid)]={"kind":"trade","transaction_id":str(root_transaction_id),"season":root_season}
     for ev in events:
-        season=ev.get("season")
-        if season is None and int(ev.get("created") or 0)>0:
-            season=datetime.fromtimestamp(int(ev["created"])/1000, tz=timezone.utc).year
         for aid in ev.get("to_assets") or []:
             if not str(aid).startswith("player:"):
                 continue
-            if season is None:
-                for pick in ev.get("from_assets") or []:
-                    c=conversion_map.get(str(pick)) or {}
-                    if c.get("season") is not None:
-                        season=int(c.get("season"))
-                        break
-            acquired.setdefault(str(aid), int(season or root_season))
+            if ev.get("event_type")=="downstream_trade":
+                source.setdefault(str(aid),{"kind":"trade","transaction_id":str(ev.get("transaction_id") or ""),"season":None})
+            elif ev.get("event_type")=="draft_selection":
+                source.setdefault(str(aid),{"kind":"draft","transaction_id":None,"season":int(ev.get("season") or root_season)})
+
     player_rows=[]; total=0.0; started=0.0
-    for aid,start_season in acquired.items():
+    for aid,src in source.items():
         pid=aid.split(":",1)[1]
-        hits=[
-            r for r in rows
-            if str(r.get("roster_id"))==str(roster_id)
-            and str(r.get("player_id"))==str(pid)
-            and int(r.get("season") or 0)>=int(start_season)
-        ]
-        pts=sum(float(r.get("fsffl_points_while_rostered") or 0) for r in hits)
-        spts=sum(float(r.get("fsffl_points_while_started") or 0) for r in hits)
-        if hits:
+        if src["kind"]=="trade":
+            hit=next((
+                r for r in perf
+                if str(r.get("transaction_id") or "")==str(src.get("transaction_id") or "")
+                and str(r.get("acquiring_user_id") or "")==str(uid)
+                and str(r.get("player_id") or "")==str(pid)
+            ),None)
+            pts=float((hit or {}).get("fsffl_points_for_acquirer_after_trade") or 0)
+            spts=pts
+            seasons=[int((hit or {}).get("season") or root_season)] if hit else []
+            name=(hit or {}).get("player_name") or pid
+            method="transaction_exact_after_acquisition"
+        else:
+            start_season=int(src.get("season") or root_season)
+            hits=[
+                r for r in roster_rows
+                if str(r.get("roster_id"))==str(roster_id)
+                and str(r.get("player_id"))==str(pid)
+                and int(r.get("season") or 0)>=start_season
+            ]
+            pts=sum(float(r.get("fsffl_points_while_rostered") or 0) for r in hits)
+            spts=sum(float(r.get("fsffl_points_while_started") or 0) for r in hits)
+            seasons=sorted({int(r.get("season")) for r in hits})
+            name=(hits[0].get("player_name") if hits else pid)
+            method="drafted_descendant_while_rostered"
+        if pts or seasons:
             player_rows.append({
                 "asset_key":aid,
                 "player_id":pid,
-                "player_name":hits[0].get("player_name"),
-                "first_lineage_season":int(start_season),
+                "player_name":name,
                 "fsffl_points_while_rostered":round(pts,2),
                 "fsffl_points_while_started":round(spts,2),
-                "seasons_counted":sorted({int(r.get("season")) for r in hits}),
+                "seasons_counted":seasons,
+                "production_method":method,
             })
             total+=pts; started+=spts
     player_rows.sort(key=lambda x:x["fsffl_points_while_rostered"], reverse=True)
@@ -239,7 +257,7 @@ def _lineage_production(roster_id: str, root_created: int, root_assets, events, 
         "captured_fsffl_points":round(total,2),
         "captured_started_points":round(started,2),
         "player_rows":player_rows,
-        "methodology_note":"Actual FSFFL production recorded while lineage players were rostered by this franchise after entering the lineage.",
+        "methodology_note":"Trade-acquired lineage players are counted only from their actual acquisition transaction forward; drafted descendants use FSFFL points while rostered after their draft.",
     }
 
 
@@ -266,7 +284,7 @@ def _draft_events(conversions):
     return out
 
 
-def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets, players):
+def build_asset_lineage(root_created: int, root_transaction_id: str, uid: str, roster_id: str, root_assets, players):
     """Trace what a franchise actually turned the acquired assets into.
 
     Downstream trades are followed recursively. When a lineage asset is packaged
@@ -333,7 +351,7 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
                     "season":int(c.get("season") or 0) or None,
                     "event_type":"draft_selection",
                     "from_assets":[pick],"to_assets":[str(player_aid)],
-                    "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
+                    "description":f"{_asset_label(pick,players,conversion_map)} became {c.get('player_name')} at pick {c.get('pick_no')}.",
                     "attribution":"direct",
                 })
                 return True
@@ -405,7 +423,7 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
             })
 
     current_map=_current_intrinsic_map()
-    production=_lineage_production(roster_id,root_created,root_assets,events,conversions)
+    production=_lineage_production(uid,roster_id,root_transaction_id,root_created,root_assets,events,conversions)
 
     return {
         "root_assets":[{"asset_key":a,"label":_asset_label(a,players,conversion_map)} for a in root_assets],
@@ -621,7 +639,7 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
         ]
         sides[uid]["hindsight"]={
             "asset_lineage":build_asset_lineage(
-                int(tx.get("created") or 0),uid,rid,root_assets,players
+                int(tx.get("created") or 0),str(transaction_id),uid,rid,root_assets,players
             ),
             "keep_assets_reference":keep_assets_reference(str(transaction_id),assets,players),
         }
