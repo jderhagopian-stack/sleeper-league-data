@@ -9,7 +9,7 @@ Internal model terminology remains in JSON for auditability; the PDF is written
 as a fantasy-football decision product.
 """
 from __future__ import annotations
-import argparse, json
+import argparse, json, re
 from pathlib import Path
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -19,7 +19,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
 )
 
-MODEL_VERSION="FSFFL-GM-Historical-Trade-Report-2.1"
+MODEL_VERSION="FSFFL-GM-Historical-Trade-Report-2.2"
 NAVY=colors.HexColor("#132238")
 LIGHT=colors.HexColor("#F2F5F8")
 MID=colors.HexColor("#D9E1E8")
@@ -71,6 +71,13 @@ def team_label(uid,sides):
     x=sides.get(str(uid)) or {}
     return clean(x.get("team_name") or x.get("manager") or uid,60)
 
+def pick_only_label(label):
+    """Return a draft asset without revealing the player it later became."""
+    s=str(label or "")
+    if re.match(r"^20\\d{2} \\d+\\.\\d{2} - ",s):
+        return s.split(" - ",1)[0]
+    return s
+
 def display_asset_name(raw,side):
     name=str(raw or "")
     if not name.startswith("pick:"):
@@ -82,7 +89,7 @@ def display_asset_name(raw,side):
     candidates.extend(((h.get("keep_assets_reference") or {}).get("assets") or []))
     for x in candidates:
         if str(x.get("asset_key"))==name and x.get("label"):
-            return str(x.get("label"))
+            return pick_only_label(x.get("label"))
     return name
 
 
@@ -136,7 +143,12 @@ def plain_reason(row):
         bits.append(f"pays about {abs(pkg):,.0f} more package value than it receives")
     if not bits:
         bits.append("lands near neutral across the model's main trade drivers")
-    return "; ".join(bits)+f". Overall Team Fit: {fit:+,.0f} ({fit_label(fit).lower()})."
+    explanation="; ".join(bits)+f". Overall Team Fit: {fit:+,.0f} ({fit_label(fit).lower()})."
+    if wins>=0.5 and pkg<=-1000:
+        explanation+=" The competitive gain is real, but GM 3.0 judges the premium paid to be larger than the incremental upgrade justifies."
+    elif wins<=-0.5 and pkg>=1000:
+        explanation+=" The near-term hit is real, but GM 3.0 judges the value captured as sufficient compensation for that competitive cost."
+    return explanation
 
 def at_time_card(uid,row,side,s):
     st=row.get("strategic") or {}; d=row.get("delta") or {}
@@ -170,19 +182,24 @@ def at_time_card(uid,row,side,s):
         ("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5),
     ]))
 
-def event_sentence(ev):
-    return clean(ev.get("description") or "",180)
+def event_sentence(ev,root_labels=None):
+    text=str(ev.get("description") or "")
+    for key,label in (root_labels or {}).items():
+        if str(key).startswith("pick:") and label:
+            text=text.replace(str(label),pick_only_label(label))
+    return clean(text,180)
 
 def lineage_card(uid,side,s):
     h=(side.get("hindsight") or {})
     lin=h.get("asset_lineage") or {}
-    roots=", ".join(x.get("label") or x.get("asset_key") for x in lin.get("root_assets") or [])
+    roots=", ".join(pick_only_label(x.get("label") or x.get("asset_key")) for x in lin.get("root_assets") or [])
+    root_labels={str(x.get("asset_key")):str(x.get("label") or "") for x in lin.get("root_assets") or []}
     terminals=", ".join(
         f"{x.get('label')} ({sf(x.get('current_intrinsic_value')):,.0f})"
         for x in lin.get("terminal_assets") or []
     ) or "No tracked descendant player/pick remains in the lineage."
     events=lin.get("events") or []
-    bullets="<br/>".join(f"- {event_sentence(e)}" for e in events[:6]) or "- No downstream transformation was recorded."
+    bullets="<br/>".join(f"- {event_sentence(e,root_labels)}" for e in events[:6]) or "- No downstream transformation was recorded."
     if len(events)>6:
         bullets+=f"<br/>- ...plus {len(events)-6} additional lineage events."
     prod=(lin.get("captured_production") or {})
@@ -224,16 +241,30 @@ def keep_reference(side,s):
                      f"current intrinsic value {sf(x.get('current_intrinsic_value')):,.0f}")
         else:
             outcome="no completed draft conversion yet"
-        rows.append(f"<b>{clean(x.get('label'),75)}:</b> {outcome}")
+        rows.append(f"<b>{clean(pick_only_label(x.get('label')),75)}:</b> {outcome}")
     text="<br/>".join(rows) or "No keep-reference assets were available."
     summary=(f"<br/><b>Keep-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
              f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current intrinsic value.")
     return Paragraph(text+summary+"<br/><font size='6.3'>"+clean(ref.get("note"),300)+"</font>",s["body"])
 
 
+def audit_footer(canvas,doc):
+    if canvas.getPageNumber()!=2:
+        return
+    canvas.saveState()
+    y=.20*inch
+    canvas.setStrokeColor(MID)
+    canvas.setLineWidth(.35)
+    canvas.line(.40*inch,y+.19*inch,8.10*inch,y+.19*inch)
+    canvas.setFont("Helvetica",5.5)
+    canvas.setFillColor(MUTED)
+    canvas.drawString(.40*inch,y,"AUDIT / METHODOLOGY NOTES | Point-in-time GM 3.0 reconstruction; paired simulations; current-day values excluded from at-the-time grade;")
+    canvas.drawString(.40*inch,y-.08*inch,"asset-lineage hindsight kept separate; mixed-package attribution explicitly flagged. "+MODEL_VERSION)
+    canvas.restoreState()
+
 def build(report,out):
     s=styles()
-    doc=SimpleDocTemplate(str(out),pagesize=letter,leftMargin=.40*inch,rightMargin=.40*inch,topMargin=.32*inch,bottomMargin=.30*inch)
+    doc=SimpleDocTemplate(str(out),pagesize=letter,leftMargin=.40*inch,rightMargin=.40*inch,topMargin=.32*inch,bottomMargin=.48*inch)
     gm3=report.get("gm3_evaluation") or {}; sides=report.get("sides") or {}
     uids=list(report.get("participant_user_ids") or sides.keys())
     results=gm3.get("team_results") or {}
@@ -266,7 +297,6 @@ def build(report,out):
             "This is a process grade, not a prediction of who will look smartest years later. GM 3.0 weighs the immediate lineup and playoff effect against intrinsic long-term value, team-specific value, roster fit and nonlinear package economics. A future result can be great even when the price was aggressive, or poor even when the original process was sound.",
             s["body"]),
         Spacer(1,.05*inch),
-        Paragraph(f"{MODEL_VERSION} | {report.get('model_version')} | {gm3.get('n_sims',0):,} paired simulations | current-day values excluded from the at-the-time grade",s["small"]),
         PageBreak(),
         Paragraph("DEAL IN HINDSIGHT",s["title"]),
         Paragraph("What actually happened to the assets after the trade | This section never changes the original GM 3.0 grade",s["sub"]),
@@ -286,7 +316,7 @@ def build(report,out):
                            colWidths=[3.78*inch,3.78*inch],style=TableStyle([
                                ("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),0),
                                ("RIGHTPADDING",(0,0),(-1,-1),4)])))
-    story += [Spacer(1,.08*inch),Paragraph("WHAT IF THEY HAD JUST KEPT WHAT THEY TRADED?",s["section"])]
+    story += [Spacer(1,.08*inch),Paragraph("HOLD-THE-ORIGINAL-ASSETS REFERENCE",s["section"])]
     for uid in uids:
         story.append(KeepTogether([
             Paragraph(f"<b>{team_label(uid,sides)}</b>",s["body"]),
@@ -294,9 +324,9 @@ def build(report,out):
             Spacer(1,.04*inch),
         ]))
     story += [
-        Paragraph("HOW TO READ THE KEEP REFERENCE",s["section"]),
+        Paragraph("HOW TO READ THE HOLD REFERENCE",s["section"]),
         Paragraph(
-            "The keep reference reports what the surrendered players actually produced after the trade and what surrendered draft slots actually became. It is deliberately not labeled a full alternate-history simulation: if the original trade never happened, later trades, draft choices, waiver moves and lineup decisions could also have changed. The asset-lineage section is factual; the keep reference is a disciplined comparison point.",
+            "The hold reference reports what the surrendered players actually produced after the trade and, for surrendered draft picks, the player actually selected at that slot. It is not a full alternate-history simulation: without the original trade, later trades, draft choices, waiver moves and lineup decisions could also have changed. Asset genealogy is factual; this hold reference is a disciplined comparison point.",
             s["body"]),
         Spacer(1,.05*inch),
         Paragraph("FINAL RETROSPECTIVE VERDICT",s["section"]),
@@ -305,10 +335,8 @@ def build(report,out):
             f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
             "Those answers are intentionally kept separate: the first grades the decision process using only information available then; the second summarizes what the asset trees actually produced and still retain.",
             s["body"]),
-        Spacer(1,.04*inch),
-        Paragraph(f"{MODEL_VERSION} | asset-lineage hindsight | mixed attribution explicitly flagged | no hindsight leakage into the at-the-time grade",s["small"])
     ]
-    doc.build(story)
+    doc.build(story,onFirstPage=audit_footer,onLaterPages=audit_footer)
 
 def main():
     ap=argparse.ArgumentParser()
