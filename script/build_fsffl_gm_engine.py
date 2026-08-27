@@ -1227,11 +1227,13 @@ def fsffl_league_value(
     manual=None,
 ):
     """
-    Full FSFFL league value:
-      market anchor
-      + league consolidation premium
+    Full intrinsic FSFFL league value:
+      model-generated projection/VORP/age foundation
       + independent recent performance
-      + injuries / usage / snap trend / market momentum / qualitative intelligence
+      + injuries / usage / snap trend / qualitative intelligence
+
+    External market price and market momentum are diagnostics only and do not
+    alter this value.
     """
     base = safe_float(asset.get("intrinsic_dynasty"))
     if not base:
