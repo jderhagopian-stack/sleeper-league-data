@@ -161,9 +161,9 @@ def _asset_label(aid: str, players: Dict[str, Any], conversions: Dict[str, Dict[
         pid=aid.split(":",1)[1]
         p=players.get(pid) or {}
         return str(p.get("full_name") or p.get("name") or pid)
-    c=conversions.get(aid) or {}
-    if c:
-        return f"{aid} ({c.get('player_name')})"
+    # Do not annotate a pick with the player ultimately selected unless this
+    # franchise actually held and exercised the pick. That conversion is a
+    # lineage event, not an inherent property of the pick while it was owned.
     return aid
 
 
@@ -204,10 +204,6 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
     conversion_map={str(x.get("pick_asset_key")):x for x in conversions if x.get("pick_asset_key")}
     timeline=[]
 
-    for d in _draft_events(conversions):
-        if int(d.get("created") or 0)>int(root_created):
-            timeline.append(d)
-
     for tr in trades:
         if int(tr.get("created") or 0)<=int(root_created):
             continue
@@ -243,23 +239,40 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
     events=[]
     mixed=0
 
-    for ev in timeline:
-        typ=ev.get("event_type")
-        if typ=="draft_selection":
-            pick=str(ev.get("pick_asset_key"))
-            if pick in live and str(ev.get("drafted_by_user_id"))==str(uid):
-                player=str(ev.get("player_asset_key"))
-                live.remove(pick); live.add(player)
-                nodes.setdefault(player,{"asset_key":player,"label":ev.get("player_name") or _asset_label(player,players,conversion_map),"root_asset":False})
+    def convert_pick_for_player(player_aid: str, created: int):
+        for pick in list(live):
+            c=conversion_map.get(pick) or {}
+            if (
+                str(c.get("player_asset_key"))==str(player_aid)
+                and str(c.get("drafted_by_user_id"))==str(uid)
+            ):
+                live.remove(pick); live.add(str(player_aid))
+                nodes.setdefault(str(player_aid),{
+                    "asset_key":str(player_aid),
+                    "label":c.get("player_name") or _asset_label(str(player_aid),players,conversion_map),
+                    "root_asset":False,
+                })
                 events.append({
-                    "created":ev["created"],"event_type":"draft_selection",
-                    "from_assets":[pick],"to_assets":[player],
-                    "description":f"{_asset_label(pick,players,conversion_map)} became {ev.get('player_name')} at pick {ev.get('pick_no')}.",
+                    "created":max(int(created)-1,0),
+                    "event_type":"draft_selection",
+                    "from_assets":[pick],"to_assets":[str(player_aid)],
+                    "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
                     "attribution":"direct",
                 })
-        elif typ=="trade":
+                return True
+        return False
+
+    for ev in timeline:
+        typ=ev.get("event_type")
+        if typ=="trade":
             side=ev["side"]
             sent=_side_asset_keys(side,received=False)
+            # Historical draft timestamps are not always retained. If a player
+            # selected with a live lineage pick is now being traded, convert the
+            # pick immediately before this transaction.
+            for a in list(sent):
+                if a.startswith("player:") and a not in live:
+                    convert_pick_for_player(a,int(ev.get("created") or 0))
             hit=[a for a in sent if a in live]
             if not hit:
                 continue
@@ -281,6 +294,8 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
             })
         elif typ=="release":
             aid=str(ev.get("player_asset_key"))
+            if aid not in live:
+                convert_pick_for_player(aid,int(ev.get("created") or 0))
             if aid in live:
                 live.remove(aid)
                 events.append({
@@ -289,6 +304,27 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
                     "from_assets":[aid],"to_assets":[],"attribution":"direct",
                     "description":f"{_asset_label(aid,players,conversion_map)} was released via {ev.get('transaction_type')}.",
                 })
+
+    # Finally convert any still-held pick whose draft is complete and which
+    # this franchise actually exercised. This captures old drafts even when
+    # drafts.json no longer carries the historical start timestamp.
+    for pick in list(live):
+        c=conversion_map.get(pick) or {}
+        if c and str(c.get("drafted_by_user_id"))==str(uid):
+            player=str(c.get("player_asset_key"))
+            live.remove(pick); live.add(player)
+            nodes.setdefault(player,{
+                "asset_key":player,
+                "label":c.get("player_name") or _asset_label(player,players,conversion_map),
+                "root_asset":False,
+            })
+            events.append({
+                "created":0,
+                "event_type":"draft_selection",
+                "from_assets":[pick],"to_assets":[player],
+                "description":f"{pick} became {c.get('player_name')} at pick {c.get('pick_no')}.",
+                "attribution":"direct",
+            })
 
     current_assets=loadj(DATA / "fsffl_asset_values.json", {}) or {}
     current_map={}
