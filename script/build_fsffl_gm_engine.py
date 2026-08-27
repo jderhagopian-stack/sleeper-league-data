@@ -4220,6 +4220,8 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             pid = aid.split(":", 1)[1]
             dyn = safe_float(m.get("intrinsic_dynasty"))
             red = safe_float(m.get("intrinsic_current"))
+            market_dyn = safe_float(m.get("market_dynasty"))
+            market_red = safe_float(m.get("market_redraft"))
             scarcity = _u_position_tier_features(aid, ctx)
             dist = _u_player_distribution_features(aid, ctx)
             liquidity = _u_player_liquidity(aid, ctx)
@@ -4812,8 +4814,10 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             "seller_user_id": seller_uid,
             "seller_manager": (ctx["owners"].get(seller_uid) or {}).get("manager"),
             "seller_team": (ctx["owners"].get(seller_uid) or {}).get("team_name"),
-            "market_dynasty": round(safe_float(target.get("intrinsic_dynasty")),1),
-            "market_redraft": round(safe_float(target.get("intrinsic_current")),1),
+            "market_dynasty": round(safe_float(target.get("market_dynasty")),1),
+            "market_redraft": round(safe_float(target.get("market_redraft")),1),
+            "intrinsic_dynasty": round(safe_float(target.get("intrinsic_dynasty")),1),
+            "intrinsic_current": round(safe_float(target.get("intrinsic_current")),1),
             "focal_value": round(focal_value,1),
             "seller_break_glass_value": round(seller_exit_static,1),
             "seller_core_status": seller_profile.get("core_status"),
@@ -4934,8 +4938,10 @@ def build_universal_command_center(uid: str, trade_payload, sell_payload, profil
             "target_player":o.get("target_player"),
             "position":o.get("position"),
             "seller_team":o.get("seller_team"),
-            "market_dynasty":o.get("intrinsic_dynasty"),
-            "market_redraft":o.get("intrinsic_current"),
+            "market_dynasty":o.get("market_dynasty"),
+            "market_redraft":o.get("market_redraft"),
+            "intrinsic_dynasty":o.get("intrinsic_dynasty"),
+            "intrinsic_current":o.get("intrinsic_current"),
             "seller_core_status":o.get("seller_core_status"),
             "seller_break_glass_value":o.get("seller_break_glass_value"),
             "focal_position_need":o.get("focal_position_need"),
