@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Exact memoized replacement for Simulator 1.0's generic lineup DFS fallback.
+
+This module preserves the canonical candidate construction, slot ordering,
+empty-slot behavior, candidate ordering, strict tie rule, and output schema.
+It only memoizes repeated suffix subproblems so pathological/short-handed
+alternate rosters do not repeatedly traverse the same search tree.
+"""
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Any, Dict, List, Tuple
+
+import build_fsffl_season_simulator as core
+
+_ORIGINAL = core.optimize_weekly_lineup
+_INSTALLED = False
+_STATS = {"calls": 0, "memo_states": 0}
+
+
+def stats() -> Dict[str, int]:
+    return dict(_STATS)
+
+
+def _candidate_rows(roster, week, players, projections):
+    candidates = []
+    taxi = set(roster.get("taxi") or [])
+    for pid in roster.get("players") or []:
+        if pid in taxi:
+            continue
+        meta = core.player_meta(players, projections, pid)
+        pos = meta.get("position")
+        pr = core.projection_for(projections, pid, week)
+        if not pos or pr is None or pr["active_probability"] <= 0:
+            continue
+        candidates.append({**meta, **pr})
+    return candidates
+
+
+def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
+    """Return the same optimum as the canonical DFS, with suffix memoization."""
+    _STATS["calls"] += 1
+    candidates = _candidate_rows(roster, week, players, projections)
+    slots = core.lineup_slots(league)
+    slot_priority = {"QB": 0, "TE": 1, "RB": 2, "WR": 2, "SUPER_FLEX": 3, "FLEX": 4}
+    ordered_slots = sorted(enumerate(slots), key=lambda x: slot_priority.get(x[1], 5))
+
+    # Canonical DFS sorts eligible options by projected value, stably preserving
+    # candidate order for exact ties. Precompute those exact per-slot orders.
+    option_indices: List[Tuple[int, ...]] = []
+    for _, slot in ordered_slots:
+        idxs = [i for i, c in enumerate(candidates) if core.eligible(c["position"], slot)]
+        idxs.sort(
+            key=lambda i: candidates[i]["mean"] * candidates[i]["active_probability"],
+            reverse=True,
+        )
+        option_indices.append(tuple(idxs))
+
+    values = [c["mean"] * c["active_probability"] for c in candidates]
+
+    @lru_cache(maxsize=None)
+    def solve(i: int, used_mask: int):
+        _STATS["memo_states"] += 1
+        if i == len(ordered_slots):
+            return 0.0, ()
+
+        original_idx, slot = ordered_slots[i]
+        available = [idx for idx in option_indices[i] if not (used_mask & (1 << idx))]
+        if not available:
+            score, suffix = solve(i + 1, used_mask)
+            return score, ((original_idx, slot, -1),) + suffix
+
+        best_score = -1e18
+        best_assign = None
+        # Same option order and strict > replacement as canonical DFS.
+        for idx in available:
+            suffix_score, suffix = solve(i + 1, used_mask | (1 << idx))
+            total = values[idx] + suffix_score
+            if total > best_score:
+                best_score = total
+                best_assign = ((original_idx, slot, idx),) + suffix
+        return best_score, best_assign or ()
+
+    _, assignment = solve(0, 0)
+    best_assign = list(assignment)
+    best_assign.sort(key=lambda x: x[0])
+
+    lineup = []
+    for _, slot, idx in best_assign:
+        if idx < 0:
+            lineup.append({
+                "slot": slot,
+                "player_id": None,
+                "name": "EMPTY",
+                "position": None,
+                "mean": 0.0,
+                "sd": 0.1,
+                "active_probability": 0.0,
+            })
+        else:
+            lineup.append({"slot": slot, **candidates[idx]})
+    return lineup
+
+
+def original_optimize_weekly_lineup(roster, week, league, players, projections):
+    return _ORIGINAL(roster, week, league, players, projections)
+
+
+def install() -> None:
+    global _INSTALLED
+    if _INSTALLED:
+        return
+    _INSTALLED = True
+    core.optimize_weekly_lineup = optimize_weekly_lineup_memoized
