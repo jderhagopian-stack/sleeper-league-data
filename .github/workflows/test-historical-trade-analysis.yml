@@ -74,6 +74,8 @@ jobs:
           assert d['gm3_evaluation']['input_bundle_provenance']['draft_slot_source']=='sleeper_draft_order_metadata_no_pick_results'
           assert d['gm3_evaluation']['input_bundle_provenance']['resolved_draft_slots_by_original_roster_id'].get('1')==6
           assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_is_final_value'] is False
+          assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_used_in_intrinsic_value'] is False
+          assert d['gm3_evaluation']['input_bundle_provenance']['valuation_architecture']=='Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value'
           assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_owner_value_plus_strategic_profile_plus_trade_impact'
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
@@ -95,7 +97,9 @@ jobs:
                   'decision':r.get('decision'),
                   'utility':r.get('state_aware_utility_delta'),
                   'delta':r.get('delta'),
-                  'strategic':r.get('strategic')
+                  'strategic':r.get('strategic'),
+                  'intrinsic_dynasty_delta':(r.get('strategic') or {}).get('intrinsic_dynasty_delta'),
+                  'market_dynasty_delta':(r.get('strategic') or {}).get('market_dynasty_delta')
               } for u,r in d['gm3_evaluation'].get('team_results',{}).items()},
           },indent=2))
           PY
