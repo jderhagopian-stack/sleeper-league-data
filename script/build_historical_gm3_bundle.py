@@ -450,13 +450,7 @@ def build(season: str, transaction_id: str, source_path: Path):
 
     r2u = roster_to_user(data)
     slots = draft_slot_map(data)
-    confirmed_slots = {str(k): int(v) for k, v in (source.get("known_draft_slots_by_original_roster_id") or {}).items()}
-    slots.update(confirmed_slots)
-    draft_slot_source = (
-        "confirmed_pretrade_slot_override_plus_sleeper_draft_order_metadata"
-        if confirmed_slots else
-        ("sleeper_draft_order_metadata_no_pick_results" if slots else "unresolved_no_posttrade_pick_result_fallback")
-    )
+    draft_slot_source = "sleeper_draft_order_metadata_no_pick_results" if slots else "unresolved_no_posttrade_pick_result_fallback"
     action_pick_ids = set()
     for p in tx.get("draft_picks") or []:
         action_pick_ids.add(f"pick:{p.get('season')}:R{p.get('round')}:orig{p.get('roster_id')}")
@@ -650,7 +644,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             "historical_lineup_cache": "preoptimized once in frozen bundle; reused by GM3 trade analysis",
             "draft_slot_source": draft_slot_source,
             "completed_draft_pick_rows_used_for_slot_resolution": False,
-            "confirmed_draft_slot_overrides": confirmed_slots,
+            "resolved_draft_slots_by_original_roster_id": slots,
             "current_market_values_used": False,
             "same_season_results_used": False,
             "future_schedule_used": False,
