@@ -424,8 +424,10 @@ def build(season: str, transaction_id: str, source_path: Path):
     prior, baselines = prior_stats(int(season), players)
     source = loadj(source_path, {})
     values, exact_count = build_player_values(rosters, players, prior, baselines, source)
+    projection = projection_bundle(values, prior, baselines)
 
     gm = load_module(SCRIPT / "build_fsffl_gm_engine.py", "historical_bundle_gm")
+    values = gm.build_intrinsic_player_values(values, projection)
     hist_state_mod = load_module(SCRIPT / "historical_state_behavior.py", "historical_bundle_state")
     profile_by_uid = {}
     owners = owner_directory(data)
@@ -470,9 +472,18 @@ def build(season: str, transaction_id: str, source_path: Path):
             q, tier, ew, lw = 0.52, "mid", 0.30, 0.30
         owner_rid = state.pick_owners.get(aid, str(orig))
         owner_uid = r2u.get(str(owner_rid))
+        market_value = round(source_val * 100.0, 1)
+        intrinsic_value = gm.intrinsic_pick_value(
+            year, rnd, values, int(season),
+            slot=slots.get(str(orig)) if year == int(season) else None,
+            tier=tier,
+        )
         pick_assets[aid] = {
             "asset_id": aid, "asset_type": "pick", "name": aid,
-            "market_dynasty": round(source_val * 100.0, 1),
+            "market_dynasty": market_value,
+            "intrinsic_dynasty": intrinsic_value,
+            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_from_intrinsic_player_distribution",
+            "market_sanity_check": gm.market_sanity_check(intrinsic_value, market_value),
             "current_owner_user_id": owner_uid,
             "original_owner_user_id": original_uid,
             "round": rnd, "season": year,
@@ -581,19 +592,20 @@ def build(season: str, transaction_id: str, source_path: Path):
     market_player_values = {
         f"player:{pid}": {
             "name": a["name"], "dynasty": a["market_dynasty"],
-            "redraft": a["market_redraft"], "fsffl": a["market_dynasty"],
+            "redraft": a["market_redraft"], "fsffl": a["intrinsic_dynasty"],
+            "intrinsic_dynasty": a["intrinsic_dynasty"], "intrinsic_current": a["intrinsic_current"],
         }
         for pid, a in values.items()
     }
     market_pick_values = {
         aid: {
             "name": p["name"], "dynasty": p["market_dynasty"],
-            "redraft": 0.0, "fsffl": p["market_dynasty"],
+            "redraft": 0.0, "fsffl": p["intrinsic_dynasty"],
+            "intrinsic_dynasty": p["intrinsic_dynasty"], "intrinsic_current": 0.0,
         }
         for aid, p in pick_assets.items()
     }
 
-    projection = projection_bundle(values, prior, baselines)
     league = copy.deepcopy(data.get("league") or {})
     users = copy.deepcopy(data.get("users") or [])
     schedule = neutral_schedule()
@@ -649,6 +661,8 @@ def build(season: str, transaction_id: str, source_path: Path):
             "same_season_results_used": False,
             "future_schedule_used": False,
             "external_market_anchor_is_final_value": False,
+            "external_market_anchor_used_in_intrinsic_value": False,
+            "valuation_architecture": "Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value",
             "final_team_specific_value_source": "GM3_owner_value_plus_strategic_profile_plus_trade_impact",
         },
         "confidence": {
