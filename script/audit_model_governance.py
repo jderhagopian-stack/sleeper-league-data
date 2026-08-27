@@ -237,6 +237,13 @@ def curated_findings():
         "required_action":"Calibrate pick hit distributions and future discount curves from historical FSFFL rookie drafts plus external dynasty market history; separate market discount from expected-player-value uncertainty."
       },
       {
+        "id":"PROJECTION-MEAN-001","severity":"CRITICAL","status":"SINGLE_SOURCE_ACTIVE",
+        "component":"Season scoring projection mean",
+        "evidence":"build_fsffl_scoring_baseline.py currently derives projected scoring from one Razzball season-projection source and recalculates it under FSFFL scoring. There is no demonstrated multi-source ensemble or out-of-sample calibration of the mean projection layer.",
+        "why_it_matters":"Expected points, wins, playoff odds and championship odds all begin with player scoring means. A systematic source bias for one player or position can propagate through every simulation-based trade recommendation.",
+        "required_action":"Backtest projection errors by position/player tier, compare multiple independent projection sources, and build an empirically weighted ensemble or uncertainty adjustment. Do not let single-source point estimates create overconfident title-probability differences."
+      },
+      {
         "id":"PROJECTION-VOL-001","severity":"MEDIUM","status":"PARTIALLY_EMPIRICAL",
         "component":"Weekly projection variance",
         "evidence":"Player/position variance is historically estimated, but POSITION_SD_FLOOR, HISTORY_SEASONS=3, MIN_PLAYER_GAMES=8, blending cap .75 and related gates are judgment choices.",
