@@ -22,7 +22,7 @@ MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.0"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
-    "optimized_lineup_cache",
+    "optimized_lineup_cache", "gm3_trade_context", "strategic_profiles",
 }
 
 
@@ -104,6 +104,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         }
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "historical_gm3_dl")
+    gmcore = load_module(SCRIPT / "build_fsffl_gm_engine.py", "historical_gm3_core")
     teamlab = load_module(SCRIPT / "run_team_improvement_lab.py", "historical_gm3_teamlab")
     simmod = dl.import_simulator()
 
@@ -145,6 +146,17 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
     # in the mandatory path; player expectations are already frozen in the
     # dated bundle and GM3 evaluates their combined roster/competitive impact.
 
+    frozen_ctx = copy.deepcopy(bundle.get("gm3_trade_context") or {})
+    frozen_ctx.setdefault("_profile_cache", {})
+    frozen_ctx.setdefault("_depth_cache", {})
+    frozen_profiles = {
+        str(uid): {
+            str(a.get("asset_id")): a
+            for a in ((bundle.get("strategic_profiles") or {}).get(str(uid), {}).get("assets") or [])
+        }
+        for uid in (frozen_ctx.get("owners") or {})
+    }
+
     rows = {}
     for uid in participants:
         uid = str(uid)
@@ -159,6 +171,12 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             bundle.get("market_player_values") or {},
             bundle.get("market_pick_values") or {},
         )
+        sent, received = dl.action_assets_for_user(actions, uid)
+        if sent or received:
+            package_economics = gmcore.evaluate_trade_package_economics(
+                uid, sent, received, frozen_ctx, frozen_profiles
+            )
+            strategic.update(package_economics)
         delta = {
             "expected_wins": dl.delta(b.get("expected_wins"), a.get("expected_wins")),
             "expected_points_for": dl.delta(b.get("expected_points_for"), a.get("expected_points_for")),
@@ -211,6 +229,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         "standalone_historical_score_used": False,
         "teams_reoptimized": reoptimized,
         "baseline_lineup_source": "frozen_bundle_cache",
+        "package_economics_source": "canonical_GM3_nonlinear_package_effective_value",
         "pick_transfers": pick_transfers,
         "team_results": rows,
         "bilateral_assessment": assessment,
