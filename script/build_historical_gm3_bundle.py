@@ -218,6 +218,28 @@ def projection_bundle(values, prior, baselines):
     }
 
 
+def build_historical_lineup_cache(rosters, league, players, projections):
+    """Pre-optimize the frozen baseline once, matching Decision Lab cache semantics."""
+    simmod = load_module(SCRIPT / "build_fsffl_season_simulator.py", "historical_bundle_simulator")
+    reg_weeks = simmod.regular_season_weeks(league)
+    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
+    weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
+    lineups = {}
+    for roster in rosters:
+        rid = int(roster.get("roster_id"))
+        lineups[str(rid)] = {}
+        for week in weeks:
+            lineups[str(rid)][str(week)] = simmod.optimize_weekly_lineup(
+                roster, week, league, players, projections
+            )
+    return {
+        "simulator_model_version": simmod.MODEL_VERSION,
+        "execution_path": "preoptimized_frozen_baseline",
+        "weeks": weeks,
+        "lineups": lineups,
+    }
+
+
 def historical_behavior_profiles(provider, season: int, ts: int, players):
     counts = defaultdict(lambda: {
         "trade_acq": defaultdict(int), "draft": defaultdict(int), "waiver": defaultdict(int),
@@ -512,6 +534,9 @@ def build(season: str, transaction_id: str, source_path: Path):
     league = copy.deepcopy(data.get("league") or {})
     users = copy.deepcopy(data.get("users") or [])
     schedule = neutral_schedule()
+    optimized_lineup_cache = build_historical_lineup_cache(
+        rosters, league, players, projection
+    )
 
     return {
         "model_version": MODEL_VERSION,
@@ -534,6 +559,7 @@ def build(season: str, transaction_id: str, source_path: Path):
         "players": players,
         "projections": projection,
         "schedule": schedule,
+        "optimized_lineup_cache": optimized_lineup_cache,
         "gm_asset_maps": gm_asset_maps,
         "market_player_values": market_player_values,
         "market_pick_values": market_pick_values,
@@ -551,6 +577,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             "projection_basis": f"{int(season)-1} completed-season FSFFL PPG",
             "schedule_basis": f"{int(season)-1} FSFFL schedule reused as neutral known proxy",
             "behavior_basis": "only actions with timestamp strictly before trade",
+            "historical_lineup_cache": "preoptimized once in frozen bundle; reused by GM3 trade analysis",
             "current_market_values_used": False,
             "same_season_results_used": False,
             "future_schedule_used": False,
