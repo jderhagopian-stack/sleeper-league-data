@@ -8,11 +8,13 @@ on:
     paths:
       - .github/workflows/alternate-history-v2-profile.yml
       - script/profile_fsffl_alternate_history_v2.py
+      - script/alternate_history_runtime_optimizations.py
       - script/run_fsffl_generic_alternate_history.py
       - script/run_fsffl_next_draft_handoff.py
       - script/alternate_history_rookie_draft_policy.py
       - script/run_fsffl_alternate_history_magazine.py
       - script/run_fsffl_alternate_history_magazine_v6.py
+      - script/run_fsffl_alternate_history_magazine_v7.py
 
 jobs:
   runtime-profile:
