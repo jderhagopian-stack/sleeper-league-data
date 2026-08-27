@@ -177,7 +177,7 @@ jobs:
           assert 'season-long swing' in page1_flat
           assert 'asset genealogy' not in text.lower()
           assert 'asset tree' not in text.lower()
-          assert 'mixed-package attribution' not in page2.lower()
+          assert 'If a later trade mixed these assets with unrelated pieces' in page2_flat
           assert 'Trade-chain note' in page2
           assert 'Fantasy production received since the trade' in page2_flat
           assert 'Balancing current competitiveness with future value' in page1_flat
