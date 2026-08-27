@@ -109,7 +109,7 @@ def unified_score_with_state(state: str, sim: Dict[str, Any]) -> float:
         + sf(d.get("bye_probability")) * w["bye"]
         + sf(d.get("championship_probability")) * w["title"]
         + sf(st.get("base_franchise_value_delta")) * w["base"]
-        + sf(st.get("market_dynasty_delta")) * w["dynasty"]
+        + sf(st.get("intrinsic_dynasty_delta")) * w["dynasty"]
         + sf(st.get("break_glass_delta")) * w["break_glass"],
         2,
     )
@@ -190,15 +190,20 @@ def asset_catalog():
             "asset_id": f"player:{pid}", "asset_type": "player", "player_id": pid,
             "name": p.get("name") or f"player:{pid}", "position": p.get("position"),
             "market_dynasty": sf(p.get("market_dynasty")), "market_redraft": sf(p.get("market_redraft")),
-            "fsffl_value": sf(p.get("fsffl_value"), sf(p.get("market_dynasty"))),
+            "intrinsic_dynasty": sf(p.get("intrinsic_dynasty"), sf(p.get("intrinsic_fsffl_value"), sf(p.get("fsffl_value")))),
+            "intrinsic_current": sf(p.get("intrinsic_current")),
+            "fsffl_value": sf(p.get("fsffl_value"), sf(p.get("intrinsic_fsffl_value"))),
             "owner_user_id": str(p.get("current_owner_user_id")) if p.get("current_owner_user_id") is not None else None,
         }
     for p in doc.get("picks") or []:
         aid = str(p.get("asset_id") or "")
         if aid:
             picks[aid] = {"asset_id": aid, "asset_type": "pick", "name": p.get("name") or aid,
-                          "market_dynasty": sf(p.get("market_dynasty"), sf(p.get("fsffl_value"))),
-                          "market_redraft": 0.0, "fsffl_value": sf(p.get("fsffl_value"), sf(p.get("market_dynasty"))),
+                          "market_dynasty": sf(p.get("market_dynasty")),
+                          "market_redraft": 0.0,
+                          "intrinsic_dynasty": sf(p.get("intrinsic_dynasty"), sf(p.get("fsffl_value"))),
+                          "intrinsic_current": 0.0,
+                          "fsffl_value": sf(p.get("fsffl_value"), sf(p.get("intrinsic_dynasty"))),
                           "owner_user_id": str(p.get("current_owner_user_id")) if p.get("current_owner_user_id") is not None else None}
     return players, picks
 
