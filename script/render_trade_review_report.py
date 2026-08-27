@@ -19,7 +19,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.2"
+MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.3"
 NAVY = colors.HexColor("#132238")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
@@ -70,7 +70,7 @@ def effective_cost_bases(row):
 
 def fit_label(v):
     v=sf(v); a=abs(v)
-    if a >= 750: return "Major improvement" if v>0 else "Major setback"
+    if a >= 750: return "Big improvement" if v>0 else "Big setback"
     if a >= 250: return "Meaningful improvement" if v>0 else "Meaningful setback"
     if a >= 75: return "Modest improvement" if v>0 else "Modest setback"
     return "Near neutral"
@@ -88,7 +88,7 @@ def side_card(uid,row,s):
       ["Expected wins",num(d.get("expected_wins"),2),"Championship odds",pct(d.get("championship_probability"))],
       ["Playoff odds",pct(d.get("playoff_probability")),"Expected points",num(d.get("expected_points_for"),1)],
       ["Long-term trade value",f"{val(st.get('market_dynasty_delta'))} ({pct_label(dyn_pct)})","Value to this team",f"{val(st.get('base_franchise_value_delta'))} ({pct_label(team_pct)})"],
-      ["Overall team fit",f"{sf(row.get('state_aware_utility_delta')):+,.0f} - {fit_label(row.get('state_aware_utility_delta'))}","Roster impact",clean(roster,50)],
+      ["Overall Team Fit",f"{sf(row.get('state_aware_utility_delta')):+,.0f} - {fit_label(row.get('state_aware_utility_delta'))}","Roster impact",clean(roster,50)],
     ]
     return Table([
       [Paragraph(clean(row.get("team_name") or row.get("manager") or uid,55),s["team"])],
@@ -134,9 +134,9 @@ def build(report,out):
     story += [hero,Spacer(1,.08*inch)]
     if len(uids)>=2:
         story.append(Table([[side_card(uids[0],reviews[uids[0]],s),side_card(uids[1],reviews[uids[1]],s)]],colWidths=[3.78*inch,3.78*inch],style=TableStyle([("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),4)])))
-    story += [Spacer(1,.05*inch),Paragraph("VALUE CONTEXT",s["section"]),Paragraph("The percentage beside <b>Long-Term Trade Value</b> and <b>Value to This Team</b> shows the modeled gain or loss relative to the effective assets surrendered by that team. Required cuts are included in the effective cost. <b>Overall Team Fit</b> is a composite decision score with no honest percentage denominator, so the report gives the score change plus an intuitive magnitude label instead of inventing a percentage.",s["body"]),Spacer(1,.04*inch),Paragraph("ROSTER IMPACT - WHAT ACTUALLY HAPPENS",s["section"])]
+    story += [Spacer(1,.05*inch),Paragraph("VALUE CONTEXT",s["section"]),Paragraph("The percentage beside <b>Long-Term Trade Value</b> and <b>Value to This Team</b> shows how large the gain or loss is compared with what that team gave up. Any required cuts are already included. <b>Overall Team Fit</b> is the model's bottom-line view of how well the trade serves that roster, so it is shown as a score change plus a simple size label rather than a misleading percentage.",s["body"]),Spacer(1,.04*inch),Paragraph("ROSTER IMPACT - WHAT ACTUALLY HAPPENS",s["section"])]
     for uid in uids: story.append(roster_paragraph(uid,reviews[uid],report,s))
-    story += [Spacer(1,.04*inch),Paragraph("HOW A FORCED CUT IS CHOSEN",s["section"]),Paragraph("Only trades that create an incremental roster spot trigger extra work. Newly acquired players are protected. The retention-cost model ranks eligible incumbents using value to the team, resale value, depth/insurance value, long-term trade value and tradeability, with extra protection for optimal starters and core assets. The three lowest-cost candidates are then tested as separate legal post-trade rosters; the roster with the best Overall Team Fit is selected. If the top two are close, they are confirmed at the full simulation depth. Trades requiring no cut run normally with no added cut simulations.",s["body"]),Spacer(1,.035*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version')} | {sim.get('n_sims',0):,} paired simulations | roster resolver {sim.get('roster_resolution_model_version')} | model-generated presentation",s["small"])]
+    story += [Spacer(1,.04*inch),Paragraph("HOW A FORCED CUT IS CHOSEN",s["section"]),Paragraph("Only trades that create an incremental roster spot trigger extra work. Newly acquired players are protected. If the trade creates an extra roster spot, the model first protects the newly acquired players and important starters. It then identifies the most expendable current players and tests the three most reasonable cut choices. The cut that leaves the strongest overall roster is used in the final trade result. If two choices are very close, the model runs a deeper check before deciding.",s["body"]),Spacer(1,.035*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version')} | {sim.get('n_sims',0):,} paired simulations | roster resolver {sim.get('roster_resolution_model_version')} | plain-English model presentation",s["small"])]
     doc.build(story)
 
 
