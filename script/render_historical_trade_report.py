@@ -81,12 +81,12 @@ def pick_only_label(label):
 def team_state_label(raw):
     x=str(raw or "unknown").lower()
     labels={
-        "contender":"Contender - prioritizing winning now",
-        "retool":"Balancing current competitiveness with future value",
-        "rebuild":"Rebuilding - prioritizing future value",
-        "unknown":"Not clearly classified",
+        "contender":"CONTENDER - Prioritizing winning now",
+        "retool":"RETOOL - Balancing current competitiveness with future value",
+        "rebuild":"REBUILD - Prioritizing future value",
+        "unknown":"NOT CLEARLY CLASSIFIED - Team direction is uncertain",
     }
-    return labels.get(x,str(raw or "Not clearly classified").replace("_"," ").title())
+    return labels.get(x,f"{str(raw or 'Not clearly classified').replace('_',' ').upper()} - Team direction as classified by GM 3.0")
 
 def display_asset_name(raw,side):
     name=str(raw or "")
