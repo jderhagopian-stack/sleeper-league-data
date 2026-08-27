@@ -12,9 +12,9 @@ from pathlib import Path
 
 MARKET_SWEEP=Path('script/run_trade_market_sweep_v30.py')
 PDF_RENDERER=Path('script/render_trade_decision_report_v19.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.16'
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.17'
 EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.24'
-REPORT_VERSION='FSFFL-Trade-Decision-Report-1.9'
+REPORT_VERSION='FSFFL-Trade-Decision-Report-1.10'
 DEFAULT_ADAPTIVE_CONFIRM_SIMS=1000
 
 def run(cmd):subprocess.run(cmd,check=True)
