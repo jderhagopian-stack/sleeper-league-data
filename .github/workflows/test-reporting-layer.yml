@@ -67,6 +67,8 @@ jobs:
           assert arch['principles']['pdf_must_not_rescore_or_reinterpret'] is True
           assert arch['principles']['conversational_response_precedes_attachment'] is True
           assert arch['principles']['aesthetic_quality_is_required'] is True
+          assert arch['principles']['user_facing_prose_must_not_be_truncated'] is True
+          assert arch['principles']['multi_page_reports_preferred_over_cutoff_text'] is True
           assert 'avoid spreadsheet-dump layouts' in arch['design_system']['rules']
           names=('gm-franchise.pdf','simulator-outlook.pdf','league-power.pdf','roster-decision.pdf','player-dossier.pdf','market-movement.pdf','draft-recap.pdf','record-book.pdf','multiverse-outliers.pdf')
           for name in names:
@@ -78,6 +80,7 @@ jobs:
               text='\\n'.join((pg.extract_text() or '') for pg in reader.pages).lower()
               banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
               assert not [x for x in banned if x in text], f"{name}: {text}"
+              assert '...' not in text and '\u2026' not in text, f"{name}: {text}"
           print('FSFFL reporting layer standardized smoke test passed')
           PY
 
