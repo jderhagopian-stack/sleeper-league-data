@@ -499,7 +499,7 @@ def build_intrinsic_player_values(
         row["intrinsic_current"] = round(current, 1)
         row["intrinsic_dynasty"] = round(dynasty, 1)
         row["intrinsic_value_source"] = "FSFFL_projection_VORP_age_curve_no_market"
-        row["market_sanity_check"] = market_sanity_check(dynasty, row.get("market_dynasty"))
+        row["market_sanity_check"] = market_sanity_check(dynasty, row.get("intrinsic_dynasty"))
     return player_values
 
 
@@ -948,7 +948,7 @@ def market_momentum_adjustment(asset):
         return 0.0, {"available": False, "adjustment": 0.0}
     t = safe_float(trend)
     # FantasyCalc trend can be raw-value movement; normalize conservatively.
-    signal = clamp(t / max(1200.0, safe_float(asset.get("market_dynasty")) * 0.25), -1, 1)
+    signal = clamp(t / max(1200.0, safe_float(asset.get("intrinsic_dynasty")) * 0.25), -1, 1)
     max_adj = CONFIG["football_intelligence_weights"]["market_momentum_max_adjustment"]
     return signal * max_adj, {"available": True, "trend_30_day": t, "signal": round(signal, 4)}
 
@@ -992,7 +992,7 @@ def current_starting_lineup_value(uid, rosters, player_values):
         if str(r.get("owner_id")) != str(uid):
             continue
         return sum(
-            safe_float(player_values.get(str(pid), {}).get("market_redraft"))
+            safe_float(player_values.get(str(pid), {}).get("intrinsic_current"))
             for pid in (r.get("starters") or [])
         )
     return 0.0
@@ -1009,12 +1009,12 @@ def hsg_trade_championship_utility(
     Approximate immediate 2026 utility using redraft market values and positional
     replacement effects. It is intentionally directional, not a literal title probability.
     """
-    target_redraft = safe_float(target_asset.get("market_redraft"))
+    target_redraft = safe_float(target_asset.get("intrinsic_current"))
     outgoing_redraft = 0.0
     for aid in outgoing_asset_ids:
         if aid.startswith("player:"):
             pid = aid.split(":", 1)[1]
-            outgoing_redraft += safe_float(player_values.get(pid, {}).get("market_redraft"))
+            outgoing_redraft += safe_float(player_values.get(pid, {}).get("intrinsic_current"))
 
     base_lineup = current_starting_lineup_value(hsg_uid, rosters, player_values)
     if base_lineup <= 0:
@@ -1478,7 +1478,7 @@ def make_owner_matrix(
                 "current_owner_user_id": current_uid,
                 "current_owner_team": team_label(current_uid, profile_by_uid) if current_uid else None,
                 "valuation_mode": mode,
-                "market_value": round(safe_float(a.get("market_dynasty")), 1),
+                "market_value": round(safe_float(a.get("intrinsic_dynasty")), 1),
                 "fsffl_value": round(fsffl_league_value(a, performance, baselines, usage, snaps, manual), 1),
                 "owner_perceived_value": round(value, 1),
                 "factors": factors,
@@ -1495,8 +1495,8 @@ def make_owner_matrix(
                 "current_owner_user_id": current_uid,
                 "current_owner_team": p.get("current_owner_team"),
                 "valuation_mode": "hold" if hold else "acquire",
-                "market_value": round(safe_float(p.get("market_dynasty")), 1),
-                "fsffl_value": round(safe_float(p.get("market_dynasty")), 1),
+                "market_value": round(safe_float(p.get("intrinsic_dynasty")), 1),
+                "fsffl_value": round(safe_float(p.get("intrinsic_dynasty")), 1),
                 "owner_perceived_value": round(value, 1),
                 "factors": factors,
             })
@@ -1601,7 +1601,7 @@ def build_hsg_trade_opportunities(
         # Focus recommendations on assets that are at least moderately useful to HSG.
         pos = target.get("position")
         need = safe_float(team_profiles[user_uid]["position_need"].get(pos), 0.5)
-        if target.get("market_dynasty", 0) < 1500 and need < 0.65:
+        if target.get("intrinsic_dynasty", 0) < 1500 and need < 0.65:
             continue
 
         seller_trade = profile_trade.get(seller_uid, {})
@@ -1676,7 +1676,7 @@ def build_hsg_trade_opportunities(
             "seller_user_id": seller_uid,
             "seller_manager": manager_label(seller_uid, profile_by_uid),
             "seller_team": team_label(seller_uid, profile_by_uid),
-            "market_value": round(safe_float(target.get("market_dynasty")), 1),
+            "market_value": round(safe_float(target.get("intrinsic_dynasty")), 1),
             "fsffl_value": round(fsffl_league_value(target), 1),
             "hsg_value": round(hsg_value, 1),
             "seller_hold_value": round(seller_hold, 1),
@@ -1795,6 +1795,8 @@ def base_main():
         row["current_owner_manager"] = manager_label(uid, profile_by_uid) if uid else None
         row["current_owner_team"] = team_label(uid, profile_by_uid) if uid else None
         row["fsffl_value"] = round(fsffl_league_value(a, performance, performance_baselines, usage, snaps, manual_intelligence), 1)
+        row["intrinsic_fsffl_value"] = round(safe_float(a.get("intrinsic_dynasty")), 1)
+        row["market_sanity_check"] = market_sanity_check(a.get("intrinsic_dynasty"), a.get("market_dynasty"))
         _, perf_meta = performance_adjustment(a, performance, performance_baselines)
         _, football_meta = football_intelligence_adjustment(a, usage, snaps, manual_intelligence)
         row["recent_performance_signal"] = perf_meta
@@ -1918,7 +1920,7 @@ def eligible(position: str, slot: str) -> bool:
 def optimize_lineup(
     player_ids: Iterable[str],
     player_values: Dict[str, Dict[str, Any]],
-    value_key: str = "market_redraft",
+    value_key: str = "intrinsic_current",
 ) -> Dict[str, Any]:
     """
     Fast exact optimizer for FSFFL-style lineups.
@@ -2069,7 +2071,7 @@ def optimized_starter_sets(rosters: List[Dict[str, Any]]) -> Dict[str, set]:
     out = {}
     for r in rosters:
         uid = str(r.get("owner_id"))
-        result = optimize_lineup(r.get("players") or [], values, "market_redraft")
+        result = optimize_lineup(r.get("players") or [], values, "intrinsic_current")
         out[uid] = set(result["player_ids"])
     return out
 
@@ -2084,13 +2086,13 @@ def optimized_team_strengths(
     for r in rosters:
         uid = str(r.get("owner_id"))
         all_players = [str(x) for x in (r.get("players") or []) if str(x) != "0"]
-        redraft_opt = optimize_lineup(all_players, player_values, "market_redraft")
-        dynasty_opt = optimize_lineup(all_players, player_values, "market_dynasty")
+        redraft_opt = optimize_lineup(all_players, player_values, "intrinsic_current")
+        dynasty_opt = optimize_lineup(all_players, player_values, "intrinsic_dynasty")
         starters = set(redraft_opt["player_ids"])
         bench = [x for x in all_players if x not in starters]
 
-        bench_redraft = sorted((safe_float(player_values.get(x, {}).get("market_redraft")) for x in bench), reverse=True)
-        bench_dynasty = sorted((safe_float(player_values.get(x, {}).get("market_dynasty")) for x in bench), reverse=True)
+        bench_redraft = sorted((safe_float(player_values.get(x, {}).get("intrinsic_current")) for x in bench), reverse=True)
+        bench_dynasty = sorted((safe_float(player_values.get(x, {}).get("intrinsic_dynasty")) for x in bench), reverse=True)
         immediate_strength = redraft_opt["total"] + 0.20 * sum(bench_redraft[:5])
         dynasty_strength = dynasty_opt["total"] + 0.18 * sum(bench_dynasty[:6])
 
@@ -2101,12 +2103,12 @@ def optimized_team_strengths(
             pos = a.get("position")
             if pos not in POSITIONS:
                 continue
-            pos_depth[pos].append(safe_float(a.get("market_redraft")))
+            pos_depth[pos].append(safe_float(a.get("intrinsic_current")))
         for pid in starters:
             a = player_values.get(pid, {})
             pos = a.get("position")
             if pos in POSITIONS:
-                pos_starter[pos] += safe_float(a.get("market_redraft"))
+                pos_starter[pos] += safe_float(a.get("intrinsic_current"))
 
         raw[uid] = {
             "user_id": uid,
@@ -2173,7 +2175,7 @@ def optimized_team_strengths(
 def optimized_current_starting_lineup_value(uid, rosters, player_values):
     for r in rosters:
         if str(r.get("owner_id")) == str(uid):
-            return optimize_lineup(r.get("players") or [], player_values, "market_redraft")["total"]
+            return optimize_lineup(r.get("players") or [], player_values, "intrinsic_current")["total"]
     return 0.0
 
 
@@ -2186,7 +2188,7 @@ def lineup_after_trade_utility(hsg_uid, outgoing_asset_ids, target_asset, roster
     if roster_players is None:
         return 0.0, {"available": False}
 
-    before = optimize_lineup(roster_players, player_values, "market_redraft")
+    before = optimize_lineup(roster_players, player_values, "intrinsic_current")
     outgoing_players = {
         aid.split(":", 1)[1]
         for aid in outgoing_asset_ids
@@ -2197,7 +2199,7 @@ def lineup_after_trade_utility(hsg_uid, outgoing_asset_ids, target_asset, roster
     temp_values = player_values
     if target_pid and target_pid not in after_players:
         after_players.append(target_pid)
-    after = optimize_lineup(after_players, temp_values, "market_redraft")
+    after = optimize_lineup(after_players, temp_values, "intrinsic_current")
     delta = after["total"] - before["total"]
     cap = CONFIG["championship_utility"]["max_trade_utility_adjustment"]
     utility = clamp((delta / before["total"] * 6.0) if before["total"] else 0.0, -cap, cap)
@@ -2265,7 +2267,7 @@ def build_hsg_trade_opportunities_v11(
 
         pos = target.get("position")
         need = safe_float(team_profiles[user_uid]["position_need"].get(pos), 0.5)
-        if target.get("market_dynasty", 0) < 1500 and need < 0.65:
+        if target.get("intrinsic_dynasty", 0) < 1500 and need < 0.65:
             continue
 
         seller_trade = profile_trade.get(seller_uid, {})
@@ -2426,7 +2428,7 @@ def build_hsg_trade_opportunities_v11(
             ),
             "seller_team": team_label(seller_uid, profile_by_uid),
             "market_value": round(
-                safe_float(target.get("market_dynasty")), 1
+                safe_float(target.get("intrinsic_dynasty")), 1
             ),
             "fsffl_value": round(fsffl_league_value(target), 1),
             "hsg_value": round(hsg_value, 1),
@@ -2506,7 +2508,7 @@ def build_sell_leverage_board():
             continue
         aid = f"player:{pid}"
         hsg_hold = owner_asset_values.get(hsg_uid, {}).get(aid, 0.0)
-        market = safe_float(meta.get("market_dynasty"))
+        market = safe_float(meta.get("intrinsic_dynasty"))
         buyers = []
         for uid, vals in owner_asset_values.items():
             if uid == hsg_uid:
@@ -3455,8 +3457,8 @@ def build_strategic_arbitrage_board():
         p = player_by_aid.get(aid, {})
         pos = p.get("position")
         age = safe_float(p.get("age"), 30)
-        dyn = safe_float(p.get("market_dynasty"))
-        rd = safe_float(p.get("market_redraft"))
+        dyn = safe_float(p.get("intrinsic_dynasty"))
+        rd = safe_float(p.get("intrinsic_current"))
         lineup_gain = safe_float(target_impact.get(aid))
         age_score = clamp((29.0 - age) / 8.0, 0.0, 1.0)
         appreciation = clamp(
@@ -3955,7 +3957,7 @@ def _u_team_objective_weights(team):
     return state, w
 
 
-def _u_lineup_swap(uid, outgoing_asset_ids, incoming_asset_ids, ctx, value_key="market_redraft"):
+def _u_lineup_swap(uid, outgoing_asset_ids, incoming_asset_ids, ctx, value_key="intrinsic_current"):
     player_values = _u_player_values_from_assets(ctx)
     roster = list(ctx["roster_by_uid"].get(str(uid), []))
     before = optimize_lineup(roster, player_values, value_key)
@@ -4011,7 +4013,7 @@ def _u_depth_insurance_drop(uid: str, pid: str, ctx):
     uid = str(uid)
     player_values = _u_player_values_from_assets(ctx)
     roster = list(ctx["roster_by_uid"].get(uid, []))
-    base = optimize_lineup(roster, player_values, "market_redraft")
+    base = optimize_lineup(roster, player_values, "intrinsic_current")
     lineup = base.get("lineup") or []
     pos = (ctx["player_meta"].get(f"player:{pid}") or {}).get("position")
     other = [
@@ -4026,15 +4028,15 @@ def _u_depth_insurance_drop(uid: str, pid: str, ctx):
     # Stress the roster by first removing the strongest same-position starter.
     other.sort(
         key=lambda x: safe_float(
-            (ctx["player_meta"].get(f"player:{x}") or {}).get("market_redraft")
+            (ctx["player_meta"].get(f"player:{x}") or {}).get("intrinsic_current")
         ),
         reverse=True,
     )
     stressed_pid = other[0]
     r1 = [x for x in roster if x != stressed_pid]
     r2 = [x for x in roster if x not in {stressed_pid, str(pid)}]
-    one_out = optimize_lineup(r1, player_values, "market_redraft")
-    two_out = optimize_lineup(r2, player_values, "market_redraft")
+    one_out = optimize_lineup(r1, player_values, "intrinsic_current")
+    two_out = optimize_lineup(r2, player_values, "intrinsic_current")
     drop = max(safe_float(one_out.get("total")) - safe_float(two_out.get("total")), 0.0)
     ctx["_depth_cache"][key] = drop
     return drop
@@ -4043,10 +4045,10 @@ def _u_depth_insurance_drop(uid: str, pid: str, ctx):
 def _u_position_tier_features(aid, ctx):
     meta = ctx["player_meta"].get(aid, {})
     pos = meta.get("position")
-    dyn = safe_float(meta.get("market_dynasty"))
+    dyn = safe_float(meta.get("intrinsic_dynasty"))
     peers = sorted(
-        [safe_float(x.get("market_dynasty")) for x in ctx["player_meta"].values()
-         if x.get("position") == pos and safe_float(x.get("market_dynasty")) > 0],
+        [safe_float(x.get("intrinsic_dynasty")) for x in ctx["player_meta"].values()
+         if x.get("position") == pos and safe_float(x.get("intrinsic_dynasty")) > 0],
         reverse=True
     )
     if not peers or dyn <= 0:
@@ -4061,17 +4063,17 @@ def _u_position_tier_features(aid, ctx):
         "percentile": round(pct, 4),
         "tier_gap": round(gap, 4),
         "scarcity_score": round(scarcity, 4),
+        "value_source": "intrinsic_fsffl",
     }
 
 
 def _u_player_distribution_features(aid, ctx):
     m = ctx["player_meta"].get(aid, {})
-    dyn = safe_float(m.get("market_dynasty"))
-    red = safe_float(m.get("market_redraft"))
+    dyn = safe_float(m.get("intrinsic_dynasty"))
+    cur = safe_float(m.get("intrinsic_current"))
     age = safe_float(m.get("age"), 27.0)
     pos = m.get("position")
     years_exp = safe_float(m.get("years_exp"), 3.0)
-    trend = safe_float(m.get("trend_30_day"), 0.0)
 
     if pos == "QB":
         young_center, old_center = 25.0, 34.0
@@ -4082,27 +4084,17 @@ def _u_player_distribution_features(aid, ctx):
 
     youth = clamp((old_center - age) / max(old_center - young_center, 1.0), 0.0, 1.0)
     rookie = 1.0 if years_exp <= 0.5 else 0.55 if years_exp <= 1.5 else 0.0
-    dyn_red_spread = clamp((dyn - red) / max(dyn, 1.0), -0.6, 0.8)
-    positive_spread = max(dyn_red_spread, 0.0)
+    dyn_cur_spread = clamp((dyn - cur) / max(dyn, 1.0), -0.6, 0.8)
+    positive_spread = max(dyn_cur_spread, 0.0)
 
     draft_round = safe_float(m.get("draft_round"), 0.0)
-    pedigree = 0.0
-    if draft_round == 1:
-        pedigree = 1.0
-    elif draft_round == 2:
-        pedigree = 0.72
-    elif draft_round == 3:
-        pedigree = 0.48
-    elif draft_round > 0:
-        pedigree = 0.25
+    pedigree = 1.0 if draft_round == 1 else 0.72 if draft_round == 2 else 0.48 if draft_round == 3 else 0.25 if draft_round > 0 else 0.0
 
-    momentum = clamp((trend + 500.0) / 1000.0, 0.0, 1.0) if trend else 0.5
     upside = clamp(
-        0.34 * youth
-        + 0.23 * rookie
+        0.42 * youth
+        + 0.25 * rookie
         + 0.18 * positive_spread
-        + 0.15 * pedigree
-        + 0.10 * momentum,
+        + 0.15 * pedigree,
         0.0, 1.0
     )
     if pos == "QB" and age <= 25:
@@ -4113,7 +4105,6 @@ def _u_player_distribution_features(aid, ctx):
     injury = 1.0 if m.get("injury_status") in ("Out", "IR", "PUP") else 0.45 if m.get("injury_status") else 0.0
     downside = clamp(0.45 * age_risk + 0.35 * role_risk + 0.20 * injury, 0.0, 1.0)
 
-    # Heuristic value distribution — explicitly not calibrated probabilities.
     floor_mult = clamp(0.78 - 0.30 * downside, 0.38, 0.82)
     ceiling_mult = 1.10 + 0.65 * upside
     hold_appreciation = clamp(0.02 + 0.18 * upside - 0.10 * downside, -0.08, 0.20)
@@ -4127,16 +4118,19 @@ def _u_player_distribution_features(aid, ctx):
         "distribution_ceiling": round(dyn * ceiling_mult, 1),
         "years_exp": years_exp,
         "pedigree_score": round(pedigree, 3),
+        "value_source": "intrinsic_fsffl_no_market_momentum",
     }
 
 
 def _u_player_liquidity(aid, ctx):
     m = ctx["player_meta"].get(aid, {})
-    dyn = safe_float(m.get("market_dynasty"))
+    dyn = safe_float(m.get("intrinsic_dynasty"))
     age = safe_float(m.get("age"), 27.0)
     pos = m.get("position")
     scarcity = _u_position_tier_features(aid, ctx)["scarcity_score"]
 
+    # Trade flexibility is estimated structurally from intrinsic quality,
+    # scarcity and age. Observed market price is not a valuation input.
     base = clamp(0.35 + 0.40 * scarcity + 0.25 * clamp(dyn / 8000.0, 0.0, 1.0), 0.0, 1.0)
     if pos == "QB":
         base += 0.08
@@ -4206,7 +4200,7 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
     holdings = ctx["holdings"].get(uid, [])
     player_values = _u_player_values_from_assets(ctx)
     roster = ctx["roster_by_uid"].get(uid, [])
-    lineup = optimize_lineup(roster, player_values, "market_redraft")
+    lineup = optimize_lineup(roster, player_values, "intrinsic_current")
     lineup_ids = set(lineup.get("player_ids") or [])
     base_lineup = max(safe_float(lineup.get("total")), 1.0)
 
@@ -4224,8 +4218,8 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
         if aid.startswith("player:"):
             m = ctx["player_meta"].get(aid, {})
             pid = aid.split(":", 1)[1]
-            dyn = safe_float(m.get("market_dynasty"))
-            red = safe_float(m.get("market_redraft"))
+            dyn = safe_float(m.get("intrinsic_dynasty"))
+            red = safe_float(m.get("intrinsic_current"))
             scarcity = _u_position_tier_features(aid, ctx)
             dist = _u_player_distribution_features(aid, ctx)
             liquidity = _u_player_liquidity(aid, ctx)
@@ -4291,8 +4285,11 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "position": m.get("position"),
                 "age": m.get("age"),
                 "base_franchise_value": round(base, 1),
-                "market_dynasty": round(dyn, 1),
-                "market_redraft": round(red, 1),
+                "intrinsic_dynasty": round(dyn, 1),
+                "intrinsic_current": round(red, 1),
+                "market_dynasty": round(market_dyn, 1),
+                "market_redraft": round(market_red, 1),
+                "market_sanity_check": m.get("market_sanity_check"),
                 "is_current_optimal_starter": bool(starter),
                 "single_absence_dependency_drop": round(single_drop, 1),
                 "depth_insurance_drop": round(depth_drop, 1),
@@ -4355,6 +4352,9 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "asset_type": "pick",
                 "name": (ctx["asset_meta"].get(aid) or {}).get("name"),
                 "base_franchise_value": round(base, 1),
+                "intrinsic_dynasty": round(safe_float((ctx["asset_meta"].get(aid) or {}).get("intrinsic_dynasty")), 1),
+                "market_dynasty": round(safe_float((ctx["asset_meta"].get(aid) or {}).get("market_dynasty")), 1),
+                "market_sanity_check": (ctx["asset_meta"].get(aid) or {}).get("market_sanity_check"),
                 "strategic_score": round(strategic_score, 4),
                 "core_status": status,
                 "liquidity_score": round(liquidity, 4),
@@ -4475,7 +4475,7 @@ def _u_adjusted_exit_cost(uid, outgoing, incoming, ctx, profile_by_uid):
     """
     uid = str(uid)
     base, premium, static = _u_static_exit_cost(uid, outgoing, ctx, profile_by_uid)
-    lineup = _u_lineup_swap(uid, outgoing, incoming, ctx, "market_redraft")
+    lineup = _u_lineup_swap(uid, outgoing, incoming, ctx, "intrinsic_current")
     replacement_fraction = safe_float(lineup.get("replacement_fraction"), 0.0)
 
     outgoing_profiles = [
@@ -4550,7 +4550,7 @@ def _u_trade_strategic_utility(uid, outgoing, incoming, ctx, profile_by_uid):
     uid = str(uid)
     team = ctx["teams"].get(uid, {})
     state, weights = _u_team_objective_weights(team)
-    line = _u_lineup_swap(uid, outgoing, incoming, ctx, "market_redraft")
+    line = _u_lineup_swap(uid, outgoing, incoming, ctx, "intrinsic_current")
     base_line = max(safe_float(line.get("before_total")), 1.0)
     lineup_norm = safe_float(line.get("lineup_gain")) / base_line
 
@@ -4637,8 +4637,8 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             continue
         pos = meta.get("position")
         need = safe_float(need_map.get(pos), 0.5)
-        dyn = safe_float(meta.get("market_dynasty"))
-        red = safe_float(meta.get("market_redraft"))
+        dyn = safe_float(meta.get("intrinsic_dynasty"))
+        red = safe_float(meta.get("intrinsic_current"))
         seller_profile = profile_by_uid.get(seller_uid, {}).get(aid, {})
         seller_strategic = safe_float(seller_profile.get("strategic_score"), 0.5)
         gap = focal_value - seller_value
@@ -4812,8 +4812,8 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             "seller_user_id": seller_uid,
             "seller_manager": (ctx["owners"].get(seller_uid) or {}).get("manager"),
             "seller_team": (ctx["owners"].get(seller_uid) or {}).get("team_name"),
-            "market_dynasty": round(safe_float(target.get("market_dynasty")),1),
-            "market_redraft": round(safe_float(target.get("market_redraft")),1),
+            "market_dynasty": round(safe_float(target.get("intrinsic_dynasty")),1),
+            "market_redraft": round(safe_float(target.get("intrinsic_current")),1),
             "focal_value": round(focal_value,1),
             "seller_break_glass_value": round(seller_exit_static,1),
             "seller_core_status": seller_profile.get("core_status"),
@@ -4934,8 +4934,8 @@ def build_universal_command_center(uid: str, trade_payload, sell_payload, profil
             "target_player":o.get("target_player"),
             "position":o.get("position"),
             "seller_team":o.get("seller_team"),
-            "market_dynasty":o.get("market_dynasty"),
-            "market_redraft":o.get("market_redraft"),
+            "market_dynasty":o.get("intrinsic_dynasty"),
+            "market_redraft":o.get("intrinsic_current"),
             "seller_core_status":o.get("seller_core_status"),
             "seller_break_glass_value":o.get("seller_break_glass_value"),
             "focal_position_need":o.get("focal_position_need"),
