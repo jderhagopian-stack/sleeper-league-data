@@ -1,0 +1,64 @@
+name: One-off Skattebo Trade Chef Perspective
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-off-skattebo-chef-perspective.yml'
+
+jobs:
+  trade-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Write scenario
+        run: |
+          cat > /tmp/skattebo-chef.json <<'JSON'
+          {
+            "scenario_id":"chef-bodini-skattebo-perspective-2026-08-27",
+            "description":"Chef Niners gives Cam Skattebo to Hurts So Good and receives Rhamondre Stevenson, Hurts So Good's own 2028 2nd, and Hurts So Good's own 2029 3rd.",
+            "focus_user_id":"709546576091090944",
+            "participant_user_ids":["709546576091090944","846634401482792960"],
+            "transaction_status":"proposed",
+            "actions":[
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"846634401482792960","players":["12481"],"picks":[]},
+              {"type":"trade","from_user_id":"846634401482792960","to_user_id":"709546576091090944","players":["7611"],"picks":["pick:2028:R2:orig9","pick:2029:R3:orig9"]}
+            ]
+          }
+          JSON
+      - name: Run canonical trade pipeline
+        run: |
+          mkdir -p /tmp/trade-output
+          python script/run_trade_report.py             --scenario /tmp/skattebo-chef.json             --out-dir /tmp/trade-output             --basename skattebo-chef-perspective             --quick-sims 200             --adaptive-confirm-sims 1000             --search-depth 60
+      - name: Show summary
+        run: |
+          cat /tmp/trade-output/skattebo-chef-perspective-summary.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/trade-output/skattebo-chef-perspective.json'))
+          c=r['current_offer_evaluation']
+          print(json.dumps({
+            'model_version':r['model_version'],
+            'action':r['recommended_next_action'],
+            'focus_state':r.get('focus_team_state'),
+            'focus_delta':c['simulation']['focus_delta'],
+            'strategic':c['simulation']['strategic'],
+            'buyer_rationality':c.get('buyer_rationality'),
+            'roster_interactions':c['simulation'].get('roster_interactions'),
+            'post_sim_score':c.get('post_sim_score'),
+            'championship_equity_constraint':c.get('championship_equity_constraint')
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skattebo-chef-perspective-20260827
+          path: /tmp/trade-output/*
+          if-no-files-found: error
+          retention-days: 30
