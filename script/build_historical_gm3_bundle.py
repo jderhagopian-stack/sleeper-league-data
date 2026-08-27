@@ -219,24 +219,58 @@ def projection_bundle(values, prior, baselines):
 
 
 def build_historical_lineup_cache(rosters, league, players, projections):
-    """Pre-optimize the frozen baseline once, matching Decision Lab cache semantics."""
+    """Pre-optimize the frozen baseline once, matching Decision Lab cache semantics.
+
+    Historical preseason proxies are often stationary across weeks. Avoid
+    repeating the exact DFS lineup optimization 17 times by memoizing on the
+    roster's projection signature. If a future historical bundle has true
+    week-specific projections, each distinct signature is still optimized
+    separately, preserving normal Decision Lab semantics.
+    """
     simmod = load_module(SCRIPT / "build_fsffl_season_simulator.py", "historical_bundle_simulator")
     reg_weeks = simmod.regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
     weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
+    pproj = (projections or {}).get("players") or {}
+
+    def signature(roster, week):
+        rows = []
+        taxi = set(str(x) for x in (roster.get("taxi") or []))
+        for pid in sorted(str(x) for x in (roster.get("players") or [])):
+            if pid in taxi:
+                continue
+            w = ((pproj.get(pid) or {}).get("weeks") or {}).get(str(week))
+            if not w:
+                rows.append((pid, None, None))
+            else:
+                rows.append((
+                    pid,
+                    float(w.get("mean", w.get("median", 0.0)) or 0.0),
+                    float(w.get("active_probability", 1.0) or 0.0),
+                ))
+        return tuple(rows)
+
     lineups = {}
+    unique_optimizations = 0
     for roster in rosters:
         rid = int(roster.get("roster_id"))
         lineups[str(rid)] = {}
+        memo = {}
         for week in weeks:
-            lineups[str(rid)][str(week)] = simmod.optimize_weekly_lineup(
-                roster, week, league, players, projections
-            )
+            sig = signature(roster, week)
+            if sig not in memo:
+                memo[sig] = simmod.optimize_weekly_lineup(
+                    roster, week, league, players, projections
+                )
+                unique_optimizations += 1
+            lineups[str(rid)][str(week)] = copy.deepcopy(memo[sig])
     return {
         "simulator_model_version": simmod.MODEL_VERSION,
-        "execution_path": "preoptimized_frozen_baseline",
+        "execution_path": "preoptimized_frozen_baseline_signature_memoized",
         "weeks": weeks,
         "lineups": lineups,
+        "unique_lineup_optimizations": unique_optimizations,
+        "nominal_roster_week_optimizations": len(rosters) * len(weeks),
     }
 
 
