@@ -183,6 +183,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "decision": dl.classify_decision({"delta": delta, "strategic": strategic}, state_label),
             "state_aware_utility_delta": teamlab.unified_score_with_state(state_label, cmp),
             "team_state": state_label,
+            "team_state_evidence": ((bundle.get("historical_state_details") or {}).get(uid) or {}),
         }
 
     uids = list(rows)
