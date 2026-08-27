@@ -1,0 +1,41 @@
+name: Model Governance Audit
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_model_governance.py'
+      - 'script/**/*.py'
+      - 'data/gm/**'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run model governance audit
+        run: python script/audit_model_governance.py
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('data/audit/model_governance_audit.json'))
+          assert r['summary']['numeric_assumptions_flagged'] > 50
+          ids={x['id'] for x in r['curated_findings']}
+          assert 'STATE-WEIGHTS-001' in ids
+          assert 'DOUBLE-COUNT-001' in ids
+          state=[x for x in r['curated_findings'] if x['id']=='STATE-WEIGHTS-001'][0]
+          assert 'exists=False' in state['observation']
+          print(json.dumps(r['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-model-governance-audit
+          path: data/audit/*
+          retention-days: 30
