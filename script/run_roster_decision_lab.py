@@ -41,6 +41,16 @@ def write_json(path: Path, obj: Any):
     path.write_text(json.dumps(obj, indent=2, sort_keys=True), encoding="utf-8")
 
 
+def import_gm_core():
+    path = Path("script/build_fsffl_gm_engine.py")
+    spec = importlib.util.spec_from_file_location("fsffl_gm_core_for_decision_lab", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to import GM core from {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def import_simulator():
     path = Path("script/build_fsffl_season_simulator.py")
     spec = importlib.util.spec_from_file_location("fsffl_simulator", path)
@@ -328,9 +338,28 @@ def strategic_summary_from_maps(uid, actions, gm, players, picks):
 
 
 def strategic_summary(uid, actions):
-    gm = gm_asset_map(uid)
+    gm_map = gm_asset_map(uid)
     players, picks = asset_value_maps()
-    return strategic_summary_from_maps(uid, actions, gm, players, picks)
+    summary = strategic_summary_from_maps(uid, actions, gm_map, players, picks)
+
+    # Use the same nonlinear package-economics machinery that powers GM3's
+    # canonical trade-opportunity engine. This prevents final trade scoring
+    # from reverting to simple additive asset arithmetic.
+    sent, received = action_assets_for_user(actions, uid)
+    if sent or received:
+        gmcore = import_gm_core()
+        ctx = gmcore._u_load_context()
+        profile_by_uid = {
+            str(ouid): gmcore._u_profile_map(
+                gmcore.build_strategic_asset_profiles_for_team(str(ouid), ctx)
+            )
+            for ouid in ctx["owners"]
+        }
+        pkg = gmcore.evaluate_trade_package_economics(
+            str(uid), sent, received, ctx, profile_by_uid
+        )
+        summary.update(pkg)
+    return summary
 
 
 def resolve_schedule_path(season: str) -> Path:
