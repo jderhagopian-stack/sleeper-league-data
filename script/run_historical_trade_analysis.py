@@ -424,6 +424,18 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
     touched |= {str(x) for x in (tx.get("drops") or {}).values() if x is not None}
     participant_uids = sorted({r2u[rid] for rid in touched if rid in r2u})
 
+    root_trade_ledger = next(
+        (
+            x for x in loadj(DATA / "trade_ledger.json", [])
+            if str(x.get("transaction_id") or "") == str(transaction_id)
+        ),
+        {},
+    )
+    root_ledger_side_by_uid = {
+        str(x.get("user_id")): x for x in (root_trade_ledger.get("sides") or [])
+        if x.get("user_id") is not None
+    }
+
     sides = {}
     for rid in sorted(touched):
         uid = r2u.get(rid)
@@ -431,11 +443,12 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             continue
         assets = side_assets(tx, rid)
         summary = summarize_roster(state.roster_players.get(rid, set()), int(season), players, qidx)
+        historical_side = root_ledger_side_by_uid.get(str(uid)) or {}
         sides[uid] = {
             "user_id": uid,
             "roster_id": rid,
-            "manager": (owners.get(uid) or {}).get("manager"),
-            "team_name": (owners.get(uid) or {}).get("team_name"),
+            "manager": historical_side.get("manager") or (owners.get(uid) or {}).get("manager"),
+            "team_name": historical_side.get("team_name") or (owners.get(uid) or {}).get("team_name"),
             "pretrade_roster": {
                 "player_ids": sorted(state.roster_players.get(rid, set())),
                 "player_names": asset_names(players, sorted(state.roster_players.get(rid, set()))),
