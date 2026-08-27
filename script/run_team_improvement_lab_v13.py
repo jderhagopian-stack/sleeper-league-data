@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FSFFL GM 3.0 Team Improvement Lab 1.3.
+"""FSFFL GM 3.0 Team Improvement Lab 1.4.
 
 Consumes the canonical full fantasy-relevant projection universe produced by
 build_fsffl_full_projection_universe.py. Waiver/free-agent candidates therefore
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent / "run_team_improvement_lab.py"
-MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.3"
+MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.4"
 PROJECTION_MODEL_VERSION = "FSFFL-Full-Projection-Universe-1.0"
 
 
@@ -170,6 +170,16 @@ def main():
             "waiver_candidates_use_canonical_full_projection": True,
         }
         report.setdefault("policy", {})["waiver_candidates_use_canonical_full_projection_universe"] = True
+        report["ranking_calibration"] = {
+            "version": "competitive-state-calibration-2.0",
+            "principle": "competitive_state_tilts_but_does_not_dominate",
+            "championship_probability_diminishing_returns": {
+                "full_weight_through_probability_points": 4.0,
+                "marginal_weight_beyond_knee": 0.35,
+            },
+            "dynasty_value_guardrail_enabled": True,
+            "notes": "Displayed football outcomes remain raw simulation results; only recommendation ranking uses the calibrated utility function.",
+        }
         out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
 
