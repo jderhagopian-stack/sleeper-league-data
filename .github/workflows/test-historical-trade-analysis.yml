@@ -133,6 +133,11 @@ jobs:
           assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact'
           assert d['gm3_evaluation']['input_bundle_provenance']['incoming_assets_use_team_specific_buy_values'] is True
           assert d['gm3_evaluation']['input_bundle_provenance']['canonical_package_economics_available'] is True
+          assert d['gm3_evaluation']['input_bundle_provenance']['frozen_historical_state_injected_into_strategic_profiles'] is True
+          assert d['gm3_evaluation']['input_bundle_provenance']['frozen_historical_state_injected_into_package_economics'] is True
+          for uid,row in d['gm3_evaluation']['team_results'].items():
+              pkg_state=((row.get('strategic') or {}).get('trade_strategic_utility') or {}).get('team_state')
+              assert pkg_state == row.get('team_state'), (uid,pkg_state,row.get('team_state'))
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
