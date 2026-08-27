@@ -4639,6 +4639,26 @@ def _u_trade_strategic_utility(uid, outgoing, incoming, ctx, profile_by_uid):
     }
 
 
+
+def evaluate_trade_package_economics(uid, outgoing, incoming, ctx, profile_by_uid):
+    """Canonical GM3 package economics for a concrete trade from one team's view."""
+    uid = str(uid)
+    outgoing = [str(x) for x in (outgoing or [])]
+    incoming = [str(x) for x in (incoming or [])]
+    out_eff, out_detail = _u_package_effective_value(outgoing, uid, ctx, profile_by_uid)
+    in_eff, in_detail = _u_package_effective_value(incoming, uid, ctx, profile_by_uid)
+    trade_util = _u_trade_strategic_utility(uid, outgoing, incoming, ctx, profile_by_uid)
+    return {
+        "outgoing_effective_value": round(out_eff, 1),
+        "incoming_effective_value": round(in_eff, 1),
+        "package_effective_value_delta": round(in_eff - out_eff, 1),
+        "outgoing_package": out_detail,
+        "incoming_package": in_detail,
+        "trade_strategic_utility": trade_util,
+        "package_economics_model": "GM3_nonlinear_package_effective_value",
+    }
+
+
 def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None):
     ctx = ctx or _u_load_context()
     uid = str(uid)
