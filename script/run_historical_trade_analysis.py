@@ -32,7 +32,7 @@ from build_behavioral_action_context import player_index, prior_season_quality, 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.1"
+MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.2"
 
 
 def loadj(path: Path, default):
@@ -140,6 +140,206 @@ def realized_outcome(transaction_id: str, uid: str) -> Dict[str, Any]:
     }
 
 
+
+def _pick_key(row: Dict[str, Any]) -> str:
+    return f"pick:{row.get('season')}:R{row.get('round')}:orig{row.get('original_roster_id', row.get('roster_id'))}"
+
+
+def _side_asset_keys(side: Dict[str, Any], received=True):
+    pkey = "received_players" if received else "sent_players"
+    kkey = "received_picks" if received else "sent_picks"
+    players = [
+        f"player:{x.get('player_id')}" for x in (side.get(pkey) or [])
+        if isinstance(x, dict) and x.get("player_id") is not None
+    ]
+    picks = [_pick_key(x) for x in (side.get(kkey) or []) if isinstance(x, dict)]
+    return players + picks
+
+
+def _asset_label(aid: str, players: Dict[str, Any], conversions: Dict[str, Dict[str, Any]]):
+    if aid.startswith("player:"):
+        pid=aid.split(":",1)[1]
+        p=players.get(pid) or {}
+        return str(p.get("full_name") or p.get("name") or pid)
+    c=conversions.get(aid) or {}
+    if c:
+        return f"{aid} ({c.get('player_name')})"
+    return aid
+
+
+def _draft_events(conversions):
+    drafts=loadj(DATA / "drafts.json", [])
+    start_by_season={}
+    for row in drafts:
+        d=(row or {}).get("draft") or {}
+        if d.get("season") is not None and d.get("start_time") is not None:
+            start_by_season[str(d.get("season"))]=int(d.get("start_time"))
+    out=[]
+    for c in conversions:
+        ts=start_by_season.get(str(c.get("season")))
+        if ts:
+            out.append({
+                "created":ts,
+                "event_type":"draft_selection",
+                "pick_asset_key":str(c.get("pick_asset_key")),
+                "player_asset_key":str(c.get("player_asset_key")),
+                "player_name":c.get("player_name"),
+                "drafted_by_user_id":str(c.get("drafted_by_user_id")),
+                "pick_no":c.get("pick_no"),
+            })
+    return out
+
+
+def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets, players):
+    """Trace what a franchise actually turned the acquired assets into.
+
+    Downstream trades are followed recursively. When a lineage asset is packaged
+    with unrelated assets, every return asset is retained but clearly marked as
+    mixed attribution rather than falsely claiming the original trade alone
+    produced the entire return.
+    """
+    trades=loadj(DATA / "trade_ledger.json", [])
+    transactions=loadj(DATA / "transactions.json", [])
+    conversions=loadj(DATA / "draft_pick_conversion_index.json", [])
+    conversion_map={str(x.get("pick_asset_key")):x for x in conversions if x.get("pick_asset_key")}
+    timeline=[]
+
+    for d in _draft_events(conversions):
+        if int(d.get("created") or 0)>int(root_created):
+            timeline.append(d)
+
+    for tr in trades:
+        if int(tr.get("created") or 0)<=int(root_created):
+            continue
+        side=next((x for x in (tr.get("sides") or []) if str(x.get("user_id"))==str(uid)),None)
+        if side:
+            timeline.append({
+                "created":int(tr.get("created") or 0),
+                "event_type":"trade",
+                "transaction_id":str(tr.get("transaction_id")),
+                "side":side,
+            })
+
+    for tx in transactions:
+        if int(tx.get("created") or 0)<=int(root_created) or str(tx.get("status"))!="complete":
+            continue
+        if str(tx.get("type"))=="trade":
+            continue
+        if str(roster_id) not in {str(x) for x in (tx.get("roster_ids") or [])}:
+            continue
+        for pid,rid in (tx.get("drops") or {}).items():
+            if str(rid)==str(roster_id):
+                timeline.append({
+                    "created":int(tx.get("created") or 0),
+                    "event_type":"release",
+                    "transaction_id":str(tx.get("transaction_id")),
+                    "player_asset_key":f"player:{pid}",
+                    "transaction_type":tx.get("type"),
+                })
+
+    timeline.sort(key=lambda x:(int(x.get("created") or 0), x.get("event_type")!="draft_selection"))
+    live=set(map(str,root_assets))
+    nodes={aid:{"asset_key":aid,"label":_asset_label(aid,players,conversion_map),"root_asset":True} for aid in live}
+    events=[]
+    mixed=0
+
+    for ev in timeline:
+        typ=ev.get("event_type")
+        if typ=="draft_selection":
+            pick=str(ev.get("pick_asset_key"))
+            if pick in live and str(ev.get("drafted_by_user_id"))==str(uid):
+                player=str(ev.get("player_asset_key"))
+                live.remove(pick); live.add(player)
+                nodes.setdefault(player,{"asset_key":player,"label":ev.get("player_name") or _asset_label(player,players,conversion_map),"root_asset":False})
+                events.append({
+                    "created":ev["created"],"event_type":"draft_selection",
+                    "from_assets":[pick],"to_assets":[player],
+                    "description":f"{_asset_label(pick,players,conversion_map)} became {ev.get('player_name')} at pick {ev.get('pick_no')}.",
+                    "attribution":"direct",
+                })
+        elif typ=="trade":
+            side=ev["side"]
+            sent=_side_asset_keys(side,received=False)
+            hit=[a for a in sent if a in live]
+            if not hit:
+                continue
+            received=_side_asset_keys(side,received=True)
+            attribution="direct" if all(a in live for a in sent) else "mixed_with_non_lineage_assets"
+            if attribution!="direct": mixed+=1
+            for a in hit: live.discard(a)
+            for a in received:
+                live.add(a)
+                nodes.setdefault(a,{"asset_key":a,"label":_asset_label(a,players,conversion_map),"root_asset":False})
+            events.append({
+                "created":ev["created"],"event_type":"downstream_trade",
+                "transaction_id":ev.get("transaction_id"),
+                "from_assets":hit,"to_assets":received,"attribution":attribution,
+                "description":(
+                    f"Traded {', '.join(_asset_label(a,players,conversion_map) for a in hit)} for "
+                    f"{', '.join(_asset_label(a,players,conversion_map) for a in received) or 'no tracked player/pick return'}."
+                ),
+            })
+        elif typ=="release":
+            aid=str(ev.get("player_asset_key"))
+            if aid in live:
+                live.remove(aid)
+                events.append({
+                    "created":ev["created"],"event_type":"released",
+                    "transaction_id":ev.get("transaction_id"),
+                    "from_assets":[aid],"to_assets":[],"attribution":"direct",
+                    "description":f"{_asset_label(aid,players,conversion_map)} was released via {ev.get('transaction_type')}.",
+                })
+
+    current_assets=loadj(DATA / "fsffl_asset_values.json", {}) or {}
+    current_map={}
+    for p in current_assets.get("players") or []:
+        current_map[f"player:{p.get('player_id')}"]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
+    for p in current_assets.get("picks") or []:
+        if p.get("asset_id"):
+            current_map[str(p.get("asset_id"))]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
+
+    return {
+        "root_assets":[{"asset_key":a,"label":_asset_label(a,players,conversion_map)} for a in root_assets],
+        "events":events,
+        "terminal_assets":[
+            {"asset_key":a,"label":_asset_label(a,players,conversion_map),"current_intrinsic_value":round(current_map.get(a,0.0),1)}
+            for a in sorted(live)
+        ],
+        "terminal_current_intrinsic_value":round(sum(current_map.get(a,0.0) for a in live),1),
+        "mixed_attribution_events":mixed,
+        "methodology_note":"Downstream asset lineage is factual. Mixed-package returns are retained but explicitly marked mixed; exact economic attribution is not claimed.",
+    }
+
+
+def keep_assets_reference(transaction_id: str, sent_assets: Dict[str, Any], players):
+    """Observed reference for assets surrendered, not a fictional alternate-history replay."""
+    perf=loadj(DATA / "transaction_performance_index.json", [])
+    conv={str(x.get("pick_asset_key")):x for x in loadj(DATA / "draft_pick_conversion_index.json", []) if x.get("pick_asset_key")}
+    rows=[]
+    for pid in sent_assets.get("sent_players") or []:
+        hit=next((r for r in perf if str(r.get("transaction_id"))==str(transaction_id) and str(r.get("player_id"))==str(pid)),None)
+        p=players.get(str(pid)) or {}
+        rows.append({
+            "asset_key":f"player:{pid}",
+            "label":str(p.get("full_name") or p.get("name") or pid),
+            "observed_post_trade_points":round(float((hit or {}).get("fsffl_points_for_acquirer_after_trade") or 0),2),
+            "reference_type":"observed_player_output_after_trade",
+        })
+    for aid in sent_assets.get("sent_picks") or []:
+        c=conv.get(str(aid))
+        rows.append({
+            "asset_key":str(aid),
+            "label":str(aid),
+            "drafted_player":(c or {}).get("player_name"),
+            "pick_no":(c or {}).get("pick_no"),
+            "reference_type":"actual_slot_conversion" if c else "unresolved_or_future_pick",
+        })
+    return {
+        "assets":rows,
+        "note":"This is a keep-the-original-assets reference, not a claim about exact alternate history. Later manager choices, trades, waivers and lineup decisions would have changed if the original trade never happened.",
+    }
+
+
 def default_bundle_path(season: str, transaction_id: str) -> Path:
     return DATA / "historical_gm3" / str(season) / f"{transaction_id}.json"
 
@@ -214,6 +414,16 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             },
             "realized_outcome": realized_outcome(str(transaction_id), uid),
         }
+        root_assets=[
+            *(f"player:{x}" for x in assets["received_players"]),
+            *assets["received_picks"],
+        ]
+        sides[uid]["hindsight"]={
+            "asset_lineage":build_asset_lineage(
+                int(tx.get("created") or 0),uid,rid,root_assets,players
+            ),
+            "keep_assets_reference":keep_assets_reference(str(transaction_id),assets,players),
+        }
 
     adapter = load_module(SCRIPT / "historical_trade_gm3_adapter.py", "historical_trade_gm3_adapter")
     gm3 = adapter.evaluate(
@@ -249,6 +459,9 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             "decision_quality_uses_only_information_available_before_trade": True,
             "same_season_future_results_leakage_forbidden": True,
             "outcome_layer_separate_from_decision_layer": True,
+            "hindsight_traces_draft_conversions_and_downstream_trades": True,
+            "mixed_lineage_attribution_is_flagged_not_overclaimed": True,
+            "keep_assets_reference_is_descriptive_not_causal_counterfactual": True,
             "current_player_values_not_backfilled_into_historical_grade": True,
             "standalone_v1_process_score_retired": True,
             "missing_historical_inputs_result_in_not_graded": True,
