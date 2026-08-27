@@ -87,6 +87,9 @@
     "gm3_produces_final_team_specific_value": true,
     "regular_gm3_trade_engine_produces_point_in_time_team_impact": true,
     "unlisted_players_use_prior_completed_season_proxy_for_market_anchor": true,
-    "future_pick_values_beyond_2024_use_time_discounted_2024_source_values_as_market_anchor": true
+    "future_pick_values_beyond_2024_use_time_discounted_2024_source_values_as_market_anchor": true,
+    "external_values_do_not_feed_intrinsic_fsffl_value": true,
+    "market_is_sanity_check_and_execution_reference_only": true,
+    "intrinsic_fsffl_value_precedes_team_specific_value": true
   }
 }
