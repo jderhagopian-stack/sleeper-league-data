@@ -286,6 +286,13 @@ def curated_findings():
         "required_action":"Perform signal-family ablation: market level only, market trend only, dynasty-redraft spread only, then combinations. Keep only incremental predictive contribution and prevent repeated contribution to the same final utility."
       },
       {
+        "id":"VALIDATION-SEMANTICS-001","severity":"HIGH","status":"MISLEADING_TERMINOLOGY_RISK",
+        "component":"Meaning of 'validated' / 'proven'",
+        "evidence":"Several manifests and module descriptions call inherited workflows 'proven' or 'validated' when the checks primarily establish code correctness, regression stability, coverage, or internal invariants. The GM engine itself explicitly labels important value distributions and pick probabilities as heuristics/not calibrated.",
+        "why_it_matters":"Passing software tests does not demonstrate that economic weights predict good dynasty decisions. Conflating those concepts can cause us to trust a stable implementation of an unjustified assumption.",
+        "required_action":"Separate SOFTWARE_VALIDATED, DATA_QUALITY_VALIDATED, BACKTESTED, OUT_OF_SAMPLE_VALIDATED, and HEURISTIC_PROVISIONAL statuses everywhere."
+      },
+      {
         "id":"DOUBLE-COUNT-001","severity":"CRITICAL","status":"AUDIT_REQUIRED",
         "component":"Cross-module double counting",
         "evidence":"Current production/market value/team state/injury/usage/title odds appear in multiple layers (market values, GM adjustments, simulator, roster interaction, Team Improvement ranking).",
