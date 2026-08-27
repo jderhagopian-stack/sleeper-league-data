@@ -482,7 +482,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             "asset_id": aid, "asset_type": "pick", "name": aid,
             "market_dynasty": market_value,
             "intrinsic_dynasty": intrinsic_value,
-            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_from_intrinsic_player_distribution",
+            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_realization_from_intrinsic_player_distribution",
             "market_sanity_check": gm.market_sanity_check(intrinsic_value, market_value),
             "current_owner_user_id": owner_uid,
             "original_owner_user_id": original_uid,
