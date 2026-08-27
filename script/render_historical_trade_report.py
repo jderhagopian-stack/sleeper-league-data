@@ -250,7 +250,8 @@ def keep_reference(side,s):
     text="<br/>".join(rows) or "No keep-reference assets were available."
     summary=(f"<br/><b>Hold-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
              f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current intrinsic value.")
-    return Paragraph(text+summary+"<br/><font size='6.3'>"+clean(ref.get("note"),300)+"</font>",s["body"])
+    note=clean(ref.get("note"),300).replace("keep-the-original-assets","hold-the-original-assets").replace("keep-reference","hold reference")
+    return Paragraph(text+summary+"<br/><font size='6.3'>"+note+"</font>",s["body"])
 
 
 def audit_footer(canvas,doc):
