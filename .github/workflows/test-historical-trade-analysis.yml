@@ -65,12 +65,13 @@ jobs:
           assert d['gm3_evaluation']['status']=='GRADED_BY_GM3_CORE'
           assert d['gm3_evaluation']['n_sims']==1000
           assert d['gm3_evaluation']['same_gm3_core_as_current_trade_analysis'] is True
+          assert d['gm3_evaluation']['baseline_lineup_source']=='frozen_bundle_cache'
           assert d['gm3_evaluation']['standalone_historical_score_used'] is False
           assert d['gm3_evaluation']['current_values_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['same_season_results_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['future_schedule_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_is_final_value'] is False
-          assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_owner_value_plus_strategic_profile_plus_counterfactual_simulation'
+          assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_owner_value_plus_strategic_profile_plus_trade_impact'
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
