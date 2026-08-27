@@ -559,6 +559,20 @@ def build(season: str, transaction_id: str, source_path: Path):
         str(row.get("user_id")): float(row.get("historical_state_confidence") or 0.0)
         for row in historical_side_rows
     }
+    historical_state_details = {
+        str(row.get("user_id")): {
+            "state": str(row.get("historical_state") or "unknown"),
+            "score": row.get("historical_state_score"),
+            "confidence": row.get("historical_state_confidence"),
+            "phase": row.get("phase"),
+            "reconstruction_mode": row.get("reconstruction_mode"),
+            "performance_source_season": row.get("performance_source_season"),
+            "performance_through_week": row.get("performance_through_week"),
+            "performance_evidence": row.get("performance_evidence"),
+            "approx_pretrade_average_age": row.get("approx_pretrade_average_age"),
+        }
+        for row in historical_side_rows
+    }
     team_states = {
         uid: historical_state_by_uid.get(uid) or derived_team_states.get(uid) or "unknown"
         for uid in all_uids
@@ -613,6 +627,7 @@ def build(season: str, transaction_id: str, source_path: Path):
         "market_player_values": market_player_values,
         "market_pick_values": market_pick_values,
         "team_states": team_states,
+        "historical_state_details": historical_state_details,
         "team_profiles": team_profiles,
         "historical_behavior_preferences": prefs,
         "strategic_profiles": strategic_profiles,
