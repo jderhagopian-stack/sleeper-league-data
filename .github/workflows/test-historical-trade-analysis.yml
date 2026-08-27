@@ -180,6 +180,9 @@ jobs:
           assert 'mixed-package attribution' not in page2.lower()
           assert 'Trade-chain note' in page2
           assert 'Fantasy production received since the trade' in page2_flat
+          assert 'Balancing current competitiveness with future value' in page1_flat
+          assert 'league fantasy points' in page2_flat
+          assert 'very high remaining value' in page2_flat
           assert 'remaining value' in page2.lower()
           assert 'pick:2023:R1:orig1' not in text
           for uid,side in d['sides'].items():
