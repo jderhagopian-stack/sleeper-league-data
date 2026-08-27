@@ -473,16 +473,23 @@ def build(season: str, transaction_id: str, source_path: Path):
         owner_rid = state.pick_owners.get(aid, str(orig))
         owner_uid = r2u.get(str(owner_rid))
         market_value = round(source_val * 100.0, 1)
+        scenario_weights = {
+            "early": ew,
+            "mid": max(0.0, 1.0 - ew - lw),
+            "late": lw,
+        }
         intrinsic_value = gm.intrinsic_pick_value(
             year, rnd, values, int(season),
             slot=slots.get(str(orig)) if year == int(season) else None,
             tier=tier,
+            scenario_weights=scenario_weights if year > int(season) else None,
         )
         pick_assets[aid] = {
             "asset_id": aid, "asset_type": "pick", "name": aid,
             "market_dynasty": market_value,
             "intrinsic_dynasty": intrinsic_value,
-            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_realization_from_intrinsic_player_distribution",
+            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_realization_with_slot_uncertainty_and_waiting_cost",
+            "intrinsic_scenario_weights": scenario_weights if year > int(season) else None,
             "market_sanity_check": gm.market_sanity_check(intrinsic_value, market_value),
             "current_owner_user_id": owner_uid,
             "original_owner_user_id": original_uid,
