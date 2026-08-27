@@ -6,7 +6,7 @@ on:
       - 'script/run_trade_review.py'
       - 'script/render_trade_review_report.py'
       - 'script/roster_aware_trade.py'
-      - 'data/decision_lab/mcconkey_drags_trade_review.json'
+      - 'data/decision_lab/full_validation_scenario.json'
       - '.github/workflows/test-trade-review.yml'
       - '.github/workflows/run-trade-review.yml'
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p /tmp/trade-review
           python script/run_trade_review.py \
-            --scenario data/decision_lab/mcconkey_drags_trade_review.json \
+            --scenario data/decision_lab/full_validation_scenario.json \
             --sims 250 \
             --output /tmp/trade-review/review.json
           python script/render_trade_review_report.py \

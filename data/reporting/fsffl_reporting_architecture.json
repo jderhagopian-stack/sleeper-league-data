@@ -1,15 +1,17 @@
 {
   "name": "FSFFL Reporting Layer",
-  "version": "1.0",
+  "version": "1.1",
   "principles": {
     "raw_model_output_is_source_of_truth": true,
     "chatgpt_reads_raw_output_not_pdf": true,
     "pdf_is_presentation_only": true,
     "pdf_must_not_rescore_or_reinterpret": true,
     "conversational_response_precedes_attachment": true,
-    "aesthetic_quality_is_required": true
+    "aesthetic_quality_is_required": true,
+    "plain_language_is_required": true,
+    "technical_model_terms_stay_in_source_json": true
   },
-  "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach the standardized PDF report at the end.",
+  "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach a standardized plain-English PDF. User-facing reports must lead with football meaning and decisions; technical field names and implementation details stay in the source JSON or footer unless a short explanation is necessary.",
   "design_system": {
     "visual_language": "professional sports analytics / front-office briefing",
     "primary_color": "#14213D",
@@ -24,20 +26,62 @@
       "meaningful whitespace",
       "charts only when they materially improve comprehension",
       "avoid spreadsheet-dump layouts",
-      "shareable without verbal explanation"
+      "shareable without verbal explanation",
+      "plain English before model terminology",
+      "define any unavoidable technical term in one sentence"
     ]
   },
   "supported_reports": [
-    {"id": "trade_decision", "status": "live", "target_pages": 1},
-    {"id": "gm_franchise", "status": "implemented", "target_pages": 1},
-    {"id": "season_simulator", "status": "implemented", "target_pages": 1},
-    {"id": "roster_decision", "status": "implemented", "target_pages": 1},
-    {"id": "league_power_rankings", "status": "implemented", "target_pages": 1},
-    {"id": "player_prospect_dossier", "status": "implemented_on_demand", "target_pages": 1},
-    {"id": "market_movement_breakout", "status": "implemented", "target_pages": 1},
-    {"id": "draft_board_recap", "status": "implemented", "target_pages": 1},
-    {"id": "historical_record_book", "status": "implemented", "target_pages": 1},
-    {"id": "multiverse_outliers", "status": "implemented", "target_pages": 1}
+    {
+      "id": "trade_decision",
+      "status": "live",
+      "target_pages": 1
+    },
+    {
+      "id": "gm_franchise",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "season_simulator",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "roster_decision",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "league_power_rankings",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "player_prospect_dossier",
+      "status": "implemented_on_demand",
+      "target_pages": 1
+    },
+    {
+      "id": "market_movement_breakout",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "draft_board_recap",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "historical_record_book",
+      "status": "implemented",
+      "target_pages": 1
+    },
+    {
+      "id": "multiverse_outliers",
+      "status": "implemented",
+      "target_pages": 1
+    }
   ],
   "automatic_report_pack": {
     "enabled": true,
@@ -46,8 +90,17 @@
       "Build FSFFL Competition Records",
       "Test FSFFL Multiverse Outliers"
     ],
-    "team_level_reports": ["gm_franchise", "season_simulator", "draft_board_recap"],
-    "league_level_reports": ["league_power_rankings", "market_movement_breakout", "historical_record_book", "multiverse_outliers"],
+    "team_level_reports": [
+      "gm_franchise",
+      "season_simulator",
+      "draft_board_recap"
+    ],
+    "league_level_reports": [
+      "league_power_rankings",
+      "market_movement_breakout",
+      "historical_record_book",
+      "multiverse_outliers"
+    ],
     "player_dossier": "generated on demand for the queried player",
     "roster_decision": "generated on demand from the queried Decision Lab scenario"
   }
