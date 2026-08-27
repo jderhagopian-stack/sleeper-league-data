@@ -496,7 +496,14 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     s = focus_cmp.get("strategic") or {}
     title = float(d.get("championship_probability") or 0.0)
     playoff = float(d.get("playoff_probability") or 0.0)
-    dynasty = float(s.get("market_dynasty_delta") or 0.0)
+    wins = float(d.get("expected_wins") or 0.0)
+    # Decision labels follow the same intrinsic-first/package-aware architecture
+    # as final GM3 utility. Market value is never the deciding dynasty input.
+    dynasty = float(
+        s.get("package_effective_value_delta")
+        if s.get("package_effective_value_delta") is not None
+        else s.get("intrinsic_dynasty_delta") or 0.0
+    )
     break_glass = float(s.get("break_glass_delta") or 0.0)
     contender = team_state in {"contender", "elite_contender"}
     if contender and title <= -0.03:
@@ -509,9 +516,19 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
         band = "lean_accept"
     elif not contender and dynasty > 0:
         band = "accept_retool_value"
+    elif (wins >= 0.50 or playoff >= 0.03 or title >= 0.005) and dynasty < 0:
+        band = "competitive_upgrade_at_premium"
+    elif dynasty < 0:
+        band = "lean_reject_value"
     else:
         band = "needs_context"
-    return {"band": band, "team_state": team_state, "rule_based": True}
+    return {
+        "band": band,
+        "team_state": team_state,
+        "rule_based": True,
+        "decision_value_source": "package_effective_value_delta_or_intrinsic_dynasty_delta",
+        "market_value_used_for_decision_label": False,
+    }
 
 
 def main():
