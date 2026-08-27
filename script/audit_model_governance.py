@@ -174,6 +174,13 @@ def curated_findings():
         "required_action":"Do not call these weights empirically calibrated until a real training artifact passes holdout validation. Run sensitivity analysis and either calibrate or label them expert priors."
       },
       {
+        "id":"CONSOLIDATION-PREMIUM-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"League-wide market curve adjustment",
+        "evidence":"fsffl_league_value adds a hard-coded +4% premium to market ranks 1-24, +2% to ranks 25-60, -5% to ranks 121-180 and -10% below rank 180 before other football adjustments.",
+        "why_it_matters":"FantasyCalc market values already reflect scarcity and consolidation behavior. Applying another rank-based curve can double count elite-asset premiums and depress depth assets without evidence that the FSFFL market differs by these exact amounts.",
+        "required_action":"Backtest FSFFL completed trades versus contemporaneous external market values by rank tier. Keep a league-specific consolidation curve only if it shows stable out-of-sample residuals."
+      },
+      {
         "id":"GM22-CONFIG-001","severity":"CRITICAL","status":"HEURISTIC_ACTIVE",
         "component":"GM 2.2 strategic valuation adjustments inherited by GM 3.0",
         "evidence":"CONFIG contains hard-coded maxima for roster need, owner preference, competitive window, endowment, starter dependency, depth, recent performance, usage, injury, manual intelligence, championship utility and pick preferences.",
@@ -256,6 +263,20 @@ def curated_findings():
         "evidence":"Player/position variance is historically estimated, but POSITION_SD_FLOOR, HISTORY_SEASONS=3, MIN_PLAYER_GAMES=8, blending cap .75 and related gates are judgment choices.",
         "why_it_matters":"Variance affects simulated playoff/title probabilities; downstream utility can magnify those probabilities.",
         "required_action":"Backtest calibration coverage and Brier/CRPS by position under alternative floors/windows. Select parameters on holdout seasons."
+      },
+      {
+        "id":"CATALYST-INGESTION-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"Current news / camp / preseason catalyst scoring",
+        "evidence":"build_gm30_current_catalysts.py and build_gm30_emerging_value.py assign fixed strengths and action thresholds to depth-chart moves, starter reps, camp buzz, injury opportunity, coach praise, trending adds/drops and source corroboration.",
+        "why_it_matters":"These signals can push a player into breakout, buy-low or acquisition buckets even though historical standardized camp/news data is explicitly unavailable for calibration.",
+        "required_action":"Keep current-catalyst signals separate from empirically calibrated breakout features, shrink their impact, and collect a timestamped historical catalyst dataset for prospective validation."
+      },
+      {
+        "id":"EMERGING-VALUE-001","severity":"HIGH","status":"MIXED_EMPIRICAL_AND_HEURISTIC",
+        "component":"Emerging-value / hidden-gem action layer",
+        "evidence":"The historical breakout feature weights are empirically learned, but developmental trajectory, latent-value mixing, market-gap thresholds, confidence grades and action cutoffs use hand-set weights and thresholds.",
+        "why_it_matters":"A calibrated historical signal can become uncalibrated again when it is blended with heuristic current signals and thresholds. The final action label therefore does not inherit the historical model's empirical status automatically.",
+        "required_action":"Backtest the final end-to-end alert labels, not just the historical feature block. Use temporal holdouts and ablation to prove each added signal improves precision/recall."
       },
       {
         "id":"BREAKOUT-001","severity":"MEDIUM","status":"PARTIALLY_EMPIRICAL",
