@@ -152,6 +152,7 @@ jobs:
           page2=pdf.pages[1].extract_text() or ''
           text=page1+'\n'+page2
           assert 'ANALYSIS AT THE TIME' in page1
+          assert 'ASSET GENEALOGY & REALIZED PRODUCTION' not in page1
           assert 'DEAL IN HINDSIGHT' in page2
           assert 'ASSET GENEALOGY & REALIZED PRODUCTION' in page2
           assert 'HOLD-THE-ORIGINAL-ASSETS REFERENCE' in page2
