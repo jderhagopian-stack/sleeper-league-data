@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-MODEL_VERSION = "FSFFL-GM-Action-Report-1.0"
+MODEL_VERSION = "FSFFL-GM-Action-Report-1.1"
 NAVY = colors.HexColor("#132238")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
@@ -55,7 +55,7 @@ def metric_cards(rec, s):
     sim = rec.get("simulation") or {}; d = sim.get("focus_delta") or {}; st = sim.get("strategic") or {}
     cards = [("Expected wins", num(d.get("expected_wins"),2)), ("Playoff odds", pct(d.get("playoff_probability"))),
              ("Championship odds", pct(d.get("championship_probability"))), ("Expected points", num(d.get("expected_points_for"),1)),
-             ("Dynasty value", money(st.get("market_dynasty_delta"))), ("Franchise value", money(st.get("base_franchise_value_delta")))]
+             ("Long-term trade value", money(st.get("market_dynasty_delta"))), ("Value to this team", money(st.get("base_franchise_value_delta")))]
     data=[]
     for i in range(0,6,3):
         row=[]
@@ -73,17 +73,17 @@ def metric_cards(rec, s):
 
 def rationale(rec):
     channel=rec.get("channel") or "HOLD"; d=((rec.get("simulation") or {}).get("focus_delta") or {})
-    if channel=="HOLD": return "The model did not find a screened move that beat the explicit hold benchmark after roster costs and simulation."
+    if channel=="HOLD": return "The model did not find a move that was clearly better than simply keeping the roster as it is."
     gains=[]
     if abs(sf(d.get("championship_probability")))>=.01: gains.append(f"{pct(d.get('championship_probability'))} championship probability")
     if abs(sf(d.get("expected_wins")))>=.05: gains.append(f"{num(d.get('expected_wins'),2)} expected wins")
     if abs(sf(d.get("expected_points_for")))>=5: gains.append(f"{num(d.get('expected_points_for'),1)} expected points")
     if channel=="TRADE" and rec.get("acceptance_fit"): gains.append(f"{str(rec.get('acceptance_fit')).lower()} acceptance fit")
-    return "Model preference is driven by "+", ".join(gains[:4])+"." if gains else "This move produced the highest confirmed state-aware improvement score."
+    return "Model preference is driven by "+", ".join(gains[:4])+"." if gains else "This move produced the best overall result for this team's current goals."
 
 
 def alternative_table(report,s):
-    rows=[[Paragraph("Rank",s["small"]),Paragraph("Alternative",s["small"]),Paragraph("Title",s["small"]),Paragraph("Wins",s["small"]),Paragraph("Score",s["small"])]]
+    rows=[[Paragraph("Rank",s["small"]),Paragraph("Alternative",s["small"]),Paragraph("Title",s["small"]),Paragraph("Wins",s["small"]),Paragraph("Overall Fit",s["small"])]]
     rec_desc=(report.get("recommended_action") or {}).get("description")
     alts=[x for x in (report.get("top_cross_channel_options") or []) if x.get("description")!=rec_desc][:4]
     if not alts: rows.append(["-",Paragraph("No superior alternative cleared the model threshold.",s["alt"]),"-","-","-"])
@@ -106,14 +106,14 @@ def build(report,output):
         ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),6)]))
     story += [hero,Spacer(1,.10*inch),metric_cards(rec,s),Paragraph("WHY THIS RANKS FIRST",s["section"])]
     sim=rec.get("simulation") or {}; rr=sim.get("roster_resolution") or {}; focus_uid=str(report.get("generated_for_user_id") or ""); focal_rr=rr.get(focus_uid) or {}; cuts=[x.get("name") for x in (focal_rr.get("selected_cuts") or []) if x.get("name")]
-    score=sf(rec.get("team_improvement_score")); text=f"Confirmed team-improvement score: <b>{score:,.0f}</b>. The move is evaluated against HOLD on the same contender-aware objective after legalizing the roster, re-optimizing weekly lineups, and simulating the season."
+    score=sf(rec.get("team_improvement_score")); text=f"Overall team-fit score: <b>{score:,.0f}</b>. The move was compared with simply holding the roster. The model included any required cuts, rebuilt the best lineup, and simulated the season before ranking the options."
     if cuts: text += f" Required roster move for {clean(team,35)}: <b>{clean(', '.join(cuts),65)}</b>."
-    if rec.get("channel")=="TRADE" and rec.get("acceptance_fit"): text += f" Trade acceptance fit is <b>{rec.get('acceptance_fit')}</b> and is a heuristic negotiation signal, not a probability."
+    if rec.get("channel")=="TRADE" and rec.get("acceptance_fit"): text += f" The offer's fit for the other manager is <b>{rec.get('acceptance_fit')}</b> This is a guide to how well the deal matches that manager, not a literal acceptance probability."
     story += [Paragraph(text,s["body"]),Spacer(1,.07*inch),Paragraph("NEXT-BEST OPTIONS",s["section"]),alternative_table(report,s),Spacer(1,.07*inch)]
     summary=report.get("search_summary") or {}; pu=report.get("projection_universe") or {}; cov=pu.get("coverage") or {}; waiver_count=len(report.get("best_waiver_options") or [])
     footer=(f"Search: {summary.get('trade_candidates_screened',0)} trades + {summary.get('waiver_candidates_screened',0)} waiver candidates; top {summary.get('deep_confirmed_candidates',0)} confirmed at {summary.get('deep_confirm_sims',0)} simulations. "
-            f"Waivers use {pu.get('model_version') or 'the full projection universe'} with {cov.get('final_projection_players','?')} projected players. Actionable waiver recommendations: {waiver_count}. HOLD remains an explicit benchmark.")
-    story += [Paragraph(footer,s["small"]),Spacer(1,.05*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version','Team Improvement Lab')} | model-generated presentation",s["small"])]
+            f"Waivers use {pu.get('model_version') or 'the full projection universe'} with {cov.get('final_projection_players','?')} projected players. Actionable waiver recommendations: {waiver_count}. Keeping the roster unchanged is always included as an option.")
+    story += [Paragraph(footer,s["small"]),Spacer(1,.05*inch),Paragraph(f"{MODEL_VERSION} | {report.get('model_version','Team Improvement Lab')} | plain-English model presentation",s["small"])]
     doc.build(story)
 
 
