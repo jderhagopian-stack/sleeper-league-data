@@ -331,26 +331,23 @@ def verdict_change_story(report,sides,uids,winner):
     h=report.get("hindsight_assessment") or {}
     hw=h.get("winner_user_id")
     if not hw:
-        return "The trade is still too unresolved to say what ultimately reinforced or changed the original verdict."
+        return "The trade is still too unresolved to say whether later results reinforced or changed the original verdict."
     at_name=team_label(str(winner),sides) if winner and winner!="TIE" else "Neither side"
     hi_name=team_label(str(hw),sides)
-    leader_bits=[]
+    leaders=[]
     for uid in uids:
         lin=((sides.get(uid) or {}).get("hindsight") or {}).get("asset_lineage") or {}
         impact=((lin.get("captured_production") or {}).get("replacement_adjusted_impact") or {})
-        top=(impact.get("player_rows") or [])
+        top=impact.get("player_rows") or []
         if top:
             x=top[0]
-            leader_bits.append(
-                f"{team_label(uid,sides)}'s biggest on-field contributor was {x.get('player_name')} "
-                f"at an estimated {sf(x.get('estimated_wins_added')):+.2f} wins versus an average starter"
-            )
+            leaders.append(f"{x.get('player_name')} ({sf(x.get('estimated_wins_added')):+.2f} wins)")
     if winner and winner!="TIE" and str(hw)==str(winner):
-        lead=f"The original verdict held: {at_name} was preferred at the time and still leads in hindsight."
+        lead=f"The original verdict held: {at_name} remains the hindsight winner."
     else:
-        lead=f"The hindsight result changed from the original at-time edge ({at_name}) to {hi_name}."
-    if leader_bits:
-        lead+=" "+"; ".join(leader_bits)+"."
+        lead=f"The hindsight result changed from {at_name} at the time to {hi_name}."
+    if len(leaders)>=2:
+        lead+=f" Biggest on-field contributors: {leaders[0]} vs. {leaders[1]}, each measured against an average starter."
     return lead
 
 
@@ -396,7 +393,7 @@ def lineage_card(uid,side,s):
     ],colWidths=[3.70*inch],style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT),("BOX",(0,0),(-1,-1),.55,MID),
         ("LEFTPADDING",(0,0),(-1,-1),7),("RIGHTPADDING",(0,0),(-1,-1),7),
-        ("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5),
+        ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4),
     ]))
 
 
@@ -482,9 +479,9 @@ def build(report,out):
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
-        Spacer(1,.06*inch),
+        Spacer(1,.04*inch),
         hindsight_scorecard(report,sides,uids,s),
-        Spacer(1,.06*inch),
+        Spacer(1,.04*inch),
         Paragraph("WHAT THE ASSETS BECAME & WHAT THEY PRODUCED",s["section"])
     ]
     if len(uids)>=2:
