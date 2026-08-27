@@ -504,6 +504,42 @@ def build(season: str, transaction_id: str, source_path: Path):
             "confidence": "high" if conf >= .95 else "medium",
         }
 
+    # Resolve the canonical point-in-time competitive state before any
+    # team-specific strategic profiles are built. The same frozen state must
+    # drive strategic asset treatment and package economics.
+    historical_state_index = hist_state_mod.build_index()
+    historical_side_rows = [
+        row for row in (historical_state_index.get("sides") or [])
+        if str(row.get("transaction_id")) == str(transaction_id)
+    ]
+    historical_state_by_uid = {
+        str(row.get("user_id")): str(row.get("historical_state") or "unknown")
+        for row in historical_side_rows
+    }
+    historical_state_confidence = {
+        str(row.get("user_id")): float(row.get("historical_state_confidence") or 0.0)
+        for row in historical_side_rows
+    }
+    historical_state_details = {
+        str(row.get("user_id")): {
+            "state": str(row.get("historical_state") or "unknown"),
+            "score": row.get("historical_state_score"),
+            "confidence": row.get("historical_state_confidence"),
+            "phase": row.get("phase"),
+            "reconstruction_mode": row.get("reconstruction_mode"),
+            "performance_source_season": row.get("performance_source_season"),
+            "performance_through_week": row.get("performance_through_week"),
+            "performance_evidence": row.get("performance_evidence"),
+            "approx_pretrade_average_age": row.get("approx_pretrade_average_age"),
+        }
+        for row in historical_side_rows
+    }
+    for uid, state_name in historical_state_by_uid.items():
+        if uid in team_profiles and state_name in {"elite_contender","contender","retool","rebuild"}:
+            team_profiles[uid] = dict(team_profiles[uid])
+            team_profiles[uid]["objective_state_override"] = state_name
+            team_profiles[uid]["objective_state_source"] = "frozen_historical_state"
+
     owner_vals = {}
     all_uids = sorted(team_profiles)
     for uid in all_uids:
@@ -581,36 +617,6 @@ def build(season: str, transaction_id: str, source_path: Path):
             full_map[str(a.get("asset_id"))] = a
         gm_asset_maps[uid] = full_map
 
-    # Canonical historical competitive-state layer: use the already-built
-    # pre-trade reconstruction rather than inferring contender/rebuild status
-    # from today's framework or from the external market anchors.
-    historical_state_index = hist_state_mod.build_index()
-    historical_side_rows = [
-        row for row in (historical_state_index.get("sides") or [])
-        if str(row.get("transaction_id")) == str(transaction_id)
-    ]
-    historical_state_by_uid = {
-        str(row.get("user_id")): str(row.get("historical_state") or "unknown")
-        for row in historical_side_rows
-    }
-    historical_state_confidence = {
-        str(row.get("user_id")): float(row.get("historical_state_confidence") or 0.0)
-        for row in historical_side_rows
-    }
-    historical_state_details = {
-        str(row.get("user_id")): {
-            "state": str(row.get("historical_state") or "unknown"),
-            "score": row.get("historical_state_score"),
-            "confidence": row.get("historical_state_confidence"),
-            "phase": row.get("phase"),
-            "reconstruction_mode": row.get("reconstruction_mode"),
-            "performance_source_season": row.get("performance_source_season"),
-            "performance_through_week": row.get("performance_through_week"),
-            "performance_evidence": row.get("performance_evidence"),
-            "approx_pretrade_average_age": row.get("approx_pretrade_average_age"),
-        }
-        for row in historical_side_rows
-    }
     team_states = {
         uid: historical_state_by_uid.get(uid) or derived_team_states.get(uid) or "unknown"
         for uid in all_uids
@@ -707,6 +713,8 @@ def build(season: str, transaction_id: str, source_path: Path):
             "final_team_specific_value_source": "GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact",
             "incoming_assets_use_team_specific_buy_values": True,
             "canonical_package_economics_available": True,
+            "frozen_historical_state_injected_into_strategic_profiles": True,
+            "frozen_historical_state_injected_into_package_economics": True,
         },
         "confidence": {
             "historical_roster_state": state.reconstruction.get("confidence"),
