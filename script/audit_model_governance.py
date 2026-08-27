@@ -230,6 +230,27 @@ def curated_findings():
         "required_action":"Run alternate-label robustness tests, temporal holdout tests and sensitivity to shrinkage/bin definitions. Preserve only signals stable across reasonable specifications."
       },
       {
+        "id":"STATE-SOURCE-001","severity":"CRITICAL","status":"MULTIPLE_ACTIVE_SOURCES_OF_TRUTH",
+        "component":"Competitive-state weighting",
+        "evidence":"Competitive-state economics are independently hard-coded in GM 2.2 _u_team_objective_weights, gm_state_weighting.py, and Team Improvement Lab state_weights. The three implementations are not the same function and do not share one calibrated artifact.",
+        "why_it_matters":"The same roster can be valued under different win-now/future tradeoffs depending on which workflow is called. This creates path-dependent answers even when every individual module is internally consistent.",
+        "required_action":"Create one canonical state-weight service/artifact and make all decision workflows consume it. Until then, treat cross-module state-aware scores as provisional."
+      },
+      {
+        "id":"PACKAGE-SOURCE-001","severity":"CRITICAL","status":"MULTIPLE_ACTIVE_SOURCES_OF_TRUTH",
+        "component":"Multi-asset package discounting",
+        "evidence":"The inherited GM engine contains CONFIG package_effective_value_weights=[1.0,.92,.84] and GM22 package_weights=[1.0,.78,.62,.50,.42]. Different code paths therefore encode materially different consolidation discounts.",
+        "why_it_matters":"A 3-for-1 package can be valued very differently depending on path. That can reverse trade rankings and create the appearance of precision where the underlying package economics are inconsistent.",
+        "required_action":"Trace every caller, retire duplicate curves, and calibrate a single package-economics function before assigning authoritative package values."
+      },
+      {
+        "id":"MARKET-AMPLIFICATION-001","severity":"HIGH","status":"AUDIT_REQUIRED",
+        "component":"Repeated use of market-derived information",
+        "evidence":"FantasyCalc dynasty/redraft value anchors multiple downstream features; 30-day market trend is then added as a separate adjustment, dynasty-vs-redraft spread feeds upside/downside, dynasty level feeds liquidity, and those derived values feed hold/break-glass/trade scoring.",
+        "why_it_matters":"The same market information can enter the model multiple times in transformed form. This can amplify consensus movement rather than add independent information.",
+        "required_action":"Perform signal-family ablation: market level only, market trend only, dynasty-redraft spread only, then combinations. Keep only incremental predictive contribution and prevent repeated contribution to the same final utility."
+      },
+      {
         "id":"DOUBLE-COUNT-001","severity":"CRITICAL","status":"AUDIT_REQUIRED",
         "component":"Cross-module double counting",
         "evidence":"Current production/market value/team state/injury/usage/title odds appear in multiple layers (market values, GM adjustments, simulator, roster interaction, Team Improvement ranking).",
