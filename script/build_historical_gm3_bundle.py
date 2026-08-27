@@ -670,6 +670,20 @@ def build(season: str, transaction_id: str, source_path: Path):
         "team_profiles": team_profiles,
         "historical_behavior_preferences": prefs,
         "strategic_profiles": strategic_profiles,
+        "gm3_trade_context": {
+            "owners": {uid: owners.get(uid, {}) for uid in all_uids},
+            "teams": team_profiles,
+            "player_meta": player_meta,
+            "asset_meta": asset_meta,
+            "owner_vals": owner_vals,
+            "holdings": holdings,
+            "rosters": rosters,
+            "roster_by_uid": roster_by_uid,
+            "roster_id_by_uid": {str(r.get("owner_id")): int(r.get("roster_id")) for r in rosters},
+            "fragility": {},
+            "pick_quality": pick_quality,
+            "market_regime": {},
+        },
         "provenance": {
             "historical_state": state.reconstruction,
             "market_source_file": str(source_path.relative_to(ROOT)),
@@ -692,6 +706,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             "valuation_architecture": "Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value",
             "final_team_specific_value_source": "GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact",
             "incoming_assets_use_team_specific_buy_values": True,
+            "canonical_package_economics_available": True,
         },
         "confidence": {
             "historical_roster_state": state.reconstruction.get("confidence"),
