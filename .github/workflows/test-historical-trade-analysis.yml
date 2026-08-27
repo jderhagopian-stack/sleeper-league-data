@@ -26,6 +26,37 @@ jobs:
       - run: pip install reportlab pypdf
       - name: Compile
         run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/build_historical_gm3_bundle.py script/render_historical_trade_report.py script/run_roster_decision_lab.py script/run_team_improvement_lab.py
+      - name: Validate shared intrinsic-market separation
+        run: |
+          python - <<'PY'
+          import copy, importlib.util
+          from pathlib import Path
+          path=Path('script/build_fsffl_gm_engine.py')
+          spec=importlib.util.spec_from_file_location('gm_intrinsic_contract',path)
+          gm=importlib.util.module_from_spec(spec); spec.loader.exec_module(gm)
+          projections={'players':{
+              'A':{'season_baseline_ppg':22.0,'position':'QB'},
+              'B':{'season_baseline_ppg':16.0,'position':'QB'},
+              'C':{'season_baseline_ppg':14.0,'position':'RB'},
+              'D':{'season_baseline_ppg':11.0,'position':'WR'},
+          }}
+          base={
+              'A':{'position':'QB','age':26,'market_dynasty':1000},
+              'B':{'position':'QB','age':27,'market_dynasty':2000},
+              'C':{'position':'RB','age':23,'market_dynasty':3000},
+              'D':{'position':'WR','age':24,'market_dynasty':4000},
+          }
+          changed=copy.deepcopy(base)
+          changed['A']['market_dynasty']=99999
+          changed['B']['market_dynasty']=1
+          a=gm.build_intrinsic_player_values(copy.deepcopy(base),projections)
+          b=gm.build_intrinsic_player_values(copy.deepcopy(changed),projections)
+          assert {k:v['intrinsic_dynasty'] for k,v in a.items()} == {k:v['intrinsic_dynasty'] for k,v in b.items()}
+          x={'intrinsic_dynasty':5000,'market_dynasty':1}
+          y={'intrinsic_dynasty':5000,'market_dynasty':99999}
+          assert gm.fsffl_league_value(x)==gm.fsffl_league_value(y)==5000
+          print('Intrinsic valuation is invariant to market-price changes.')
+          PY
       - name: Build frozen April 2023 GM3 inputs
         run: |
           python script/build_historical_gm3_bundle.py \
