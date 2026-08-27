@@ -327,9 +327,18 @@ def _lineage_production(uid: str, roster_id: str, root_transaction_id: str, root
                 and str(r.get("player_id") or "")==str(pid)
             ),None)
             pts=float((hit or {}).get("fsffl_points_for_acquirer_after_trade") or 0)
-            spts=pts
-            seasons=[int((hit or {}).get("season") or root_season)] if hit else []
-            name=(hit or {}).get("player_name") or pid
+            acquisition_season=int((hit or {}).get("season") or root_season)
+            roster_hits=[
+                r for r in roster_rows
+                if str(r.get("roster_id"))==str(roster_id)
+                and str(r.get("player_id"))==str(pid)
+                and int(r.get("season") or 0)>=acquisition_season
+            ]
+            spts=sum(float(r.get("fsffl_points_while_started") or 0) for r in roster_hits)
+            seasons=sorted({int(r.get("season")) for r in roster_hits})
+            if not seasons and hit:
+                seasons=[acquisition_season]
+            name=(hit or {}).get("player_name") or (roster_hits[0].get("player_name") if roster_hits else pid)
             method="transaction_exact_after_acquisition"
         else:
             start_season=int(src.get("season") or root_season)
