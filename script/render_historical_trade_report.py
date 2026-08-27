@@ -78,6 +78,16 @@ def pick_only_label(label):
         return s.split(" - ",1)[0]
     return s
 
+def team_state_label(raw):
+    x=str(raw or "unknown").lower()
+    labels={
+        "contender":"Contender - prioritizing winning now",
+        "retool":"Balancing current competitiveness with future value",
+        "rebuild":"Rebuilding - prioritizing future value",
+        "unknown":"Not clearly classified",
+    }
+    return labels.get(x,str(raw or "Not clearly classified").replace("_"," ").title())
+
 def display_asset_name(raw,side):
     name=str(raw or "")
     if not name.startswith("pick:"):
@@ -254,7 +264,7 @@ def at_time_card(uid,row,side,s):
     body=[
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
         [Paragraph(f"<b>Model verdict:</b> {DECISION_LABELS.get(str(dec),clean(str(dec).replace('_',' ').upper(),50))}<br/>"
-                   f"<b>Team situation:</b> {clean(str(row.get('team_state') or 'unknown').replace('_',' ').title(),35)}<br/>"
+                   f"<b>Team situation:</b> {clean(team_state_label(row.get('team_state')),70)}<br/>"
                    f"<b>Receives:</b> {clean(', '.join(rec) or 'None',145)}<br/>"
                    f"<b>Gives up:</b> {clean(', '.join(sent) or 'None',145)}",s["body"])],
         [Table(metrics,colWidths=[.89*inch,.86*inch,.88*inch,.93*inch],style=TableStyle([
@@ -322,18 +332,21 @@ def keep_reference(side,s):
     rows=[]
     for x in ref.get("assets") or []:
         if x.get("reference_type")=="observed_player_output_after_trade":
-            outcome=(f"{sf(x.get('observed_post_trade_points')):,.1f} observed FSFFL points after the trade; "
-                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts")
+            outcome=(f"{sf(x.get('observed_post_trade_points')):,.1f} league fantasy points after the trade; "
+                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts "
+                     f"({current_value_context(x.get('current_intrinsic_value'))})")
         elif x.get("drafted_player"):
             outcome=(f"slot became {clean(x.get('drafted_player'),38)}; "
-                     f"{sf(x.get('observed_drafted_player_points')):,.1f} FSFFL points since drafted; "
-                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts")
+                     f"{sf(x.get('observed_drafted_player_points')):,.1f} league fantasy points since drafted; "
+                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts "
+                     f"({current_value_context(x.get('current_intrinsic_value'))})")
         else:
             outcome="no completed draft conversion yet"
         rows.append(f"<b>{clean(pick_only_label(x.get('label')),75)}:</b> {outcome}")
     text="<br/>".join(rows) or "No keep-reference assets were available."
-    summary=(f"<br/><b>Hold-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
-             f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current long-term value points.")
+    summary=(f"<br/><b>Hold-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} league fantasy points; "
+             f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current long-term value points "
+             f"({current_value_context(ref.get('current_reference_intrinsic_value'))}).")
     note=clean(ref.get("note"),300).replace("keep-the-original-assets","hold-the-original-assets").replace("keep-reference","hold reference")
     return Paragraph(text+summary+"<br/><font size='6.3'>"+note+"</font>",s["body"])
 
@@ -425,7 +438,8 @@ def build(report,out):
                 f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
                 + (
                     f"{team_label(next((u for u in uids if str(u)!=str(winner)),uids[0]),sides)} still received the immediate competitive improvement it paid for "
-                    f"({sf((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins')):+.2f} expected wins), "
+                    f"({sf((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins')):+.2f} expected wins; "
+                    f"{win_context((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins'))}), "
                     f"but {winner_name} won both the original trade grade and the actual results that followed."
                     if winner and winner!="TIE" and str((report.get("hindsight_assessment") or {}).get("winner_user_id"))==str(winner)
                     else "The original trade grade and what happened afterward remain separate so later results never rewrite what was knowable at the time."
