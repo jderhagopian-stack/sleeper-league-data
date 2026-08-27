@@ -279,6 +279,13 @@ def curated_findings():
         "required_action":"Backtest the final end-to-end alert labels, not just the historical feature block. Use temporal holdouts and ablation to prove each added signal improves precision/recall."
       },
       {
+        "id":"PROSPECT-001","severity":"HIGH","status":"HEURISTIC_ACTIVE",
+        "component":"Prospect scoring engine",
+        "evidence":"data/gm3_prospect_config.json assigns hand-set position weights such as 30% NFL draft capital plus fixed production/efficiency/athleticism/age weights, with signal thresholds 70/82/72 and feature-coverage gates 55%/35%. The config cites research direction but does not show these exact coefficients were fitted or validated out of sample.",
+        "why_it_matters":"Prospect grades feed rookie rankings, sleeper/bust flags and long-term asset values. Exact coefficients that merely sound reasonable can materially change rookie tiers and then ripple into pick and trade valuation.",
+        "required_action":"Fit or compare these weights against historical NFL/fantasy outcomes using temporal holdouts. Preserve research-inspired factors, but do not treat the current exact percentages or thresholds as empirically established."
+      },
+      {
         "id":"BREAKOUT-001","severity":"MEDIUM","status":"PARTIALLY_EMPIRICAL",
         "component":"Breakout/emerging-value calibration",
         "evidence":"Learned likelihood-ratio weights are empirical on 2018-2025 data, but breakout labels, bin cutoffs, shrink_k=20, and top-fraction threshold selection are researcher choices.",
