@@ -119,3 +119,14 @@ BODY_JARGON = (
     "adaptive confirmation",
     "simulation multiverse",
 )
+
+
+def artificial_ellipsis_hits(text: str):
+    """Return ellipsis markers that indicate user-facing prose may have been cut."""
+    s = str(text or "")
+    hits = []
+    if "..." in s:
+        hits.append("...")
+    if "\u2026" in s:
+        hits.append("\u2026")
+    return hits

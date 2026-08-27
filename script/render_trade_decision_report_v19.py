@@ -14,14 +14,14 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from report_language import label, acceptance_fit, action
 
-MODEL_VERSION='FSFFL-Trade-Decision-Report-1.9'
+MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
 
 def sf(v,d=0.0):
     try:return float(v)
     except:return d
 
-def clean(x,n=220):
+def clean(x,n=None):
     # Preserve the small set of ReportLab paragraph tags used by this renderer
     # while sanitizing names/text to fonts that are guaranteed to render.
     import re
@@ -38,10 +38,8 @@ def clean(x,n=220):
     s=s.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
     for key,tag in tags.items():
         s=s.replace(key,tag)
-    # Truncating markup-bearing strings can cut a closing tag and break
-    # ReportLab parsing. Let Paragraph wrap those strings naturally.
-    if len(s)>n and not tags:
-        s=s[:n-3].rstrip()+'...'
+    # Never truncate user-facing prose. ReportLab is allowed to wrap content
+    # and grow the document to additional pages when needed.
     return s
 
 def names(xs):

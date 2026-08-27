@@ -124,12 +124,13 @@ jobs:
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.16';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.9';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v30.py')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.17';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v30.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
           text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
-          print('Market Sweep 1.24 / roster interaction / baseline-aware roster resolution / plain-language report 1.9 test passed')
+          assert '...' not in text and '\u2026' not in text, text
+          print('Market Sweep 1.24 / roster interaction / baseline-aware roster resolution / plain-language report 1.10 no-truncation test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
