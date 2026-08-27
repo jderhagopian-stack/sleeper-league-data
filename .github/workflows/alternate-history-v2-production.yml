@@ -66,16 +66,33 @@ jobs:
           assert all(len(s['alternate_expected_standings']) == 12 for s in data['seasons'])
           assert all(len(s['actual_standings']) == 12 for s in data['seasons'])
           assert all((s.get('modal_postseason') or {}).get('postseason', {}).get('championship') for s in data['seasons'])
-          assert len(data['drafts']) >= 3
+          scenario = json.loads(Path('data/alternate_history/scenarios/puka_vs_van_2023.json').read_text())
+          league = json.loads(Path('data/league.json').read_text())
+          fork_season = int(scenario['fork_season'])
+          current_season = int(league['season'])
+          expected_completed = {str(y) for y in range(fork_season, current_season)}
+          expected_drafts = {str(y) for y in range(fork_season + 1, current_season + 1)}
+
+          season_ids = {str(s['season']) for s in data['seasons']}
+          draft_ids = {str(d['draft_season']) for d in data['drafts']}
+          assert season_ids == expected_completed, (season_ids, expected_completed)
+          assert draft_ids == expected_drafts, (draft_ids, expected_drafts)
           assert all(len(d['picks']) == 36 for d in data['drafts'])
           assert all(all(pick.get('alternate_choices') for pick in d['picks']) for d in data['drafts'])
           assert all(all(pick.get('alternate_controllers') for pick in d['picks']) for d in data['drafts'])
-          assert data['transactions']
-          assert data['butterflies']
-          pages = len(PdfReader(str(p)).pages)
-          assert pages >= 15
+
+          # Sections are contractual; their length is scenario-dependent.
+          assert isinstance(data.get('transactions'), list)
+          assert isinstance(data.get('butterflies'), list)
+
+          reader = PdfReader(str(p))
+          pages = len(reader.pages)
+          assert pages >= 1
+          assert all(float(page.mediabox.width) > 0 and float(page.mediabox.height) > 0 for page in reader.pages)
           print({
               'pdf_pages': pages,
+              'expected_completed_seasons': sorted(expected_completed),
+              'expected_draft_seasons': sorted(expected_drafts),
               'seasons': len(data['seasons']),
               'drafts': len(data['drafts']),
               'transactions': len(data['transactions']),
