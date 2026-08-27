@@ -329,8 +329,11 @@ def summary(inv, findings):
     hints=defaultdict(int)
     for x in inv:
         if "parse_error" not in x: hints[x["evidence_hint"]]+=1
+    critical_active=sum(1 for x in findings if x.get("severity")=="CRITICAL" and x.get("status") not in {"VALIDATED","RULE_DEFINED"})
     return {
       "model_version":MODEL_VERSION,
+      "overall_governance_status":"PROVISIONAL_NOT_FULLY_VALIDATED" if critical_active else "NO_CRITICAL_UNVALIDATED_FINDINGS",
+      "critical_unvalidated_findings":critical_active,
       "files_scanned":len({x.get("file") for x in inv}),
       "numeric_assumptions_flagged":sum(1 for x in inv if "value" in x),
       "curated_findings_by_severity":dict(sev),
