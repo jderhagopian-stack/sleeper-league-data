@@ -61,14 +61,14 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           base=os.environ['BASENAME'] or 'trade-decision-report';root=Path('/tmp/fsffl-trade-output');a=json.loads((root/f'{base}.json').read_text());s=json.loads((root/f'{base}-summary.json').read_text());pdf=root/f'{base}.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.23';assert a['simulation']['canonical_state_mutated'] is False
-          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.24';assert a['simulation']['canonical_state_mutated'] is False
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
               rr=((x.get('simulation') or {}).get('roster_resolution') or {});assert rr;assert all(v.get('roster_legal') is True for v in rr.values())
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.14';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.7';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v29.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.15';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.8';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v30.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
