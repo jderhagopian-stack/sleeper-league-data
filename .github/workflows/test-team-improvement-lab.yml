@@ -29,6 +29,61 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile Team Improvement Lab
         run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+      - name: Unit test competitive-state calibration
+        run: |
+          python - <<'PY'
+          import importlib.util, types
+          spec=importlib.util.spec_from_file_location('lab','script/run_team_improvement_lab.py')
+          lab=importlib.util.module_from_spec(spec); spec.loader.exec_module(lab)
+
+          # Diminishing returns: 12 title points must count for much less than
+          # three times a 4-point gain.
+          a=lab.effective_title_delta(.04)
+          b=lab.effective_title_delta(.12)
+          assert abs(a-.04)<1e-9
+          assert b < .12 and b < a*2.0
+
+          # Inject state without reading team docs so this test is deterministic.
+          def weights(state):
+              return {
+                'elite_contender': dict(wins=1050,playoff=3600,bye=3000,title=18500,base=.30,dynasty=.20,break_glass=.05),
+                'rebuild': dict(wins=180,playoff=500,bye=180,title=3500,base=.50,dynasty=.40,break_glass=.10),
+              }[state]
+          original=lab.state_weights
+          try:
+              lab.state_weights=lambda uid: ('elite_contender',weights('elite_contender'))
+              modest={
+                'focus_delta':{'expected_wins':.45,'playoff_probability':.04,'bye_probability':.03,'championship_probability':.06},
+                'strategic':{'base_franchise_value_delta':-1700,'market_dynasty_delta':-1400,'break_glass_delta':-500},
+              }
+              balanced={
+                'focus_delta':{'expected_wins':.35,'playoff_probability':.03,'bye_probability':.025,'championship_probability':.045},
+                'strategic':{'base_franchise_value_delta':-300,'market_dynasty_delta':-250,'break_glass_delta':-100},
+              }
+              assert lab.unified_score('x',balanced) > lab.unified_score('x',modest)
+
+              # State still matters: the same win-now gain scores higher for an
+              # elite contender than a rebuild, but both retain future-value cost.
+              move={
+                'focus_delta':{'expected_wins':.40,'playoff_probability':.04,'bye_probability':.03,'championship_probability':.05},
+                'strategic':{'base_franchise_value_delta':-250,'market_dynasty_delta':-200,'break_glass_delta':-75},
+              }
+              elite=lab.unified_score('x',move)
+              lab.state_weights=lambda uid: ('rebuild',weights('rebuild'))
+              rebuild=lab.unified_score('x',move)
+              assert elite > rebuild
+          finally:
+              lab.state_weights=original
+
+          # Dynasty-destruction guardrail blocks a large overpay unless the
+          # competitive payoff is exceptional.
+          lab.state_weights=lambda uid: ('elite_contender',weights('elite_contender'))
+          row={'channel':'TRADE','outgoing':[{'market_dynasty':5000}]}
+          sim={'focus_delta':{'expected_wins':.35,'championship_probability':.055},'strategic':{'market_dynasty_delta':-1900}}
+          g=lab.dynasty_value_guardrail('x',row,sim)
+          assert g['dynasty_value_loss_ratio']>.35 and g['passed'] is False
+          print('competitive-state calibration unit tests passed')
+          PY
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run Team Improvement Lab smoke test
@@ -43,7 +98,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.3'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.4'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['projection_universe']['coverage']['final_projection_players'] > r['projection_universe']['coverage']['native_projection_players']
           assert r['hold_benchmark']['team_improvement_score']==0
@@ -51,6 +106,10 @@ jobs:
           assert r['policy']['waiver_adds_include_endogenous_optimal_drop'] is True
           assert r['policy']['waiver_candidates_use_canonical_full_projection_universe'] is True
           assert r['policy']['canonical_state_mutated'] is False
+          assert r['policy']['competitive_state_tilts_but_does_not_dominate'] is True
+          assert r['policy']['championship_probability_uses_diminishing_returns'] is True
+          assert r['policy']['dynasty_value_destruction_guardrail'] is True
+          assert r['ranking_calibration']['version']=='competitive-state-calibration-2.0'
           assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
           for row in r.get('top_cross_channel_options') or []:
@@ -66,7 +125,7 @@ jobs:
           text=' '.join((p.extract_text() or '') for p in reader.pages)
           assert 'FSFFL GM ACTION REPORT' in text
           assert '...' not in text and '\u2026' not in text, text
-          print('Team Improvement Lab 1.3 + GM Action Report 1.2 no-truncation validation passed')
+          print('Team Improvement Lab 1.4 calibrated + GM Action Report 1.2 validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
