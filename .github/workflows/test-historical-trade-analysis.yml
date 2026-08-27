@@ -57,6 +57,28 @@ jobs:
           assert gm.fsffl_league_value(x)==gm.fsffl_league_value(y)==5000
           print('Intrinsic valuation is invariant to market-price changes.')
           PY
+      - name: Validate intrinsic pick curve
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          path=Path('script/build_fsffl_gm_engine.py')
+          spec=importlib.util.spec_from_file_location('gm_pick_curve',path)
+          gm=importlib.util.module_from_spec(spec); spec.loader.exec_module(gm)
+          vals={}
+          for i,v in enumerate(range(600,10001,200),1):
+              vals[str(i)]={'intrinsic_dynasty':float(v)}
+          p106=gm.intrinsic_pick_value(2023,1,vals,2023,slot=6)
+          fut1=gm.intrinsic_pick_value(2024,1,vals,2023,tier='mid')
+          fut2=gm.intrinsic_pick_value(2025,1,vals,2023,tier='mid')
+          fut3=gm.intrinsic_pick_value(2026,1,vals,2023,tier='mid')
+          early=gm.intrinsic_pick_value(2023,1,vals,2023,slot=2)
+          late=gm.intrinsic_pick_value(2023,1,vals,2023,slot=10)
+          assert early > p106 > late
+          assert p106 > fut1 > fut2 > fut3
+          assert fut2 < p106 * .80
+          print({'1.02':early,'1.06':p106,'1.10':late,'future1':fut1,'future2':fut2,'future3':fut3})
+          PY
       - name: Build frozen April 2023 GM3 inputs
         run: |
           python script/build_historical_gm3_bundle.py \
