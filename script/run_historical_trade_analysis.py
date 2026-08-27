@@ -161,10 +161,86 @@ def _asset_label(aid: str, players: Dict[str, Any], conversions: Dict[str, Dict[
         pid=aid.split(":",1)[1]
         p=players.get(pid) or {}
         return str(p.get("full_name") or p.get("name") or pid)
-    # Do not annotate a pick with the player ultimately selected unless this
-    # franchise actually held and exercised the pick. That conversion is a
-    # lineage event, not an inherent property of the pick while it was owned.
+    c=conversions.get(aid) or {}
+    if aid.startswith("pick:"):
+        parts=aid.split(":")
+        season=parts[1] if len(parts)>1 else "?"
+        rnd=(parts[2].replace("R","") if len(parts)>2 else "?")
+        if c.get("draft_slot") is not None:
+            pick=f"{season} {rnd}.{int(c.get('draft_slot')):02d}"
+        else:
+            pick=f"{season} Round {rnd}"
+        owner=c.get("original_team_name") or c.get("original_owner_display")
+        if owner:
+            pick+=f" ({owner} pick)"
+        if c.get("player_name"):
+            pick+=f" - {c.get('player_name')}"
+        return pick
     return aid
+
+
+def _current_intrinsic_map():
+    payload=loadj(DATA / "fsffl_asset_values.json", {}) or {}
+    out={}
+    for p in payload.get("players") or []:
+        out[f"player:{p.get('player_id')}"]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
+    for p in payload.get("picks") or []:
+        if p.get("asset_id"):
+            out[str(p.get("asset_id"))]=float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0)
+    return out
+
+
+def _lineage_production(roster_id: str, root_created: int, root_assets, events, conversions):
+    rows=loadj(DATA / "record_book" / "franchise_rostered_scoring.json", [])
+    root_season=datetime.fromtimestamp(int(root_created)/1000, tz=timezone.utc).year
+    conversion_map={str(x.get("pick_asset_key")):x for x in conversions if x.get("pick_asset_key")}
+    acquired={}
+    for aid in root_assets:
+        if str(aid).startswith("player:"):
+            acquired[str(aid)]=root_season
+    for ev in events:
+        season=ev.get("season")
+        if season is None and int(ev.get("created") or 0)>0:
+            season=datetime.fromtimestamp(int(ev["created"])/1000, tz=timezone.utc).year
+        for aid in ev.get("to_assets") or []:
+            if not str(aid).startswith("player:"):
+                continue
+            if season is None:
+                for pick in ev.get("from_assets") or []:
+                    c=conversion_map.get(str(pick)) or {}
+                    if c.get("season") is not None:
+                        season=int(c.get("season"))
+                        break
+            acquired.setdefault(str(aid), int(season or root_season))
+    player_rows=[]; total=0.0; started=0.0
+    for aid,start_season in acquired.items():
+        pid=aid.split(":",1)[1]
+        hits=[
+            r for r in rows
+            if str(r.get("roster_id"))==str(roster_id)
+            and str(r.get("player_id"))==str(pid)
+            and int(r.get("season") or 0)>=int(start_season)
+        ]
+        pts=sum(float(r.get("fsffl_points_while_rostered") or 0) for r in hits)
+        spts=sum(float(r.get("fsffl_points_while_started") or 0) for r in hits)
+        if hits:
+            player_rows.append({
+                "asset_key":aid,
+                "player_id":pid,
+                "player_name":hits[0].get("player_name"),
+                "first_lineage_season":int(start_season),
+                "fsffl_points_while_rostered":round(pts,2),
+                "fsffl_points_while_started":round(spts,2),
+                "seasons_counted":sorted({int(r.get("season")) for r in hits}),
+            })
+            total+=pts; started+=spts
+    player_rows.sort(key=lambda x:x["fsffl_points_while_rostered"], reverse=True)
+    return {
+        "captured_fsffl_points":round(total,2),
+        "captured_started_points":round(started,2),
+        "player_rows":player_rows,
+        "methodology_note":"Actual FSFFL production recorded while lineage players were rostered by this franchise after entering the lineage.",
+    }
 
 
 def _draft_events(conversions):
