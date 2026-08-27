@@ -112,6 +112,7 @@ jobs:
           assert d['policy']['hindsight_traces_draft_conversions_and_downstream_trades'] is True
           assert d['policy']['mixed_lineage_attribution_is_flagged_not_overclaimed'] is True
           assert d['policy']['keep_assets_reference_is_descriptive_not_causal_counterfactual'] is True
+          assert d['policy']['hindsight_winner_requires_dominance_on_production_and_remaining_value'] is True
           assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
           assert d['policy']['standalone_v1_process_score_retired'] is True
           assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
@@ -151,13 +152,22 @@ jobs:
           assert 'ANALYSIS AT THE TIME' in text
           assert 'DEAL IN HINDSIGHT' in text
           assert 'WHAT IF THEY HAD JUST KEPT WHAT THEY TRADED?' in text
-          assert 'HINDSIGHT IS AN ASSET TREE' in text
+          assert 'FINAL RETROSPECTIVE VERDICT' in text
+          assert 'Production actually captured' in text
+          assert 'Keep-reference totals' in text
+          assert 'pick:2023:R1:orig1' not in text
           for uid,side in d['sides'].items():
               assert 'hindsight' in side
               lin=side['hindsight']['asset_lineage']
               assert 'terminal_assets' in lin
               assert 'events' in lin
               assert side['hindsight']['keep_assets_reference']['note']
+              assert 'captured_production' in lin
+              assert lin['captured_production']['captured_fsffl_points'] >= 0
+              keep=side['hindsight']['keep_assets_reference']
+              assert 'observed_reference_points' in keep
+              assert 'current_reference_intrinsic_value' in keep
+          assert d['hindsight_assessment']['classification'] in {'CLEAR_HINDSIGHT_EDGE','SPLIT_HINDSIGHT_RESULT','NEAR_EVEN_HINDSIGHT'}
           hd=d['gm3_evaluation']['team_results']['833709164739014656']
           assert hd['decision']['band']!='needs_context'
           assert hd['decision']['market_value_used_for_decision_label'] is False
