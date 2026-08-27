@@ -1,0 +1,93 @@
+name: Alternate History V2 Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/alternate-history-v2
+    paths:
+      - .github/workflows/alternate-history-v2-production.yml
+      - script/run_fsffl_alternate_history_magazine_v7.py
+      - script/alternate_history_runtime_optimizations.py
+      - script/alternate_history_exact_lineup_fallback.py
+      - script/run_fsffl_alternate_history_magazine.py
+      - script/run_fsffl_alternate_history_magazine_v6.py
+      - script/alternate_history_rookie_draft_policy.py
+      - script/run_fsffl_next_draft_handoff.py
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        run: python -m pip install --disable-pip-version-check numpy reportlab pypdf
+      - name: Restore completed-season Sleeper history cache
+        uses: actions/cache@v4
+        with:
+          path: data/alternate_history/source_history/sleeper_history.json
+          key: alternate-history-sleeper-completed-2022-2025-v1
+      - name: Backfill authoritative raw Sleeper history
+        run: python script/backfill_alternate_history_sleeper.py
+      - name: Gate exact Simulator fallback equivalence
+        env:
+          AH_VALIDATE_EXACT_FALLBACK: '1'
+        run: |
+          python script/profile_fsffl_alternate_history_v2.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 20 --sims 20 --seed 20260824
+      - name: Build full 100x500 V2 publication
+        run: |
+          python script/run_fsffl_alternate_history_magazine_v7.py \
+            data/alternate_history/scenarios/puka_vs_van_2023.json \
+            --particles 100 --sims 500 --seed 20260824
+      - name: Validate publication contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          base = Path('data/alternate_history/results/puka_vs_van_2023')
+          j = base / 'alternate_history_magazine_1_0.json'
+          p = base / 'alternate_history_magazine_1_0.pdf'
+          assert j.exists() and j.stat().st_size > 1000
+          assert p.exists() and p.stat().st_size > 15000
+          data = json.loads(j.read_text())
+          assert data['configuration']['particles'] == 100
+          assert data['configuration']['simulator_sims'] == 500
+          assert data['summary']['probability_mass'] == 1.0
+          assert len(data['present_day']['rosters']) == 12
+          assert len(data['present_day']['power_rankings']['teams']) == 12
+          assert sorted(r['alternate_power_rank'] for r in data['present_day']['power_rankings']['teams']) == list(range(1, 13))
+          assert all(len(s['alternate_expected_standings']) == 12 for s in data['seasons'])
+          assert all(len(s['actual_standings']) == 12 for s in data['seasons'])
+          assert all((s.get('modal_postseason') or {}).get('postseason', {}).get('championship') for s in data['seasons'])
+          assert len(data['drafts']) >= 3
+          assert all(len(d['picks']) == 36 for d in data['drafts'])
+          assert all(all(pick.get('alternate_choices') for pick in d['picks']) for d in data['drafts'])
+          assert all(all(pick.get('alternate_controllers') for pick in d['picks']) for d in data['drafts'])
+          assert data['transactions']
+          assert data['butterflies']
+          pages = len(PdfReader(str(p)).pages)
+          assert pages >= 15
+          print({
+              'pdf_pages': pages,
+              'seasons': len(data['seasons']),
+              'drafts': len(data['drafts']),
+              'transactions': len(data['transactions']),
+              'butterflies': len(data['butterflies']),
+              'particles': data['configuration']['particles'],
+              'sims': data['configuration']['simulator_sims'],
+          })
+          PY
+      - name: Upload full V2 publication artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alternate-history-v2-publication-100x500
+          path: |
+            data/alternate_history/results/puka_vs_van_2023/alternate_history_magazine_1_0.json
+            data/alternate_history/results/puka_vs_van_2023/alternate_history_magazine_1_0.pdf
