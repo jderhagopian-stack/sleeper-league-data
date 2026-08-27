@@ -421,32 +421,110 @@ def build_asset_lineage(root_created: int, uid: str, roster_id: str, root_assets
     }
 
 
+def _player_fsffl_points_since(pid: str, start_season: int):
+    total=0.0
+    for season in range(int(start_season), datetime.now(timezone.utc).year + 1):
+        rows=loadj(DATA / "stats" / "fsffl" / str(season) / "player_season_fsffl.json", [])
+        row=next((x for x in rows if str(x.get("player_id"))==str(pid)),None)
+        if row:
+            total+=float(row.get("fsffl_points") or 0)
+    return round(total,2)
+
+
 def keep_assets_reference(transaction_id: str, sent_assets: Dict[str, Any], players):
     """Observed reference for assets surrendered, not a fictional alternate-history replay."""
     perf=loadj(DATA / "transaction_performance_index.json", [])
-    conv={str(x.get("pick_asset_key")):x for x in loadj(DATA / "draft_pick_conversion_index.json", []) if x.get("pick_asset_key")}
+    conversions=loadj(DATA / "draft_pick_conversion_index.json", [])
+    conv={str(x.get("pick_asset_key")):x for x in conversions if x.get("pick_asset_key")}
+    current=_current_intrinsic_map()
     rows=[]
     for pid in sent_assets.get("sent_players") or []:
         hit=next((r for r in perf if str(r.get("transaction_id"))==str(transaction_id) and str(r.get("player_id"))==str(pid)),None)
         p=players.get(str(pid)) or {}
+        aid=f"player:{pid}"
         rows.append({
-            "asset_key":f"player:{pid}",
+            "asset_key":aid,
             "label":str(p.get("full_name") or p.get("name") or pid),
             "observed_post_trade_points":round(float((hit or {}).get("fsffl_points_for_acquirer_after_trade") or 0),2),
+            "current_intrinsic_value":round(current.get(aid,0.0),1),
             "reference_type":"observed_player_output_after_trade",
         })
     for aid in sent_assets.get("sent_picks") or []:
         c=conv.get(str(aid))
+        player_aid=str((c or {}).get("player_asset_key") or "")
+        draft_season=int((c or {}).get("season") or 0)
+        pid=str((c or {}).get("player_id") or "")
         rows.append({
             "asset_key":str(aid),
-            "label":str(aid),
+            "label":_asset_label(str(aid),players,conv),
             "drafted_player":(c or {}).get("player_name"),
             "pick_no":(c or {}).get("pick_no"),
+            "observed_drafted_player_points":_player_fsffl_points_since(pid,draft_season) if pid and draft_season else 0.0,
+            "current_intrinsic_value":round(current.get(player_aid,0.0),1) if player_aid else 0.0,
             "reference_type":"actual_slot_conversion" if c else "unresolved_or_future_pick",
         })
+    observed_points=sum(
+        float(x.get("observed_post_trade_points") or x.get("observed_drafted_player_points") or 0)
+        for x in rows
+    )
+    current_value=sum(float(x.get("current_intrinsic_value") or 0) for x in rows)
     return {
         "assets":rows,
-        "note":"This is a keep-the-original-assets reference, not a claim about exact alternate history. Later manager choices, trades, waivers and lineup decisions would have changed if the original trade never happened.",
+        "observed_reference_points":round(observed_points,2),
+        "current_reference_intrinsic_value":round(current_value,1),
+        "note":"This is a keep-the-original-assets reference, not a claim about exact alternate history. For surrendered picks it shows the player actually selected at that slot and that player's observed FSFFL production. The original manager might have drafted differently if the trade never happened.",
+    }
+
+
+def hindsight_assessment(sides: Dict[str, Any]):
+    """Compare realized outcomes without inventing a single points-plus-value score."""
+    metrics={}
+    for uid,side in sides.items():
+        h=side.get("hindsight") or {}
+        lin=h.get("asset_lineage") or {}
+        keep=h.get("keep_assets_reference") or {}
+        prod=float(((lin.get("captured_production") or {}).get("captured_fsffl_points")) or 0)
+        terminal=float(lin.get("terminal_current_intrinsic_value") or 0)
+        kp=float(keep.get("observed_reference_points") or 0)
+        kv=float(keep.get("current_reference_intrinsic_value") or 0)
+        if prod>kp*1.10 and terminal>=kv*.90:
+            keep_result="OUTPERFORMED_KEEP_REFERENCE"
+        elif terminal>kv*1.10 and prod>=kp*.90:
+            keep_result="OUTPERFORMED_KEEP_REFERENCE"
+        elif prod<kp*.90 and terminal<kv*.90:
+            keep_result="UNDERPERFORMED_KEEP_REFERENCE"
+        else:
+            keep_result="MIXED_VS_KEEP_REFERENCE"
+        metrics[str(uid)]={
+            "captured_lineage_points":round(prod,2),
+            "terminal_current_intrinsic_value":round(terminal,1),
+            "keep_reference_points":round(kp,2),
+            "keep_reference_current_intrinsic_value":round(kv,1),
+            "vs_keep_reference":keep_result,
+        }
+
+    uids=list(metrics)
+    if len(uids)!=2:
+        return {"classification":"INSUFFICIENT_SIDES","winner_user_id":None,"metrics":metrics}
+    a,b=uids
+    ma,mb=metrics[a],metrics[b]
+    pa,pb=ma["captured_lineage_points"],mb["captured_lineage_points"]
+    va,vb=ma["terminal_current_intrinsic_value"],mb["terminal_current_intrinsic_value"]
+    pclose=abs(pa-pb)<=0.10*max(pa,pb,1.0)
+    vclose=abs(va-vb)<=0.10*max(va,vb,1.0)
+    if pclose and vclose:
+        classification="NEAR_EVEN_HINDSIGHT"; winner=None
+    elif pa>=pb and va>=vb and (pa>pb or va>vb):
+        classification="CLEAR_HINDSIGHT_EDGE"; winner=a
+    elif pb>=pa and vb>=va and (pb>pa or vb>va):
+        classification="CLEAR_HINDSIGHT_EDGE"; winner=b
+    else:
+        classification="SPLIT_HINDSIGHT_RESULT"; winner=None
+    return {
+        "classification":classification,
+        "winner_user_id":winner,
+        "metrics":metrics,
+        "methodology_note":"A hindsight winner is declared only when one side leads on both actual lineage production and remaining descendant value. Split dimensions remain a split result rather than being forced into one synthetic score.",
     }
 
 
@@ -574,6 +652,7 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
         "actions": actions,
         "participant_user_ids": participant_uids,
         "gm3_evaluation": gm3,
+        "hindsight_assessment": hindsight_assessment(sides),
         "time_frozen_bundle_path": str(requested.relative_to(ROOT)) if requested.is_absolute() and str(requested).startswith(str(ROOT)) else str(requested),
         "sides": sides,
         "policy": {
@@ -585,6 +664,7 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             "hindsight_traces_draft_conversions_and_downstream_trades": True,
             "mixed_lineage_attribution_is_flagged_not_overclaimed": True,
             "keep_assets_reference_is_descriptive_not_causal_counterfactual": True,
+            "hindsight_winner_requires_dominance_on_production_and_remaining_value": True,
             "current_player_values_not_backfilled_into_historical_grade": True,
             "standalone_v1_process_score_retired": True,
             "missing_historical_inputs_result_in_not_graded": True,
