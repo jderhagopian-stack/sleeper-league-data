@@ -159,7 +159,7 @@ jobs:
           assert 'WHAT THE ASSETS BECAME & WHAT THEY PRODUCED' in page2
           assert 'HOLD-THE-ORIGINAL-ASSETS REFERENCE' in page2
           assert 'FINAL RETROSPECTIVE VERDICT' in page2
-          assert 'Production actually captured' in page2
+          assert 'Fantasy production received since the trade' in page2_flat
           assert 'Hold-reference totals' in page2
           assert 'AUDIT / METHODOLOGY NOTES' not in page1
           assert 'AUDIT / METHODOLOGY NOTES' in page2
