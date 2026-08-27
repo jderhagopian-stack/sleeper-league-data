@@ -126,6 +126,52 @@ def fit_label(v):
 def value_label(v):
     return fit_label(v).replace("positive","surplus").replace("negative","deficit")
 
+def at_time_bottom_line(uids,results,sides,winner):
+    if not winner or winner=="TIE" or len(uids)<2:
+        return (
+            "At the time, GM 3.0 viewed the deal as essentially even once immediate competitive impact, "
+            "team fit and long-term asset value were weighed together."
+        )
+    winner_uid=str(winner)
+    loser_uid=next((str(u) for u in uids if str(u)!=winner_uid),None)
+    if loser_uid is None:
+        return f"At the time, GM 3.0 gave the overall edge to {team_label(winner_uid,sides)}."
+    wr=results.get(winner_uid) or {}
+    lr=results.get(loser_uid) or {}
+    wd=wr.get("delta") or {}; ld=lr.get("delta") or {}
+    ws=wr.get("strategic") or {}; ls=lr.get("strategic") or {}
+    loser_name=team_label(loser_uid,sides)
+    winner_name=team_label(winner_uid,sides)
+    wins=sf(ld.get("expected_wins"))
+    playoff=sf(ld.get("playoff_probability"))
+    pkg=sf(ls.get("package_effective_value_delta",ls.get("intrinsic_dynasty_delta")))
+    winner_wins=sf(wd.get("expected_wins"))
+    winner_pkg=sf(ws.get("package_effective_value_delta",ws.get("intrinsic_dynasty_delta")))
+    pieces=[f"At the time, GM 3.0 gave the overall edge to {winner_name}."]
+    if wins>=0.5:
+        pieces.append(
+            f"{loser_name} still acquired a meaningful competitive upgrade, adding about {wins:.2f} expected wins"
+            + (f" and {playoff*100:.1f} points of playoff probability" if playoff>=0.03 else "")
+            + "."
+        )
+    elif wins<=-0.5:
+        pieces.append(f"{loser_name} gave up about {abs(wins):.2f} expected wins in the exchange.")
+    if pkg<=-1000:
+        pieces.append(
+            f"The problem was the price: {loser_name} surrendered about {abs(pkg):,.0f} more package value than it received, "
+            "and GM 3.0 judged the incremental competitive benefit insufficient to justify that premium."
+        )
+    elif pkg>=1000:
+        pieces.append(
+            f"{loser_name} also gained about {pkg:,.0f} in package value, making the case more balanced than the headline verdict alone suggests."
+        )
+    if winner_wins<=-0.5 and winner_pkg>=1000:
+        pieces.append(
+            f"{winner_name} accepted a short-term hit of about {abs(winner_wins):.2f} expected wins, "
+            f"but was compensated with roughly {winner_pkg:,.0f} of package-value surplus."
+        )
+    return " ".join(pieces)
+
 def plain_reason(row):
     d=row.get("delta") or {}; st=row.get("strategic") or {}
     wins=sf(d.get("expected_wins")); playoff=sf(d.get("playoff_probability"))
@@ -299,9 +345,7 @@ def build(report,out):
     story += [
         Spacer(1,.08*inch),
         Paragraph("BOTTOM LINE AT THE TIME",s["section"]),
-        Paragraph(
-            "This is a process grade, not a prediction of who will look smartest years later. GM 3.0 weighs the immediate lineup and playoff effect against intrinsic long-term value, team-specific value, roster fit and nonlinear package economics. A future result can be great even when the price was aggressive, or poor even when the original process was sound.",
-            s["body"]),
+        Paragraph(clean(at_time_bottom_line(uids,results,sides,winner),620),s["body"]),
         Spacer(1,.05*inch),
         PageBreak(),
         Paragraph("DEAL IN HINDSIGHT",s["title"]),
