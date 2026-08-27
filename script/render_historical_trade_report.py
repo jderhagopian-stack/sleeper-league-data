@@ -384,7 +384,7 @@ def lineage_card(uid,side,s):
                    f"({sf(impact.get('points_above_average_starter')):+.1f} started points above benchmark)<br/>"
                    + (f"<b>Biggest hindsight contributor:</b> {clean(biggest.get('player_name'),28)} "
                       f"({sf(biggest.get('estimated_wins_added')):+.2f} estimated wins above average)<br/>" if biggest else "")
-                   f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
+                   + f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>What the original assets became</b><br/>"+bullets+warning,s["body"])],
     ],colWidths=[3.70*inch],style=TableStyle([
