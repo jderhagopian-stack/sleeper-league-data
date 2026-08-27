@@ -151,10 +151,12 @@ jobs:
           page1=pdf.pages[0].extract_text() or ''
           page2=pdf.pages[1].extract_text() or ''
           text=page1+'\n'+page2
+          page1_flat=' '.join(page1.split())
+          page2_flat=' '.join(page2.split())
           assert 'ANALYSIS AT THE TIME' in page1
-          assert 'ASSET GENEALOGY & REALIZED PRODUCTION' not in page1
+          assert 'WHAT THE ASSETS BECAME & WHAT THEY PRODUCED' not in page1
           assert 'DEAL IN HINDSIGHT' in page2
-          assert 'ASSET GENEALOGY & REALIZED PRODUCTION' in page2
+          assert 'WHAT THE ASSETS BECAME & WHAT THEY PRODUCED' in page2
           assert 'HOLD-THE-ORIGINAL-ASSETS REFERENCE' in page2
           assert 'FINAL RETROSPECTIVE VERDICT' in page2
           assert 'Production actually captured' in page2
@@ -168,11 +170,17 @@ jobs:
           assert 'Overall Team Fit' not in page1
           assert 'Package value' not in page1
           assert 'current intrinsic value' not in text
-          assert 'Long-term trade value' in page1
-          assert 'Overall deal effect' in page1
-          assert 'Model points are relative trade-value scores' in page1
-          assert 'percentage points' in page1
-          assert 'season-long swing' in page1
+          assert 'Long-term trade value' in page1_flat
+          assert 'Overall deal effect' in page1_flat
+          assert 'Model points are relative trade-value scores' in page1_flat
+          assert 'percentage points' in page1_flat
+          assert 'season-long swing' in page1_flat
+          assert 'asset genealogy' not in text.lower()
+          assert 'asset tree' not in text.lower()
+          assert 'mixed-package attribution' not in page2.lower()
+          assert 'Trade-chain note' in page2
+          assert 'Fantasy production received since the trade' in page2_flat
+          assert 'remaining value' in page2.lower()
           assert 'pick:2023:R1:orig1' not in text
           for uid,side in d['sides'].items():
               assert 'hindsight' in side
