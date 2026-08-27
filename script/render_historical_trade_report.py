@@ -99,8 +99,8 @@ def hindsight_verdict(report,sides):
     winner=h.get("winner_user_id")
     if cls=="CLEAR_HINDSIGHT_EDGE" and winner:
         return f"HINDSIGHT EDGE: {team_label(winner,sides).upper()}", (
-            f"{team_label(winner,sides)} leads on both actual production captured from the trade's asset tree "
-            "and the value still remaining in descendant assets."
+            f"{team_label(winner,sides)} leads both in fantasy production actually received from the trade "
+            "and in the long-term value still owned from the players and picks that came from it."
         )
     if cls=="SPLIT_HINDSIGHT_RESULT":
         return "HINDSIGHT RESULT: SPLIT", (
@@ -112,7 +112,7 @@ def hindsight_verdict(report,sides):
             "The two sides are within the model's materiality band on both realized production and remaining descendant value."
         )
     return "HINDSIGHT RESULT: STILL DEVELOPING", (
-        "The available asset tree is not yet complete enough for a clean retrospective winner."
+        "Too many of the players and picks from the trade are still unresolved to name a clear hindsight winner."
     )
 
 
@@ -124,7 +124,33 @@ def fit_label(v):
     return "Near neutral"
 
 def value_label(v):
-    return fit_label(v).replace("positive","surplus").replace("negative","deficit")
+    v=sf(v); a=abs(v)
+    if a>=2500:return "Major bargain" if v>0 else "Major overpay"
+    if a>=900:return "Meaningful bargain" if v>0 else "Meaningful overpay"
+    if a>=250:return "Slight bargain" if v>0 else "Slight overpay"
+    return "Roughly even value"
+
+def win_context(v):
+    a=abs(sf(v))
+    if a>=2.0:return "massive season-long swing"
+    if a>=1.0:return "major season-long swing"
+    if a>=0.5:return "meaningful season-long swing"
+    if a>=0.2:return "small season-long swing"
+    return "minimal season-long effect"
+
+def odds_context(v):
+    a=abs(sf(v))
+    if a>=.10:return "major change"
+    if a>=.05:return "meaningful change"
+    if a>=.02:return "small change"
+    return "minimal change"
+
+def score_context(v):
+    v=sf(v); a=abs(v)
+    if a>=2500:return "major positive overall effect" if v>0 else "major negative overall effect"
+    if a>=900:return "meaningful positive overall effect" if v>0 else "meaningful negative overall effect"
+    if a>=250:return "slight positive overall effect" if v>0 else "slight negative overall effect"
+    return "roughly neutral overall effect"
 
 def at_time_bottom_line(uids,results,sides,winner):
     if not winner or winner=="TIE" or len(uids)<2:
@@ -150,25 +176,30 @@ def at_time_bottom_line(uids,results,sides,winner):
     pieces=[f"At the time, GM 3.0 gave the overall edge to {winner_name}."]
     if wins>=0.5:
         pieces.append(
-            f"{loser_name} still acquired a meaningful competitive upgrade, adding about {wins:.2f} expected wins"
-            + (f" and {playoff*100:.1f} points of playoff probability" if playoff>=0.03 else "")
+            f"{loser_name} still acquired a meaningful competitive upgrade, adding about {wins:.2f} expected wins "
+            f"({win_context(wins)})"
+            + (f" and {playoff*100:.1f} percentage points of playoff probability ({odds_context(playoff)})" if playoff>=0.03 else "")
             + "."
         )
     elif wins<=-0.5:
         pieces.append(f"{loser_name} gave up about {abs(wins):.2f} expected wins in the exchange.")
     if pkg<=-1000:
         pieces.append(
-            f"The problem was the price: {loser_name} surrendered about {abs(pkg):,.0f} more package value than it received, "
-            "and GM 3.0 judged the incremental competitive benefit insufficient to justify that premium."
+            f"The problem was the price: {loser_name} gave up about {abs(pkg):,.0f} more long-term value points than it received "
+            f"({value_label(pkg).lower()} on the model's relative value scale). "
+            "That scale is not fantasy points or dollars; it measures the size of the value gap between the two sides. "
+            "GM 3.0 judged the competitive benefit insufficient to justify that premium."
         )
     elif pkg>=1000:
         pieces.append(
-            f"{loser_name} also gained about {pkg:,.0f} in package value, making the case more balanced than the headline verdict alone suggests."
+            f"{loser_name} also gained about {pkg:,.0f} long-term value points ({value_label(pkg).lower()} on the model's relative value scale), "
+            "making the case more balanced than the headline verdict alone suggests."
         )
     if winner_wins<=-0.5 and winner_pkg>=1000:
         pieces.append(
-            f"{winner_name} accepted a short-term hit of about {abs(winner_wins):.2f} expected wins, "
-            f"but was compensated with roughly {winner_pkg:,.0f} of package-value surplus."
+            f"{winner_name} accepted a short-term hit of about {abs(winner_wins):.2f} expected wins ({win_context(winner_wins)}), "
+            f"but was compensated with roughly {winner_pkg:,.0f} long-term value points "
+            f"({value_label(winner_pkg).lower()} on the model's relative value scale)."
         )
     return " ".join(pieces)
 
@@ -179,20 +210,20 @@ def plain_reason(row):
     fit=sf(row.get("state_aware_utility_delta"))
     bits=[]
     if wins>=0.5:
-        bits.append(f"adds about {wins:.1f} expected wins")
+        bits.append(f"adds about {wins:.1f} expected wins ({win_context(wins)})")
     elif wins<=-0.5:
-        bits.append(f"costs about {abs(wins):.1f} expected wins")
+        bits.append(f"costs about {abs(wins):.1f} expected wins ({win_context(wins)})")
     if playoff>=0.03:
-        bits.append(f"raises playoff odds by {playoff*100:.1f} points")
+        bits.append(f"raises playoff odds by {playoff*100:.1f} percentage points ({odds_context(playoff)})")
     elif playoff<=-0.03:
-        bits.append(f"lowers playoff odds by {abs(playoff)*100:.1f} points")
+        bits.append(f"lowers playoff odds by {abs(playoff)*100:.1f} percentage points ({odds_context(playoff)})")
     if pkg>=1000:
-        bits.append(f"wins the package-value exchange by about {pkg:,.0f}")
+        bits.append(f"comes out ahead by about {pkg:,.0f} long-term value points ({value_label(pkg).lower()})")
     elif pkg<=-1000:
-        bits.append(f"pays about {abs(pkg):,.0f} more package value than it receives")
+        bits.append(f"gives up about {abs(pkg):,.0f} more long-term value points than it receives ({value_label(pkg).lower()})")
     if not bits:
         bits.append("lands near neutral across the model's main trade drivers")
-    explanation="; ".join(bits)+f". Overall Team Fit: {fit:+,.0f} ({fit_label(fit).lower()})."
+    explanation="; ".join(bits)+f". Taken together, the deal has a {score_context(fit)} for this roster."
     if wins>=0.5 and pkg<=-1000:
         explanation+=" The competitive gain is real, but GM 3.0 judges the premium paid to be larger than the incremental upgrade justifies."
     elif wins<=-0.5 and pkg>=1000:
@@ -205,14 +236,18 @@ def at_time_card(uid,row,side,s):
     rec=[display_asset_name(x.get("name") or x.get("asset_id"),side) for x in st.get("received") or []]
     sent=[display_asset_name(x.get("name") or x.get("asset_id"),side) for x in st.get("sent") or []]
     metrics=[
-        [Paragraph("Expected wins",s["label"]),Paragraph(num(d.get("expected_wins"),2),s["metric"]),
-         Paragraph("Playoff odds",s["label"]),Paragraph(pp(d.get("playoff_probability")),s["metric"])],
-        [Paragraph("Championship odds",s["label"]),Paragraph(pp(d.get("championship_probability")),s["metric"]),
-         Paragraph("Overall Team Fit",s["label"]),Paragraph(f"{sf(row.get('state_aware_utility_delta')):+,.0f}",s["metric"])],
-        [Paragraph("Package value",s["label"]),Paragraph(
-             f"{val(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))}<br/><font size='6.2'>{value_label(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))}</font>",s["metric"]),
-         Paragraph("Value to this team",s["label"]),Paragraph(
-             f"{val(st.get('base_franchise_value_delta'))}<br/><font size='6.2'>{value_label(st.get('base_franchise_value_delta'))}</font>",s["metric"])],
+        [Paragraph("Expected wins",s["label"]),Paragraph(
+             f"{num(d.get('expected_wins'),2)}<br/><font size='6.0'>{win_context(d.get('expected_wins'))}</font>",s["metric"]),
+         Paragraph("Playoff odds",s["label"]),Paragraph(
+             f"{pp(d.get('playoff_probability'))}<br/><font size='6.0'>{odds_context(d.get('playoff_probability'))}</font>",s["metric"])],
+        [Paragraph("Championship odds",s["label"]),Paragraph(
+             f"{pp(d.get('championship_probability'))}<br/><font size='6.0'>{odds_context(d.get('championship_probability'))}</font>",s["metric"]),
+         Paragraph("Overall deal effect",s["label"]),Paragraph(
+             f"{score_context(row.get('state_aware_utility_delta')).title()}",s["body"])],
+        [Paragraph("Long-term trade value",s["label"]),Paragraph(
+             f"{val(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))} model pts<br/><font size='6.0'>{value_label(st.get('package_effective_value_delta',st.get('intrinsic_dynasty_delta')))}</font>",s["body"]),
+         Paragraph("Fit for this roster",s["label"]),Paragraph(
+             f"{score_context(st.get('base_franchise_value_delta')).title()}",s["body"])],
     ]
     body=[
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
@@ -225,7 +260,8 @@ def at_time_card(uid,row,side,s):
             ("RIGHTPADDING",(0,0),(-1,-1),2),("TOPPADDING",(0,0),(-1,-1),2),
             ("BOTTOMPADDING",(0,0),(-1,-1),2)
         ]))],
-        [Paragraph("<b>Why:</b> "+clean(plain_reason(row),380),s["body"])],
+        [Paragraph("<b>Why:</b> "+clean(plain_reason(row),520)+
+                   "<br/><font size='6.1'>Model points are relative trade-value scores, not fantasy points or dollars; the label beside each score shows whether the gap is small, meaningful or major.</font>",s["body"])],
     ]
     return Table(body,colWidths=[3.70*inch],style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT),("BOX",(0,0),(-1,-1),.55,MID),
@@ -246,7 +282,7 @@ def lineage_card(uid,side,s):
     roots=", ".join(pick_only_label(x.get("label") or x.get("asset_key")) for x in lin.get("root_assets") or [])
     root_labels={str(x.get("asset_key")):str(x.get("label") or "") for x in lin.get("root_assets") or []}
     terminals=", ".join(
-        f"{x.get('label')} ({sf(x.get('current_intrinsic_value')):,.0f})"
+        f"{x.get('label')} ({sf(x.get('current_intrinsic_value')):,.0f} current value pts)"
         for x in lin.get("terminal_assets") or []
     ) or "No tracked descendant player/pick remains in the lineage."
     events=lin.get("events") or []
@@ -269,7 +305,7 @@ def lineage_card(uid,side,s):
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
                    f"<b>Production actually captured:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} while started)<br/>"
                    f"<b>Top lineage contributors:</b> {clean(top_text,180)}<br/>"
-                   f"<b>Value still in the asset tree:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f}<br/>"
+                   f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>Asset trail</b><br/>"+bullets+warning,s["body"])],
     ],colWidths=[3.70*inch],style=TableStyle([
@@ -285,17 +321,17 @@ def keep_reference(side,s):
     for x in ref.get("assets") or []:
         if x.get("reference_type")=="observed_player_output_after_trade":
             outcome=(f"{sf(x.get('observed_post_trade_points')):,.1f} observed FSFFL points after the trade; "
-                     f"current intrinsic value {sf(x.get('current_intrinsic_value')):,.0f}")
+                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts")
         elif x.get("drafted_player"):
             outcome=(f"slot became {clean(x.get('drafted_player'),38)}; "
                      f"{sf(x.get('observed_drafted_player_points')):,.1f} FSFFL points since drafted; "
-                     f"current intrinsic value {sf(x.get('current_intrinsic_value')):,.0f}")
+                     f"current long-term value {sf(x.get('current_intrinsic_value')):,.0f} model pts")
         else:
             outcome="no completed draft conversion yet"
         rows.append(f"<b>{clean(pick_only_label(x.get('label')),75)}:</b> {outcome}")
     text="<br/>".join(rows) or "No keep-reference assets were available."
     summary=(f"<br/><b>Hold-reference totals:</b> {sf(ref.get('observed_reference_points')):,.1f} observed FSFFL points; "
-             f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current intrinsic value.")
+             f"{sf(ref.get('current_reference_intrinsic_value')):,.0f} current long-term value points.")
     note=clean(ref.get("note"),300).replace("keep-the-original-assets","hold-the-original-assets").replace("keep-reference","hold reference")
     return Paragraph(text+summary+"<br/><font size='6.3'>"+note+"</font>",s["body"])
 
