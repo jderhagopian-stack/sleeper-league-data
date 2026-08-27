@@ -7,7 +7,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 from reportlab.lib import colors
-from fsffl_report_style import *\nfrom report_language import label, team_state
+from fsffl_report_style import *
+from report_language import label, team_state
 
 MODEL_VERSION='FSFFL-GM-Franchise-Report-1.1'
 
