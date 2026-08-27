@@ -352,17 +352,31 @@ def historical_behavior_profiles(provider, season: int, ts: int, players):
 
 
 def draft_slot_map(data):
+    """Map original roster id -> rookie draft slot without reading draft results.
+
+    The previous implementation inferred the mapping from completed pick rows.
+    That is both semantically unsafe (roster_id on a pick can reflect the drafter
+    rather than the original pick owner) and unnecessarily exposes post-trade
+    draft results. Use Sleeper's draft_order metadata instead, which represents
+    the league's draft-order assignment rather than who/what was selected.
+    """
     out = {}
+    u2r = {str(r.get("owner_id")): str(r.get("roster_id"))
+           for r in (data.get("rosters") or [])
+           if r.get("owner_id") is not None and r.get("roster_id") is not None}
     for entry in data.get("drafts") or []:
-        for p in entry.get("picks") or []:
+        d = entry.get("draft") or {}
+        order = d.get("draft_order") or {}
+        for uid, slot in order.items():
+            rid = u2r.get(str(uid))
             try:
-                rnd = int(p.get("round") or 0)
-                slot = int(p.get("draft_slot") or 0)
-                rid = int(p.get("roster_id") or 0)
+                slot_i = int(slot)
             except Exception:
                 continue
-            if rnd == 1 and slot and rid:
-                out[str(rid)] = slot
+            if rid and slot_i > 0:
+                out[str(rid)] = slot_i
+        if out:
+            break
     return out
 
 
@@ -436,6 +450,7 @@ def build(season: str, transaction_id: str, source_path: Path):
 
     r2u = roster_to_user(data)
     slots = draft_slot_map(data)
+    draft_slot_source = "sleeper_draft_order_metadata_no_pick_results" if slots else "unresolved_no_posttrade_pick_result_fallback"
     action_pick_ids = set()
     for p in tx.get("draft_picks") or []:
         action_pick_ids.add(f"pick:{p.get('season')}:R{p.get('round')}:orig{p.get('roster_id')}")
@@ -612,6 +627,8 @@ def build(season: str, transaction_id: str, source_path: Path):
             "schedule_basis": f"{int(season)-1} FSFFL schedule reused as neutral known proxy",
             "behavior_basis": "only actions with timestamp strictly before trade",
             "historical_lineup_cache": "preoptimized once in frozen bundle; reused by GM3 trade analysis",
+            "draft_slot_source": draft_slot_source,
+            "completed_draft_pick_rows_used_for_slot_resolution": False,
             "current_market_values_used": False,
             "same_season_results_used": False,
             "future_schedule_used": False,
