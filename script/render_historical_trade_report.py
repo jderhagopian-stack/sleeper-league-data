@@ -288,6 +288,72 @@ def event_sentence(ev,root_labels=None):
             text=text.replace(str(label),pick_only_label(label))
     return clean(text,180)
 
+def hindsight_scorecard(report,sides,uids,s):
+    rows=[]
+    metrics=[]
+    for uid in uids:
+        lin=((sides.get(uid) or {}).get("hindsight") or {}).get("asset_lineage") or {}
+        prod=lin.get("captured_production") or {}
+        impact=prod.get("replacement_adjusted_impact") or {}
+        metrics.append({
+            "uid":uid,
+            "team":team_label(uid,sides),
+            "points":sf(prod.get("captured_fsffl_points")),
+            "remaining":sf(lin.get("terminal_current_intrinsic_value")),
+            "wins":sf(impact.get("estimated_wins_added_vs_average_starter")),
+        })
+    if len(metrics)<2:
+        return Paragraph("Hindsight scorecard unavailable.",s["body"])
+    a,b=metrics[0],metrics[1]
+    def lead(key,fmt):
+        if abs(a[key]-b[key]) < 1e-9:
+            return "Even"
+        x=a if a[key]>b[key] else b
+        return f"{x['team']} ({fmt(x[key])})"
+    hw=(report.get("hindsight_assessment") or {}).get("winner_user_id")
+    overall="Still developing" if not hw else team_label(str(hw),sides)
+    data=[
+        [Paragraph("<b>HINDSIGHT SCORECARD</b>",s["label"]),Paragraph("<b>LEADER</b>",s["label"])],
+        [Paragraph("Fantasy production received",s["body"]),Paragraph(lead("points",lambda v:f"{v:,.0f} pts"),s["body"])],
+        [Paragraph("Estimated wins added vs. average starter",s["body"]),Paragraph(lead("wins",lambda v:f"{v:+.2f} wins"),s["body"])],
+        [Paragraph("Long-term value still owned",s["body"]),Paragraph(lead("remaining",lambda v:f"{v:,.0f} value pts"),s["body"])],
+        [Paragraph("Overall hindsight result",s["body"]),Paragraph(overall,s["body"])],
+    ]
+    return Table(data,colWidths=[3.65*inch,4.05*inch],style=TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),LIGHT),("BOX",(0,0),(-1,-1),.45,MID),
+        ("INNERGRID",(0,0),(-1,-1),.25,MID),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+        ("LEFTPADDING",(0,0),(-1,-1),6),("RIGHTPADDING",(0,0),(-1,-1),6),
+        ("TOPPADDING",(0,0),(-1,-1),3),("BOTTOMPADDING",(0,0),(-1,-1),3),
+    ]))
+
+
+def verdict_change_story(report,sides,uids,winner):
+    h=report.get("hindsight_assessment") or {}
+    hw=h.get("winner_user_id")
+    if not hw:
+        return "The trade is still too unresolved to say what ultimately reinforced or changed the original verdict."
+    at_name=team_label(str(winner),sides) if winner and winner!="TIE" else "Neither side"
+    hi_name=team_label(str(hw),sides)
+    leader_bits=[]
+    for uid in uids:
+        lin=((sides.get(uid) or {}).get("hindsight") or {}).get("asset_lineage") or {}
+        impact=((lin.get("captured_production") or {}).get("replacement_adjusted_impact") or {})
+        top=(impact.get("player_rows") or [])
+        if top:
+            x=top[0]
+            leader_bits.append(
+                f"{team_label(uid,sides)}'s biggest on-field contributor was {x.get('player_name')} "
+                f"at an estimated {sf(x.get('estimated_wins_added')):+.2f} wins versus an average starter"
+            )
+    if winner and winner!="TIE" and str(hw)==str(winner):
+        lead=f"The original verdict held: {at_name} was preferred at the time and still leads in hindsight."
+    else:
+        lead=f"The hindsight result changed from the original at-time edge ({at_name}) to {hi_name}."
+    if leader_bits:
+        lead+=" "+"; ".join(leader_bits)+"."
+    return lead
+
+
 def lineage_card(uid,side,s):
     h=(side.get("hindsight") or {})
     lin=h.get("asset_lineage") or {}
@@ -305,6 +371,9 @@ def lineage_card(uid,side,s):
     total_pts=sf(prod.get("captured_fsffl_points"))
     started_pts=sf(prod.get("captured_started_points"))
     top=prod.get("player_rows") or []
+    impact=prod.get("replacement_adjusted_impact") or {}
+    impact_rows=impact.get("player_rows") or []
+    biggest=(impact_rows[0] if impact_rows else None)
     top_text=", ".join(
         f"{clean(x.get('player_name'),24)} {sf(x.get('fsffl_points_while_rostered')):,.1f}"
         for x in top[:4]
@@ -316,7 +385,11 @@ def lineage_card(uid,side,s):
         [Paragraph(team_label(uid,{str(uid):side}),s["team"])],
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
                    f"<b>Fantasy production received since the trade:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} scored while in the starting lineup)<br/>"
-                   f"<b>Top lineage contributors:</b> {clean(top_text,180)}<br/>"
+                   f"<b>Estimated wins added vs. average starter:</b> {sf(impact.get('estimated_wins_added_vs_average_starter')):+.2f} "
+                   f"(from {sf(impact.get('points_above_average_starter')):+.1f} started points above the seasonal position benchmark)<br/>"
+                   + (f"<b>Biggest hindsight contributor:</b> {clean(biggest.get('player_name'),28)} "
+                      f"({sf(biggest.get('estimated_wins_added')):+.2f} estimated wins above average starter)<br/>" if biggest else "")
+                   + f"<b>Top trade-derived scorers:</b> {clean(top_text,180)}<br/>"
                    f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>What the original assets became</b><br/>"+bullets+warning,s["body"])],
@@ -409,7 +482,9 @@ def build(report,out):
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
-        Spacer(1,.08*inch),
+        Spacer(1,.06*inch),
+        hindsight_scorecard(report,sides,uids,s),
+        Spacer(1,.06*inch),
         Paragraph("WHAT THE ASSETS BECAME & WHAT THEY PRODUCED",s["section"])
     ]
     if len(uids)>=2:
@@ -431,21 +506,8 @@ def build(report,out):
             "The hold reference shows what the surrendered players actually produced after the trade and, for surrendered draft picks, the player actually selected at that slot. It is not a claim about exactly what would have happened if the trade had never occurred, because later trades, draft choices, waiver moves and lineup decisions could also have changed. It is simply a useful reference point.",
             s["body"]),
         Spacer(1,.05*inch),
-        Paragraph("FINAL RETROSPECTIVE VERDICT",s["section"]),
-        Paragraph(
-            (
-                f"<b>At the time:</b> GM 3.0 gave the overall edge to {winner_name}. "
-                f"<b>In hindsight:</b> {clean(hindsight_verdict(report,sides)[0].replace('HINDSIGHT EDGE: ','').replace('HINDSIGHT RESULT: ',''),70)}. "
-                + (
-                    f"{team_label(next((u for u in uids if str(u)!=str(winner)),uids[0]),sides)} still received the immediate competitive improvement it paid for "
-                    f"({sf((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins')):+.2f} expected wins; "
-                    f"{win_context((results.get(next((u for u in uids if str(u)!=str(winner)),uids[0])) or {}).get('delta',{}).get('expected_wins'))}), "
-                    f"but {winner_name} won both the original trade grade and the actual results that followed."
-                    if winner and winner!="TIE" and str((report.get("hindsight_assessment") or {}).get("winner_user_id"))==str(winner)
-                    else "The original trade grade and what happened afterward remain separate so later results never rewrite what was knowable at the time."
-                )
-            ),
-            s["body"]),
+        Paragraph("WHAT REINFORCED OR CHANGED THE VERDICT",s["section"]),
+        Paragraph(clean(verdict_change_story(report,sides,uids,winner),620),s["body"]),
     ]
     doc.build(story,onFirstPage=audit_footer,onLaterPages=audit_footer)
 
