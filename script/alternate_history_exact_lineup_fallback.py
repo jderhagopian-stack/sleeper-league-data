@@ -2,9 +2,10 @@
 """Exact memoized replacement for Simulator 1.0's generic lineup DFS fallback.
 
 This module preserves the canonical candidate construction, slot ordering,
-empty-slot behavior, candidate ordering, strict tie rule, and output schema.
-It only memoizes repeated suffix subproblems so pathological/short-handed
-alternate rosters do not repeatedly traverse the same search tree.
+empty-slot behavior, candidate ordering, left-to-right floating-point addition,
+strict tie rule, and output schema. It only memoizes repeated DFS subproblems so
+pathological/short-handed alternate rosters do not repeatedly traverse the same
+search tree.
 
 Set AH_VALIDATE_EXACT_FALLBACK=1 to compare every memoized fallback result
 against the original canonical DFS and fail immediately on any difference.
@@ -13,7 +14,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 import build_fsffl_season_simulator as core
 
@@ -47,8 +48,9 @@ def _memoized_result(roster, week, league, players, projections):
     slot_priority = {"QB": 0, "TE": 1, "RB": 2, "WR": 2, "SUPER_FLEX": 3, "FLEX": 4}
     ordered_slots = sorted(enumerate(slots), key=lambda x: slot_priority.get(x[1], 5))
 
-    # Canonical DFS sorts eligible options by projected value, stably preserving
-    # candidate order for exact ties. Precompute those exact per-slot orders.
+    # Canonical DFS filters candidates in original roster order, then performs a
+    # stable descending sort by projected contribution for every slot. Filtering
+    # a precomputed stable order is identical, so cache the slot orders once.
     option_indices: List[Tuple[int, ...]] = []
     for _, slot in ordered_slots:
         idxs = [i for i, c in enumerate(candidates) if core.eligible(c["position"], slot)]
@@ -61,29 +63,38 @@ def _memoized_result(roster, week, league, players, projections):
     values = [c["mean"] * c["active_probability"] for c in candidates]
 
     @lru_cache(maxsize=None)
-    def solve(i: int, used_mask: int):
+    def solve(i: int, used_mask: int, running_total: float):
+        """Return canonical best final total and suffix from this exact DFS state.
+
+        running_total is intentionally part of the memo key. The canonical
+        implementation adds each selected player's float contribution from left
+        to right. Reassociating those additions can change the last bit and thus
+        alter which equal-value path wins the strict `>` tie rule. Carrying the
+        exact running float reproduces that arithmetic order byte-for-byte.
+        """
         _STATS["memo_states"] += 1
         if i == len(ordered_slots):
-            return 0.0, ()
+            return running_total, ()
 
         original_idx, slot = ordered_slots[i]
         available = [idx for idx in option_indices[i] if not (used_mask & (1 << idx))]
         if not available:
-            score, suffix = solve(i + 1, used_mask)
-            return score, ((original_idx, slot, -1),) + suffix
+            final_total, suffix = solve(i + 1, used_mask, running_total)
+            return final_total, ((original_idx, slot, -1),) + suffix
 
-        best_score = -1e18
+        best_final = -1e18
         best_assign = None
-        # Same option order and strict > replacement as canonical DFS.
+        # Same option order, same forward float addition, same strict > rule.
+        # Therefore an exact tie keeps the first path encountered by canonical DFS.
         for idx in available:
-            suffix_score, suffix = solve(i + 1, used_mask | (1 << idx))
-            total = values[idx] + suffix_score
-            if total > best_score:
-                best_score = total
+            next_total = running_total + values[idx]
+            final_total, suffix = solve(i + 1, used_mask | (1 << idx), next_total)
+            if final_total > best_final:
+                best_final = final_total
                 best_assign = ((original_idx, slot, idx),) + suffix
-        return best_score, best_assign or ()
+        return best_final, best_assign or ()
 
-    _, assignment = solve(0, 0)
+    _, assignment = solve(0, 0, 0.0)
     best_assign = list(assignment)
     best_assign.sort(key=lambda x: x[0])
 
@@ -105,7 +116,7 @@ def _memoized_result(roster, week, league, players, projections):
 
 
 def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
-    """Return the same optimum as the canonical DFS, with suffix memoization."""
+    """Return the canonical DFS result while memoizing exact repeated states."""
     _STATS["calls"] += 1
     result = _memoized_result(roster, week, league, players, projections)
     if os.getenv("AH_VALIDATE_EXACT_FALLBACK") == "1":
