@@ -289,15 +289,13 @@ def event_sentence(ev,root_labels=None):
     return clean(text,180)
 
 def hindsight_scorecard(report,sides,uids,s):
-    rows=[]
     metrics=[]
     for uid in uids:
         lin=((sides.get(uid) or {}).get("hindsight") or {}).get("asset_lineage") or {}
         prod=lin.get("captured_production") or {}
         impact=prod.get("replacement_adjusted_impact") or {}
         metrics.append({
-            "uid":uid,
-            "team":team_label(uid,sides),
+            "uid":uid,"team":team_label(uid,sides),
             "points":sf(prod.get("captured_fsffl_points")),
             "remaining":sf(lin.get("terminal_current_intrinsic_value")),
             "wins":sf(impact.get("estimated_wins_added_vs_average_starter")),
@@ -306,24 +304,24 @@ def hindsight_scorecard(report,sides,uids,s):
         return Paragraph("Hindsight scorecard unavailable.",s["body"])
     a,b=metrics[0],metrics[1]
     def lead(key,fmt):
-        if abs(a[key]-b[key]) < 1e-9:
-            return "Even"
+        if abs(a[key]-b[key])<1e-9:return "Even"
         x=a if a[key]>b[key] else b
-        return f"{x['team']} ({fmt(x[key])})"
+        return f"{x['team']}<br/><font size='6'>{fmt(x[key])}</font>"
     hw=(report.get("hindsight_assessment") or {}).get("winner_user_id")
     overall="Still developing" if not hw else team_label(str(hw),sides)
     data=[
-        [Paragraph("<b>HINDSIGHT SCORECARD</b>",s["label"]),Paragraph("<b>LEADER</b>",s["label"])],
-        [Paragraph("Fantasy production received",s["body"]),Paragraph(lead("points",lambda v:f"{v:,.0f} pts"),s["body"])],
-        [Paragraph("Estimated wins added vs. average starter",s["body"]),Paragraph(lead("wins",lambda v:f"{v:+.2f} wins"),s["body"])],
-        [Paragraph("Long-term value still owned",s["body"]),Paragraph(lead("remaining",lambda v:f"{v:,.0f} value pts"),s["body"])],
-        [Paragraph("Overall hindsight result",s["body"]),Paragraph(overall,s["body"])],
+        [Paragraph("<b>PRODUCTION</b>",s["label"]),Paragraph("<b>EST. WINS ADDED</b>",s["label"]),
+         Paragraph("<b>VALUE STILL OWNED</b>",s["label"]),Paragraph("<b>OVERALL</b>",s["label"])],
+        [Paragraph(lead("points",lambda v:f"{v:,.0f} pts"),s["body"]),
+         Paragraph(lead("wins",lambda v:f"{v:+.2f} vs avg starter"),s["body"]),
+         Paragraph(lead("remaining",lambda v:f"{v:,.0f} value pts"),s["body"]),
+         Paragraph(overall,s["body"])],
     ]
-    return Table(data,colWidths=[3.65*inch,4.05*inch],style=TableStyle([
+    return Table(data,colWidths=[1.90*inch,1.90*inch,1.95*inch,1.95*inch],style=TableStyle([
         ("BACKGROUND",(0,0),(-1,0),LIGHT),("BOX",(0,0),(-1,-1),.45,MID),
         ("INNERGRID",(0,0),(-1,-1),.25,MID),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
-        ("LEFTPADDING",(0,0),(-1,-1),6),("RIGHTPADDING",(0,0),(-1,-1),6),
-        ("TOPPADDING",(0,0),(-1,-1),3),("BOTTOMPADDING",(0,0),(-1,-1),3),
+        ("LEFTPADDING",(0,0),(-1,-1),4),("RIGHTPADDING",(0,0),(-1,-1),4),
+        ("TOPPADDING",(0,0),(-1,-1),2),("BOTTOMPADDING",(0,0),(-1,-1),2),
     ]))
 
 
@@ -383,10 +381,9 @@ def lineage_card(uid,side,s):
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
                    f"<b>Fantasy production received since the trade:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} scored while in the starting lineup)<br/>"
                    f"<b>Estimated wins added vs. average starter:</b> {sf(impact.get('estimated_wins_added_vs_average_starter')):+.2f} "
-                   f"(from {sf(impact.get('points_above_average_starter')):+.1f} started points above the seasonal position benchmark)<br/>"
+                   f"({sf(impact.get('points_above_average_starter')):+.1f} started points above benchmark)<br/>"
                    + (f"<b>Biggest hindsight contributor:</b> {clean(biggest.get('player_name'),28)} "
-                      f"({sf(biggest.get('estimated_wins_added')):+.2f} estimated wins above average starter)<br/>" if biggest else "")
-                   + f"<b>Top trade-derived scorers:</b> {clean(top_text,180)}<br/>"
+                      f"({sf(biggest.get('estimated_wins_added')):+.2f} estimated wins above average)<br/>" if biggest else "")
                    f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
                    f"<b>Where the assets ended up:</b> {clean(terminals,220)}",s["body"])],
         [Paragraph("<b>What the original assets became</b><br/>"+bullets+warning,s["body"])],
@@ -479,9 +476,10 @@ def build(report,out):
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
-        Spacer(1,.04*inch),
+        Spacer(1,.025*inch),
+        Paragraph("HINDSIGHT SCORECARD",s["section"]),
         hindsight_scorecard(report,sides,uids,s),
-        Spacer(1,.04*inch),
+        Spacer(1,.025*inch),
         Paragraph("WHAT THE ASSETS BECAME & WHAT THEY PRODUCED",s["section"])
     ]
     if len(uids)>=2:
