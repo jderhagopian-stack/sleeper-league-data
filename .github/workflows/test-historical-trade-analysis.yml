@@ -63,7 +63,7 @@ jobs:
           assert len(pdf.pages)==1
           text='\n'.join((p.extract_text() or '') for p in pdf.pages)
           assert 'NOT GRADED' in text
-          assert 'standalone v1 score retired' in text
+          assert 'plain-English presentation' in text
           print(json.dumps({
               'trade_time_utc':d['trade_time_utc'],
               'state':d['historical_state_provider'],
