@@ -3,13 +3,16 @@ name: Test Automatic Trade PDF Report
 on:
   pull_request:
     paths:
+      - 'script/render_trade_decision_report_v18.py'
       - 'script/render_trade_decision_report_v17.py'
       - 'script/render_trade_decision_report_v16.py'
       - 'script/run_trade_report.py'
+      - 'script/run_trade_market_sweep_v30.py'
       - 'script/run_trade_market_sweep_v29.py'
       - 'script/run_trade_market_sweep_v28.py'
       - 'script/run_trade_market_sweep_v13.py'
       - 'script/roster_aware_trade.py'
+      - 'script/roster_interaction.py'
       - 'script/historical_state_behavior.py'
       - 'script/behavioral_intelligence.py'
       - 'script/behavioral_intelligence_v3.py'
@@ -30,7 +33,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v13.py script/roster_aware_trade.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v13.py script/roster_aware_trade.py script/roster_interaction.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test adaptive trigger logic
         run: |
           python - <<'PY'
@@ -82,6 +85,19 @@ jobs:
           assert res2['u']['roster_legal'] is True
           print('baseline-aware roster legalization unit tests passed')
           PY
+      - name: Unit test roster interaction symmetry and bounds
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('ri','script/roster_interaction.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          p={'team':'NE','position':'RB','market_redraft':2000,'uncertainty':.5}
+          s={'team':'NE','position':'RB','market_redraft':1000,'uncertainty':.3}
+          assert m.pair_insurance(p,s)>0
+          assert m.pair_insurance(p,{'team':'NYG','position':'RB','market_redraft':1000,'uncertainty':.3})==0
+          assert m.pair_insurance(p,{'team':'NE','position':'WR','market_redraft':1000,'uncertainty':.3})==0
+          assert m.pair_insurance(p,s)<=2000*m.MAX_PAIR_INSURANCE_PCT+1e-9
+          print('roster interaction unit tests passed')
+          PY
       - name: Build production BI3 cache
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
       - name: Run trade query pipeline
@@ -97,8 +113,8 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-trade-report');a=json.loads((root/'validation-trade.json').read_text());s=json.loads((root/'validation-trade-summary.json').read_text());pdf=root/'validation-trade.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.23'
-          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.24'
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
               sim=x.get('simulation') or {};rr=sim.get('roster_resolution') or {};assert rr
@@ -106,9 +122,9 @@ jobs:
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.14';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.7';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v29.py')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.15';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.8';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v30.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
-          print('Market Sweep 1.23 / baseline-aware roster resolution / adaptive report 1.7 test passed')
+          print('Market Sweep 1.24 / roster interaction / baseline-aware roster resolution / adaptive report 1.8 test passed')
           PY
       - name: Upload trade report artifacts
         if: always()
