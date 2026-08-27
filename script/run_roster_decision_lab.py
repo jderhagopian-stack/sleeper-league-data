@@ -223,7 +223,48 @@ def gm_profile_for_user(uid: str):
 
 
 def gm_asset_map(uid: str):
-    return {str(a.get("asset_id")): a for a in (gm_profile_for_user(uid) or {}).get("assets") or []}
+    """Team-specific value map for both held and acquirable assets.
+
+    Held assets use the strategic profile (including justified hold premium).
+    Assets the team does not own still carry that team's canonical GM buy value
+    from owner_perceived_values.json. This prevents trade analysis from valuing
+    outgoing assets at team-specific hold value while valuing incoming assets
+    at a generic league value.
+    """
+    uid = str(uid)
+    players, picks = asset_value_maps()
+    asset_lookup = {**players, **picks}
+    out = {}
+
+    owner_doc = load_json(DATA / "owner_perceived_values.json", {}) or {}
+    block = ((owner_doc.get("owners") or {}).get(uid) or {})
+    for row in block.get("assets") or []:
+        aid = str(row.get("asset_id") or "")
+        if not aid:
+            continue
+        m = asset_lookup.get(aid) or {}
+        base = float(row.get("owner_perceived_value") or row.get("fsffl_value") or m.get("fsffl") or 0.0)
+        out[aid] = {
+            "asset_id": aid,
+            "name": row.get("name") or m.get("name") or aid,
+            "base_franchise_value": base,
+            "break_glass_value": base,
+            "core_status": None,
+            "intrinsic_dynasty": float(m.get("intrinsic_dynasty") or m.get("fsffl") or 0.0),
+            "intrinsic_current": float(m.get("intrinsic_current") or 0.0),
+            "market_dynasty": float(m.get("dynasty") or 0.0),
+            "market_redraft": float(m.get("redraft") or 0.0),
+            "valuation_mode": row.get("valuation_mode") or "acquire",
+        }
+
+    # Owned strategic profiles intentionally override the generic owner-value
+    # rows because holding an existing cornerstone can carry replacement,
+    # resilience and exit premiums that an incoming asset does not yet earn.
+    for a in (gm_profile_for_user(uid) or {}).get("assets") or []:
+        aid = str(a.get("asset_id") or "")
+        if aid:
+            out[aid] = a
+    return out
 
 
 def action_assets_for_user(actions, uid):
