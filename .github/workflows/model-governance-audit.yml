@@ -20,7 +20,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run model governance audit
-        run: python script/audit_model_governance.py
+        run: |
+          python script/audit_model_governance.py
+          python script/audit_model_sensitivity.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -32,7 +34,12 @@ jobs:
           assert 'DOUBLE-COUNT-001' in ids
           state=[x for x in r['curated_findings'] if x['id']=='STATE-WEIGHTS-001'][0]
           assert 'exists=False' in state['observation']
+          s=json.load(open('data/audit/model_sensitivity_audit.json'))
+          pkg=s['package_discount_divergence']
+          assert pkg[-1]['difference_pct_vs_gm22'] > 10
+          assert s['state_weight_source_divergence'][0]['runtime_source']=='embedded_fallback'
           print(json.dumps(r['summary'],indent=2))
+          print(json.dumps(s['trade_score_elasticity'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
