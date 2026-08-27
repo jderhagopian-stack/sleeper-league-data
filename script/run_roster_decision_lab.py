@@ -193,16 +193,20 @@ def asset_value_maps():
             "name": p.get("name"),
             "dynasty": float(p.get("market_dynasty") or 0.0),
             "redraft": float(p.get("market_redraft") or 0.0),
-            "fsffl": float(p.get("fsffl_value") or 0.0),
+            "fsffl": float(p.get("fsffl_value") or p.get("intrinsic_fsffl_value") or 0.0),
+            "intrinsic_dynasty": float(p.get("intrinsic_dynasty") or p.get("intrinsic_fsffl_value") or p.get("fsffl_value") or 0.0),
+            "intrinsic_current": float(p.get("intrinsic_current") or 0.0),
         }
     for p in asset_file.get("picks") or []:
         aid = p.get("asset_id")
         if aid:
             picks[str(aid)] = {
                 "name": p.get("name") or aid,
-                "dynasty": float(p.get("market_dynasty") or p.get("fsffl_value") or 0.0),
+                "dynasty": float(p.get("market_dynasty") or 0.0),
                 "redraft": 0.0,
-                "fsffl": float(p.get("fsffl_value") or p.get("market_dynasty") or 0.0),
+                "fsffl": float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0.0),
+                "intrinsic_dynasty": float(p.get("intrinsic_dynasty") or p.get("fsffl_value") or 0.0),
+                "intrinsic_current": 0.0,
             }
     return players, picks
 
@@ -261,6 +265,8 @@ def strategic_summary_from_maps(uid, actions, gm, players, picks):
             "name": g.get("name") or m.get("name") or aid,
             "market_dynasty": float(g.get("market_dynasty") or m.get("dynasty") or 0.0),
             "market_redraft": float(g.get("market_redraft") or m.get("redraft") or 0.0),
+            "intrinsic_dynasty": float(g.get("intrinsic_dynasty") or m.get("intrinsic_dynasty") or m.get("fsffl") or 0.0),
+            "intrinsic_current": float(g.get("intrinsic_current") or m.get("intrinsic_current") or 0.0),
             "base_franchise_value": base,
             "break_glass_value": float(g.get("break_glass_value") or base),
             "core_status": g.get("core_status"),
@@ -271,6 +277,8 @@ def strategic_summary_from_maps(uid, actions, gm, players, picks):
     return {
         "sent": sent_rows,
         "received": rec_rows,
+        "intrinsic_dynasty_delta": round(total(rec_rows, "intrinsic_dynasty") - total(sent_rows, "intrinsic_dynasty"), 2),
+        "intrinsic_current_delta": round(total(rec_rows, "intrinsic_current") - total(sent_rows, "intrinsic_current"), 2),
         "market_dynasty_delta": round(total(rec_rows, "market_dynasty") - total(sent_rows, "market_dynasty"), 2),
         "market_redraft_delta": round(total(rec_rows, "market_redraft") - total(sent_rows, "market_redraft"), 2),
         "base_franchise_value_delta": round(total(rec_rows, "base_franchise_value") - total(sent_rows, "base_franchise_value"), 2),
