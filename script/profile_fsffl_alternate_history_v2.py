@@ -15,8 +15,10 @@ runtime_opt.install()
 import run_fsffl_alternate_history_magazine as publication
 import run_fsffl_alternate_history_magazine_v7 as v7
 import run_fsffl_generic_alternate_history as generic
+import run_fsffl_gm30_counterfactual as cf
 
 TIMINGS: List[Dict[str, Any]] = []
+SIM_INTERNAL: List[Dict[str, Any]] = []
 
 
 def _wrap(owner: Any, name: str, label: str) -> None:
@@ -39,6 +41,28 @@ def _wrap(owner: Any, name: str, label: str) -> None:
     setattr(owner, name, timed)
 
 
+def _wrap_simulator_run() -> None:
+    original = cf.CounterfactualEngine._run
+
+    def timed_run(self, rosters, n_sims):
+        started = time.perf_counter()
+        result = original(self, rosters, n_sims)
+        elapsed = time.perf_counter() - started
+        runtime = dict(result.get("runtime") or {})
+        row = {
+            "n_sims": int(n_sims),
+            "wall_seconds": round(elapsed, 4),
+            "lineup_build_seconds": float(runtime.get("lineup_build_seconds") or 0.0),
+            "score_generation_seconds": float(runtime.get("score_generation_seconds") or 0.0),
+            "simulator_total_seconds": float(runtime.get("total_seconds") or 0.0),
+        }
+        SIM_INTERNAL.append(row)
+        print("AH_SIM_INTERNAL=" + json.dumps(row, sort_keys=True))
+        return result
+
+    cf.CounterfactualEngine._run = timed_run
+
+
 def install() -> None:
     _wrap(generic.predraft, "anchored_boundary_simulate", "fork_boundary")
     _wrap(generic.cycle, "replay_predraft_offseason", "predraft_offseason")
@@ -47,6 +71,7 @@ def install() -> None:
     _wrap(generic.cycle, "replay_active_season_to_now", "active_season_to_now")
     _wrap(generic.roster_compliance, "enforce_current_season_roster_rules", "roster_compliance")
     _wrap(publication, "_league_simulator", "simulator")
+    _wrap_simulator_run()
 
 
 def main() -> None:
@@ -69,6 +94,14 @@ def main() -> None:
         "timings": TIMINGS,
         "ranked_hotspots": ranked,
         "cache_stats": runtime_opt.stats(),
+        "simulator_internal_runs": SIM_INTERNAL,
+        "simulator_internal_totals": {
+            "invocations": len(SIM_INTERNAL),
+            "lineup_build_seconds": round(sum(x["lineup_build_seconds"] for x in SIM_INTERNAL), 4),
+            "score_generation_seconds": round(sum(x["score_generation_seconds"] for x in SIM_INTERNAL), 4),
+            "simulator_total_seconds": round(sum(x["simulator_total_seconds"] for x in SIM_INTERNAL), 4),
+            "wall_seconds": round(sum(x["wall_seconds"] for x in SIM_INTERNAL), 4),
+        },
     }
     print("AH_PROFILE_SUMMARY=" + json.dumps(summary, sort_keys=True))
 
