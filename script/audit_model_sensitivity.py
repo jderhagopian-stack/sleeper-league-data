@@ -127,6 +127,33 @@ def pick_model_leverage():
       "note":"These are active heuristic mechanics in GM 3.0; they are not calibrated probabilities."
     }
 
+def current_fsffl_vs_market():
+    p=DATA/"fsffl_asset_values.json"
+    if not p.exists():
+        return {"available":False}
+    raw=json.loads(p.read_text(encoding="utf-8"))
+    rows=[]
+    for x in raw.get("players") or []:
+        m=sf(x.get("market_dynasty")); v=sf(x.get("fsffl_value"))
+        if m>0 and v>0:
+            rows.append({"name":x.get("name"),"ratio":v/m,"market_dynasty":m,"fsffl_value":v})
+    if not rows:return {"available":False}
+    rows.sort(key=lambda x:x["ratio"])
+    vals=[x["ratio"] for x in rows]
+    def q(pct):
+        return vals[int((len(vals)-1)*pct)]
+    return {
+      "available":True,
+      "players":len(rows),
+      "min_ratio":round(vals[0],4),
+      "p05_ratio":round(q(.05),4),
+      "median_ratio":round(q(.50),4),
+      "p95_ratio":round(q(.95),4),
+      "max_ratio":round(vals[-1],4),
+      "largest_discounts":rows[:10],
+      "largest_premiums":list(reversed(rows[-10:])),
+    }
+
 def projection_leverage():
     return {
       "history_window_seasons":3,
@@ -149,6 +176,7 @@ def main():
       "behavioral_parameter_leverage":behavioral_leverage(),
       "pick_model_parameter_leverage":pick_model_leverage(),
       "projection_parameter_leverage":projection_leverage(),
+      "current_fsffl_value_vs_market":current_fsffl_vs_market(),
     }
     (OUT/"model_sensitivity_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload,indent=2))
