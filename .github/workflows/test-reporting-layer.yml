@@ -75,8 +75,7 @@ jobs:
               assert p.read_bytes()[:4] == b'%PDF'
               reader=PdfReader(str(p))
               assert len(reader.pages) == 1
-              text='
-'.join((pg.extract_text() or '') for pg in reader.pages).lower()
+              text='\\n'.join((pg.extract_text() or '') for pg in reader.pages).lower()
               banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
               assert not [x for x in banned if x in text], f"{name}: {text}"
           print('FSFFL reporting layer standardized smoke test passed')
