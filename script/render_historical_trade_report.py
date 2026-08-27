@@ -315,7 +315,8 @@ def build(report,out):
                   ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),11),
                   ("RIGHTPADDING",(0,0),(-1,-1),11),("TOPPADDING",(0,0),(-1,-1),7),
                   ("BOTTOMPADDING",(0,0),(-1,-1),6)])),
-        Spacer(1,.08*inch)
+        Spacer(1,.08*inch),
+        Paragraph("ASSET GENEALOGY & REALIZED PRODUCTION",s["section"])
     ]
     if len(uids)>=2:
         story.append(Table([[lineage_card(uids[0],sides.get(uids[0]) or {},s),
