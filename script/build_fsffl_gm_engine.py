@@ -511,7 +511,14 @@ def intrinsic_pick_value(
     slot: int | None = None,
     tier: str | None = None,
 ) -> float:
-    """Price a pick from the model's own player-value distribution, not market."""
+    """Price a pick from expected rookie outcomes on the intrinsic player scale.
+
+    A rookie pick is not treated as if it already *is* the player at its target
+    percentile. The model discounts that upside for the probability of merely
+    useful, replacement-level, or failed outcomes, then discounts years of
+    waiting. This keeps picks comparable with established players without using
+    an external trade chart as the valuation foundation.
+    """
     vals = sorted(
         safe_float(x.get("intrinsic_dynasty"))
         for x in player_values.values()
@@ -522,19 +529,27 @@ def intrinsic_pick_value(
     if slot is None:
         slot = {"early": 3, "mid": 6, "late": 10}.get(str(tier or "mid"), 6)
     slot = max(1, min(12, int(slot)))
-    if int(rnd) == 1:
+    rnd = int(rnd)
+
+    if rnd == 1:
         q = 0.965 - (slot - 1) * (0.315 / 11.0)
-    elif int(rnd) == 2:
+        realization = 0.84 - (slot - 1) * (0.20 / 11.0)
+    elif rnd == 2:
         q = 0.62 - (slot - 1) * (0.24 / 11.0)
+        realization = 0.58 - (slot - 1) * (0.18 / 11.0)
     else:
         q = 0.36 - (slot - 1) * (0.18 / 11.0)
+        realization = 0.36 - (slot - 1) * (0.14 / 11.0)
+
     q = clamp(q, 0.05, 0.99)
+    realization = clamp(realization, 0.18, 0.90)
     idx = int(round(q * (len(vals) - 1)))
-    expected_player_value = vals[idx]
+    upside_reference = vals[idx]
+
     years_out = max(0, int(year) - int(current_year))
-    time_discount = 0.90 ** years_out
-    optionality = {1: 1.04, 2: 1.02, 3: 1.00}.get(int(rnd), 1.0)
-    return round(expected_player_value * time_discount * optionality, 1)
+    time_discount = 0.88 ** years_out
+    optionality = {1: 1.05, 2: 1.03, 3: 1.01}.get(rnd, 1.0)
+    return round(upside_reference * realization * time_discount * optionality, 1)
 
 
 def current_owner_by_player(rosters: List[Dict[str, Any]]) -> Dict[str, str]:
@@ -1391,7 +1406,7 @@ def build_future_pick_assets(
             "projected_pick_tier": tier,
             "market_dynasty": round(base, 1),
             "intrinsic_dynasty": round(intrinsic, 1),
-            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_from_intrinsic_player_distribution",
+            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_realization_from_intrinsic_player_distribution",
             "market_sanity_check": market_sanity_check(intrinsic, base),
             "name": f"{year} {tier.title()} {ordinal(rnd)} — original {team_label(original_uid, profile_by_uid)}",
         }
