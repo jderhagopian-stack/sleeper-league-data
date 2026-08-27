@@ -3,10 +3,12 @@ name: Test Automatic Trade PDF Report
 on:
   pull_request:
     paths:
-      - 'script/render_trade_decision_report_v19.py'\n      - 'script/render_trade_decision_report_v18.py'
+      - 'script/render_trade_decision_report_v19.py'
+      - 'script/render_trade_decision_report_v18.py'
       - 'script/render_trade_decision_report_v17.py'
       - 'script/render_trade_decision_report_v16.py'
-      - 'script/run_trade_report.py'\n      - 'script/report_language.py'
+      - 'script/run_trade_report.py'
+      - 'script/report_language.py'
       - 'script/run_trade_market_sweep_v30.py'
       - 'script/run_trade_market_sweep_v29.py'
       - 'script/run_trade_market_sweep_v28.py'
@@ -124,7 +126,7 @@ jobs:
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.16';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.9';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v30.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
-          text='\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
+          text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
           print('Market Sweep 1.24 / roster interaction / baseline-aware roster resolution / plain-language report 1.9 test passed')
