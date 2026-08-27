@@ -7,7 +7,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-MODEL_VERSION = "FSFFL-GM-Historical-Trade-Report-1.1"
+MODEL_VERSION = "FSFFL-GM-Historical-Trade-Report-1.2"
 
 
 def safe(s):
@@ -86,9 +86,9 @@ def render(data,out):
             c.drawString(x+10,y-13,f"{float(d.get('expected_wins') or 0):+.2f}")
             c.drawString(x+135,y-13,fmt_pp(d.get("championship_probability")))
             y-=39; c.setFillColor(muted); c.setFont("Helvetica-Bold",7.2)
-            c.drawString(x+10,y,"Long-Term Trade Value"); c.drawString(x+135,y,"Value to This Team")
+            c.drawString(x+10,y,"Package-Effective Value"); c.drawString(x+135,y,"Value to This Team")
             c.setFillColor(ink); c.setFont("Helvetica-Bold",9.8)
-            c.drawString(x+10,y-13,f"{float(st.get('market_dynasty_delta') or 0):+,.0f}")
+            c.drawString(x+10,y-13,f"{float(st.get('package_effective_value_delta', st.get('intrinsic_dynasty_delta')) or 0):+,.0f}")
             c.drawString(x+135,y-13,f"{float(st.get('base_franchise_value_delta') or 0):+,.0f}")
         else:
             pre=s.get("pretrade_roster",{}).get("summary",{})
@@ -110,7 +110,7 @@ def render(data,out):
     y=392; c.setFillColor(ink); c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"ARCHITECTURE")
     y-=14
     txt=("Historical Trade Analysis now reconstructs the league at the transaction timestamp, then delegates decision evaluation to the canonical GM 3.0 Decision Lab and Simulator path. "
-         "It no longer owns a separate pick/need/player-quality grading formula. If the frozen projections, market values, team-specific GM values, or team-state inputs are missing, the model returns NOT GRADED rather than inventing replacements.")
+         "It no longer owns a separate pick/need/player-quality grading formula. Intrinsic FSFFL value is model-generated; market values are retained only as sanity checks. Canonical nonlinear package economics are used in the final trade evaluation. If required frozen inputs are missing, the model returns NOT GRADED rather than inventing replacements.")
     y=draw_lines(c,txt,42,y,526,size=8.1,leading=9.6)
 
     y-=5; c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"CURRENT STATUS")
