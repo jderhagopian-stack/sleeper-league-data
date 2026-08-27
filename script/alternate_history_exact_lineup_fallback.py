@@ -5,9 +5,13 @@ This module preserves the canonical candidate construction, slot ordering,
 empty-slot behavior, candidate ordering, strict tie rule, and output schema.
 It only memoizes repeated suffix subproblems so pathological/short-handed
 alternate rosters do not repeatedly traverse the same search tree.
+
+Set AH_VALIDATE_EXACT_FALLBACK=1 to compare every memoized fallback result
+against the original canonical DFS and fail immediately on any difference.
 """
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from typing import Any, Dict, List, Tuple
 
@@ -15,7 +19,7 @@ import build_fsffl_season_simulator as core
 
 _ORIGINAL = core.optimize_weekly_lineup
 _INSTALLED = False
-_STATS = {"calls": 0, "memo_states": 0}
+_STATS = {"calls": 0, "memo_states": 0, "validated_calls": 0}
 
 
 def stats() -> Dict[str, int]:
@@ -37,9 +41,7 @@ def _candidate_rows(roster, week, players, projections):
     return candidates
 
 
-def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
-    """Return the same optimum as the canonical DFS, with suffix memoization."""
-    _STATS["calls"] += 1
+def _memoized_result(roster, week, league, players, projections):
     candidates = _candidate_rows(roster, week, players, projections)
     slots = core.lineup_slots(league)
     slot_priority = {"QB": 0, "TE": 1, "RB": 2, "WR": 2, "SUPER_FLEX": 3, "FLEX": 4}
@@ -100,6 +102,22 @@ def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
         else:
             lineup.append({"slot": slot, **candidates[idx]})
     return lineup
+
+
+def optimize_weekly_lineup_memoized(roster, week, league, players, projections):
+    """Return the same optimum as the canonical DFS, with suffix memoization."""
+    _STATS["calls"] += 1
+    result = _memoized_result(roster, week, league, players, projections)
+    if os.getenv("AH_VALIDATE_EXACT_FALLBACK") == "1":
+        reference = _ORIGINAL(roster, week, league, players, projections)
+        _STATS["validated_calls"] += 1
+        if result != reference:
+            raise RuntimeError(
+                "Memoized Simulator fallback changed canonical lineup result "
+                f"for roster_id={roster.get('roster_id')} week={week}: "
+                f"memoized={result!r} reference={reference!r}"
+            )
+    return result
 
 
 def original_optimize_weekly_lineup(roster, week, league, players, projections):
