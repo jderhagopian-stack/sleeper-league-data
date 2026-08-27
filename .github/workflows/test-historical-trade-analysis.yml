@@ -119,6 +119,7 @@ jobs:
           assert d['gm3_evaluation']['n_sims']==1000
           assert d['gm3_evaluation']['same_gm3_core_as_current_trade_analysis'] is True
           assert d['gm3_evaluation']['baseline_lineup_source']=='frozen_bundle_cache'
+          assert d['gm3_evaluation']['package_economics_source']=='canonical_GM3_nonlinear_package_effective_value'
           assert d['gm3_evaluation']['standalone_historical_score_used'] is False
           assert d['gm3_evaluation']['current_values_used'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['same_season_results_used'] is False
@@ -131,6 +132,7 @@ jobs:
           assert d['gm3_evaluation']['input_bundle_provenance']['valuation_architecture']=='Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value'
           assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact'
           assert d['gm3_evaluation']['input_bundle_provenance']['incoming_assets_use_team_specific_buy_values'] is True
+          assert d['gm3_evaluation']['input_bundle_provenance']['canonical_package_economics_available'] is True
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
@@ -153,7 +155,9 @@ jobs:
                   'delta':r.get('delta'),
                   'strategic':r.get('strategic'),
                   'intrinsic_dynasty_delta':(r.get('strategic') or {}).get('intrinsic_dynasty_delta'),
-                  'market_dynasty_delta':(r.get('strategic') or {}).get('market_dynasty_delta')
+                  'market_dynasty_delta':(r.get('strategic') or {}).get('market_dynasty_delta'),
+                  'package_effective_value_delta':(r.get('strategic') or {}).get('package_effective_value_delta'),
+                  'package_economics_model':(r.get('strategic') or {}).get('package_economics_model')
               } for u,r in d['gm3_evaluation'].get('team_results',{}).items()},
           },indent=2))
           PY
