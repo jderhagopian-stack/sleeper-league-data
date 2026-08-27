@@ -3985,22 +3985,36 @@ def _u_parse_pick(aid: str, meta=None):
 
 
 def _u_team_objective_weights(team):
-    c = safe_float((team or {}).get("contender_score"), 0.5)
-    d = safe_float((team or {}).get("dynasty_roster_score"), 0.5)
-    if c >= 0.78:
+    team = team or {}
+    c = safe_float(team.get("contender_score"), 0.5)
+    d = safe_float(team.get("dynasty_roster_score"), 0.5)
+    override = str(team.get("objective_state_override") or "").strip().lower()
+
+    by_state = {
+        "elite_contender": {"current": 0.50, "future": 0.25, "liquidity": 0.10, "resilience": 0.15},
+        "contender": {"current": 0.40, "future": 0.35, "liquidity": 0.10, "resilience": 0.15},
+        "retool": {"current": 0.23, "future": 0.47, "liquidity": 0.15, "resilience": 0.15},
+        "rebuild": {"current": 0.10, "future": 0.60, "liquidity": 0.20, "resilience": 0.10},
+    }
+    if override in by_state:
+        state = override
+        w = dict(by_state[state])
+    elif c >= 0.78:
         state = "elite_contender"
-        w = {"current": 0.50, "future": 0.25, "liquidity": 0.10, "resilience": 0.15}
+        w = dict(by_state[state])
     elif c >= 0.55:
         state = "contender"
-        w = {"current": 0.40, "future": 0.35, "liquidity": 0.10, "resilience": 0.15}
+        w = dict(by_state[state])
     elif c >= 0.35:
         state = "retool"
-        w = {"current": 0.23, "future": 0.47, "liquidity": 0.15, "resilience": 0.15}
+        w = dict(by_state[state])
     else:
         state = "rebuild"
-        w = {"current": 0.10, "future": 0.60, "liquidity": 0.20, "resilience": 0.10}
+        w = dict(by_state[state])
 
     # A weak dynasty portfolio shifts another small amount toward future value.
+    # Preserve the same rule under an explicit historical state; the override
+    # controls the state bucket, not the underlying reconstructed dynasty score.
     if d < 0.30 and w["current"] >= 0.23:
         shift = min(0.05, w["current"] - 0.18)
         w["current"] -= shift
