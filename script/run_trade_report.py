@@ -10,11 +10,11 @@ from __future__ import annotations
 import argparse,json,subprocess,sys
 from pathlib import Path
 
-MARKET_SWEEP=Path('script/run_trade_market_sweep_v29.py')
-PDF_RENDERER=Path('script/render_trade_decision_report_v17.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.14'
-EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.23'
-REPORT_VERSION='FSFFL-Trade-Decision-Report-1.7'
+MARKET_SWEEP=Path('script/run_trade_market_sweep_v30.py')
+PDF_RENDERER=Path('script/render_trade_decision_report_v18.py')
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.15'
+EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.24'
+REPORT_VERSION='FSFFL-Trade-Decision-Report-1.8'
 DEFAULT_ADAPTIVE_CONFIRM_SIMS=1000
 
 def run(cmd):subprocess.run(cmd,check=True)
