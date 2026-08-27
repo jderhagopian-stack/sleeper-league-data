@@ -180,7 +180,7 @@ jobs:
           assert 'If a later trade mixed these assets with unrelated pieces' in page2_flat
           assert 'Trade-chain note' in page2
           assert 'Fantasy production received since the trade' in page2_flat
-          assert 'Balancing current competitiveness with future value' in page1_flat
+          assert 'RETOOL - Balancing current competitiveness with future value' in page1_flat
           assert 'league fantasy points' in page2_flat
           assert 'very high remaining value' in page2_flat
           assert 'remaining value' in page2.lower()
