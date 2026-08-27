@@ -38,7 +38,9 @@ def clean(x,n=220):
     s=s.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
     for key,tag in tags.items():
         s=s.replace(key,tag)
-    if len(s)>n:
+    # Truncating markup-bearing strings can cut a closing tag and break
+    # ReportLab parsing. Let Paragraph wrap those strings naturally.
+    if len(s)>n and not tags:
         s=s[:n-3].rstrip()+'...'
     return s
 
@@ -119,7 +121,7 @@ def option_text(row,i,market=False):
     prefix+=f"Send {names(row.get('outgoing_asset_names'))}; receive {names(row.get('return_asset_names'))}.</b>"
     txt=f"{prefix} Expected wins {sf(d.get('expected_wins')):+.2f}; championship odds {sf(d.get('championship_probability'))*100:+.1f} points; overall franchise impact {sf(st.get('strategic_value_delta')):+,.0f}. {comparison_sentence(row)}"
     fit=row.get('acceptance_likelihood')
-    if fit: txt+=f" <font color='#5F6B76'>{acceptance_fit(fit)}.</font>"
+    if fit: txt+=f" {acceptance_fit(fit)}."
     return txt
 
 def sequence(r):
