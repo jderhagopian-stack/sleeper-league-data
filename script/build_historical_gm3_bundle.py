@@ -549,10 +549,30 @@ def build(season: str, transaction_id: str, source_path: Path):
     derived_team_states = {}
     strategic_profiles = {}
     for uid in all_uids:
+        # Every asset receives this team's GM buy/hold value. Owned assets are
+        # then overlaid with the richer strategic hold profile. This keeps
+        # incoming assets team-specific instead of falling back to generic value.
+        full_map = {}
+        for aid, val in (owner_vals.get(uid) or {}).items():
+            meta = asset_meta.get(aid) or {}
+            full_map[aid] = {
+                "asset_id": aid,
+                "name": meta.get("name") or aid,
+                "base_franchise_value": round(float(val), 1),
+                "break_glass_value": round(float(val), 1),
+                "core_status": None,
+                "intrinsic_dynasty": round(float(meta.get("intrinsic_dynasty") or 0.0), 1),
+                "intrinsic_current": round(float(meta.get("intrinsic_current") or 0.0), 1),
+                "market_dynasty": round(float(meta.get("market_dynasty") or 0.0), 1),
+                "market_redraft": round(float(meta.get("market_redraft") or 0.0), 1),
+                "valuation_mode": "team_specific_buy_or_hold_base",
+            }
         payload = gm.build_strategic_asset_profiles_for_team(uid, ctx)
         strategic_profiles[uid] = payload
         derived_team_states[uid] = payload.get("team_state")
-        gm_asset_maps[uid] = {str(a.get("asset_id")): a for a in (payload.get("assets") or [])}
+        for a in (payload.get("assets") or []):
+            full_map[str(a.get("asset_id"))] = a
+        gm_asset_maps[uid] = full_map
 
     # Canonical historical competitive-state layer: use the already-built
     # pre-trade reconstruction rather than inferring contender/rebuild status
@@ -663,7 +683,8 @@ def build(season: str, transaction_id: str, source_path: Path):
             "external_market_anchor_is_final_value": False,
             "external_market_anchor_used_in_intrinsic_value": False,
             "valuation_architecture": "Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value",
-            "final_team_specific_value_source": "GM3_owner_value_plus_strategic_profile_plus_trade_impact",
+            "final_team_specific_value_source": "GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact",
+            "incoming_assets_use_team_specific_buy_values": True,
         },
         "confidence": {
             "historical_roster_state": state.reconstruction.get("confidence"),
