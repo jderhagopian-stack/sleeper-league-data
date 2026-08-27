@@ -23,7 +23,7 @@ from typing import Any, Dict, Iterable, List
 
 DATA = Path("data")
 SCRIPT = Path(__file__).resolve().parent
-MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.0"
+MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.1"
 DEFAULT_QUICK_SIMS = 200
 DEFAULT_CONFIRM_SIMS = 1000
 DEFAULT_TRADE_SCREEN = 30
@@ -78,34 +78,105 @@ def team_doc(focus_uid: str, key: str):
 def state_weights(focus_uid: str):
     cc = team_doc(focus_uid, "command_center")
     state = str(cc.get("team_state") or "unknown")
-    # Ranking is intentionally dominated by football outcomes for contenders,
-    # while retaining meaningful franchise/future value so short-lived upgrades
-    # do not automatically win the search.
+    # Competitive state should TILT the decision, not dominate it. The previous
+    # calibration made modest title-probability gains overwhelm very large
+    # dynasty-value losses for contenders. These weights intentionally preserve
+    # win-now preference while restoring meaningful long-term/franchise value.
     if state == "elite_contender":
-        return state, dict(wins=1450, playoff=6500, bye=5000, title=36000, base=.20, dynasty=.08, break_glass=.025)
+        return state, dict(wins=1050, playoff=3600, bye=3000, title=18500, base=.30, dynasty=.20, break_glass=.05)
     if state == "contender":
-        return state, dict(wins=1300, playoff=6000, bye=4500, title=33000, base=.23, dynasty=.10, break_glass=.03)
+        return state, dict(wins=950, playoff=3300, bye=2700, title=17000, base=.32, dynasty=.22, break_glass=.055)
     if state == "retool":
-        return state, dict(wins=800, playoff=3500, bye=2200, title=22000, base=.32, dynasty=.18, break_glass=.05)
+        return state, dict(wins=650, playoff=2200, bye=1400, title=11500, base=.38, dynasty=.28, break_glass=.07)
     if state == "rebuild":
-        return state, dict(wins=250, playoff=800, bye=300, title=7000, base=.46, dynasty=.30, break_glass=.08)
-    return state, dict(wins=900, playoff=4000, bye=2500, title=24000, base=.30, dynasty=.16, break_glass=.05)
+        return state, dict(wins=180, playoff=500, bye=180, title=3500, base=.50, dynasty=.40, break_glass=.10)
+    return state, dict(wins=700, playoff=2500, bye=1600, title=12500, base=.38, dynasty=.28, break_glass=.07)
+
+
+def effective_title_delta(raw_delta: float) -> float:
+    """Apply diminishing returns to modeled championship-probability changes.
+
+    The first four percentage points are counted fully. Beyond that, additional
+    modeled gains count at 35% of face value because title probability is a
+    downstream estimate built from uncertain player, role, injury and schedule
+    assumptions. Losses are treated symmetrically.
+    """
+    x = sf(raw_delta)
+    sign = 1.0 if x >= 0 else -1.0
+    a = abs(x)
+    knee = 0.04
+    if a <= knee:
+        return x
+    return sign * (knee + (a - knee) * 0.35)
 
 
 def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
     _, w = state_weights(focus_uid)
     d = sim.get("focus_delta") or {}
     st = sim.get("strategic") or {}
+    title_raw = sf(d.get("championship_probability"))
+    title_effective = effective_title_delta(title_raw)
     return round(
         sf(d.get("expected_wins")) * w["wins"]
         + sf(d.get("playoff_probability")) * w["playoff"]
         + sf(d.get("bye_probability")) * w["bye"]
-        + sf(d.get("championship_probability")) * w["title"]
+        + title_effective * w["title"]
         + sf(st.get("base_franchise_value_delta")) * w["base"]
         + sf(st.get("market_dynasty_delta")) * w["dynasty"]
         + sf(st.get("break_glass_delta")) * w["break_glass"],
         2,
     )
+
+
+def dynasty_value_guardrail(focus_uid: str, row: Dict[str, Any], sim: Dict[str, Any]) -> Dict[str, Any]:
+    """Prevent modest win-now gains from justifying severe dynasty-value destruction.
+
+    This is intentionally ratio-based so it scales to the assets being moved.
+    Exceptional title/win gains can clear the soft threshold, but the hard
+    threshold requires a truly unusual competitive payoff.
+    """
+    state, _ = state_weights(focus_uid)
+    if row.get("channel") != "TRADE":
+        return {"passed": True, "applicable": False, "team_state": state}
+
+    outgoing = row.get("outgoing") or []
+    outgoing_dynasty = sum(max(0.0, sf(x.get("market_dynasty"))) for x in outgoing)
+    loss = max(0.0, -sf((sim.get("strategic") or {}).get("market_dynasty_delta")))
+    ratio = loss / outgoing_dynasty if outgoing_dynasty > 0 else 0.0
+    d = sim.get("focus_delta") or {}
+    title_gain = sf(d.get("championship_probability"))
+    wins_gain = sf(d.get("expected_wins"))
+
+    thresholds = {
+        "elite_contender": (0.20, 0.35),
+        "contender": (0.18, 0.32),
+        "retool": (0.14, 0.26),
+        "rebuild": (0.10, 0.20),
+    }
+    soft, hard = thresholds.get(state, (0.16, 0.28))
+    exceptional = title_gain >= (0.09 if state == "elite_contender" else 0.08) and wins_gain >= 0.55
+    extraordinary = title_gain >= (0.13 if state == "elite_contender" else 0.11) and wins_gain >= 0.80
+
+    if ratio <= soft:
+        passed, reason = True, "within_normal_long_term_cost"
+    elif ratio <= hard:
+        passed = exceptional
+        reason = "requires_exceptional_win_now_gain" if not passed else "exceptional_win_now_gain_justifies_cost"
+    else:
+        passed = extraordinary
+        reason = "requires_extraordinary_win_now_gain" if not passed else "extraordinary_win_now_gain_justifies_cost"
+
+    return {
+        "passed": bool(passed),
+        "applicable": True,
+        "team_state": state,
+        "outgoing_dynasty_value": round(outgoing_dynasty, 2),
+        "dynasty_value_loss": round(loss, 2),
+        "dynasty_value_loss_ratio": round(ratio, 4),
+        "soft_loss_ratio": soft,
+        "hard_loss_ratio": hard,
+        "reason": reason,
+    }
 
 
 def contender_guardrail(focus_uid: str, sim: Dict[str, Any]) -> Dict[str, Any]:
@@ -297,7 +368,12 @@ def evaluate_row(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_li
     row["simulation"] = sim
     row["team_improvement_score"] = unified_score(focus_uid, sim)
     row["guardrail"] = contender_guardrail(focus_uid, sim)
-    row["actionable"] = bool(row["guardrail"]["passed"] and row["team_improvement_score"] > 0)
+    row["dynasty_value_guardrail"] = dynasty_value_guardrail(focus_uid, row, sim)
+    row["actionable"] = bool(
+        row["guardrail"]["passed"]
+        and row["dynasty_value_guardrail"]["passed"]
+        and row["team_improvement_score"] > 0
+    )
     if row["channel"] == "TRADE":
         # Acceptance is explicitly a fit heuristic, never a calibrated yes-probability.
         fit = sf(row.get("acceptance_fit_score"))
@@ -307,7 +383,7 @@ def evaluate_row(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_li
 
 
 def rerun_candidate(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
-    fresh = {k: v for k, v in row.items() if k not in {"simulation", "team_improvement_score", "guardrail", "actionable", "description"}}
+    fresh = {k: v for k, v in row.items() if k not in {"simulation", "team_improvement_score", "guardrail", "dynasty_value_guardrail", "actionable", "description"}}
     return evaluate_row(fresh, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed)
 
 
@@ -382,6 +458,9 @@ def main():
             "forced_cuts_included_in_simulation_and_value": True,
             "trade_acceptance_is_heuristic_not_probability": True,
             "top_candidates_deep_confirmed": True,
+            "competitive_state_tilts_but_does_not_dominate": True,
+            "championship_probability_uses_diminishing_returns": True,
+            "dynasty_value_destruction_guardrail": True,
             "canonical_state_mutated": False,
             "automatic_multi_step_transactions": False,
         },
