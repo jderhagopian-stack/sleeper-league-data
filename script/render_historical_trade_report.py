@@ -381,7 +381,7 @@ def lineage_card(uid,side,s):
         [Paragraph(f"<b>Original return:</b> {clean(roots,175)}<br/>"
                    f"<b>Fantasy production received since the trade:</b> {total_pts:,.1f} FSFFL points ({started_pts:,.1f} scored while in the starting lineup)<br/>"
                    f"<b>FSFFL WAR:</b> {sf(impact.get('war')):+.2f} "
-                   f"({sf(impact.get('points_above_replacement')):+.1f} started points above benchmark)<br/>"
+                   f"({sf(impact.get('points_above_replacement')):+.1f} started points above replacement)<br/>"
                    + (f"<b>Biggest hindsight contributor:</b> {clean(biggest.get('player_name'),28)} "
                       f"({sf(biggest.get('war')):+.2f} WAR)<br/>" if biggest else "")
                    + f"<b>Long-term value still owned from the return:</b> {sf(lin.get('terminal_current_intrinsic_value')):,.0f} model pts ({current_value_context(lin.get('terminal_current_intrinsic_value'))})<br/>"
