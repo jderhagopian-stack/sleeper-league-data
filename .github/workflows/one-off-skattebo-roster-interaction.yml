@@ -1,0 +1,61 @@
+name: One-off Skattebo Trade Report Roster Interaction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-off-skattebo-roster-interaction.yml'
+
+jobs:
+  trade-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Write scenario
+        run: |
+          cat > /tmp/skattebo-ri.json <<'JSON'
+          {
+            "scenario_id":"hurts-so-good-skattebo-roster-interaction-2026-08-27",
+            "description":"Hurts So Good receives Cam Skattebo from Chef Niners for Rhamondre Stevenson, Hurts So Good's own 2028 2nd, and Hurts So Good's own 2029 3rd.",
+            "focus_user_id":"846634401482792960",
+            "participant_user_ids":["846634401482792960","709546576091090944"],
+            "transaction_status":"proposed",
+            "actions":[
+              {"type":"trade","from_user_id":"846634401482792960","to_user_id":"709546576091090944","players":["7611"],"picks":["pick:2028:R2:orig9","pick:2029:R3:orig9"]},
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"846634401482792960","players":["12481"],"picks":[]}
+            ]
+          }
+          JSON
+      - name: Run canonical trade pipeline
+        run: |
+          mkdir -p /tmp/trade-output
+          python script/run_trade_report.py             --scenario /tmp/skattebo-ri.json             --out-dir /tmp/trade-output             --basename skattebo-roster-interaction             --quick-sims 200             --adaptive-confirm-sims 1000             --search-depth 60
+      - name: Show interaction summary
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/trade-output/skattebo-roster-interaction.json'))
+          c=r['current_offer_evaluation']
+          print(json.dumps({
+            'model_version':r['model_version'],
+            'action':r['recommended_next_action'],
+            'focus_delta':c['simulation']['focus_delta'],
+            'strategic':c['simulation']['strategic'],
+            'buyer_rationality':c['buyer_rationality'],
+            'roster_interactions':c['simulation']['roster_interactions'],
+            'trade_player_context':c['simulation']['trade_player_context']
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skattebo-roster-interaction-20260827
+          path: /tmp/trade-output/*
+          if-no-files-found: error
+          retention-days: 30
