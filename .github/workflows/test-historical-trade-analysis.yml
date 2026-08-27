@@ -102,13 +102,16 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           d=json.loads(Path('/tmp/historical-trade.json').read_text())
-          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.1'
+          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.2'
           assert d['transaction_id']=='950954472107368448'
           assert d['season']==2023
           assert d['policy']['historical_module_is_time_travel_wrapper_not_scoring_model'] is True
           assert d['policy']['same_gm3_core_as_current_trade_analysis'] is True
           assert d['policy']['same_season_future_results_leakage_forbidden'] is True
           assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
+          assert d['policy']['hindsight_traces_draft_conversions_and_downstream_trades'] is True
+          assert d['policy']['mixed_lineage_attribution_is_flagged_not_overclaimed'] is True
+          assert d['policy']['keep_assets_reference_is_descriptive_not_causal_counterfactual'] is True
           assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
           assert d['policy']['standalone_v1_process_score_retired'] is True
           assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
@@ -143,10 +146,21 @@ jobs:
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
           assert d['historical_state_provider']['analysis_state_source_mode']=='frozen_bundle_snapshot'
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
-          assert len(pdf.pages)==1
+          assert len(pdf.pages)==2
           text='\n'.join((p.extract_text() or '') for p in pdf.pages)
-          assert 'GM 3.0 HISTORICAL EVALUATION COMPLETE' in text
-          assert 'standalone v1 score retired' in text
+          assert 'ANALYSIS AT THE TIME' in text
+          assert 'DEAL IN HINDSIGHT' in text
+          assert 'WHAT IF THEY HAD JUST KEPT WHAT THEY TRADED?' in text
+          assert 'HINDSIGHT IS AN ASSET TREE' in text
+          for uid,side in d['sides'].items():
+              assert 'hindsight' in side
+              lin=side['hindsight']['asset_lineage']
+              assert 'terminal_assets' in lin
+              assert 'events' in lin
+              assert side['hindsight']['keep_assets_reference']['note']
+          hd=d['gm3_evaluation']['team_results']['833709164739014656']
+          assert hd['decision']['band']!='needs_context'
+          assert hd['decision']['market_value_used_for_decision_label'] is False
           print(json.dumps({
               'trade_time_utc':d['trade_time_utc'],
               'state':d['historical_state_provider'],
