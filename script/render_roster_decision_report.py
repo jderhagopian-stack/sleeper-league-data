@@ -69,7 +69,7 @@ def render(input_path,output):
     for _,x in touched.items():
         dd=x.get('delta') or {}; rows.append([P(s,x.get('team_name'),'FS_Body'),P(s,f"{safe_float(dd.get('expected_wins')):+.2f}",'FS_Body'),P(s,pct(dd.get('playoff_probability')),'FS_Body'),P(s,pct(dd.get('championship_probability')),'FS_Body')])
     tt=Table(rows,colWidths=[2.1*inch,.65*inch,.78*inch,.7*inch]); tt.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),LIGHT_GRAY),('GRID',(0,0),(-1,-1),.35,MID_GRAY),('LEFTPADDING',(0,0),(-1,-1),4),('RIGHTPADDING',(0,0),(-1,-1),4)]))
-    guide='This page explains the model's existing comparison in everyday fantasy-football language. It does not change the simulation or the underlying values.'
+    guide="This page explains the model's existing comparison in everyday fantasy-football language. It does not change the simulation or the underlying values."
     if unresolved: guide='The model could not confidently determine whether this team is contending or rebuilding, so it does not present the recommendation as final. ' + guide
     right=[P(s,'AFFECTED TEAMS','FS_Section'),tt,Spacer(1,5),P(s,'READING GUIDE','FS_Section'),P(s,guide,'FS_Small')]
     cols=Table([[left,right]],colWidths=[2.85*inch,4.59*inch]); cols.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('RIGHTPADDING',(0,0),(0,0),9),('LEFTPADDING',(1,0),(1,0),9),('LINEBEFORE',(1,0),(1,0),.7,MID_GRAY),('LEFTPADDING',(0,0),(0,0),0),('RIGHTPADDING',(1,0),(1,0),0)])); story.append(cols)
