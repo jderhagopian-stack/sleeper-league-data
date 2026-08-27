@@ -148,13 +148,22 @@ jobs:
           assert d['historical_state_provider']['analysis_state_source_mode']=='frozen_bundle_snapshot'
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
           assert len(pdf.pages)==2
-          text='\n'.join((p.extract_text() or '') for p in pdf.pages)
-          assert 'ANALYSIS AT THE TIME' in text
-          assert 'DEAL IN HINDSIGHT' in text
-          assert 'WHAT IF THEY HAD JUST KEPT WHAT THEY TRADED?' in text
-          assert 'FINAL RETROSPECTIVE VERDICT' in text
-          assert 'Production actually captured' in text
-          assert 'Keep-reference totals' in text
+          page1=pdf.pages[0].extract_text() or ''
+          page2=pdf.pages[1].extract_text() or ''
+          text=page1+'\n'+page2
+          assert 'ANALYSIS AT THE TIME' in page1
+          assert 'DEAL IN HINDSIGHT' in page2
+          assert 'ASSET GENEALOGY & REALIZED PRODUCTION' in page2
+          assert 'HOLD-THE-ORIGINAL-ASSETS REFERENCE' in page2
+          assert 'FINAL RETROSPECTIVE VERDICT' in page2
+          assert 'Production actually captured' in page2
+          assert 'Hold-reference totals' in page2
+          assert 'AUDIT / METHODOLOGY NOTES' not in page1
+          assert 'AUDIT / METHODOLOGY NOTES' in page2
+          assert '2023 1.06' in page1 and '2025 1.09' in page1 and '2025 2.03' in page1
+          assert 'Jaxon Smith-Njigba' not in page1
+          assert 'Quinshon Judkins' not in page1
+          assert 'Bhayshul Tuten' not in page1
           assert 'pick:2023:R1:orig1' not in text
           for uid,side in d['sides'].items():
               assert 'hindsight' in side
