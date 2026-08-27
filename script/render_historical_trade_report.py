@@ -7,7 +7,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-MODEL_VERSION = "FSFFL-GM-Historical-Trade-Report-1.1"
+MODEL_VERSION = "FSFFL-GM-Historical-Trade-Report-1.2"
 
 
 def safe(s):
@@ -46,7 +46,7 @@ def render(data,out):
     W,H=letter; c=canvas.Canvas(str(out),pagesize=letter)
     ink=colors.HexColor("#172536"); navy=colors.HexColor("#14263D"); muted=colors.HexColor("#667485"); panel=colors.HexColor("#F2F5F8"); line=colors.HexColor("#D7DEE6")
     c.setFillColor(ink); c.setFont("Helvetica-Bold",20); c.drawString(40,748,"FSFFL HISTORICAL TRADE ANALYSIS")
-    c.setFillColor(muted); c.setFont("Helvetica",8.5); c.drawString(40,733,f"Trade date: {safe(data.get('trade_time_utc'))} | Point-in-time reconstruction | GM 3.0 time-travel wrapper")
+    c.setFillColor(muted); c.setFont("Helvetica",8.5); c.drawString(40,733,f"Trade date: {safe(data.get('trade_time_utc'))} | Judged using only information available at the time")
 
     gm3=data.get("gm3_evaluation") or {}
     graded=gm3.get("status")=="GRADED_BY_GM3_CORE"
@@ -54,8 +54,8 @@ def render(data,out):
     c.setFillColor(navy); c.roundRect(34,660,544,54,2,fill=1,stroke=0)
     c.setFillColor(colors.white); c.setFont("Helvetica-Bold",12.5); c.drawString(48,691,hero)
     c.setFont("Helvetica",8.2)
-    sub=("The trade is evaluated by the same GM 3.0 core used for current decisions."
-         if graded else "The old standalone historical score is retired; no grade is emitted until time-frozen GM 3.0 inputs are available.")
+    sub=("The trade is judged the same way as a current trade, but using only information that was available when it happened."
+         if graded else "The report will not guess. If the information available at the time is incomplete, it withholds the grade.")
     c.drawString(48,673,sub)
 
     sides=list(data.get("sides",{}).values())
@@ -107,7 +107,7 @@ def render(data,out):
         c.setFillColor(muted); c.setFont("Helvetica-Bold",7.2); c.drawString(x+10,y,"Realized acquired-player output")
         c.setFillColor(ink); c.setFont("Helvetica-Bold",9.8); c.drawString(x+10,y-13,f"{float(outc.get('acquired_player_fsffl_points_after_trade',0)):,.1f} FSFFL pts")
 
-    y=392; c.setFillColor(ink); c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"ARCHITECTURE")
+    y=392; c.setFillColor(ink); c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"HOW THIS REPORT WORKS")
     y-=14
     txt=("Historical Trade Analysis now reconstructs the league at the transaction timestamp, then delegates decision evaluation to the canonical GM 3.0 Decision Lab and Simulator path. "
          "It no longer owns a separate pick/need/player-quality grading formula. If the frozen projections, market values, team-specific GM values, or team-state inputs are missing, the model returns NOT GRADED rather than inventing replacements.")
@@ -116,10 +116,10 @@ def render(data,out):
     y-=5; c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"CURRENT STATUS")
     y-=14
     if graded:
-        txt=f"GM 3.0 evaluation completed with {gm3.get('n_sims')} paired simulations. Current-day values were not used."
+        txt=f"The trade was fully evaluated using {gm3.get('n_sims')} simulations based on the information available at the time. Today's values were not used."
     else:
         miss=", ".join(gm3.get("missing_time_frozen_inputs") or [])
-        txt=f"Historical state is reconstructed, but this trade is intentionally ungraded. Missing time-frozen GM 3.0 inputs: {miss}."
+        txt=f"The league at the time of the trade was reconstructed, but there is not enough trustworthy old information to grade the decision. Missing information: {miss}."
     y=draw_lines(c,txt,42,y,526,size=8.1,leading=9.6)
 
     y-=5; c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"PROCESS VS. OUTCOME")
@@ -131,7 +131,7 @@ def render(data,out):
 
     hp=data.get("historical_state_provider",{})
     c.setStrokeColor(line); c.line(42,48,570,48); c.setFillColor(muted); c.setFont("Helvetica",6.7)
-    c.drawString(42,35,f"{MODEL_VERSION} | {data.get('model_version')} | historical state {safe(hp.get('reconstruction_confidence'))} | standalone v1 score retired")
+    c.drawString(42,35,f"{MODEL_VERSION} | {data.get('model_version')} | historical state {safe(hp.get('reconstruction_confidence'))} | plain-English presentation")
     c.save()
 
 
