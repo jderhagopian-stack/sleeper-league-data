@@ -107,7 +107,8 @@ jobs:
           assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_is_final_value'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['external_market_anchor_used_in_intrinsic_value'] is False
           assert d['gm3_evaluation']['input_bundle_provenance']['valuation_architecture']=='Intrinsic FSFFL Value -> Market Sanity Check -> Team-Specific Value'
-          assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_owner_value_plus_strategic_profile_plus_trade_impact'
+          assert d['gm3_evaluation']['input_bundle_provenance']['final_team_specific_value_source']=='GM3_intrinsic_plus_team_specific_buy_hold_plus_strategic_profile_plus_trade_impact'
+          assert d['gm3_evaluation']['input_bundle_provenance']['incoming_assets_use_team_specific_buy_values'] is True
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
