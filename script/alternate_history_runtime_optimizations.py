@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """Exact runtime optimizations for Alternate History publication.
 
-These optimizations memoize deterministic calculations and avoid repeatedly
-copying/hashing the completed-season ledger while it is unchanged between
-scoring boundaries. They also reuse Simulator lineup/backup preparation for
-identical roster-week inputs across counterfactual states. They do not alter
-random number consumption, branch probabilities, model policy, historical
-evidence, Simulator draws, or publication semantics.
+These optimizations remove redundant computation only. They do not alter random
+number consumption, branch probabilities, model policy, historical evidence,
+Simulator draws, lineup eligibility, lineup tie-breaking, or publication
+semantics.
+
+The completed-season path reuses immutable ledger objects/digests between
+scoring boundaries. The Simulator path reuses deterministic candidate pools and
+runs an algebraically identical FSFFL lineup search that pre-sorts each
+positional pool once rather than rebuilding/sorting it inside every FLEX/SF
+combination.
 """
 from __future__ import annotations
 
 import copy
-from typing import Any, Dict, Tuple
+from collections import Counter
+from typing import Any, Dict, List, Tuple
 
 import alternate_history_engine as ah
 import run_fsffl_multiseason_branch_replay as branch_v1
@@ -30,10 +35,13 @@ _STATS: Dict[str, int] = {
     "ledger_digest_hits": 0,
     "ledger_digest_misses": 0,
     "ledger_copy_avoided": 0,
+    "sim_candidate_hits": 0,
+    "sim_candidate_misses": 0,
     "sim_lineup_hits": 0,
     "sim_lineup_misses": 0,
     "sim_backup_hits": 0,
     "sim_backup_misses": 0,
+    "sim_exact_fast_lineups": 0,
 }
 
 
@@ -58,11 +66,13 @@ def install() -> None:
     orig_choose = season_v3.choose_branch_lineup
     orig_maxpf = season_v3.best_lineup_points
     orig_trailing = HistoricalPoints.trailing
+    orig_candidate_rows = simulator.candidate_rows
     orig_sim_lineup = simulator.optimize_fsffl_fast
     orig_sim_backups = simulator.build_backup_chains
 
     lineup_cache: Dict[Tuple[Any, ...], Any] = {}
     maxpf_cache: Dict[Tuple[Any, ...], Any] = {}
+    sim_candidate_cache: Dict[Tuple[Any, ...], Any] = {}
     sim_lineup_cache: Dict[Tuple[Any, ...], Any] = {}
     sim_backup_cache: Dict[Tuple[Any, ...], Any] = {}
     # Keep the object reference alongside its digest so Python id reuse cannot
@@ -82,10 +92,6 @@ def install() -> None:
         return digest
 
     def fast_apply_preserving_ledger(state_payload, event, outcome):
-        # branch_v1.apply_outcome serializes only transaction-state fields and
-        # never mutates the Alternate History ledger. Sharing the current ledger
-        # reference is therefore safe. Every scoring/postseason writer makes a
-        # deep copy before changing it, preserving branch isolation exactly.
         ledger = state_payload.get(season_v3.LEDGER_KEY) or {}
         new_state = branch_v1.apply_outcome(state_payload, event, outcome)
         new_state[season_v3.LEDGER_KEY] = ledger
@@ -103,8 +109,6 @@ def install() -> None:
                 for k, v in sorted((state.get("faab") or {}).items())
             },
             "rookie_draft_history": state.get(season_v3.DRAFT_KEY) or {},
-            # The digest is an exact content identity for merge purposes while
-            # avoiding re-serialization of the growing ledger at every event.
             "season_ledger_digest": ledger_digest(state.get(season_v3.LEDGER_KEY) or {}),
         }
         return ah.stable_hash(canonical)
@@ -178,9 +182,128 @@ def install() -> None:
         cache[key] = copy.deepcopy(value)
         return value
 
+    def cached_candidate_rows(roster, week, players, projections):
+        key = (
+            _sim_roster_key(roster),
+            int(week),
+            id(players),
+            id(projections),
+        )
+        cached = sim_candidate_cache.get(key)
+        if cached is not None:
+            _STATS["sim_candidate_hits"] += 1
+            return copy.deepcopy(cached)
+        _STATS["sim_candidate_misses"] += 1
+        value = orig_candidate_rows(roster, week, players, projections)
+        sim_candidate_cache[key] = copy.deepcopy(value)
+        return value
+
+    def exact_fast_sim_lineup(roster, week, league, players, projections):
+        """Same FSFFL optimizer result with positional pools sorted only once.
+
+        The canonical optimizer enumerates the same SUPER_FLEX and FLEX options,
+        then repeatedly filters and stable-sorts positional pools for every
+        pair. Here each positional pool is stable-sorted once. Selecting the
+        first non-excluded rows from that sorted pool is exactly equivalent to
+        filtering then stable-sorting on every pair, including value ties.
+        """
+        slots = simulator.core.lineup_slots(league)
+        if not simulator.standard_fsffl_slot_counts(slots):
+            return orig_sim_lineup(roster, week, league, players, projections)
+
+        candidates = cached_candidate_rows(roster, week, players, projections)
+        if not candidates:
+            return orig_sim_lineup(roster, week, league, players, projections)
+
+        sf_pool = [c for c in candidates if c["position"] in {"QB", "RB", "WR", "TE"}]
+        flex_pool = [c for c in candidates if c["position"] in {"RB", "WR", "TE"}]
+        by_pos: Dict[str, List[Dict[str, Any]]] = {}
+        for pos in ("QB", "RB", "WR", "TE"):
+            pool = [c for c in candidates if c["position"] == pos]
+            pool.sort(key=lambda c: c["value"], reverse=True)
+            by_pos[pos] = pool
+
+        def fixed(pos: str, count: int, excluded: set):
+            chosen = []
+            for row in by_pos[pos]:
+                if row["player_id"] in excluded:
+                    continue
+                chosen.append(row)
+                if len(chosen) == count:
+                    return chosen
+            return None
+
+        best_total = -1e18
+        best = None
+        sf_options = [None] + sf_pool
+        flex_options = [None] + flex_pool
+
+        for sf in sf_options:
+            sf_id = sf["player_id"] if sf else None
+            for fl in flex_options:
+                fl_id = fl["player_id"] if fl else None
+                if sf_id is not None and sf_id == fl_id:
+                    continue
+
+                used = {x for x in (sf_id, fl_id) if x is not None}
+                qb = fixed("QB", 1, used)
+                if qb is None:
+                    continue
+                used_qb = used | {x["player_id"] for x in qb}
+                rb = fixed("RB", 2, used_qb)
+                if rb is None:
+                    continue
+                used_rb = used_qb | {x["player_id"] for x in rb}
+                wr = fixed("WR", 3, used_rb)
+                if wr is None:
+                    continue
+                used_wr = used_rb | {x["player_id"] for x in wr}
+                te = fixed("TE", 1, used_wr)
+                if te is None:
+                    continue
+
+                selected = qb + rb + wr + te
+                if fl:
+                    selected.append(fl)
+                if sf:
+                    selected.append(sf)
+                total = sum(x["value"] for x in selected)
+                if total > best_total:
+                    best_total = total
+                    best = {
+                        "QB": qb,
+                        "RB": rb,
+                        "WR": wr,
+                        "TE": te,
+                        "FLEX": [fl] if fl else [],
+                        "SUPER_FLEX": [sf] if sf else [],
+                    }
+
+        if best is None:
+            return orig_sim_lineup(roster, week, league, players, projections)
+
+        buckets = {k: list(v) for k, v in best.items()}
+        lineup = []
+        for slot in slots:
+            row = buckets.get(slot, []).pop(0) if buckets.get(slot) else None
+            if row is None:
+                lineup.append({
+                    "slot": slot,
+                    "player_id": None,
+                    "name": "EMPTY",
+                    "position": None,
+                    "mean": 0.0,
+                    "median": 0.0,
+                    "sd": 0.1,
+                    "active_probability": 0.0,
+                    "nfl_team": None,
+                })
+            else:
+                lineup.append({"slot": slot, **row})
+        _STATS["sim_exact_fast_lineups"] += 1
+        return lineup
+
     def cached_sim_lineup(roster, week, league, players, projections):
-        # optimize_fsffl_fast depends only on the lineup-eligible roster, week,
-        # league lineup configuration, player metadata, and projections.
         key = (
             _sim_roster_key(roster),
             int(week),
@@ -193,14 +316,11 @@ def install() -> None:
             _STATS["sim_lineup_hits"] += 1
             return copy.deepcopy(cached)
         _STATS["sim_lineup_misses"] += 1
-        value = orig_sim_lineup(roster, week, league, players, projections)
+        value = exact_fast_sim_lineup(roster, week, league, players, projections)
         sim_lineup_cache[key] = copy.deepcopy(value)
         return value
 
     def cached_sim_backups(roster, week, lineup, players, projections):
-        # Backup chains are deterministic for the exact active roster and exact
-        # optimized lineup. The full lineup signature includes values used for
-        # ranking so this remains content-equivalent rather than approximate.
         lineup_key = tuple(
             (
                 str(row.get("slot") or ""),
@@ -224,6 +344,9 @@ def install() -> None:
             _STATS["sim_backup_hits"] += 1
             return copy.deepcopy(cached)
         _STATS["sim_backup_misses"] += 1
+        # orig_sim_backups resolves simulator.candidate_rows dynamically, which
+        # is patched below, so the backup pass reuses the exact candidate pool
+        # constructed by the optimizer rather than rebuilding it.
         value = orig_sim_backups(roster, week, lineup, players, projections)
         sim_backup_cache[key] = copy.deepcopy(value)
         return value
@@ -233,5 +356,6 @@ def install() -> None:
     season_v3.choose_branch_lineup = cached_choose_branch_lineup
     season_v3.best_lineup_points = cached_best_lineup_points
     HistoricalPoints.trailing = cached_trailing
+    simulator.candidate_rows = cached_candidate_rows
     simulator.optimize_fsffl_fast = cached_sim_lineup
     simulator.build_backup_chains = cached_sim_backups
