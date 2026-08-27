@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 import alternate_history_runtime_optimizations as runtime_opt
+import alternate_history_exact_lineup_fallback as exact_fallback
 
 runtime_opt.install()
+exact_fallback.install()
 
 import run_fsffl_alternate_history_magazine as publication
 import run_fsffl_alternate_history_magazine_v7 as v7
@@ -94,6 +96,7 @@ def main() -> None:
         "timings": TIMINGS,
         "ranked_hotspots": ranked,
         "cache_stats": runtime_opt.stats(),
+        "exact_fallback_stats": exact_fallback.stats(),
         "simulator_internal_runs": SIM_INTERNAL,
         "simulator_internal_totals": {
             "invocations": len(SIM_INTERNAL),
