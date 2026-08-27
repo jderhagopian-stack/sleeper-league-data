@@ -165,6 +165,14 @@ jobs:
           assert 'Jaxon Smith-Njigba' not in page1
           assert 'Quinshon Judkins' not in page1
           assert 'Bhayshul Tuten' not in page1
+          assert 'Overall Team Fit' not in page1
+          assert 'Package value' not in page1
+          assert 'current intrinsic value' not in text
+          assert 'Long-term trade value' in page1
+          assert 'Overall deal effect' in page1
+          assert 'Model points are relative trade-value scores' in page1
+          assert 'percentage points' in page1
+          assert 'season-long swing' in page1
           assert 'pick:2023:R1:orig1' not in text
           for uid,side in d['sides'].items():
               assert 'hindsight' in side
