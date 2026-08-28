@@ -27,7 +27,7 @@ jobs:
         run: |
           python script/audit_acceptance_gate_sensitivity.py \
             --scenario data/decision_lab/full_validation_scenario.json \
-            --quick-sims 50 \
+            --quick-sims 100 \
             --search-depth 40 \
             --output /tmp/acceptance-gate-sensitivity.json
       - name: Validate interpretation
