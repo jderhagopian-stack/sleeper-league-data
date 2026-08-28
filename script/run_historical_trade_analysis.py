@@ -161,10 +161,10 @@ def dated_market_source_at_or_before(timestamp_ms: int) -> Path | None:
     return max(candidates, default=(None, None), key=lambda x: x[0] or datetime.min.date())[1]
 
 
-def reconstruct_bundle(season: str, transaction_id: str, timestamp_ms: int):
+def reconstruct_bundle(provider, season: str, transaction_id: str, timestamp_ms: int):
     builder = load_module(SCRIPT / "build_historical_gm3_bundle.py", "historical_gm3_reconstructor")
     source = dated_market_source_at_or_before(timestamp_ms)
-    return builder.build(str(season), str(transaction_id), source), source
+    return builder.build(str(season), str(transaction_id), source, provider=provider), source
 
 
 def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None):
@@ -216,7 +216,7 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
         bundle = loadj(requested, None)
         bundle_origin = "ARCHIVED_FILE"
     else:
-        bundle, reconstructed_source = reconstruct_bundle(str(season), str(transaction_id), int(tx.get("created") or 0))
+        bundle, reconstructed_source = reconstruct_bundle(provider, str(season), str(transaction_id), int(tx.get("created") or 0))
         bundle_origin = "RECONSTRUCTED_AT_TIME"
     adapter = load_module(SCRIPT / "historical_trade_gm3_adapter.py", "historical_trade_gm3_adapter")
     gm3 = adapter.evaluate(
