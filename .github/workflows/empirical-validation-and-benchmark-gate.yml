@@ -7,6 +7,7 @@ on:
       - 'script/audit_final_trade_ranking_governance.py'
       - 'script/audit_final_score_ablation.py'
       - 'script/audit_historical_reconstruction_governance.py'
+      - 'script/audit_historical_reconstruction_sensitivity.py'
       - 'script/run_historical_trade_analysis.py'
       - 'script/historical_trade_gm3_adapter.py'
       - 'script/build_historical_gm3_bundle.py'
@@ -32,6 +33,7 @@ jobs:
             script/audit_final_trade_ranking_governance.py \
             script/audit_final_score_ablation.py \
             script/audit_historical_reconstruction_governance.py \
+            script/audit_historical_reconstruction_sensitivity.py \
             script/run_historical_trade_analysis.py \
             script/historical_trade_gm3_adapter.py \
             script/build_historical_gm3_bundle.py
@@ -80,6 +82,20 @@ jobs:
           assert d['policy']['reconstructed_at_time_grades_are_not_pristine_backtest_observations'] is True
           assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
           PY
+      - name: Run executable grouped reconstruction sensitivity
+        run: |
+          python script/audit_historical_reconstruction_sensitivity.py \
+            --season 2023 \
+            --transaction-id 950954472107368448 \
+            --sims 250 \
+            --output /tmp/historical-reconstruction-sensitivity.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/historical-reconstruction-sensitivity.json'))
+          assert d['summary']['authoritative_regardless_of_flip'] is False
+          assert d['summary']['strict_oos_backtest_observation'] is False
+          assert len(d['scenario_groups'])==6
+          PY
       - name: Audit empirical validation readiness
         run: python script/audit_empirical_validation_readiness.py
       - name: Upload final audit artifacts
@@ -93,5 +109,6 @@ jobs:
             data/audit/historical_reconstruction_governance.json
             /tmp/final-ablation.json
             /tmp/historical-trade.json
+            /tmp/historical-reconstruction-sensitivity.json
           if-no-files-found: warn
           retention-days: 30
