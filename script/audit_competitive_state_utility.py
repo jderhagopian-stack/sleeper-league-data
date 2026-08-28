@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -13,30 +14,36 @@ CAL=ROOT/"script"/"calibrate_gm_state_weights.py"
 RUNTIME=ROOT/"script"/"gm_state_weighting.py"
 PRIOR=DATA/"gm"/"state_weight_prior.json"
 TRAIN=DATA/"gm"/"state_weight_training_examples.json"
-MODEL_VERSION="FSFFL-Competitive-State-Utility-Governance-1.1"
+MODEL_VERSION="FSFFL-Competitive-State-Utility-Governance-1.2"
 
 def load(path,default=None):
     if not path.exists(): return default
     return json.loads(path.read_text(encoding="utf-8"))
 
+def compact_python(src:str)->str:
+    """Normalize insignificant whitespace so governance checks test semantics, not formatting."""
+    return re.sub(r"\s+", "", src)
+
 def main():
     prior=load(PRIOR,{}) or {}
     src=CAL.read_text(encoding="utf-8")
+    src_compact=compact_python(src)
     runtime=RUNTIME.read_text(encoding="utf-8")
     training=load(TRAIN,[]) or []
     explicit_target_required=(
-        'if outcome.get("strategy_outcome_score") is None:' in src
-        and "return None" in src
+        'ifoutcome.get("strategy_outcome_score")isNone:' in src_compact
+        and "returnNone" in src_compact
         and "eligible_examples" in src
         and "component-outcome average is forbidden" in src
     )
-    old_equal_weight_target=("sum(vals)/max(len(vals),1)" in src)
+    old_equal_weight_target=("sum(vals)/max(len(vals),1)" in src_compact)
     eligible=sum(
         1 for x in training
         if ((x.get("outcome") or {}).get("strategy_outcome_score") is not None)
     )
     temporal_gate=(
-        "len(ss) < 3" in src and "min_examples=60" in src
+        "len(ss)<3" in src_compact
+        and "min_examples=60" in src_compact
         and "leave_one_season_out" in src
     )
     improvement_gate=("min-holdout-improvement" in src and "promotion_allowed" in src)
