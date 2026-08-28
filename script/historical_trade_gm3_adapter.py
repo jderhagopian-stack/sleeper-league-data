@@ -6,8 +6,10 @@ state and a time-frozen GM input bundle into the same Decision Lab strategic
 summary, lineup optimizer, Simulator 1.0 season simulation, and decision
 classification used by present-day analysis.
 
-If a complete time-frozen input bundle is unavailable, it returns NOT_GRADED
-rather than substituting current values or a simplified historical score.
+Archived-at-time and reconstructed-at-time bundles are both supported. Archived
+bundles are eligible for strict empirical backtesting; reconstructed bundles
+preserve historical-analysis functionality but are explicitly excluded from
+pristine out-of-sample validation claims.
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.0"
+MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.1"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
@@ -56,10 +58,15 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
             "reason": "No time-frozen GM3 input bundle is available for this trade date.",
         }
     missing = sorted(k for k in REQUIRED_BUNDLE_KEYS if not bundle.get(k))
+    basis = str(bundle.get("historical_input_class") or "ARCHIVED_AT_TIME")
     return {
         "ready": not missing,
         "missing": missing,
-        "reason": None if not missing else "Time-frozen GM3 inputs are incomplete.",
+        "historical_input_class": basis,
+        "strict_out_of_sample_backtest_eligible": bool(
+            bundle.get("strict_out_of_sample_backtest_eligible", basis == "ARCHIVED_AT_TIME")
+        ),
+        "reason": None if not missing else "Historical GM3 inputs are incomplete.",
     }
 
 
@@ -86,7 +93,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "adapter_model_version": MODEL_VERSION,
             "status": "NOT_GRADED",
             "reason": status["reason"],
-            "missing_time_frozen_inputs": status["missing"],
+            "missing_historical_inputs": status["missing"],
             "same_gm3_core_as_current_trade_analysis": True,
             "current_values_used": False,
             "standalone_historical_score_used": False,
@@ -107,7 +114,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         return {
             "adapter_model_version": MODEL_VERSION,
             "status": "NOT_GRADED",
-            "reason": "Frozen historical simulator inputs failed canonical validation.",
+            "reason": "Historical simulator inputs failed canonical validation.",
             "validation": validation,
             "same_gm3_core_as_current_trade_analysis": True,
             "current_values_used": False,
@@ -160,7 +167,13 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
 
     return {
         "adapter_model_version": MODEL_VERSION,
-        "status": "GRADED_BY_GM3_CORE",
+        "status": (
+            "GRADED_ARCHIVED_AT_TIME"
+            if status.get("historical_input_class") == "ARCHIVED_AT_TIME"
+            else "GRADED_RECONSTRUCTED_AT_TIME"
+        ),
+        "historical_input_class": status.get("historical_input_class"),
+        "strict_out_of_sample_backtest_eligible": bool(status.get("strict_out_of_sample_backtest_eligible")),
         "same_gm3_core_as_current_trade_analysis": True,
         "decision_lab_model_version": dl.MODEL_VERSION,
         "simulator_model_version": before.get("model_version"),
