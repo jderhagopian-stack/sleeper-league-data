@@ -1,0 +1,39 @@
+name: Projection Ensemble Governance
+
+on:
+  pull_request:
+    paths:
+      - 'data/projection_source_registry.json'
+      - 'script/build_fsffl_projection_ensemble.py'
+      - 'script/normalize_*projection_source.py'
+      - 'script/audit_projection_ensemble_governance.py'
+      - 'script/test_projection_ensemble.py'
+      - '.github/workflows/projection-ensemble-governance.yml'
+  workflow_dispatch:
+
+jobs:
+  projection-ensemble-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile projection ensemble code
+        run: |
+          python -m py_compile \
+            script/build_fsffl_projection_ensemble.py \
+            script/normalize_razzball_projection_source.py \
+            script/normalize_fantasypros_projection_source.py \
+            script/audit_projection_ensemble_governance.py \
+            script/test_projection_ensemble.py
+
+      - name: Run static projection governance audit
+        run: python script/audit_projection_ensemble_governance.py
+
+      - name: Run fast projection ensemble regression tests
+        working-directory: script
+        run: python test_projection_ensemble.py
