@@ -66,6 +66,35 @@ jobs:
           import json
           r=json.load(open('/tmp/report.json')); c=json.load(open('/tmp/candidate.json'))
           assert r['status']=='INSUFFICIENT_EVIDENCE_KEEP_PRIOR'; assert r['promotion_allowed'] is False; assert 'PRIOR_RETAINED' in c['status']
+          assert r['eligible_sample']==0
+          PY
+      - name: Verify component outcomes cannot self-identify state weights
+        run: |
+          python - <<'PY'
+          import json
+          rows=[]
+          for season in (2023,2024,2025):
+              for i in range(20):
+                  rows.append({
+                    'inputs':{'contender_score':(i%10)/10},
+                    'outcome':{
+                      'current_success':0.8,'future_value_success':0.2,
+                      'liquidity_success':0.5,'resilience_success':0.5
+                    },
+                    'metadata':{'season':season}
+                  })
+          json.dump(rows,open('/tmp/unlabeled-state-training.json','w'))
+          PY
+          python script/calibrate_gm_state_weights.py --input /tmp/unlabeled-state-training.json --output /tmp/unlabeled-candidate.json --report /tmp/unlabeled-report.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/unlabeled-report.json'))
+          assert r['sample']==60
+          assert r['eligible_sample']==0
+          assert r['excluded_without_independent_target']==60
+          assert r['promotion_allowed'] is False
+          assert r['status']=='INSUFFICIENT_EVIDENCE_KEEP_PRIOR'
+          print('Unlabeled component outcomes cannot promote state weights')
           PY
       - name: Verify state changes ranking emphasis
         run: |

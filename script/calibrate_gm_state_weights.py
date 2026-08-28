@@ -81,12 +81,22 @@ def utility(example, weights):
 
 
 def observed_target(example):
-    """Target in [-1,1]. Prefer explicit strategy_outcome_score when supplied."""
+    """Independent calibration target in [-1,1], or None when unavailable.
+
+    The four component outcome blocks are model inputs to the utility function.
+    Their equal-weight average is therefore not an independent target for learning
+    those same weights. Calibration is allowed only when the training artifact
+    supplies an explicit strategy_outcome_score produced independently of the
+    candidate weight vector.
+    """
     outcome = example.get("outcome") or {}
-    if outcome.get("strategy_outcome_score") is not None:
-        return clamp(sf(outcome.get("strategy_outcome_score")), -1.0, 1.0)
-    vals = [sf(outcome.get(k)) for k in ("current_success","future_value_success","liquidity_success","resilience_success")]
-    return clamp(sum(vals)/max(len(vals),1), -1.0, 1.0)
+    if outcome.get("strategy_outcome_score") is None:
+        return None
+    return clamp(sf(outcome.get("strategy_outcome_score")), -1.0, 1.0)
+
+
+def eligible_examples(examples):
+    return [x for x in examples if observed_target(x) is not None]
 
 
 def score_examples(examples, anchors, prior_anchors=None, regularization=.12):
@@ -94,10 +104,15 @@ def score_examples(examples, anchors, prior_anchors=None, regularization=.12):
         return {"loss": None, "mae": None, "n": 0}
     err = []
     for ex in examples:
+        target = observed_target(ex)
+        if target is None:
+            continue
         inp = ex.get("inputs") or {}
         w = interpolate(inp.get("contender_score", .5), anchors)
         pred = utility(ex, w)
-        err.append(pred - observed_target(ex))
+        err.append(pred - target)
+    if not err:
+        return {"loss": None, "mae": None, "n": 0}
     mse = sum(e*e for e in err)/len(err)
     mae = sum(abs(e) for e in err)/len(err)
     reg = 0.0
@@ -167,6 +182,7 @@ def main():
     args=ap.parse_args()
 
     examples=load(Path(args.input), []) or []
+    calibration_examples=eligible_examples(examples)
     prior=load(Path(args.prior), {}) or {}
     if not prior.get("anchor_points"):
         raise SystemExit("Missing prior calibration anchor points")
@@ -175,7 +191,10 @@ def main():
         "model_version":"FSFFL-GM-State-Weight-Calibrator-1.0",
         "input":args.input,
         "sample":len(examples),
-        "seasons":seasons(examples),
+        "eligible_sample":len(calibration_examples),
+        "excluded_without_independent_target":len(examples)-len(calibration_examples),
+        "seasons":seasons(calibration_examples),
+        "target_policy":"explicit strategy_outcome_score required; component-outcome average is forbidden as a calibration target",
         "method":"regularized conservative grid + leave-one-season-out validation",
         "runtime_separation":"offline_only; never imported by Decision Lab or Market Sweep",
         "limitations":[
@@ -184,7 +203,7 @@ def main():
             "Pre-trade roster reconstruction is approximate for older seasons.",
         ],
     }
-    folds=leave_one_season_out(examples, prior, args.min_examples)
+    folds=leave_one_season_out(calibration_examples, prior, args.min_examples)
     report["holdout_folds"]=folds or []
 
     if not folds:
@@ -200,7 +219,7 @@ def main():
 
     best=None
     for anchors in candidate_anchors(prior):
-        sc=score_examples(examples,anchors,prior.get("anchor_points") or [])
+        sc=score_examples(calibration_examples,anchors,prior.get("anchor_points") or [])
         if best is None or sc["loss"] < best[0]: best=(sc["loss"],anchors,sc)
     weighted_improvement=sum(f["improvement"]*f["n"] for f in folds)/max(sum(f["n"] for f in folds),1)
     passed=weighted_improvement >= args.min_holdout_improvement
@@ -212,7 +231,7 @@ def main():
         candidate["status"]="HISTORICALLY_CROSS_VALIDATED_CANDIDATE"
     else:
         candidate["status"]="PRIOR_RETAINED_NO_MATERIAL_HOLDOUT_IMPROVEMENT"
-    candidate["calibration_validation"]={"sample":len(examples),"seasons":seasons(examples),"weighted_holdout_mae_improvement":weighted_improvement,"promotion_allowed":passed}
+    candidate["calibration_validation"]={"sample":len(calibration_examples),"seasons":seasons(calibration_examples),"weighted_holdout_mae_improvement":weighted_improvement,"promotion_allowed":passed}
     dump(Path(args.output),candidate)
     dump(Path(args.report),report)
     print(json.dumps(report,indent=2))
