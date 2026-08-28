@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Historical-Reconstruction-Parameters-1.0",
+  "policy": {
+    "historical_input_class": "RECONSTRUCTED_AT_TIME",
+    "strict_out_of_sample_backtest_eligible": false,
+    "authoritative_recommendation_allowed": false,
+    "promotion_requires_held_out_validation_improvement": true,
+    "reasonable_variation_must_not_be_hidden": true,
+    "purpose": "Preserve useful historical reconstruction while preventing unvalidated reconstruction assumptions from being presented as authoritative empirical evidence."
+  },
+  "parameter_families": [
+    {
+      "id": "HIST-PROJ-FALLBACK-001",
+      "component": "projection mean fallback",
+      "literals": [0.72],
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "FALLBACK_ONLY_NONAUTHORITATIVE",
+      "bounds": {"baseline_multiplier": [0.60, 0.90]},
+      "source": "Fallback used only when no prior player observation exists; positional historical baseline remains the primary evidence anchor.",
+      "validation": "Replace with position/experience-conditioned estimate from prior completed FSFFL seasons when sample permits; temporal holdout required for promotion.",
+      "downstream": ["projection mean", "intrinsic value", "simulation", "trade grade"]
+    },
+    {
+      "id": "HIST-MARKET-PROXY-001",
+      "component": "market/redraft fallback transforms",
+      "literals": [250.0, 350.0, 430.0, 600.0, 5900.0, 1.35],
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "FALLBACK_ONLY_NONAUTHORITATIVE",
+      "bounds": {
+        "redraft_floor": [0.0, 500.0],
+        "qb_ppg_scale": [250.0, 450.0],
+        "skill_ppg_scale": [300.0, 550.0],
+        "rank_intercept": [0.0, 1200.0],
+        "rank_span": [4000.0, 8000.0],
+        "rank_exponent": [1.0, 1.7]
+      },
+      "source": "Dated external market values dominate when available; proxy is restricted to players absent from the dated source.",
+      "validation": "Fit only from dated historical market snapshots paired with prior-information player features; require time-ordered holdout improvement over positional-rank baseline.",
+      "downstream": ["market sanity check", "team-specific valuation"]
+    },
+    {
+      "id": "HIST-UNCERTAINTY-FALLBACK-001",
+      "component": "projection uncertainty fallbacks",
+      "literals": [0.28, 0.52, 0.48, 0.50, 0.96, 0.67],
+      "evidence_tier": "RESEARCH_SUPPORTED_PROXY",
+      "status": "DERIVED_WHERE_AVAILABLE_FALLBACK_NONAUTHORITATIVE",
+      "bounds": {
+        "qb_cv": [0.20, 0.45],
+        "rb_cv": [0.35, 0.70],
+        "wr_cv": [0.35, 0.65],
+        "te_cv": [0.35, 0.70],
+        "median_to_mean": [0.90, 1.00],
+        "quartile_sd_multiplier": [0.60, 0.75]
+      },
+      "source": "Player realized weekly SD and position CV are estimated from the prior completed FSFFL season when available. Fixed CVs are fallback only; quartile transform approximates a Normal distribution.",
+      "validation": "Archived forecast residual coverage by position/horizon is required before authoritative uncertainty claims.",
+      "downstream": ["simulation variance", "win/playoff/title probability"]
+    },
+    {
+      "id": "HIST-INJURY-AVAILABILITY-001",
+      "component": "known injury availability reconstruction",
+      "literals": [0.62],
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "CASE_SPECIFIC_NONAUTHORITATIVE",
+      "bounds": {"active_probability": [0.35, 0.80]},
+      "source": "Pre-trade ACL recovery status is knowable, but a calibrated point-in-time return distribution is not archived for this case.",
+      "validation": "Replace with dated injury-status/prognosis evidence or historically estimated return-to-play distribution conditioned on injury and time since injury.",
+      "downstream": ["Kyler Murray expected production", "simulation", "trade grade"]
+    },
+    {
+      "id": "HIST-FUTURE-PICK-MARKET-001",
+      "component": "dated future-pick market anchor extrapolation",
+      "literals": [0.88, 0.45, 0.72],
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "DATED_ANCHOR_PLUS_PROVISIONAL_EXTRAPOLATION",
+      "bounds": {
+        "annual_discount": [0.80, 0.95],
+        "no_anchor_confidence": [0.25, 0.60],
+        "proxy_confidence": [0.50, 0.85]
+      },
+      "source": "2024 future-pick values use a dated FantasyPros anchor; later years are extrapolated rather than learned from a frozen term structure.",
+      "validation": "Estimate annual term structure from dated dynasty-market snapshots across future horizons; promote only with temporal holdout improvement.",
+      "downstream": ["future-pick market sanity check", "trade grade"]
+    },
+    {
+      "id": "HIST-PICK-QUALITY-001",
+      "component": "future pick quality scenarios",
+      "literals": [0.33, 0.67, 0.78, 0.58, 0.14, 0.28, 0.52, 0.30],
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "NONAUTHORITATIVE_SCENARIO_PRIOR",
+      "bounds": {
+        "contender_threshold_low": [0.20, 0.45],
+        "contender_threshold_high": [0.55, 0.80],
+        "early_quality_signal": [0.65, 0.90],
+        "late_quality_signal": [0.15, 0.40],
+        "mid_quality_signal": [0.40, 0.65],
+        "dominant_scenario_weight": [0.45, 0.70],
+        "opposite_scenario_weight": [0.05, 0.25],
+        "mid_side_weight": [0.20, 0.40]
+      },
+      "source": "Scenario prior maps reconstructed competitive state to early/mid/late pick uncertainty; no claim of calibrated probability.",
+      "validation": "Estimate from historical original-owner preseason state versus realized rookie-draft slot using only information available at each prediction date.",
+      "downstream": ["intrinsic pick value", "future-pick uncertainty", "trade grade"]
+    },
+    {
+      "id": "HIST-METADATA-LEAKAGE-001",
+      "component": "age and experience reconstruction",
+      "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "status": "BIRTH_DATE_PREFERRED_CURRENT_METADATA_FALLBACK_BLOCKS_AUTHORITATIVE_USE",
+      "bounds": {},
+      "source": "Birth date is time-invariant and safe. Present-day age/years_exp reverse arithmetic is a fallback and is not sufficient for authoritative historical calibration.",
+      "validation": "Prefer immutable birth date, draft year and dated roster metadata; flag any reconstructed case that depends materially on present metadata.",
+      "downstream": ["age curve", "intrinsic dynasty value"]
+    }
+  ]
+}
