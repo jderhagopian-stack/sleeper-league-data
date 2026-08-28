@@ -2,6 +2,11 @@
   "model_version": "FSFFL-GM-State-Weights-Expert-Prior-1.0",
   "status": "EXPERT_PRIOR_UNVALIDATED",
   "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+  "governance": {
+    "authoritative_empirical_claim_allowed": false,
+    "runtime_use_does_not_imply_validation": true,
+    "required_until_replaced_by_validated_artifact": true
+  },
   "provenance": {
     "origin": "Legacy GM 2.2/3.0 embedded anchors",
     "empirically_validated": false,
