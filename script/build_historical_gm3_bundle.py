@@ -515,8 +515,14 @@ def future_pick_source_value(year, rnd, orig, team_profiles, slot_map, source):
     return base * discount, "FantasyPros future-pick proxy", 0.72
 
 
-def neutral_schedule():
-    p = DATA / "stats" / "fsffl" / "2022" / "league_matchups_raw.json"
+def neutral_schedule(season: int):
+    """Reuse the immediately prior completed FSFFL schedule as a neutral proxy.
+
+    The future NFL/fantasy schedule may not have been known at the historical
+    decision timestamp. Reusing the prior completed league schedule preserves
+    opponent structure without leaking the future schedule.
+    """
+    p = DATA / "stats" / "fsffl" / str(int(season) - 1) / "league_matchups_raw.json"
     raw = loadj(p, {})
     return {str(k): v for k, v in raw.items() if int(k) <= 14}
 
