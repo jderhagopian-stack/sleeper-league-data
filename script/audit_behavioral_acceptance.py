@@ -36,10 +36,12 @@ def main():
         and 'behavior=clamp(.50+sf((br.get("owner_behavior")or{}).get("adjustment"))/.32' in v18.replace(" ","")
     )
     # v23 is the canonical ranking helper inherited by the current production wrapper.
+    ranker=txt("negotiation_ranking.py")
     canonical_double_use=(
-        'acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5)' in v23
-        and 'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32' in v23
+        'OWNER_BEHAVIOR_WEIGHT = 0.0' not in ranker
+        or 'behavior_already_in_acceptance_fit": True' not in ranker
     )
+    canonical_deduplicated=not canonical_double_use
     bi3_handset=all(x in v26 for x in (".45 * sf(t3.get(\"confidence\"", "adj += .035", "adj += .030", "adj += .020", "adj += .025", "clamp(adj, -.075, .075)"))
     predictive_terms=("brier","log_loss","log loss","future acceptance","held-out acceptance","out-of-sample acceptance","time-ordered holdout")
     predictive_holdout=any(x in workflow.lower() for x in predictive_terms)
@@ -77,8 +79,8 @@ def main():
       {
         "id":"BEHAVIOR-RANK-DOUBLE-COUNT-001",
         "severity":"HIGH",
-        "status":"OVERLAPPING_SIGNAL_PATH_DETECTED" if canonical_double_use else "NOT_DETECTED",
-        "observation":"The canonical negotiation rank uses heuristic acceptance fit after historical owner behavior has already adjusted that fit, then adds owner-behavior match again as a separate ranking component. Incremental ranking value of the second behavior channel requires ablation; otherwise the same evidence is counted twice.",
+        "status":"OVERLAPPING_SIGNAL_PATH_DETECTED" if canonical_double_use else "RESOLVED_BY_CANONICAL_COMPOSER",
+        "observation":"Owner behavior still informs heuristic acceptance fit, but the canonical ranking composer now gives the separate owner-behavior diagnostic zero additional weight. The prior duplicate path is preserved only in ablation evidence, not production ranking.",
         "authoritative_incremental_weight_claim_allowed":False,
       },
       {
@@ -111,6 +113,7 @@ def main():
         "buyer_state_floors_detected":state_floors,
         "historical_behavior_enters_acceptance_score":behavior_enters_acceptance,
         "canonical_negotiation_ranking_reuses_behavior":canonical_double_use,
+        "canonical_negotiation_ranking_deduplicated":canonical_deduplicated,
         "bi3_hand_set_blend_and_caps_detected":bi3_handset,
         "predictive_holdout_test_detected":predictive_holdout,
         "accept_reject_denominator_ready":denominator,
@@ -122,7 +125,7 @@ def main():
     (OUT/"behavioral_acceptance_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
     if not thresholds or not state_floors: raise SystemExit("Acceptance runtime markers changed")
-    if not canonical_double_use: raise SystemExit("Expected behavior/acceptance overlap path was not detected")
+    if not canonical_deduplicated: raise SystemExit("Canonical negotiation ranking still double-counts behavior")
     if not facade_qualified: raise SystemExit("BI3 production facade does not separate software and empirical validation")
     if not registry_ok: raise SystemExit("Behavior/acceptance registry classifications are inconsistent")
 if __name__=="__main__": main()
