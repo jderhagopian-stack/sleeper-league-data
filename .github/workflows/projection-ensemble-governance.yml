@@ -95,7 +95,7 @@ jobs:
           from pathlib import Path
           league=json.load(open('data/league.json'))
           season=str(league['season'])
-          result=json.load(open(Path('data/simulator')/season/'outputs'/'season_simulation_preproduction.json'))
+          result=json.load(open(Path('data/simulator')/season/'outputs'/'season_simulation.json'))
           u=result['projection_source_uncertainty']
           assert result['features']['projection_source_latent_mean_uncertainty'] is True
           assert u['players_with_multi_source_mean_uncertainty'] > 0
