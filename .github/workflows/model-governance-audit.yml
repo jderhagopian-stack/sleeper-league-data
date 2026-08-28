@@ -9,9 +9,11 @@ on:
       - 'script/audit_pick_outcome_readiness.py'
       - 'script/audit_decision_path_integrity.py'
       - 'script/audit_transaction_evidence_readiness.py'
+      - 'script/audit_projection_calibration_readiness.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
+      - 'data/model_validation/**'
       - 'data/gm/**'
   workflow_dispatch:
 
@@ -36,6 +38,7 @@ jobs:
           python script/audit_pick_outcome_readiness.py
           python script/audit_decision_path_integrity.py
           python script/audit_transaction_evidence_readiness.py
+          python script/audit_projection_calibration_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -82,6 +85,13 @@ jobs:
           assert t['policy']['completed_trades_alone_are_not_acceptance_probability_denominator'] is True
           tids={x['id']:x for x in t['findings']}
           assert tids['ACCEPTANCE-CALIBRATION-READINESS-001']['authoritative_empirical_claim_allowed'] is False
+
+          q=json.load(open('data/audit/projection_calibration_readiness_audit.json'))
+          assert q['policy']['realized_score_dispersion_is_not_forecast_error'] is True
+          assert q['policy']['lookahead_backfill_for_historical_forecasts_forbidden'] is True
+          assert q['finding']['production_behavior_changed'] is False
+          assert q['finding']['all_expected_runtime_markers_detected'] is True
+          assert q['finding']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -89,6 +99,7 @@ jobs:
           print(json.dumps(p['finding'],indent=2))
           print(json.dumps(d['summary'],indent=2))
           print(json.dumps(t['summary'],indent=2))
+          print(json.dumps(q['finding'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:

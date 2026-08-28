@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "calibration_family": "FSFFL projection means and uncertainty",
+  "version": "projection-calibration-0.1-governance-only",
+  "status": "NOT_EMPIRICALLY_VALIDATED",
+  "production_behavior_changed": false,
+  "authoritative_empirical_claim_allowed": false,
+  "evidence_policy": {
+    "mean_required": "rolling or expanding-window historical out-of-sample forecast accuracy by position and forecast horizon",
+    "uncertainty_required": "archived forecast residual calibration and held-out interval/distribution coverage by position and forecast horizon",
+    "realized_score_dispersion_is_forecast_error": false,
+    "promotion_rule": "A challenger may replace the incumbent only when it improves pre-specified temporal holdout metrics without material calibration or coverage degradation."
+  },
+  "current_runtime": {
+    "mean": {
+      "source": "current external season projection transformed under FSFFL scoring",
+      "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "historical_oos_weight_calibration_present": false
+    },
+    "uncertainty": {
+      "source": "historical realized weekly scoring dispersion plus bounded heuristics",
+      "evidence_tier": "RESEARCH_SUPPORTED_PROXY",
+      "forecast_residual_calibration_present": false,
+      "known_runtime_assumptions": [
+        "three-season realized-score history window",
+        "minimum player-game and position-game sample gates",
+        "position standard-deviation floors",
+        "bounded coefficient-of-variation calculation",
+        "player CV shrinkage toward position CV with capped sample weight",
+        "Normal outcome shape for percentile construction",
+        "median offset from mean by a fixed fraction of weekly SD",
+        "non-bye active probability fixed at 1.0"
+      ]
+    }
+  },
+  "required_versioned_artifacts_for_promotion": [
+    "historical forecast snapshots with as-of timestamps",
+    "matched realized FSFFL-scored outcomes",
+    "train/validation/test season or week boundaries",
+    "candidate and incumbent metrics by position and horizon",
+    "uncertainty coverage/calibration metrics",
+    "promotion decision with immutable model/config version"
+  ],
+  "blocked_reason": "The repository contains rich realized historical scoring, but the governance audit has not detected archived contemporaneous historical projection snapshots sufficient to estimate forecast residuals without look-ahead bias."
+}
