@@ -82,3 +82,23 @@ jobs:
           assert audit['authoritative_projection_allowed'] is True
           assert audit['player_authority_coverage'] >= audit['quality_gate']['minimum_player_authority_coverage_for_production']
           PY
+
+      - name: Smoke-test multi-source uncertainty through season simulation
+        env:
+          FSFFL_SIMULATIONS: '100'
+        run: |
+          python script/build_fsffl_weekly_projections.py
+          python script/apply_fsffl_dynamic_updates.py
+          python script/run_fsffl_season_simulator_projection_uncertainty.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          league=json.load(open('data/league.json'))
+          season=str(league['season'])
+          result=json.load(open(Path('data/simulator')/season/'outputs'/'season_simulation_preproduction.json'))
+          u=result['projection_source_uncertainty']
+          assert result['features']['projection_source_latent_mean_uncertainty'] is True
+          assert u['players_with_multi_source_mean_uncertainty'] > 0
+          assert u['weekly_volatility_treatment']=='kept_separate_from_projection_source_disagreement'
+          print(json.dumps(u, indent=2))
+          PY
