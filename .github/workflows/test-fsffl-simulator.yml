@@ -42,7 +42,7 @@ jobs:
       - name: Run launch-validation FSFFL Season Simulator
         env:
           FSFFL_SIMULATIONS: "50000"
-        run: python script/run_fsffl_season_simulator_preproduction.py
+        run: python script/run_fsffl_season_simulator_projection_uncertainty.py
 
       - name: Archive launch-validation snapshot
         run: python script/archive_fsffl_simulator_snapshot.py
