@@ -8,6 +8,7 @@ on:
       - 'script/audit_empirical_readiness.py'
       - 'script/audit_pick_outcome_readiness.py'
       - 'script/audit_decision_path_integrity.py'
+      - 'script/audit_transaction_evidence_readiness.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -34,6 +35,7 @@ jobs:
           python script/audit_empirical_readiness.py
           python script/audit_pick_outcome_readiness.py
           python script/audit_decision_path_integrity.py
+          python script/audit_transaction_evidence_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -74,12 +76,19 @@ jobs:
           assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
           assert d['summary']['final_score_overlap_ablation_required'] is True
           assert d['summary']['behavioral_predictive_holdout_detected'] is False
+
+          t=json.load(open('data/audit/transaction_evidence_readiness_audit.json'))
+          assert t['policy']['current_market_value_backfill_for_historical_package_fit_forbidden'] is True
+          assert t['policy']['completed_trades_alone_are_not_acceptance_probability_denominator'] is True
+          tids={x['id']:x for x in t['findings']}
+          assert tids['ACCEPTANCE-CALIBRATION-READINESS-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
           print(json.dumps(p['summary'],indent=2))
           print(json.dumps(p['finding'],indent=2))
           print(json.dumps(d['summary'],indent=2))
+          print(json.dumps(t['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
