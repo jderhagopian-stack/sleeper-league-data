@@ -14,6 +14,7 @@ on:
       - 'script/audit_future_pick_economics.py'
       - 'script/audit_competitive_state_utility.py'
       - 'script/audit_package_economics.py'
+      - 'script/audit_roster_interaction_cut_governance.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -47,6 +48,7 @@ jobs:
           python script/audit_future_pick_economics.py
           python script/audit_competitive_state_utility.py
           python script/audit_package_economics.py
+          python script/audit_roster_interaction_cut_governance.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -137,6 +139,18 @@ jobs:
           assert k['summary']['registry_consistent'] is True
           assert k['summary']['transaction_evidence_ready_for_authoritative_package_fit'] is False
           assert kids['PACKAGE-PRESCREEN-PATH-001']['authoritative_empirical_claim_allowed'] is False
+
+          z=json.load(open('data/audit/roster_interaction_cut_governance_audit.json'))
+          zids={x['id']:x for x in z['findings']}
+          assert z['production_behavior_changed'] is False
+          assert z['policy']['roster_legality_is_rule_defined'] is True
+          assert z['policy']['cut_selection_is_not_rule_defined'] is True
+          assert z['policy']['roster_interaction_must_show_incremental_value_over_lineup_simulation'] is True
+          assert z['summary']['rule_defined_limit_detected'] is True
+          assert z['summary']['downstream_cut_sensitivity_tool_detected'] is True
+          assert z['summary']['registry_consistent'] is True
+          assert zids['ROSTER-CUT-PRESCREEN-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+          assert zids['ROSTER-INTERACTION-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -152,6 +166,8 @@ jobs:
           print(json.dumps(c['findings'],indent=2))
           print(json.dumps(k['summary'],indent=2))
           print(json.dumps(k['findings'],indent=2))
+          print(json.dumps(z['summary'],indent=2))
+          print(json.dumps(z['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
