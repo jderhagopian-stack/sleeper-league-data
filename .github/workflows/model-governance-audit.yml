@@ -38,11 +38,15 @@ jobs:
           assert 'STATE-WEIGHTS-001' in ids
           assert 'DOUBLE-COUNT-001' in ids
           state=[x for x in r['curated_findings'] if x['id']=='STATE-WEIGHTS-001'][0]
-          assert 'exists=False' in state['observation']
+          assert 'state_weight_calibration.json exists=True' in state['observation']
+          assert 'state_weight_training_examples.json exists=False' in state['observation']
+          prior=json.load(open('data/gm/state_weight_calibration.json'))
+          assert prior['status']=='EXPERT_PRIOR_UNVALIDATED'
+          assert prior['provenance']['empirically_validated'] is False
           s=json.load(open('data/audit/model_sensitivity_audit.json'))
           pkg=s['package_discount_divergence']
           assert pkg[-1]['difference_pct_vs_gm22'] > 10
-          assert s['state_weight_source_divergence'][0]['runtime_source']=='embedded_fallback'
+          assert s['state_weight_source_divergence'][0]['runtime_source']=='calibration_artifact'
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           PY
