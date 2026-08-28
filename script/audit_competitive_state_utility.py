@@ -11,9 +11,9 @@ OUT=DATA/"audit"
 OUT.mkdir(parents=True,exist_ok=True)
 CAL=ROOT/"script"/"calibrate_gm_state_weights.py"
 RUNTIME=ROOT/"script"/"gm_state_weighting.py"
-PRIOR=DATA/"gm"/"state_weight_calibration.json"
+PRIOR=DATA/"gm"/"state_weight_prior.json"
 TRAIN=DATA/"gm"/"state_weight_training_examples.json"
-MODEL_VERSION="FSFFL-Competitive-State-Utility-Governance-1.0"
+MODEL_VERSION="FSFFL-Competitive-State-Utility-Governance-1.1"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -40,25 +40,25 @@ def main():
         and "leave_one_season_out" in src
     )
     improvement_gate=("min-holdout-improvement" in src and "promotion_allowed" in src)
-    offline_isolation=("offline_only" in src and "gm_state_weighting" not in src.split("runtime_separation")[0])
     prior_unvalidated=(
         prior.get("status")=="EXPERT_PRIOR_UNVALIDATED"
         and (prior.get("provenance") or {}).get("empirically_validated") is False
+        and (prior.get("governance") or {}).get("authoritative_empirical_claim_allowed") is False
     )
-    runtime_uses_versioned_artifact=("state_weight_calibration.json" in runtime)
+    runtime_uses_versioned_artifact=("state_weight_prior.json" in runtime)
     findings=[
       {
         "id":"STATE-TARGET-IDENTIFICATION-001",
         "severity":"CRITICAL" if not explicit_target_required else "INFO",
         "status":"FIXED_IN_OFFLINE_CALIBRATOR" if explicit_target_required else "INVALID_TARGET_FALLBACK_PRESENT",
-        "observation":"State-weight learning now requires an explicit independent strategy_outcome_score. The four component outcomes used by the weighted utility may not be averaged and reused as the target for learning those same weights.",
+        "observation":"State-weight learning requires an explicit independent strategy_outcome_score. The four component outcomes used by the weighted utility may not be averaged and reused as the target for learning those same weights.",
         "authoritative_empirical_claim_allowed":False,
       },
       {
         "id":"STATE-PRIOR-001",
         "severity":"HIGH",
         "status":"EXPERT_PRIOR_UNVALIDATED" if prior_unvalidated else "PROVENANCE_INCONSISTENT",
-        "observation":"Active current/future/liquidity/resilience anchors and their championship/dynasty adjustments remain an explicit expert prior until independent historical targets pass temporal validation.",
+        "observation":"Active current/future/liquidity/resilience anchors and their championship/dynasty adjustments remain an explicit expert prior until independent historical targets pass temporal validation. Runtime use does not promote the prior's evidence status.",
         "authoritative_empirical_claim_allowed":False,
       },
       {
@@ -81,6 +81,7 @@ def main():
         "minimum_sample_gate_required":True,
         "promotion_requires_holdout_improvement":True,
         "runtime_calibration_remains_forbidden":True,
+        "runtime_use_does_not_imply_empirical_validation":True,
       },
       "summary":{
         "prior_unvalidated":prior_unvalidated,
@@ -98,6 +99,7 @@ def main():
     (OUT/"competitive_state_utility_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
     if not prior_unvalidated: raise SystemExit("Active state weights are not correctly marked unvalidated")
+    if not runtime_uses_versioned_artifact: raise SystemExit("Runtime does not use durable governed state-weight prior")
     if not explicit_target_required or old_equal_weight_target: raise SystemExit("State-weight calibrator target identification is unsafe")
     if not temporal_gate or not improvement_gate: raise SystemExit("State-weight promotion gates are incomplete")
 
