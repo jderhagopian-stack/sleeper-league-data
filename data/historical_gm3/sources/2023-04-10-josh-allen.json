@@ -1,0 +1,95 @@
+{
+  "as_of_utc": "2023-04-10T00:48:43Z",
+  "market_scale": "0-100 source units; used only as contemporaneous market anchors/calibration evidence before GM3 team-specific valuation",
+  "player_source": {
+    "publisher": "PFF",
+    "published": "2023-04-05",
+    "url": "https://www.pff.com/news/fantasy-football-2023-dynasty-fantasy-football-trade-value-chart",
+    "format": "2QB dynasty trade values",
+    "values": {
+      "Josh Allen": 100,
+      "Kyler Murray": 38,
+      "Josh Palmer": 31
+    }
+  },
+  "pick_sources": [
+    {
+      "publisher": "PFF",
+      "published": "2023-04-05",
+      "url": "https://www.pff.com/news/fantasy-football-2023-dynasty-fantasy-football-trade-value-chart",
+      "format": "2023 rookie pick 2QB values",
+      "values": {
+        "1.01": 89,
+        "1.02": 89,
+        "1.03": 80,
+        "1.04": 74,
+        "1.05": 74,
+        "1.06": 72,
+        "1.07": 71,
+        "1.08": 70,
+        "1.09": 62,
+        "1.10": 56,
+        "1.11": 53,
+        "1.12": 52,
+        "2.01": 52,
+        "2.02": 51,
+        "2.03": 50,
+        "2.04": 44,
+        "2.05": 43,
+        "2.06": 39,
+        "2.07": 39,
+        "2.08": 38,
+        "2.09": 29,
+        "2.10": 29,
+        "2.11": 28,
+        "2.12": 27,
+        "3.01": 26,
+        "3.02": 23,
+        "3.03": 23,
+        "3.04": 22,
+        "3.05": 20,
+        "3.06": 19,
+        "3.07": 19,
+        "3.08": 17,
+        "3.09": 9,
+        "3.10": 9,
+        "3.11": 9,
+        "3.12": 6
+      }
+    },
+    {
+      "publisher": "FantasyPros",
+      "published": "2023-04-01",
+      "url": "https://www.fantasypros.com/2023/04/fantasy-football-rankings-dynasty-trade-value-chart-april-2023-update/",
+      "format": "Superflex future-pick trade values",
+      "values": {
+        "2024_top3_R1": 65,
+        "2024_top6_R1": 45,
+        "2024_top12_R1": 33,
+        "2024_early_R2": 25,
+        "2024_late_R2": 17,
+        "2024_early_R3": 13,
+        "2024_late_R3": 8
+      }
+    }
+  ],
+  "known_context": {
+    "Kyler Murray": {
+      "injury": "ACL recovery known before trade",
+      "projection_policy": "availability haircut only; no same-season return date is learned from hindsight"
+    }
+  },
+  "policy": {
+    "same_season_results_forbidden": true,
+    "current_market_values_forbidden": true,
+    "external_values_are_market_anchors_not_final_gm_values": true,
+    "reconstructed_historical_state_is_primary_context": true,
+    "gm3_produces_final_team_specific_value": true,
+    "regular_gm3_trade_engine_produces_point_in_time_team_impact": true,
+    "unlisted_players_use_prior_completed_season_proxy_for_market_anchor": true,
+    "future_pick_values_beyond_2024_use_time_discounted_2024_source_values_as_market_anchor": true,
+    "external_values_do_not_feed_intrinsic_fsffl_value": true,
+    "market_is_sanity_check_and_execution_reference_only": true,
+    "intrinsic_fsffl_value_precedes_team_specific_value": true
+  }
+}
