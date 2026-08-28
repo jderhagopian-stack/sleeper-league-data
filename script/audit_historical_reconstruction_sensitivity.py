@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,17 +75,19 @@ def decision_signature(report):
     }
 
 
-def run_case(season: str, transaction_id: str, sims: int, name: str):
-    out = Path("/tmp") / f"fsffl-historical-sensitivity-{name}.json"
-    cmd = [
-        "python", str(RUNNER),
-        "--season", str(season),
-        "--transaction-id", str(transaction_id),
-        "--sims", str(sims),
-        "--output", str(out),
-    ]
-    subprocess.run(cmd, cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
-    return json.loads(out.read_text(encoding="utf-8"))
+def load_module(path: Path, name: str):
+    spec=importlib.util.spec_from_file_location(name,path)
+    mod=importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def run_case(runner, provider, season: str, transaction_id: str, sims: int, name: str):
+    return runner.analyze(
+        str(season), str(transaction_id), sims=int(sims),
+        seed=20260821, bundle_path=None, provider=provider
+    )
 
 
 def main():
@@ -99,10 +101,14 @@ def main():
     original = BUILDER.read_text(encoding="utf-8")
     cases = variants(original)
     reports = {}
+    runner = load_module(RUNNER, "historical_sensitivity_runner")
+    # Materialize historical state once. Each reconstruction variant reuses the
+    # same immutable provider instead of refetching the entire Sleeper history.
+    provider = runner.HistoricalStateProvider()
     try:
         for name, source in cases.items():
             BUILDER.write_text(source, encoding="utf-8")
-            reports[name] = run_case(args.season, args.transaction_id, args.sims, name)
+            reports[name] = run_case(runner, provider, args.season, args.transaction_id, args.sims, name)
     finally:
         BUILDER.write_text(original, encoding="utf-8")
 
@@ -125,7 +131,7 @@ def main():
         "season": int(args.season),
         "transaction_id": str(args.transaction_id),
         "n_sims_per_scenario": int(args.sims),
-        "method": "Executable grouped low/high bound perturbation of reconstruction-only parameters; production source restored after each audit run; no coefficient is tuned to outcome.",
+        "method": "Executable grouped low/high bound perturbation of reconstruction-only parameters using one materialized historical-state provider; production source restored after audit; no coefficient is tuned to outcome.",
         "scenario_groups": [k for k in cases if k != "baseline"],
         "comparisons": comparisons,
         "summary": {
