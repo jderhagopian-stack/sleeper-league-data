@@ -6,6 +6,7 @@ on:
       - 'script/run_trade_market_sweep_v26.py'
       - 'script/refresh_behavioral_intelligence_v3.py'
       - 'script/behavioral_intelligence_v3.py'
+      - 'script/behavioral_intelligence_v3_production.py'
       - 'script/behavioral_intelligence.py'
       - 'script/fsffl_historical_state_provider.py'
       - 'script/build_behavioral_action_context.py'
@@ -50,6 +51,10 @@ jobs:
           assert p['cache_policy']['interactive_history_rebuild'] is False
           assert p['owner_count'] >= 12
           assert all(abs(float(v)) <= .20 for v in p['league_bias_audit'].values())
+          assert p['production_status']=='PRODUCTION'
+          assert p['empirical_validation_status']=='NOT_PREDICTIVELY_VALIDATED'
+          assert p['predictive_holdout_validated'] is False
+          assert p['architecture']['software_promotion_is_not_empirical_validation'] is True
           PY
       - name: Benchmark Market Sweep 1.19 baseline
         run: |

@@ -3,7 +3,7 @@
 
 This is a refresh-time job, never an interactive Market Sweep dependency. It
 reconstructs historical action context using the shared historical-state provider,
-builds the validated opportunity-normalized BI3 production profile, and persists
+builds the opportunity-normalized BI3 production profile, and persists
 only the compact manager profile + manifest under data/behavioral/.
 """
 from __future__ import annotations
@@ -52,6 +52,9 @@ def main():
         "profile_model_version": profile.get("model_version"),
         "production_status": profile.get("production_status"),
         "validated_research_model_version": profile.get("validated_research_model_version"),
+        "source_research_model_version": profile.get("source_research_model_version"),
+        "empirical_validation_status": profile.get("empirical_validation_status"),
+        "predictive_holdout_validated": profile.get("predictive_holdout_validated"),
         "action_context_model_version": profile.get("action_context_model_version"),
         "historical_state_provider": profile.get("historical_state_provider"),
         "owner_count": profile.get("owner_count"),
