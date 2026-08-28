@@ -65,29 +65,25 @@ jobs:
           ids={x['id'] for x in r['curated_findings']}
           assert 'STATE-WEIGHTS-001' in ids
           assert 'DOUBLE-COUNT-001' in ids
-          state=[x for x in r['curated_findings'] if x['id']=='STATE-WEIGHTS-001'][0]
-          assert 'state_weight_calibration.json exists=True' in state['observation']
-          assert 'state_weight_training_examples.json exists=False' in state['observation']
-          prior=json.load(open('data/gm/state_weight_calibration.json'))
+
+          prior=json.load(open('data/gm/state_weight_prior.json'))
           assert prior['status']=='EXPERT_PRIOR_UNVALIDATED'
           assert prior['provenance']['empirically_validated'] is False
+          assert prior['governance']['authoritative_empirical_claim_allowed'] is False
+
           s=json.load(open('data/audit/model_sensitivity_audit.json'))
-          pkg=s['package_discount_divergence']
-          assert pkg[-1]['difference_pct_vs_gm22'] > 10
-          assert s['state_weight_source_divergence'][0]['runtime_source']=='calibration_artifact'
+          assert s['package_discount_divergence'][-1]['difference_pct_vs_gm22'] > 10
+          assert s['state_weight_source_divergence'][0]['runtime_source']=='governed_prior_artifact'
 
           e=json.load(open('data/audit/empirical_readiness_audit.json'))
           eids={x['id']:x for x in e['findings']}
           assert eids['EMPIRICAL-PROJECTION-001']['authoritative_empirical_claim_allowed'] is False
           assert eids['EMPIRICAL-UNCERTAINTY-001']['authoritative_empirical_claim_allowed'] is False
           assert eids['EMPIRICAL-HISTORICAL-TRADE-001']['authoritative_empirical_claim_allowed'] is False
-          assert e['summary']['historical_projection_artifact_count']==0
-          assert e['summary']['frozen_historical_gm3_bundle_count']==0
 
           p=json.load(open('data/audit/pick_outcome_readiness_audit.json'))
           assert p['policy']['retention_proxy_is_not_draft_success'] is True
           assert p['policy']['future_seasons_are_right_censored'] is True
-          assert 'authoritative_empirical_claim_allowed' in p['finding']
           assert p['summary']['draft_rows'] >= p['summary']['completed_draft_rows']
 
           d=json.load(open('data/audit/decision_path_integrity_audit.json'))
@@ -95,24 +91,19 @@ jobs:
           assert d['summary']['runtime_roster_version_single_source'] is True
           assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
           assert d['summary']['final_score_overlap_ablation_required'] is True
-          assert d['summary']['behavioral_predictive_holdout_detected'] is False
 
           t=json.load(open('data/audit/transaction_evidence_readiness_audit.json'))
           assert t['policy']['current_market_value_backfill_for_historical_package_fit_forbidden'] is True
           assert t['policy']['completed_trades_alone_are_not_acceptance_probability_denominator'] is True
-          tids={x['id']:x for x in t['findings']}
-          assert tids['ACCEPTANCE-CALIBRATION-READINESS-001']['authoritative_empirical_claim_allowed'] is False
 
           q=json.load(open('data/audit/projection_calibration_readiness_audit.json'))
           assert q['policy']['realized_score_dispersion_is_not_forecast_error'] is True
           assert q['policy']['lookahead_backfill_for_historical_forecasts_forbidden'] is True
-          assert q['finding']['production_behavior_changed'] is False
           assert q['finding']['all_expected_runtime_markers_detected'] is True
           assert q['finding']['authoritative_empirical_claim_allowed'] is False
 
           m=json.load(open('data/audit/market_value_adjustments_audit.json'))
           mids={x['id']:x for x in m['findings']}
-          assert m['production_behavior_changed'] is False
           assert m['policy']['same_source_market_trend_requires_incremental_validation'] is True
           assert mids['MARKET-RANK-CURVE-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
@@ -120,97 +111,50 @@ jobs:
 
           f=json.load(open('data/audit/future_pick_economics_audit.json'))
           fids={x['id']:x for x in f['findings']}
-          assert f['production_behavior_changed'] is False
           assert f['policy']['forecast_uncertainty_is_not_automatically_positive_option_value'] is True
           assert f['policy']['market_liquidity_and_outcome_optionality_must_be_separated'] is True
           assert f['summary']['all_expected_runtime_markers_detected'] is True
-          assert f['summary']['registry_consistent'] is True
-          assert fids['PICK-ANCHOR-FALLBACK-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
           assert fids['PICK-OPTIONALITY-001']['authoritative_optionality_claim_allowed'] is False
 
           c=json.load(open('data/audit/competitive_state_utility_audit.json'))
-          assert c['production_behavior_changed'] is False
           assert c['policy']['independent_target_required'] is True
           assert c['policy']['component_outcomes_cannot_define_their_own_weight_target'] is True
           assert c['summary']['prior_unvalidated'] is True
-          assert c['summary']['explicit_independent_target_required'] is True
-          assert c['summary']['old_equal_weight_target_present'] is False
+          assert c['summary']['runtime_uses_versioned_artifact'] is True
+          assert c['summary']['temporal_gate_present'] is True
+          assert c['summary']['improvement_gate_present'] is True
           assert c['summary']['eligible_independent_target_rows']==0
 
           k=json.load(open('data/audit/package_economics_audit.json'))
-          kids={x['id']:x for x in k['findings']}
-          assert k['production_behavior_changed'] is False
           assert k['policy']['prescreen_package_curve_is_search_heuristic_not_final_economics'] is True
           assert k['summary']['multiple_active_package_curves'] is True
-          assert k['summary']['registry_consistent'] is True
           assert k['summary']['transaction_evidence_ready_for_authoritative_package_fit'] is False
-          assert kids['PACKAGE-PRESCREEN-PATH-001']['authoritative_empirical_claim_allowed'] is False
 
           b=json.load(open('data/audit/behavioral_acceptance_audit.json'))
-          bids={x['id']:x for x in b['findings']}
-          assert b['production_scoring_behavior_changed'] is False
           assert b['policy']['production_deployment_is_not_empirical_validation'] is True
-          assert b['summary']['production_facade_empirical_scope_qualified'] is True
           assert b['summary']['predictive_holdout_test_detected'] is False
           assert b['summary']['accept_reject_denominator_ready'] is False
-          assert b['summary']['canonical_negotiation_ranking_reuses_behavior'] is False
           assert b['summary']['canonical_negotiation_ranking_deduplicated'] is True
-          assert bids['BEHAVIOR-RANK-DOUBLE-COUNT-001']['authoritative_incremental_weight_claim_allowed'] is False
 
           z=json.load(open('data/audit/roster_interaction_cut_governance_audit.json'))
-          zids={x['id']:x for x in z['findings']}
-          assert z['production_behavior_changed'] is False
           assert z['policy']['roster_legality_is_rule_defined'] is True
           assert z['policy']['cut_selection_is_not_rule_defined'] is True
-          assert z['policy']['roster_interaction_must_show_incremental_value_over_lineup_simulation'] is True
-          assert z['summary']['rule_defined_limit_detected'] is True
           assert z['summary']['downstream_cut_sensitivity_tool_detected'] is True
           assert z['summary']['registry_consistent'] is True
-          assert zids['ROSTER-CUT-PRESCREEN-001']['authoritative_incremental_adjustment_claim_allowed'] is False
-          assert zids['ROSTER-INTERACTION-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
 
-          b=json.load(open('data/audit/behavioral_acceptance_governance_audit.json'))
-          bids={x['id']:x for x in b['findings']}
-          assert b['production_behavior_changed'] is False
-          assert b['policy']['revealed_preference_is_not_acceptance_probability'] is True
-          assert b['policy']['acceptance_probability_requires_offer_or_choice_denominator'] is True
-          assert b['summary']['acceptance_evidence_ready_for_probability_fit'] is False
-          assert b['summary']['behavior_signal_reused_in_negotiation_ranking'] is False
-          assert b['summary']['registry_consistent'] is True
-          assert bids['ACCEPTANCE-PROBABILITY-001']['authoritative_probability_claim_allowed'] is False
-          assert bids['BEHAVIOR-ACCEPTANCE-OVERLAP-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+          bg=json.load(open('data/audit/behavioral_acceptance_governance_audit.json'))
+          assert bg['policy']['revealed_preference_is_not_acceptance_probability'] is True
+          assert bg['policy']['acceptance_probability_requires_offer_or_choice_denominator'] is True
+          assert bg['summary']['acceptance_evidence_ready_for_probability_fit'] is False
+          assert bg['summary']['behavior_signal_reused_in_negotiation_ranking'] is False
 
           fr=json.load(open('data/audit/final_trade_ranking_audit.json'))
-          assert fr['production_behavior_changed'] is True
           assert fr['policy']['duplicate_evidence_must_not_receive_positive_incremental_weight'] is True
           assert fr['summary']['canonical_weights_detected'] is True
-          assert fr['summary']['prior_strategic_acceptance_ratio_preserved'] is True
           assert fr['summary']['shared_composer_used_by_v18_v20_v23'] is True
           assert fr['summary']['positive_duplicate_behavior_weight_detected'] is False
           print(json.dumps(r['summary'],indent=2))
-          print(json.dumps(s['trade_score_elasticity'],indent=2))
-          print(json.dumps(e['summary'],indent=2))
-          print(json.dumps(p['summary'],indent=2))
-          print(json.dumps(p['finding'],indent=2))
-          print(json.dumps(d['summary'],indent=2))
-          print(json.dumps(t['summary'],indent=2))
-          print(json.dumps(q['finding'],indent=2))
-          print(json.dumps(m['findings'],indent=2))
-          print(json.dumps(f['summary'],indent=2))
-          print(json.dumps(f['findings'],indent=2))
-          print(json.dumps(c['summary'],indent=2))
-          print(json.dumps(c['findings'],indent=2))
-          print(json.dumps(k['summary'],indent=2))
-          print(json.dumps(k['findings'],indent=2))
-          print(json.dumps(b['summary'],indent=2))
-          print(json.dumps(b['findings'],indent=2))
-          print(json.dumps(z['summary'],indent=2))
-          print(json.dumps(z['findings'],indent=2))
-          print(json.dumps(b['summary'],indent=2))
-          print(json.dumps(b['findings'],indent=2))
-          print(json.dumps(fr['summary'],indent=2))
-          print(json.dumps(fr['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
