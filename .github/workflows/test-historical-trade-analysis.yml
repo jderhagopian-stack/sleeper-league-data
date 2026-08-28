@@ -26,6 +26,51 @@ jobs:
       - run: pip install reportlab pypdf
       - name: Compile
         run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/build_historical_gm3_bundle.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
+      - name: Validate archive certification fail-safe
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p=Path('script/historical_trade_gm3_adapter.py')
+          spec=importlib.util.spec_from_file_location('adapter', p)
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          base={k:{'x':1} for k in m.REQUIRED_BUNDLE_KEYS}
+
+          legacy=dict(base)
+          s=m.bundle_status(legacy)
+          assert s['historical_input_class']=='UNCLASSIFIED_OR_UNCERTIFIED'
+          assert s['strict_out_of_sample_backtest_eligible'] is False
+          assert s['authoritative_recommendation_allowed'] is False
+          assert s['archive_certified'] is False
+
+          recon=dict(base, historical_input_class='RECONSTRUCTED_AT_TIME', strict_out_of_sample_backtest_eligible=True)
+          s=m.bundle_status(recon)
+          assert s['historical_input_class']=='RECONSTRUCTED_AT_TIME'
+          assert s['strict_out_of_sample_backtest_eligible'] is False
+          assert s['authoritative_recommendation_allowed'] is False
+
+          uncert=dict(base, historical_input_class='ARCHIVED_AT_TIME', strict_out_of_sample_backtest_eligible=True)
+          s=m.bundle_status(uncert)
+          assert s['historical_input_class']=='UNCLASSIFIED_OR_UNCERTIFIED'
+          assert s['strict_out_of_sample_backtest_eligible'] is False
+          assert s['authoritative_recommendation_allowed'] is False
+
+          cert={
+            'certified':True,
+            'time_frozen':True,
+            'complete':True,
+            'no_present_day_market_values':True,
+            'no_same_season_future_results':True,
+            'no_future_schedule_info':True,
+          }
+          archived=dict(base, historical_input_class='ARCHIVED_AT_TIME', strict_out_of_sample_backtest_eligible=True, archive_certification=cert)
+          s=m.bundle_status(archived)
+          assert s['historical_input_class']=='ARCHIVED_AT_TIME'
+          assert s['strict_out_of_sample_backtest_eligible'] is True
+          assert s['authoritative_recommendation_allowed'] is True
+          assert s['archive_certified'] is True
+          print('historical archive certification fail-safe: PASS')
+          PY
       - name: Run known 2023 Josh Allen trade
         run: |
           python script/run_historical_trade_analysis.py \
@@ -43,7 +88,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           d=json.loads(Path('/tmp/historical-trade.json').read_text())
-          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.2'
+          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.3'
           assert d['transaction_id']=='950954472107368448'
           assert d['season']==2023
           assert d['policy']['historical_module_is_time_travel_wrapper_not_scoring_model'] is True
@@ -55,6 +100,8 @@ jobs:
           assert d['policy']['missing_archived_inputs_do_not_disable_historical_analysis'] is True
           assert d['policy']['reconstructed_at_time_inputs_are_allowed'] is True
           assert d['policy']['reconstructed_at_time_grades_are_not_pristine_backtest_observations'] is True
+          assert d['policy']['legacy_file_presence_never_implies_archived_status'] is True
+          assert d['policy']['archived_status_requires_explicit_certification'] is True
           assert d['policy']['alternate_history_state_provider_reused'] is True
           assert d['gm3_evaluation']['standalone_historical_score_used'] is False
           assert d['gm3_evaluation']['current_values_used'] is False
@@ -63,6 +110,7 @@ jobs:
           assert d['strict_out_of_sample_backtest_eligible'] is False
           assert d['gm3_evaluation']['historical_input_class']=='RECONSTRUCTED_AT_TIME'
           assert d['gm3_evaluation']['strict_out_of_sample_backtest_eligible'] is False
+          assert d['gm3_evaluation']['authoritative_recommendation_allowed'] is False
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
@@ -77,6 +125,7 @@ jobs:
               'state':d['historical_state_provider'],
               'gm3_status':d['gm3_evaluation']['status'],
               'input_basis':d['historical_input_basis'],
+              'rejected_bundle':d.get('rejected_historical_bundle'),
           },indent=2))
           PY
       - name: Upload audit artifact
