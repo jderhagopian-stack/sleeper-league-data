@@ -9,7 +9,8 @@ classification used by present-day analysis.
 Archived-at-time and reconstructed-at-time bundles are both supported. Archived
 bundles are eligible for strict empirical backtesting; reconstructed bundles
 preserve historical-analysis functionality but are explicitly excluded from
-pristine out-of-sample validation claims.
+pristine out-of-sample validation claims and authoritative recommendations until
+reconstruction assumptions are empirically validated.
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.1"
+MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.2"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
@@ -59,13 +60,15 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
         }
     missing = sorted(k for k in REQUIRED_BUNDLE_KEYS if not bundle.get(k))
     basis = str(bundle.get("historical_input_class") or "ARCHIVED_AT_TIME")
+    is_archived = basis == "ARCHIVED_AT_TIME"
     return {
         "ready": not missing,
         "missing": missing,
         "historical_input_class": basis,
         "strict_out_of_sample_backtest_eligible": bool(
-            bundle.get("strict_out_of_sample_backtest_eligible", basis == "ARCHIVED_AT_TIME")
-        ),
+            bundle.get("strict_out_of_sample_backtest_eligible", is_archived)
+        ) if is_archived else False,
+        "authoritative_recommendation_allowed": bool(is_archived),
         "reason": None if not missing else "Historical GM3 inputs are incomplete.",
     }
 
@@ -97,6 +100,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "same_gm3_core_as_current_trade_analysis": True,
             "current_values_used": False,
             "standalone_historical_score_used": False,
+            "authoritative_recommendation_allowed": False,
         }
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "historical_gm3_dl")
@@ -119,6 +123,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "same_gm3_core_as_current_trade_analysis": True,
             "current_values_used": False,
             "standalone_historical_score_used": False,
+            "authoritative_recommendation_allowed": False,
         }
 
     hypothetical, pick_transfers = dl.apply_actions(canonical, actions)
@@ -165,15 +170,22 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "team_state": state_label,
         }
 
+    reconstructed = status.get("historical_input_class") != "ARCHIVED_AT_TIME"
     return {
         "adapter_model_version": MODEL_VERSION,
         "status": (
             "GRADED_ARCHIVED_AT_TIME"
-            if status.get("historical_input_class") == "ARCHIVED_AT_TIME"
+            if not reconstructed
             else "GRADED_RECONSTRUCTED_AT_TIME"
         ),
         "historical_input_class": status.get("historical_input_class"),
         "strict_out_of_sample_backtest_eligible": bool(status.get("strict_out_of_sample_backtest_eligible")),
+        "authoritative_recommendation_allowed": bool(status.get("authoritative_recommendation_allowed")),
+        "recommendation_authority": "AUTHORITATIVE_ELIGIBLE" if not reconstructed else "NON_AUTHORITATIVE_RECONSTRUCTION",
+        "authority_reason": None if not reconstructed else (
+            "Reconstructed-at-time inputs preserve analysis functionality but include bounded, unvalidated reconstruction assumptions; "
+            "the result cannot be used as an authoritative recommendation or pristine out-of-sample validation observation."
+        ),
         "same_gm3_core_as_current_trade_analysis": True,
         "decision_lab_model_version": dl.MODEL_VERSION,
         "simulator_model_version": before.get("model_version"),
