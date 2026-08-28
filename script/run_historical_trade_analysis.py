@@ -167,8 +167,8 @@ def reconstruct_bundle(provider, season: str, transaction_id: str, timestamp_ms:
     return builder.build(str(season), str(transaction_id), source, provider=provider), source
 
 
-def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None):
-    provider = HistoricalStateProvider()
+def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None, provider=None):
+    provider = provider or HistoricalStateProvider()
     tx = find_trade(provider, str(season), str(transaction_id))
     state = provider.pre_transaction_state(str(season), str(transaction_id))
     data = provider.data(str(season))
