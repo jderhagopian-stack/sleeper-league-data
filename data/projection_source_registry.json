@@ -1,8 +1,9 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "model_component": "FSFFL projection ensemble",
   "policy": {
     "minimum_independent_sources_for_authoritative_ensemble": 2,
+    "minimum_player_authority_coverage_for_production": 0.85,
     "default_aggregation": "equal_weight_mean",
     "allow_complex_weighting_without_validation": false,
     "single_source_may_be_authoritative": false,
@@ -27,6 +28,8 @@
       "projection_type": "consensus_or_statistical",
       "independence_family": "fantasypros_consensus",
       "aggregate_source": true,
+      "aggregate_component_disclosure": "dynamic_provider_managed_consensus",
+      "overlap_policy": "Do not count any explicitly included FantasyPros component expert/source as an additional independent vote unless source-level overlap has been demonstrated absent.",
       "eligible_for_ensemble": true,
       "normalized_file_pattern": "data/simulator/{season}/sources/projection_fantasypros.json",
       "provenance_class": "EXTERNAL_CURRENT_FORECAST",
