@@ -6,6 +6,7 @@ on:
       - 'data/projection_source_registry.json'
       - 'script/build_fsffl_projection_ensemble.py'
       - 'script/normalize_*projection_source.py'
+      - 'script/fetch_fftoday_projection_source.py'
       - 'script/fetch_fantasypros_projection_source.py'
       - 'script/projection_source_uncertainty.py'
       - 'script/run_fsffl_season_simulator_projection_uncertainty.py'
@@ -34,6 +35,7 @@ jobs:
           python -m py_compile \
             script/build_fsffl_projection_ensemble.py \
             script/normalize_razzball_projection_source.py \
+            script/fetch_fftoday_projection_source.py \
             script/fetch_fantasypros_projection_source.py \
             script/projection_source_uncertainty.py \
             script/run_fsffl_season_simulator_projection_uncertainty.py \
@@ -55,11 +57,12 @@ jobs:
           FANTASYPROS_API_KEY: ${{ secrets.FANTASYPROS_API_KEY }}
         run: |
           python script/normalize_razzball_projection_source.py
+          python script/fetch_fftoday_projection_source.py
           if [ -n "${FANTASYPROS_API_KEY:-}" ]; then
-            echo "FantasyPros credential available; exercising live second-source adapter."
+            echo "FantasyPros credential available; exercising optional third-source adapter."
             python script/fetch_fantasypros_projection_source.py
           else
-            echo "FantasyPros credential unavailable; verifying fail-safe single-source behavior."
+            echo "FantasyPros credential unavailable; Razzball + FFToday remain the required independent baseline."
           fi
           python script/build_fsffl_projection_ensemble.py
           python - <<'PY'
@@ -74,6 +77,8 @@ jobs:
               'authoritative_projection_allowed': audit['authoritative_projection_allowed'],
               'missing_or_invalid_sources': audit['missing_or_invalid_sources'],
           }, indent=2))
-          if len(audit['independent_sources_used']) < audit['quality_gate']['minimum_independent_sources']:
-              assert audit['authoritative_projection_allowed'] is False
+          assert 'razzball' in audit['independent_sources_used']
+          assert 'fftoday' in audit['independent_sources_used']
+          assert audit['authoritative_projection_allowed'] is True
+          assert audit['player_authority_coverage'] >= audit['quality_gate']['minimum_player_authority_coverage']
           PY
