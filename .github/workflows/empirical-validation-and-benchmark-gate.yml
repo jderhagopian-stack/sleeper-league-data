@@ -7,6 +7,9 @@ on:
       - 'script/audit_final_trade_ranking_governance.py'
       - 'script/audit_final_score_ablation.py'
       - 'script/run_historical_trade_analysis.py'
+      - 'script/historical_trade_gm3_adapter.py'
+      - 'script/build_historical_gm3_bundle.py'
+      - 'data/historical_gm3/sources/**'
       - 'data/model_parameter_registry.json'
       - '.github/workflows/empirical-validation-and-benchmark-gate.yml'
   workflow_dispatch:
@@ -26,7 +29,9 @@ jobs:
             script/audit_empirical_validation_readiness.py \
             script/audit_final_trade_ranking_governance.py \
             script/audit_final_score_ablation.py \
-            script/run_historical_trade_analysis.py
+            script/run_historical_trade_analysis.py \
+            script/historical_trade_gm3_adapter.py \
+            script/build_historical_gm3_bundle.py
       - name: Rerun structural model-governance gate
         run: python script/audit_final_trade_ranking_governance.py
       - name: Run synthetic grouped final-score ablation regression
@@ -50,7 +55,7 @@ jobs:
           assert d['summary']['candidate_count']==3
           assert 'without_all_three_overlap_channels' in d['comparisons']
           PY
-      - name: Verify historical wrapper still refuses leakage-prone fallback
+      - name: Verify historical wrapper reconstructs without contaminating strict backtest
         run: |
           python script/run_historical_trade_analysis.py \
             --season 2023 \
@@ -59,9 +64,12 @@ jobs:
           python - <<'PY'
           import json
           d=json.load(open('/tmp/historical-trade.json'))
-          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert d['gm3_evaluation']['status']=='GRADED_RECONSTRUCTED_AT_TIME'
+          assert d['historical_input_basis']=='RECONSTRUCTED_AT_TIME'
+          assert d['strict_out_of_sample_backtest_eligible'] is False
           assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
-          assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
+          assert d['policy']['reconstructed_at_time_inputs_are_allowed'] is True
+          assert d['policy']['reconstructed_at_time_grades_are_not_pristine_backtest_observations'] is True
           assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
           PY
       - name: Audit empirical validation readiness
