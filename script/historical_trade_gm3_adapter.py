@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.2"
+MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.3"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
@@ -74,7 +74,7 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
 
 
 def build_all_lineups(simmod, rosters, league, players, projections):
-    """Optimize every historical roster from frozen projections; no current cache."""
+    """Optimize every historical roster from frozen projections."""
     lineups = {}
     reg_weeks = simmod.regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
@@ -87,6 +87,34 @@ def build_all_lineups(simmod, rosters, league, players, projections):
                 roster, week, league, players, projections
             )
     return lineups
+
+
+def frozen_cached_lineups(bundle: Dict[str, Any], canonical: List[Dict[str, Any]]):
+    """Return the builder's frozen baseline lineup cache when structurally complete.
+
+    The reconstruction builder creates this cache from the exact same frozen
+    rosters and projections used by the adapter. Reusing it removes duplicate
+    optimizer work without changing lineup semantics. Any missing roster/week
+    forces a safe fallback to canonical optimization rather than partial cache use.
+    """
+    payload = bundle.get("optimized_lineup_cache") or {}
+    raw = payload.get("lineups") or {}
+    weeks = [int(w) for w in (payload.get("weeks") or [])]
+    if not raw or not weeks:
+        return None
+    expected_rids = {int(r.get("roster_id")) for r in canonical}
+    if {int(rid) for rid in raw.keys()} != expected_rids:
+        return None
+    out = {}
+    for rid in expected_rids:
+        row = raw.get(str(rid)) or raw.get(rid) or {}
+        if any(str(week) not in row and week not in row for week in weeks):
+            return None
+        out[rid] = {
+            week: copy.deepcopy(row.get(str(week), row.get(week)))
+            for week in weeks
+        }
+    return out
 
 
 def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=20260821):
@@ -127,7 +155,10 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         }
 
     hypothetical, pick_transfers = dl.apply_actions(canonical, actions)
-    baseline_lineups = build_all_lineups(simmod, canonical, league, players, projections)
+    baseline_lineups = frozen_cached_lineups(bundle, canonical)
+    baseline_lineup_source = "frozen_bundle_cache" if baseline_lineups is not None else "canonical_reoptimization"
+    if baseline_lineups is None:
+        baseline_lineups = build_all_lineups(simmod, canonical, league, players, projections)
     hypothetical_lineups, reoptimized = dl.reoptimize_touched_lineups(
         simmod, baseline_lineups, hypothetical, participants,
         league, users, players, projections
@@ -194,6 +225,7 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
         "common_random_numbers": True,
         "current_values_used": False,
         "standalone_historical_score_used": False,
+        "baseline_lineup_source": baseline_lineup_source,
         "teams_reoptimized": reoptimized,
         "pick_transfers": pick_transfers,
         "team_results": rows,
