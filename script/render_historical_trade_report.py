@@ -49,13 +49,13 @@ def render(data,out):
     c.setFillColor(muted); c.setFont("Helvetica",8.5); c.drawString(40,733,f"Trade date: {safe(data.get('trade_time_utc'))} | Judged using only information available at the time")
 
     gm3=data.get("gm3_evaluation") or {}
-    graded=gm3.get("status")=="GRADED_BY_GM3_CORE"
-    hero="GM 3.0 HISTORICAL EVALUATION COMPLETE" if graded else "DECISION GRADE WITHHELD - HISTORICAL INPUTS INCOMPLETE"
+    graded=str(gm3.get("status") or "").startswith("GRADED_")
+    hero="GM 3.0 HISTORICAL EVALUATION" if graded else "HISTORICAL EVALUATION - INPUTS INCOMPLETE"
     c.setFillColor(navy); c.roundRect(34,660,544,54,2,fill=1,stroke=0)
     c.setFillColor(colors.white); c.setFont("Helvetica-Bold",12.5); c.drawString(48,691,hero)
     c.setFont("Helvetica",8.2)
-    sub=("The trade is judged the same way as a current trade, but using only information that was available when it happened."
-         if graded else "The report will not guess. If the information available at the time is incomplete, it withholds the grade.")
+    sub=("The trade is judged using the reconstructed league context and information available at the time."
+         if graded else "The report preserves the historical facts but does not invent missing decision inputs.")
     c.drawString(48,673,sub)
 
     sides=list(data.get("sides",{}).values())
@@ -70,8 +70,8 @@ def render(data,out):
             c.setFont("Helvetica-Bold",13); c.drawString(x+10,y0+boxh-42,safe(dec.get("band","GM3 evaluated")).replace("_"," ").title())
             c.setFillColor(muted); c.setFont("Helvetica",7.6); c.drawString(x+10,y0+boxh-55,f"Team state: {safe(tr.get('team_state'))}")
         else:
-            c.setFont("Helvetica-Bold",13); c.drawString(x+10,y0+boxh-42,"NOT GRADED")
-            c.setFillColor(muted); c.setFont("Helvetica",7.6); c.drawString(x+10,y0+boxh-55,"Waiting for complete time-frozen GM 3.0 inputs")
+            c.setFont("Helvetica-Bold",13); c.drawString(x+10,y0+boxh-42,"INPUTS INCOMPLETE")
+            c.setFillColor(muted); c.setFont("Helvetica",7.6); c.drawString(x+10,y0+boxh-55,"Historical decision inputs could not be reconstructed reliably")
 
         ta=s.get("trade_assets",{})
         y=y0+boxh-76
@@ -109,8 +109,8 @@ def render(data,out):
 
     y=392; c.setFillColor(ink); c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"HOW THIS REPORT WORKS")
     y-=14
-    txt=("Historical Trade Analysis now reconstructs the league at the transaction timestamp, then delegates decision evaluation to the canonical GM 3.0 Decision Lab and Simulator path. "
-         "It no longer owns a separate pick/need/player-quality grading formula. If the frozen projections, market values, team-specific GM values, or team-state inputs are missing, the model returns NOT GRADED rather than inventing replacements.")
+    txt=("Historical Trade Analysis reconstructs the league at the transaction timestamp and delegates the decision to the canonical GM 3.0 Decision Lab and Simulator path. "
+         "It uses archived-at-time inputs when available and otherwise rebuilds point-in-time inputs from historical evidence without using present-day values or future same-season results.")
     y=draw_lines(c,txt,42,y,526,size=8.1,leading=9.6)
 
     y-=5; c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"CURRENT STATUS")
@@ -118,20 +118,23 @@ def render(data,out):
     if graded:
         txt=f"The trade was fully evaluated using {gm3.get('n_sims')} simulations based on the information available at the time. Today's values were not used."
     else:
-        miss=", ".join(gm3.get("missing_time_frozen_inputs") or [])
-        txt=f"The league at the time of the trade was reconstructed, but there is not enough trustworthy old information to grade the decision. Missing information: {miss}."
+        miss=", ".join(gm3.get("missing_historical_inputs") or [])
+        txt=f"The league at the time of the trade was reconstructed, but essential decision inputs remain unavailable. Missing information: {miss}."
     y=draw_lines(c,txt,42,y,526,size=8.1,leading=9.6)
 
     y-=5; c.setFont("Helvetica-Bold",10.5); c.drawString(42,y,"PROCESS VS. OUTCOME")
     y-=14
     for s in sides[:2]:
         pts=float((s.get("realized_outcome") or {}).get("acquired_player_fsffl_points_after_trade",0))
-        label="GM 3.0 process evaluation available" if graded else "process grade withheld"
+        label="GM 3.0 process evaluation available" if graded else "process evaluation unavailable"
         c.setFont("Helvetica",8.1); c.drawString(50,y,f"{safe(s.get('team_name'))}: {label}; tracked acquired-player production: {pts:,.1f} FSFFL points."); y-=11
 
     hp=data.get("historical_state_provider",{})
-    c.setStrokeColor(line); c.line(42,48,570,48); c.setFillColor(muted); c.setFont("Helvetica",6.7)
-    c.drawString(42,35,f"{MODEL_VERSION} | {data.get('model_version')} | historical state {safe(hp.get('reconstruction_confidence'))} | plain-English presentation")
+    c.setStrokeColor(line); c.line(42,55,570,55); c.setFillColor(muted); c.setFont("Helvetica",6.5)
+    basis=safe(data.get("historical_input_basis") or gm3.get("historical_input_class") or "unknown")
+    strict="yes" if data.get("strict_out_of_sample_backtest_eligible") else "no"
+    c.drawString(42,43,f"Methodology note: input basis {basis}; strict out-of-sample backtest eligible: {strict}.")
+    c.drawString(42,32,f"{MODEL_VERSION} | {data.get('model_version')} | historical state {safe(hp.get('reconstruction_confidence'))} | plain-English presentation")
     c.save()
 
 

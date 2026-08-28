@@ -39,7 +39,14 @@ def frozen_bundle_files():
     root = DATA / "historical_gm3"
     if not root.exists():
         return []
-    return sorted(str(p.relative_to(ROOT)) for p in root.rglob("*.json") if p.is_file())
+    rows = []
+    for season_dir in root.iterdir():
+        if not season_dir.is_dir() or not season_dir.name.isdigit():
+            continue
+        for p in season_dir.glob("*.json"):
+            if p.is_file():
+                rows.append(str(p.relative_to(ROOT)))
+    return sorted(rows)
 
 
 def weekly_outcome_files():
@@ -91,7 +98,8 @@ def source_evidence():
             "horizon_uncertainty_present": "uncertainty =" in gm30 and "horizon" in gm30,
         },
         "historical_adapter": {
-            "requires_frozen_bundle": "REQUIRED_BUNDLE_KEYS" in historical,
+            "supports_historical_bundle_schema": "REQUIRED_BUNDLE_KEYS" in historical,
+            "supports_reconstructed_at_time": "GRADED_RECONSTRUCTED_AT_TIME" in historical,
             "refuses_current_value_backfill": "current_values_used\": False" in historical or '"current_values_used": False' in historical,
             "not_graded_path_present": "NOT_GRADED" in historical,
         },
@@ -143,8 +151,8 @@ def main():
             "frozen_gm3_bundles": bundles,
             "source_evidence": src["historical_adapter"],
             "observation": (
-                "The historical adapter correctly refuses hindsight/current-value substitution, but no time-frozen GM3 input bundles are present. "
-                "Therefore the repository currently provides a valid backtest framework with zero eligible authoritative GM3 backtest cases."
+                "The historical adapter refuses hindsight/current-value substitution. Reconstructed-at-time inputs can preserve retrospective decision functionality, "
+                "but no archived-at-time GM3 bundles are present for pristine empirical backtesting. Therefore authoritative GM3 backtest cases remain zero."
                 if not bundles else
                 "Frozen bundles exist; each must still pass provenance/completeness checks before inclusion in an empirical backtest."
             ),

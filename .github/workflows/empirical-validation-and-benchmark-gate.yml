@@ -6,7 +6,13 @@ on:
       - 'script/audit_empirical_validation_readiness.py'
       - 'script/audit_final_trade_ranking_governance.py'
       - 'script/audit_final_score_ablation.py'
+      - 'script/audit_historical_reconstruction_governance.py'
+      - 'script/audit_historical_reconstruction_sensitivity.py'
       - 'script/run_historical_trade_analysis.py'
+      - 'script/historical_trade_gm3_adapter.py'
+      - 'script/build_historical_gm3_bundle.py'
+      - 'data/historical_gm3/sources/**'
+      - 'data/historical_gm3/reconstruction_parameter_registry.json'
       - 'data/model_parameter_registry.json'
       - '.github/workflows/empirical-validation-and-benchmark-gate.yml'
   workflow_dispatch:
@@ -14,7 +20,10 @@ on:
 jobs:
   final-audit-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # Deep governance validation can be network-bound while reconstructing old
+    # Sleeper league states. This is intentionally generous for the audit; it is
+    # not a production-model runtime budget and does not affect normal model runs.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,9 +35,15 @@ jobs:
             script/audit_empirical_validation_readiness.py \
             script/audit_final_trade_ranking_governance.py \
             script/audit_final_score_ablation.py \
-            script/run_historical_trade_analysis.py
+            script/audit_historical_reconstruction_governance.py \
+            script/audit_historical_reconstruction_sensitivity.py \
+            script/run_historical_trade_analysis.py \
+            script/historical_trade_gm3_adapter.py \
+            script/build_historical_gm3_bundle.py
       - name: Rerun structural model-governance gate
         run: python script/audit_final_trade_ranking_governance.py
+      - name: Audit historical reconstruction parameter governance
+        run: python script/audit_historical_reconstruction_governance.py
       - name: Run synthetic grouped final-score ablation regression
         run: |
           cat > /tmp/finalists.json <<'JSON'
@@ -50,19 +65,45 @@ jobs:
           assert d['summary']['candidate_count']==3
           assert 'without_all_three_overlap_channels' in d['comparisons']
           PY
-      - name: Verify historical wrapper still refuses leakage-prone fallback
+      - name: Verify historical wrapper reconstructs without contaminating strict backtest
         run: |
           python script/run_historical_trade_analysis.py \
             --season 2023 \
             --transaction-id 950954472107368448 \
+            --sims 250 \
             --output /tmp/historical-trade.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/historical-trade.json'))
-          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert d['gm3_evaluation']['status']=='GRADED_RECONSTRUCTED_AT_TIME'
+          assert d['historical_input_basis']=='RECONSTRUCTED_AT_TIME'
+          assert d['strict_out_of_sample_backtest_eligible'] is False
+          assert d['gm3_evaluation']['strict_out_of_sample_backtest_eligible'] is False
+          assert d['gm3_evaluation']['authoritative_recommendation_allowed'] is False
+          assert d['gm3_evaluation']['recommendation_authority']=='NON_AUTHORITATIVE_RECONSTRUCTION'
           assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
-          assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
+          assert d['policy']['reconstructed_at_time_inputs_are_allowed'] is True
+          assert d['policy']['reconstructed_at_time_grades_are_not_pristine_backtest_observations'] is True
           assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
+          PY
+      - name: Run executable grouped reconstruction sensitivity
+        run: |
+          # This CI sweep is a governance diagnostic, not an empirical coefficient
+          # estimator. Common random numbers are retained across scenarios; 100
+          # simulations are sufficient for the bounded governance perturbation and
+          # do not change production simulation settings or model outputs.
+          python script/audit_historical_reconstruction_sensitivity.py \
+            --season 2023 \
+            --transaction-id 950954472107368448 \
+            --sims 100 \
+            --output /tmp/historical-reconstruction-sensitivity.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/historical-reconstruction-sensitivity.json'))
+          assert d['summary']['authoritative_regardless_of_flip'] is False
+          assert d['summary']['strict_oos_backtest_observation'] is False
+          assert d['n_sims_per_scenario']==100
+          assert len(d['scenario_groups'])==6
           PY
       - name: Audit empirical validation readiness
         run: python script/audit_empirical_validation_readiness.py
@@ -74,7 +115,9 @@ jobs:
           path: |
             data/audit/final_trade_ranking_governance_audit.json
             data/audit/empirical_validation_readiness.json
+            data/audit/historical_reconstruction_governance.json
             /tmp/final-ablation.json
             /tmp/historical-trade.json
+            /tmp/historical-reconstruction-sensitivity.json
           if-no-files-found: warn
           retention-days: 30
