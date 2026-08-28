@@ -13,6 +13,7 @@ on:
       - 'script/audit_market_value_adjustments.py'
       - 'script/audit_future_pick_economics.py'
       - 'script/audit_competitive_state_utility.py'
+      - 'script/audit_package_economics.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -45,6 +46,7 @@ jobs:
           python script/audit_market_value_adjustments.py
           python script/audit_future_pick_economics.py
           python script/audit_competitive_state_utility.py
+          python script/audit_package_economics.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -126,6 +128,15 @@ jobs:
           assert c['summary']['explicit_independent_target_required'] is True
           assert c['summary']['old_equal_weight_target_present'] is False
           assert c['summary']['eligible_independent_target_rows']==0
+
+          k=json.load(open('data/audit/package_economics_audit.json'))
+          kids={x['id']:x for x in k['findings']}
+          assert k['production_behavior_changed'] is False
+          assert k['policy']['prescreen_package_curve_is_search_heuristic_not_final_economics'] is True
+          assert k['summary']['multiple_active_package_curves'] is True
+          assert k['summary']['registry_consistent'] is True
+          assert k['summary']['transaction_evidence_ready_for_authoritative_package_fit'] is False
+          assert kids['PACKAGE-PRESCREEN-PATH-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -139,6 +150,8 @@ jobs:
           print(json.dumps(f['findings'],indent=2))
           print(json.dumps(c['summary'],indent=2))
           print(json.dumps(c['findings'],indent=2))
+          print(json.dumps(k['summary'],indent=2))
+          print(json.dumps(k['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
