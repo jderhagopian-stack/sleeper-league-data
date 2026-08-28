@@ -97,6 +97,71 @@ def prior_stats(season: int, players):
     return out, baselines
 
 
+def scoring_as_of(season: int, timestamp_ms: int, players):
+    """Pool only scoring observations knowable at the transaction timestamp.
+
+    Prior completed-season games are always eligible. Current-season games are
+    included only through the last fantasy week completed before the trade.
+    Pooling is observation-weighted and introduces no hand-set recency coefficient.
+    """
+    prior, baselines = prior_stats(int(season), players)
+    state_mod = load_module(SCRIPT / "historical_state_behavior.py", "historical_bundle_completed_week")
+    created_utc = datetime.fromtimestamp(int(timestamp_ms) / 1000, tz=timezone.utc).isoformat()
+    through_week = int(state_mod.completed_week_before_trade(int(season), created_utc))
+    if through_week <= 0:
+        return prior, baselines, {
+            "prior_season": int(season) - 1,
+            "current_season_weeks_included": 0,
+            "pooling": "prior_completed_season_only",
+        }
+
+    current_rows = loadj(DATA / "stats" / "fsffl" / str(season) / "player_weekly_fsffl.json", [])
+    current = defaultdict(list)
+    for row in current_rows or []:
+        try:
+            week = int(row.get("week") or 0)
+            pts = float(row.get("fsffl_points"))
+        except Exception:
+            continue
+        if week <= 0 or week > through_week:
+            continue
+        pid = str(row.get("player_id") or "")
+        pos = str(row.get("position") or (players.get(pid) or {}).get("position") or "")
+        if pid and pos in POSITIONS:
+            current[pid].append(pts)
+
+    pooled = {}
+    by_pos = defaultdict(list)
+    ids = set(prior) | set(current)
+    for pid in ids:
+        pos = str((prior.get(pid) or {}).get("position") or (players.get(pid) or {}).get("position") or "")
+        if pos not in POSITIONS:
+            continue
+        prior_games = int((prior.get(pid) or {}).get("games") or 0)
+        prior_ppg = float((prior.get(pid) or {}).get("ppg") or 0.0)
+        vals = current.get(pid) or []
+        total_games = prior_games + len(vals)
+        if total_games <= 0:
+            continue
+        total_points = prior_ppg * prior_games + sum(vals)
+        ppg = total_points / total_games
+        pooled[pid] = {"ppg": ppg, "games": total_games, "position": pos}
+        by_pos[pos].append(ppg)
+
+    pooled_baselines = {
+        pos: statistics.median(vals)
+        for pos, vals in by_pos.items()
+        if vals
+    }
+    for pos in POSITIONS:
+        pooled_baselines.setdefault(pos, baselines[pos])
+    return pooled, pooled_baselines, {
+        "prior_season": int(season) - 1,
+        "current_season_weeks_included": through_week,
+        "pooling": "observation_weighted_prior_plus_completed_current_weeks",
+    }
+
+
 def prior_volatility(season: int, players):
     """Estimate player SD and positional CV from the prior completed FSFFL season."""
     rows = loadj(DATA / "stats" / "fsffl" / str(int(season) - 1) / "player_weekly_fsffl.json", [])
@@ -464,7 +529,7 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
     state = provider.pre_transaction_state(str(season), str(transaction_id))
     rosters = historical_rosters(state, data)
     players = player_index()
-    prior, baselines = prior_stats(int(season), players)
+    prior, baselines, scoring_basis = scoring_as_of(int(season), ts, players)
     source = loadj(source_path, {}) if source_path and source_path.exists() else {}
     values, exact_count = build_player_values(rosters, players, prior, baselines, source, int(season))
     player_sd, derived_cv = prior_volatility(int(season), players)
@@ -744,7 +809,8 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
             "dated_exact_trade_player_market_anchors": exact_count,
             "historical_team_state_source": historical_state_index.get("model_version"),
             "historical_team_state_confidence": historical_state_confidence,
-            "projection_basis": f"{int(season)-1} completed-season FSFFL PPG",
+            "projection_basis": scoring_basis,
+            "projection_mean_policy": "observation-weighted prior completed season plus only current-season weeks completed before trade",
             "projection_volatility_basis": "prior completed-season player weekly realized SD with position-CV fallback",
             "schedule_basis": f"{int(season)-1} FSFFL schedule reused as neutral known proxy",
             "behavior_basis": "only actions with timestamp strictly before trade",
