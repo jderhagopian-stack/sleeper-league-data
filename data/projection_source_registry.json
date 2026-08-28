@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "model_component": "FSFFL projection ensemble",
+  "policy": {
+    "minimum_independent_sources_for_authoritative_ensemble": 2,
+    "default_aggregation": "equal_weight_mean",
+    "allow_complex_weighting_without_validation": false,
+    "single_source_may_be_authoritative": false,
+    "aggregate_sources_must_declare_components": true,
+    "duplicate_information_families_must_not_receive_independent_votes": true,
+    "missing_source_behavior": "use_available_independent_sources_only_if_minimum_source_gate_is_met; otherwise retain/non-authoritative fallback",
+    "source_disagreement_is_preserved_for_uncertainty_analysis": true
+  },
+  "sources": {
+    "razzball": {
+      "display_name": "Razzball",
+      "projection_type": "statistical",
+      "independence_family": "razzball",
+      "aggregate_source": false,
+      "eligible_for_ensemble": true,
+      "normalized_file_pattern": "data/simulator/{season}/sources/projection_razzball.json",
+      "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "notes": "Existing FSFFL primary statistical projection source. Must not be the sole authoritative source once ensemble promotion occurs."
+    },
+    "fantasypros": {
+      "display_name": "FantasyPros",
+      "projection_type": "consensus_or_statistical",
+      "independence_family": "fantasypros_consensus",
+      "aggregate_source": true,
+      "eligible_for_ensemble": true,
+      "normalized_file_pattern": "data/simulator/{season}/sources/projection_fantasypros.json",
+      "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "notes": "Consensus/aggregate source. Underlying component projections must not also be counted as independent votes unless overlap is explicitly de-duplicated."
+    }
+  }
+}
