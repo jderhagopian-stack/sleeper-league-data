@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Build the FSFFL preseason projection baseline from normalized external sources.
 
-The builder is deliberately simple: eligible independent sources receive equal
-weight unless a future, versioned calibration demonstrates that a more complex
-weighting scheme improves held-out accuracy. It preserves per-source values and
-source disagreement for downstream uncertainty work.
+Eligible independent sources receive equal weight unless future held-out evidence
+shows a more complex weighting scheme improves accuracy. The builder preserves
+per-source values, source disagreement, and now separately reports the strength
+of historical accuracy evidence behind the source mix. A source can be useful
+without being falsely described as historically validated.
 """
 
 from __future__ import annotations
@@ -78,6 +79,22 @@ def dedupe_independence_families(sources: List[Dict[str, Any]]) -> Tuple[List[Di
     return kept, rejected
 
 
+def historical_evidence_summary(sources: List[Dict[str, Any]]) -> Dict[str, Any]:
+    benchmarked = []
+    unbenchmarked = []
+    for source in sources:
+        status = str(((source.get("config") or {}).get("historical_accuracy_evidence") or {}).get("status") or "unknown")
+        if status.startswith("externally_benchmarked"):
+            benchmarked.append(source["source_id"])
+        else:
+            unbenchmarked.append(source["source_id"])
+    return {
+        "externally_benchmarked_sources": benchmarked,
+        "sources_without_comparable_long_run_benchmark": unbenchmarked,
+        "externally_benchmarked_source_count": len(benchmarked),
+    }
+
+
 def build_player_ensemble(sources: List[Dict[str, Any]], minimum_sources: int = 2) -> Dict[str, Dict[str, Any]]:
     all_ids = set()
     for source in sources:
@@ -141,7 +158,10 @@ def main():
     independent, duplicate_family_rejections = dedupe_independence_families(available)
     policy = registry.get("policy") or {}
     minimum = int(policy.get("minimum_independent_sources_for_authoritative_ensemble", 2))
+    preferred = int(policy.get("preferred_independent_sources_for_high_confidence_ensemble", minimum))
     source_gate = len(independent) >= minimum
+    high_confidence_source_depth = len(independent) >= preferred
+    evidence = historical_evidence_summary(independent)
     players = build_player_ensemble(independent, minimum_sources=minimum)
     authoritative_players = sum(1 for x in players.values() if x["authoritative_projection_allowed"])
     player_authority_rate = authoritative_players / len(players) if players else 0.0
@@ -153,10 +173,13 @@ def main():
     payload = {
         "season": season,
         "source": "FSFFL governed multi-source ensemble",
-        "model_version": "FSFFL-Projection-Ensemble-1.1",
+        "model_version": "FSFFL-Projection-Ensemble-1.2",
         "ensemble_method": "equal_weight_mean",
         "authoritative_projection_allowed": authoritative,
         "minimum_independent_sources": minimum,
+        "preferred_independent_sources_for_high_confidence_ensemble": preferred,
+        "high_confidence_source_depth_reached": high_confidence_source_depth,
+        "historical_accuracy_evidence": evidence,
         "minimum_player_authority_coverage_for_production": minimum_player_coverage,
         "player_authority_coverage": round(player_authority_rate, 5),
         "independent_sources_used": [x["source_id"] for x in independent],
@@ -165,10 +188,12 @@ def main():
     }
     audit = {
         "season": season,
-        "model_version": "FSFFL-Projection-Ensemble-1.1",
+        "model_version": "FSFFL-Projection-Ensemble-1.2",
         "policy": policy,
         "available_registered_sources": [x["source_id"] for x in available],
         "independent_sources_used": [x["source_id"] for x in independent],
+        "historical_accuracy_evidence": evidence,
+        "high_confidence_source_depth_reached": high_confidence_source_depth,
         "missing_or_invalid_sources": missing,
         "duplicate_information_rejections": duplicate_family_rejections,
         "player_count": len(players),
@@ -180,18 +205,20 @@ def main():
             "minimum_independent_sources": minimum,
             "independent_sources_available": len(independent),
             "source_gate_passed": source_gate,
+            "preferred_independent_sources_for_high_confidence_ensemble": preferred,
+            "high_confidence_source_depth_reached": high_confidence_source_depth,
             "minimum_player_authority_coverage_for_production": minimum_player_coverage,
             "player_authority_coverage": round(player_authority_rate, 5),
             "passed": authoritative,
         },
-        "governance_note": "Production promotion now requires both global source independence and sufficient player-level multi-source coverage. Single-source player estimates remain visible in the candidate artifact but cannot count as authoritative projections. Source disagreement is retained for uncertainty analysis."
+        "governance_note": "Production authority and historical evidence strength are intentionally separate. Two independent sources can clear the operational floor, but the audit also reports whether the preferred three-source depth and comparable long-run benchmark support are present. Equal weighting remains the default because the identified 2014-2025 external benchmark found simple averaging more robust than historical-accuracy weighting."
     }
 
     write_json(sources_dir / "preseason_fsffl_points_candidate_ensemble.json", payload)
     write_json(outputs_dir / "projection_ensemble_audit.json", audit)
     if authoritative:
         write_json(sources_dir / "preseason_fsffl_points.json", payload)
-        print(f"Authoritative FSFFL ensemble built from {len(independent)} independent sources for {len(players)} players; player authority coverage={player_authority_rate:.1%}.")
+        print(f"Authoritative FSFFL ensemble built from {len(independent)} independent sources for {len(players)} players; player authority coverage={player_authority_rate:.1%}; high-confidence source depth={high_confidence_source_depth}.")
     else:
         print(f"Candidate ensemble built; production authority gate failed. independent_sources={len(independent)}/{minimum}, player_authority_coverage={player_authority_rate:.1%}/{minimum_player_coverage:.1%}. Production baseline was not overwritten.")
 
