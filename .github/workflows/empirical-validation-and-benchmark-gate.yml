@@ -20,7 +20,10 @@ on:
 jobs:
   final-audit-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # Deep governance validation can be network-bound while reconstructing old
+    # Sleeper league states. This is intentionally generous for the audit; it is
+    # not a production-model runtime budget and does not affect normal model runs.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -87,8 +90,8 @@ jobs:
         run: |
           # This CI sweep is a governance diagnostic, not an empirical coefficient
           # estimator. Common random numbers are retained across scenarios; 100
-          # simulations keep the seven-case bounded perturbation inside the runtime
-          # gate without changing production simulation settings or model outputs.
+          # simulations are sufficient for the bounded governance perturbation and
+          # do not change production simulation settings or model outputs.
           python script/audit_historical_reconstruction_sensitivity.py \
             --season 2023 \
             --transaction-id 950954472107368448 \
