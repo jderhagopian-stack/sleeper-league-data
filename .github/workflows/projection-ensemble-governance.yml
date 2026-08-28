@@ -6,6 +6,7 @@ on:
       - 'data/projection_source_registry.json'
       - 'script/build_fsffl_projection_ensemble.py'
       - 'script/normalize_*projection_source.py'
+      - 'script/fetch_fantasypros_projection_source.py'
       - 'script/audit_projection_ensemble_governance.py'
       - 'script/test_projection_ensemble.py'
       - '.github/workflows/projection-ensemble-governance.yml'
@@ -27,7 +28,7 @@ jobs:
           python -m py_compile \
             script/build_fsffl_projection_ensemble.py \
             script/normalize_razzball_projection_source.py \
-            script/normalize_fantasypros_projection_source.py \
+            script/fetch_fantasypros_projection_source.py \
             script/audit_projection_ensemble_governance.py \
             script/test_projection_ensemble.py
 
