@@ -49,3 +49,31 @@ jobs:
         run: |
           python test_projection_ensemble.py
           python test_projection_uncertainty_simulator.py
+
+      - name: Exercise real projection adapters and authority gate
+        env:
+          FANTASYPROS_API_KEY: ${{ secrets.FANTASYPROS_API_KEY }}
+        run: |
+          python script/normalize_razzball_projection_source.py
+          if [ -n "${FANTASYPROS_API_KEY:-}" ]; then
+            echo "FantasyPros credential available; exercising live second-source adapter."
+            python script/fetch_fantasypros_projection_source.py
+          else
+            echo "FantasyPros credential unavailable; verifying fail-safe single-source behavior."
+          fi
+          python script/build_fsffl_projection_ensemble.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          league=json.load(open('data/league.json'))
+          season=str(league['season'])
+          audit=json.load(open(Path('data/simulator')/season/'outputs'/'projection_ensemble_audit.json'))
+          print(json.dumps({
+              'independent_sources_used': audit['independent_sources_used'],
+              'player_authority_coverage': audit['player_authority_coverage'],
+              'authoritative_projection_allowed': audit['authoritative_projection_allowed'],
+              'missing_or_invalid_sources': audit['missing_or_invalid_sources'],
+          }, indent=2))
+          if len(audit['independent_sources_used']) < audit['quality_gate']['minimum_independent_sources']:
+              assert audit['authoritative_projection_allowed'] is False
+          PY
