@@ -4,13 +4,15 @@
 Historical Trade Analysis does not own a separate valuation or grading formula.
 Its responsibilities are:
 1. reconstruct the exact pre-trade league state,
-2. load time-frozen GM3 inputs that were knowable at the trade timestamp,
+2. load archived-at-time GM3 inputs when available, otherwise reconstruct them from timestamp-safe evidence,
 3. delegate the decision evaluation to the canonical GM3/Decision Lab core,
 4. report realized outcome afterward as a strictly separate hindsight layer.
 
-If adequate frozen GM3 inputs are unavailable, the trade is NOT GRADED. The
-module never substitutes present-day values and never falls back to the retired
-v1.0 pick/need/player-quality composite.
+Missing contemporaneous archives do not disable the feature: the module can
+reconstruct a point-in-time bundle from historical roster state, prior completed
+season production, pre-trade manager behavior, and dated external anchors when
+available. Reconstructed grades are labeled for audit/backtest purposes and are
+not counted as pristine out-of-sample forecasts.
 """
 from __future__ import annotations
 
@@ -31,7 +33,7 @@ from build_behavioral_action_context import player_index, prior_season_quality, 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.1"
+MODEL_VERSION = "FSFFL-GM-Historical-Trade-Analysis-1.2"
 
 
 def loadj(path: Path, default):
@@ -143,6 +145,28 @@ def default_bundle_path(season: str, transaction_id: str) -> Path:
     return DATA / "historical_gm3" / str(season) / f"{transaction_id}.json"
 
 
+def dated_market_source_at_or_before(timestamp_ms: int) -> Path | None:
+    root = DATA / "historical_gm3" / "sources"
+    if not root.exists():
+        return None
+    when = datetime.fromtimestamp(int(timestamp_ms) / 1000, tz=timezone.utc).date()
+    candidates = []
+    for path in root.glob("*.json"):
+        try:
+            d = datetime.strptime(path.name[:10], "%Y-%m-%d").date()
+        except Exception:
+            continue
+        if d <= when:
+            candidates.append((d, path))
+    return max(candidates, default=(None, None), key=lambda x: x[0] or datetime.min.date())[1]
+
+
+def reconstruct_bundle(season: str, transaction_id: str, timestamp_ms: int):
+    builder = load_module(SCRIPT / "build_historical_gm3_bundle.py", "historical_gm3_reconstructor")
+    source = dated_market_source_at_or_before(timestamp_ms)
+    return builder.build(str(season), str(transaction_id), source), source
+
+
 def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_path: str | None = None):
     provider = HistoricalStateProvider()
     tx = find_trade(provider, str(season), str(transaction_id))
@@ -187,15 +211,21 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
         }
 
     requested = Path(bundle_path) if bundle_path else default_bundle_path(str(season), str(transaction_id))
-    bundle = loadj(requested, None) if requested.exists() else None
+    reconstructed_source = None
+    if requested.exists():
+        bundle = loadj(requested, None)
+        bundle_origin = "ARCHIVED_FILE"
+    else:
+        bundle, reconstructed_source = reconstruct_bundle(str(season), str(transaction_id), int(tx.get("created") or 0))
+        bundle_origin = "RECONSTRUCTED_AT_TIME"
     adapter = load_module(SCRIPT / "historical_trade_gm3_adapter.py", "historical_trade_gm3_adapter")
     gm3 = adapter.evaluate(
         state, data, actions, participant_uids, bundle, sims=int(sims), seed=int(seed)
     )
 
     for uid, side in sides.items():
-        side["gm3_decision_at_time"] = (gm3.get("team_results") or {}).get(uid) if gm3.get("status") == "GRADED_BY_GM3_CORE" else {
-            "status": "NOT_GRADED",
+        side["gm3_decision_at_time"] = (gm3.get("team_results") or {}).get(uid) if str(gm3.get("status") or "").startswith("GRADED_") else {
+            "status": gm3.get("status") or "INSUFFICIENT_POINT_IN_TIME_INPUTS",
             "reason": gm3.get("reason"),
         }
 
@@ -213,7 +243,10 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
         "actions": actions,
         "participant_user_ids": participant_uids,
         "gm3_evaluation": gm3,
-        "time_frozen_bundle_path": str(requested.relative_to(ROOT)) if requested.is_absolute() and str(requested).startswith(str(ROOT)) else str(requested),
+        "historical_input_basis": gm3.get("historical_input_class") or bundle_origin,
+        "strict_out_of_sample_backtest_eligible": bool(gm3.get("strict_out_of_sample_backtest_eligible")),
+        "historical_bundle_path": str(requested.relative_to(ROOT)) if requested.exists() and requested.is_absolute() and str(requested).startswith(str(ROOT)) else (str(requested) if requested.exists() else None),
+        "reconstructed_market_source": str(reconstructed_source.relative_to(ROOT)) if reconstructed_source else None,
         "sides": sides,
         "policy": {
             "historical_module_is_time_travel_wrapper_not_scoring_model": True,
@@ -223,13 +256,15 @@ def analyze(season: str, transaction_id: str, sims=1000, seed=20260821, bundle_p
             "outcome_layer_separate_from_decision_layer": True,
             "current_player_values_not_backfilled_into_historical_grade": True,
             "standalone_v1_process_score_retired": True,
-            "missing_historical_inputs_result_in_not_graded": True,
+            "missing_archived_inputs_do_not_disable_historical_analysis": True,
+            "reconstructed_at_time_inputs_are_allowed": True,
+            "reconstructed_at_time_grades_are_not_pristine_backtest_observations": True,
             "alternate_history_state_provider_reused": True,
         },
         "limitations": [
-            "Historical reconstruction alone is not sufficient to grade a trade.",
-            "A grade is produced only when the trade date has a complete time-frozen GM3 input bundle.",
-            "Until those inputs exist, the report preserves the reconstructed facts and realized outcome but explicitly returns NOT GRADED.",
+            "Archived-at-time bundles are preferred for strict empirical backtesting.",
+            "Reconstructed-at-time bundles preserve decision functionality but may inherit later model methodology, so they are excluded from pristine out-of-sample accuracy claims.",
+            "Reconstruction provenance and confidence belong in report methodology/end notes unless they materially alter the recommendation.",
         ],
     }
 
