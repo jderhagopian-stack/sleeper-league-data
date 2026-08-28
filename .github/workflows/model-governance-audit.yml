@@ -5,6 +5,7 @@ on:
     paths:
       - 'script/audit_model_governance.py'
       - 'script/audit_model_sensitivity.py'
+      - 'script/audit_empirical_readiness.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -28,6 +29,7 @@ jobs:
         run: |
           python script/audit_model_governance.py
           python script/audit_model_sensitivity.py
+          python script/audit_empirical_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -47,8 +49,17 @@ jobs:
           pkg=s['package_discount_divergence']
           assert pkg[-1]['difference_pct_vs_gm22'] > 10
           assert s['state_weight_source_divergence'][0]['runtime_source']=='calibration_artifact'
+
+          e=json.load(open('data/audit/empirical_readiness_audit.json'))
+          eids={x['id']:x for x in e['findings']}
+          assert eids['EMPIRICAL-PROJECTION-001']['authoritative_empirical_claim_allowed'] is False
+          assert eids['EMPIRICAL-UNCERTAINTY-001']['authoritative_empirical_claim_allowed'] is False
+          assert eids['EMPIRICAL-HISTORICAL-TRADE-001']['authoritative_empirical_claim_allowed'] is False
+          assert e['summary']['historical_projection_artifact_count']==0
+          assert e['summary']['frozen_historical_gm3_bundle_count']==0
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
+          print(json.dumps(e['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
