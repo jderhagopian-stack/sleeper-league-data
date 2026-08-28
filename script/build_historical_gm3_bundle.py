@@ -386,6 +386,8 @@ def parse_pick(aid):
 
 
 def future_pick_source_value(year, rnd, orig, team_profiles, slot_map, source):
+    if not (source.get("pick_sources") or []):
+        return None, "intrinsic_historical_pick_proxy_no_dated_market_anchor", 0.45
     pff = ((source.get("pick_sources") or [{}])[0].get("values") or {})
     fp = ((source.get("pick_sources") or [{},{}])[1].get("values") or {})
     if year == 2023 and rnd in {1,2,3}:
@@ -413,7 +415,7 @@ def neutral_schedule():
     return {str(k): v for k, v in raw.items() if int(k) <= 14}
 
 
-def build(season: str, transaction_id: str, source_path: Path):
+def build(season: str, transaction_id: str, source_path: Path | None = None):
     provider = HistoricalStateProvider()
     data = provider.data(str(season))
     tx = next(t for t in completed_transactions(data) if str(t.get("transaction_id")) == str(transaction_id))
@@ -422,7 +424,7 @@ def build(season: str, transaction_id: str, source_path: Path):
     rosters = historical_rosters(state, data)
     players = player_index()
     prior, baselines = prior_stats(int(season), players)
-    source = loadj(source_path, {})
+    source = loadj(source_path, {}) if source_path and source_path.exists() else {}
     values, exact_count = build_player_values(rosters, players, prior, baselines, source, int(season))
     projection = projection_bundle(values, prior, baselines)
 
@@ -472,7 +474,6 @@ def build(season: str, transaction_id: str, source_path: Path):
             q, tier, ew, lw = 0.52, "mid", 0.30, 0.30
         owner_rid = state.pick_owners.get(aid, str(orig))
         owner_uid = r2u.get(str(owner_rid))
-        market_value = round(source_val * 100.0, 1)
         scenario_weights = {
             "early": ew,
             "mid": max(0.0, 1.0 - ew - lw),
@@ -484,6 +485,7 @@ def build(season: str, transaction_id: str, source_path: Path):
             tier=tier,
             scenario_weights=scenario_weights if year > int(season) else None,
         )
+        market_value = round(source_val * 100.0, 1) if source_val is not None else round(float(intrinsic_value), 1)
         pick_assets[aid] = {
             "asset_id": aid, "asset_type": "pick", "name": aid,
             "market_dynasty": market_value,
@@ -694,7 +696,8 @@ def build(season: str, transaction_id: str, source_path: Path):
             "historical_input_class": "RECONSTRUCTED_AT_TIME",
             "strict_out_of_sample_backtest_eligible": False,
             "historical_state": state.reconstruction,
-            "market_source_file": str(source_path.relative_to(ROOT)),
+            "market_source_file": str(source_path.relative_to(ROOT)) if source_path and source_path.exists() else None,
+            "dated_market_anchor_available": bool(source),
             "market_source_role": "anchor_and_validation_only_not_final_gm_value",
             "dated_exact_trade_player_market_anchors": exact_count,
             "historical_team_state_source": historical_state_index.get("model_version"),
