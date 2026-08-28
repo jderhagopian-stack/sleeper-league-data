@@ -16,7 +16,7 @@ DATA = ROOT / "data"
 OUT = DATA / "audit"
 REGISTRY = DATA / "model_parameter_registry.json"
 HIST = DATA / "historical_gm3"
-MODEL_VERSION = "FSFFL-Empirical-Validation-Readiness-1.0"
+MODEL_VERSION = "FSFFL-Empirical-Validation-Readiness-1.1"
 
 
 def loadj(path: Path, default):
@@ -49,7 +49,7 @@ def main():
     if not complete_bundles:
         blockers.append(
             "No complete, explicitly time-frozen historical GM3 bundles are available. "
-            "Historical state reconstruction can be tested, but at-the-time trade-ranking coefficients cannot be promoted empirically without leakage-safe inputs."
+            "Reconstructed-at-time analysis can preserve historical decision functionality, but at-the-time trade-ranking coefficients cannot be promoted empirically without truly archived leakage-safe inputs."
         )
     if authoritative_non_rule:
         blockers.append(
@@ -62,7 +62,8 @@ def main():
         "software_validation_is_empirical_validation": False,
         "policy": {
             "current_values_may_not_backfill_historical_decisions": True,
-            "missing_frozen_inputs_must_remain_not_graded": True,
+            "missing_archived_inputs_may_use_reconstructed_at_time_analysis": True,
+            "reconstructed_at_time_results_are_not_pristine_out_of_sample_backtests": True,
             "coefficient_promotion_requires_out_of_sample_improvement": True,
             "rank_stability_alone_is_not_validation": True,
             "no_output_tuning_to_match_expectations": True,
@@ -85,7 +86,7 @@ def main():
         "blockers": blockers,
         "status": "EMPIRICAL_PROMOTION_READY" if empirical_promotion_ready else "EMPIRICAL_PROMOTION_BLOCKED_INPUTS_OR_GOVERNANCE",
         "next_evidence_required": [
-            "Versioned, timestamp-frozen projection/market/injury/usage inputs for historical decision dates",
+            "Versioned, timestamp-frozen projection/market/injury/usage inputs for strict historical backtests; reconstructed-at-time inputs remain valid for functional retrospective analysis",
             "A defensible prediction or decision target for each calibrated family",
             "Time-ordered train/validation/test splits or equivalent leakage-safe out-of-sample design",
             "Family-by-family and grouped ablations for overlapping final-score channels",
