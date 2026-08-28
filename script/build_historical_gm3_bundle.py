@@ -536,7 +536,12 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
     projection = projection_bundle(values, prior, baselines, int(season), player_sd, derived_cv)
 
     gm = load_module(SCRIPT / "build_fsffl_gm_engine.py", "historical_bundle_gm")
-    values = gm.build_intrinsic_player_values(values, projection)
+    # Use the canonical current GM league-value transform rather than depending
+    # on a retired feature-branch-only intrinsic-value helper.
+    for _pid, _asset in values.items():
+        _intrinsic = gm.fsffl_league_value(_asset)
+        _asset["intrinsic_dynasty"] = round(float(_intrinsic), 1)
+        _asset["intrinsic_current"] = round(float(_asset.get("market_redraft") or 0.0), 1)
     hist_state_mod = load_module(SCRIPT / "historical_state_behavior.py", "historical_bundle_state")
     profile_by_uid = {}
     owners = owner_directory(data)
@@ -586,20 +591,31 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
             "mid": max(0.0, 1.0 - ew - lw),
             "late": lw,
         }
-        intrinsic_value = gm.intrinsic_pick_value(
-            year, rnd, values, int(season),
-            slot=slots.get(str(orig)) if year == int(season) else None,
-            tier=tier,
-            scenario_weights=scenario_weights if year > int(season) else None,
-        )
-        market_value = round(source_val * 100.0, 1) if source_val is not None else round(float(intrinsic_value), 1)
+        if source_val is not None:
+            market_value = round(source_val * 100.0, 1)
+            intrinsic_value = market_value
+            intrinsic_source = "dated_historical_superflex_market_anchor"
+        else:
+            # Last-resort functional fallback uses the canonical GM2.2 pick
+            # fallback with the historical year normalized to the nearest
+            # current-model horizon. It remains explicitly provisional.
+            horizon = max(0, int(year) - int(season))
+            proxy_year = 2027 + min(horizon, 2)
+            market_value = round(float(gm.fallback_pick_value(proxy_year, tier, rnd, {})), 1)
+            intrinsic_value = market_value
+            intrinsic_source = "canonical_pick_fallback_horizon_proxy"
         pick_assets[aid] = {
             "asset_id": aid, "asset_type": "pick", "name": aid,
             "market_dynasty": market_value,
             "intrinsic_dynasty": intrinsic_value,
-            "intrinsic_value_source": "FSFFL_expected_rookie_outcome_realization_with_slot_uncertainty_and_waiting_cost",
+            "intrinsic_value_source": intrinsic_source,
             "intrinsic_scenario_weights": scenario_weights if year > int(season) else None,
-            "market_sanity_check": gm.market_sanity_check(intrinsic_value, market_value),
+            "market_sanity_check": {
+                "intrinsic": round(float(intrinsic_value), 1),
+                "market": round(float(market_value), 1),
+                "difference": round(float(intrinsic_value) - float(market_value), 1),
+                "role": "historical anchor or fallback; not an independent validation target",
+            },
             "current_owner_user_id": owner_uid,
             "original_owner_user_id": original_uid,
             "round": rnd, "season": year,
