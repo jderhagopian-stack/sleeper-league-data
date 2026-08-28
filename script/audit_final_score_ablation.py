@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Ablate overlapping final-score channels without changing production scoring.
 
-Consumes an already-generated state-aware market-sweep report.  The audit asks
-whether removing selected correlated channels changes finalist ordering.  It is
+Consumes an already-generated state-aware market-sweep report. The audit asks
+whether removing selected correlated channels changes finalist ordering. It is
 sensitivity evidence, not historical validation and not coefficient tuning.
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ import argparse
 import json
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Final-Score-Ablation-1.0"
+MODEL_VERSION = "FSFFL-Final-Score-Ablation-1.1"
 
 
 def f(x, default=0.0):
@@ -22,11 +22,19 @@ def f(x, default=0.0):
 
 
 def key(row):
+    # Reduced audit rows already carry the stable identity derived from the
+    # source candidate. Never try to reconstruct it from fields intentionally
+    # omitted by the reduction step.
+    if row.get("candidate_key"):
+        return str(row["candidate_key"])
     if row.get("candidate_id"):
         return str(row["candidate_id"])
     buyer = str(row.get("buyer_user_id") or "")
     outs = ",".join(sorted(str(x) for x in row.get("outgoing_assets") or []))
-    ins = ",".join(sorted(str(x) for x in row.get("incoming_assets") or []))
+    # Market-sweep candidates call the counterparty return side return_assets;
+    # some adjacent modules use incoming_assets. Prefer the populated field.
+    returns = row.get("return_assets") or row.get("incoming_assets") or []
+    ins = ",".join(sorted(str(x) for x in returns))
     return f"{buyer}|OUT:{outs}|IN:{ins}"
 
 
@@ -35,6 +43,8 @@ def rank(rows, score_key):
 
 
 def discordance(a, b):
+    if len(set(a)) != len(a) or len(set(b)) != len(b):
+        raise ValueError("Ablation ranking contains duplicate candidate identities")
     common = [x for x in a if x in set(b)]
     pos = {x: i for i, x in enumerate(b)}
     pairs = 0
@@ -56,6 +66,10 @@ def main():
     rows = list(report.get("ranked_finalists") or report.get("top_5_alternatives") or [])
     if not rows:
         raise SystemExit("No finalist rows available for ablation")
+
+    source_keys = [key(x) for x in rows]
+    if len(set(source_keys)) != len(source_keys):
+        raise SystemExit(f"Finalist candidate identities are not unique: {source_keys}")
 
     audited = []
     for row in rows:
@@ -126,6 +140,7 @@ def main():
         },
         "summary": {
             "candidate_count": len(audited),
+            "unique_candidate_count": len(set(source_keys)),
             "any_ablation_changes_order": any_order_change,
             "any_ablation_changes_top_candidate": any_top_change,
             "max_absolute_strategic_composite_share_of_full_score": round(max_share, 4),
