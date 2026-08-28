@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "model_component": "FSFFL projection ensemble",
   "policy": {
     "minimum_independent_sources_for_authoritative_ensemble": 2,
@@ -22,6 +22,16 @@
       "normalized_file_pattern": "data/simulator/{season}/sources/projection_razzball.json",
       "provenance_class": "EXTERNAL_CURRENT_FORECAST",
       "notes": "Existing FSFFL primary statistical projection source. Must not be the sole authoritative source once ensemble promotion occurs."
+    },
+    "fftoday": {
+      "display_name": "FFToday",
+      "projection_type": "statistical",
+      "independence_family": "fftoday",
+      "aggregate_source": false,
+      "eligible_for_ensemble": true,
+      "normalized_file_pattern": "data/simulator/{season}/sources/projection_fftoday.json",
+      "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "notes": "Public season-long statistical projections. Raw passing/rushing/receiving stats are normalized and rescored under FSFFL rules; provider fantasy-point totals are not used."
     },
     "fantasypros": {
       "display_name": "FantasyPros",
