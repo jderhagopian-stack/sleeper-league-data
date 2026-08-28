@@ -5,10 +5,10 @@ Runtime contract:
 - reads only small precomputed JSON artifacts;
 - never reads historical transactions or runs a calibration search;
 - never runs a simulator;
-- falls back to the legacy GM 2.2 anchor logic if calibration is missing/invalid.
+- falls back to the legacy GM 2.2 anchor logic if the governed prior is missing/invalid.
 
-Offline calibration may replace data/gm/state_weight_calibration.json without
-changing this runtime API.
+Offline calibration may produce candidate artifacts, but the runtime prior is changed
+only through an explicit promotion step after required temporal validation.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-CALIBRATION_PATH = DATA / "gm" / "state_weight_calibration.json"
+CALIBRATION_PATH = DATA / "gm" / "state_weight_prior.json"
 SIM_CONTEXT_PATH = DATA / "gm" / "league" / "simulator_context.json"
 WEIGHT_KEYS = ("current", "future", "liquidity", "resilience")
 
@@ -60,7 +60,7 @@ def load_calibration() -> Dict[str, Any]:
         for row in anchors:
             if not set(WEIGHT_KEYS).issubset((row.get("weights") or {}).keys()):
                 raise ValueError("invalid weight keys")
-        raw["runtime_source"] = "calibration_artifact"
+        raw["runtime_source"] = "governed_prior_artifact"
         return raw
     except Exception:
         return {
@@ -192,7 +192,7 @@ def resolve(
         },
         "calibration_model_version": cal.get("model_version"),
         "calibration_status": cal.get("status"),
-        "runtime_source": cal.get("runtime_source", "calibration_artifact"),
+        "runtime_source": cal.get("runtime_source", "governed_prior_artifact"),
     }
 
 
@@ -202,6 +202,5 @@ def weights_for_team(team: Dict[str, Any], simulator_row: Dict[str, Any] | None 
 
 
 if __name__ == "__main__":
-    # Tiny runtime smoke demonstration; no historical data or simulations.
     for c in (0.10, 0.35, 0.54, 0.55, 0.77, 0.78, 0.92):
         print(c, resolve({"contender_score": c, "dynasty_roster_score": 0.5, "user_id": "demo"}))
