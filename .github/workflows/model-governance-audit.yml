@@ -7,6 +7,7 @@ on:
       - 'script/audit_model_sensitivity.py'
       - 'script/audit_empirical_readiness.py'
       - 'script/audit_pick_outcome_readiness.py'
+      - 'script/audit_decision_path_integrity.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -32,6 +33,7 @@ jobs:
           python script/audit_model_sensitivity.py
           python script/audit_empirical_readiness.py
           python script/audit_pick_outcome_readiness.py
+          python script/audit_decision_path_integrity.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -65,11 +67,19 @@ jobs:
           assert p['policy']['future_seasons_are_right_censored'] is True
           assert 'authoritative_empirical_claim_allowed' in p['finding']
           assert p['summary']['draft_rows'] >= p['summary']['completed_draft_rows']
+
+          d=json.load(open('data/audit/decision_path_integrity_audit.json'))
+          assert d['summary']['production_roster_aware'] is True
+          assert d['summary']['runtime_roster_version_single_source'] is True
+          assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
+          assert d['summary']['final_score_overlap_ablation_required'] is True
+          assert d['summary']['behavioral_predictive_holdout_detected'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
           print(json.dumps(p['summary'],indent=2))
           print(json.dumps(p['finding'],indent=2))
+          print(json.dumps(d['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
