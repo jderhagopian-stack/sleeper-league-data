@@ -20,9 +20,11 @@ SCRIPT = Path(__file__).resolve().parent
 BASE = SCRIPT / "run_trade_market_sweep.py"
 V13 = SCRIPT / "run_trade_market_sweep_v13.py"
 V20 = SCRIPT / "run_trade_market_sweep_v20.py"
+V30 = SCRIPT / "run_trade_market_sweep_v30.py"
 OVERLAY = SCRIPT / "decision_lab_state_aware.py"
 ROSTER_AWARE = SCRIPT / "roster_aware_trade.py"
-MODEL_VERSION = "FSFFL-Roster-Cut-Sensitivity-1.0"
+ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
+MODEL_VERSION = "FSFFL-Roster-Cut-Sensitivity-1.1"
 
 
 def load(path, name):
@@ -64,8 +66,10 @@ def main():
     engine = load(BASE, "cut_audit_base_engine")
     v13 = load(V13, "cut_audit_v13")
     v20 = load(V20, "cut_audit_v20")
+    v30 = load(V30, "cut_audit_v30")
     overlay = load(OVERLAY, "cut_audit_state_overlay")
     roster_aware = load(ROSTER_AWARE, "cut_audit_roster_aware")
+    roster_interaction = load(ROSTER_INTERACTION, "cut_audit_roster_interaction")
     v20.install_engine_upgrade(engine, overlay)
     dl = engine.import_decision_lab()
 
@@ -191,12 +195,28 @@ def main():
             scored["simulation"] = sim
             state = str(strategic.get("objective_state") or source.get("focal_current_state") or "unknown")
             score = v20.state_aware_post_sim_score(engine, scored, state)
+            scored["post_sim_score"] = score
+            scored["buyer_user_id"] = buyer_uid
+            # Reapply the same bounded roster-interaction overlay used by the
+            # production v1.24 wrapper so cut-plan comparison reflects the
+            # actual downstream score rather than stopping at v1.14.
+            pre_interaction_score = sf(score)
+            scored = v30.apply_row(
+                scored,
+                {"focus_user_id": focus_uid, "current_offer_partner_user_id": buyer_uid},
+                roster_interaction,
+            )
+            production_score = sf(scored.get("post_sim_score"))
+            strategic = (scored.get("simulation") or {}).get("strategic") or strategic
             profile_lookup = {str(x.get("player_id")): x for x in fresh_shortlist}
             results.append({
                 "cut_player_ids": list(plan),
                 "cut_names": [str((profile_lookup.get(pid) or {}).get("name") or pid) for pid in plan],
                 "retention_cost_sum": round(sum(sf((profile_lookup.get(pid) or {}).get("retention_cost")) for pid in plan), 2),
-                "state_aware_post_sim_score": round(sf(score), 2),
+                "state_aware_post_sim_score_pre_roster_interaction": round(pre_interaction_score, 2),
+                "production_post_sim_score": round(production_score, 2),
+                "roster_interaction_value_delta": round(sf(strategic.get("roster_interaction_value_delta")), 2),
+                "roster_interaction_weighted_delta": round(sf(strategic.get("roster_interaction_weighted_delta")), 2),
                 "expected_wins_delta": round(sf(sim["focus_delta"].get("expected_wins")), 5),
                 "expected_points_delta": round(sf(sim["focus_delta"].get("expected_points_for")), 5),
                 "playoff_probability_delta": round(sf(sim["focus_delta"].get("playoff_probability")), 5),
@@ -208,9 +228,9 @@ def main():
 
         default_ids = tuple(str(x.get("player_id")) for x in (fres.get("selected_cuts") or []))
         default_row = next((x for x in results if tuple(x["cut_player_ids"]) == default_ids), None)
-        best = max(results, key=lambda x: (sf(x["state_aware_post_sim_score"]), -sf(x["retention_cost_sum"]))) if results else None
-        score_spread = (max(sf(x["state_aware_post_sim_score"]) for x in results) - min(sf(x["state_aware_post_sim_score"]) for x in results)) if results else 0.0
-        default_regret = sf(best.get("state_aware_post_sim_score")) - sf((default_row or {}).get("state_aware_post_sim_score")) if best else 0.0
+        best = max(results, key=lambda x: (sf(x["production_post_sim_score"]), -sf(x["retention_cost_sum"]))) if results else None
+        score_spread = (max(sf(x["production_post_sim_score"]) for x in results) - min(sf(x["production_post_sim_score"]) for x in results)) if results else 0.0
+        default_regret = sf(best.get("production_post_sim_score")) - sf((default_row or {}).get("production_post_sim_score")) if best else 0.0
         audited.append({
             "candidate_key": candidate_key(source),
             "required_cuts": required,
@@ -222,7 +242,7 @@ def main():
             "default_matches_best_downstream_plan": bool(default_row and best and tuple(default_row["cut_player_ids"]) == tuple(best["cut_player_ids"])),
             "default_score_regret": round(default_regret, 2),
             "cut_plan_score_spread": round(score_spread, 2),
-            "plans": sorted(results, key=lambda x: sf(x["state_aware_post_sim_score"]), reverse=True),
+            "plans": sorted(results, key=lambda x: sf(x["production_post_sim_score"]), reverse=True),
         })
 
     any_mismatch = any(not x["default_matches_best_downstream_plan"] for x in audited)
@@ -231,14 +251,14 @@ def main():
     payload = {
         "model_version": MODEL_VERSION,
         "source_report_model_version": report.get("model_version"),
-        "purpose": "Measure downstream decision leverage of the retention-cost cut prescreen; no production cut is changed.",
+        "purpose": "Measure downstream decision leverage of the retention-cost cut prescreen through the production v1.24 roster-interaction score; no production cut is changed.",
         "interpretation": {
             "historical_validation": False,
             "coefficient_tuning": False,
             "same_seed_across_cut_plans": True,
             "uses_exact_lineup_reoptimization": True,
             "uses_state_aware_v1_14_utility": True,
-            "roster_interaction_v1_24_not_reapplied": True,
+            "roster_interaction_v1_24_reapplied": True,
         },
         "summary": {
             "audited_candidate_count": len(audited),
