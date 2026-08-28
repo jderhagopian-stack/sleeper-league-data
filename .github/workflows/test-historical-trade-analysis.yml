@@ -5,6 +5,8 @@ on:
     paths:
       - 'script/run_historical_trade_analysis.py'
       - 'script/historical_trade_gm3_adapter.py'
+      - 'script/build_historical_gm3_bundle.py'
+      - 'data/historical_gm3/sources/**'
       - 'script/render_historical_trade_report.py'
       - 'script/run_roster_decision_lab.py'
       - 'script/fsffl_historical_state_provider.py'
@@ -23,7 +25,7 @@ jobs:
           python-version: '3.11'
       - run: pip install reportlab pypdf
       - name: Compile
-        run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/build_historical_gm3_bundle.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
       - name: Run known 2023 Josh Allen trade
         run: |
           python script/run_historical_trade_analysis.py \
@@ -40,7 +42,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           d=json.loads(Path('/tmp/historical-trade.json').read_text())
-          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.1'
+          assert d['model_version']=='FSFFL-GM-Historical-Trade-Analysis-1.2'
           assert d['transaction_id']=='950954472107368448'
           assert d['season']==2023
           assert d['policy']['historical_module_is_time_travel_wrapper_not_scoring_model'] is True
@@ -49,26 +51,31 @@ jobs:
           assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
           assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
           assert d['policy']['standalone_v1_process_score_retired'] is True
-          assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
+          assert d['policy']['missing_archived_inputs_do_not_disable_historical_analysis'] is True
+          assert d['policy']['reconstructed_at_time_inputs_are_allowed'] is True
+          assert d['policy']['reconstructed_at_time_grades_are_not_pristine_backtest_observations'] is True
           assert d['policy']['alternate_history_state_provider_reused'] is True
           assert d['gm3_evaluation']['standalone_historical_score_used'] is False
           assert d['gm3_evaluation']['current_values_used'] is False
-          # Until a complete frozen GM3 bundle is supplied, the old A/F result
-          # must never reappear as a fallback.
-          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert d['gm3_evaluation']['status']=='GRADED_RECONSTRUCTED_AT_TIME'
+          assert d['historical_input_basis']=='RECONSTRUCTED_AT_TIME'
+          assert d['strict_out_of_sample_backtest_eligible'] is False
+          assert d['gm3_evaluation']['historical_input_class']=='RECONSTRUCTED_AT_TIME'
+          assert d['gm3_evaluation']['strict_out_of_sample_backtest_eligible'] is False
           assert 'decision_quality_at_time' not in next(iter(d['sides'].values()))
           assert len(d['sides'])==2
           assert d['historical_state_provider']['source'] in {'incremental_reverse_transaction_cache','timestamp_reverse_replay'}
           pdf=PdfReader('/tmp/FSFFL_Historical_Trade_Analysis.pdf')
           assert len(pdf.pages)==1
           text='\n'.join((p.extract_text() or '') for p in pdf.pages)
-          assert 'NOT GRADED' in text
+          assert 'NOT GRADED' not in text
+          assert 'Methodology note: input basis RECONSTRUCTED_AT_TIME' in text
           assert 'plain-English presentation' in text
           print(json.dumps({
               'trade_time_utc':d['trade_time_utc'],
               'state':d['historical_state_provider'],
               'gm3_status':d['gm3_evaluation']['status'],
-              'missing':d['gm3_evaluation'].get('missing_time_frozen_inputs'),
+              'input_basis':d['historical_input_basis'],
           },indent=2))
           PY
       - name: Upload audit artifact
