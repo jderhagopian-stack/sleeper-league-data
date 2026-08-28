@@ -97,6 +97,40 @@ def prior_stats(season: int, players):
     return out, baselines
 
 
+def prior_volatility(season: int, players):
+    """Estimate player SD and positional CV from the prior completed FSFFL season."""
+    rows = loadj(DATA / "stats" / "fsffl" / str(int(season) - 1) / "player_weekly_fsffl.json", [])
+    by_player = defaultdict(list)
+    position = {}
+    for row in rows or []:
+        pid = str(row.get("player_id") or "")
+        pos = str(row.get("position") or (players.get(pid) or {}).get("position") or "")
+        if not pid or pos not in POSITIONS:
+            continue
+        try:
+            pts = float(row.get("fsffl_points"))
+        except Exception:
+            continue
+        by_player[pid].append(pts)
+        position[pid] = pos
+    player_sd = {}
+    pos_cv = defaultdict(list)
+    for pid, vals in by_player.items():
+        if len(vals) < 4:
+            continue
+        mean = statistics.mean(vals)
+        sd = statistics.pstdev(vals)
+        player_sd[pid] = sd
+        if mean > 0.5:
+            pos_cv[position[pid]].append(sd / mean)
+    derived_cv = {
+        pos: statistics.median(vals)
+        for pos, vals in pos_cv.items()
+        if vals
+    }
+    return player_sd, derived_cv
+
+
 def age_at(meta, season: int):
     bd = meta.get("birth_date")
     if bd:
@@ -173,9 +207,9 @@ def build_player_values(rosters, players, prior, baselines, source, season):
     return values, source_exact
 
 
-def projection_bundle(values, prior, baselines):
+def projection_bundle(values, prior, baselines, season, player_sd, derived_cv):
     players = {}
-    cv = {"QB": 0.28, "RB": 0.52, "WR": 0.48, "TE": 0.50}
+    fallback_cv = {"QB": 0.28, "RB": 0.52, "WR": 0.48, "TE": 0.50}
     for pid, a in values.items():
         pos = a["position"]
         mean = float((prior.get(pid) or {}).get("ppg") or baselines[pos] * 0.72)
@@ -188,7 +222,8 @@ def projection_bundle(values, prior, baselines):
                 # haircut represents recovery uncertainty without learning from
                 # same-season results.
                 active = 0.62
-            sd = max(1.0, mean * cv[pos])
+            cv = float(derived_cv.get(pos) or fallback_cv[pos])
+            sd = max(1.0, float(player_sd.get(pid) or (mean * cv)))
             weeks[str(week)] = {
                 "active_probability": active,
                 "is_bye": False,
@@ -203,8 +238,14 @@ def projection_bundle(values, prior, baselines):
             "position": pos,
             "season_baseline_ppg": round(mean, 3),
             "historical_games_for_player_volatility": int((prior.get(pid) or {}).get("games") or 0),
-            "volatility_cv": cv[pos],
-            "volatility_source": "prior_completed_season_position_proxy",
+            "volatility_cv": round(float(derived_cv.get(pos) or fallback_cv[pos]), 4),
+            "volatility_source": (
+                "prior_completed_season_player_weekly_realized_sd"
+                if pid in player_sd else
+                "prior_completed_season_position_cv"
+                if pos in derived_cv else
+                "fallback_position_cv"
+            ),
             "weeks": weeks,
         }
     return {
@@ -426,7 +467,8 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
     prior, baselines = prior_stats(int(season), players)
     source = loadj(source_path, {}) if source_path and source_path.exists() else {}
     values, exact_count = build_player_values(rosters, players, prior, baselines, source, int(season))
-    projection = projection_bundle(values, prior, baselines)
+    player_sd, derived_cv = prior_volatility(int(season), players)
+    projection = projection_bundle(values, prior, baselines, int(season), player_sd, derived_cv)
 
     gm = load_module(SCRIPT / "build_fsffl_gm_engine.py", "historical_bundle_gm")
     values = gm.build_intrinsic_player_values(values, projection)
@@ -703,6 +745,7 @@ def build(season: str, transaction_id: str, source_path: Path | None = None):
             "historical_team_state_source": historical_state_index.get("model_version"),
             "historical_team_state_confidence": historical_state_confidence,
             "projection_basis": f"{int(season)-1} completed-season FSFFL PPG",
+            "projection_volatility_basis": "prior completed-season player weekly realized SD with position-CV fallback",
             "schedule_basis": f"{int(season)-1} FSFFL schedule reused as neutral known proxy",
             "behavior_basis": "only actions with timestamp strictly before trade",
             "historical_lineup_cache": "preoptimized once in frozen bundle; reused by GM3 trade analysis",
