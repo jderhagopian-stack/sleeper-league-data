@@ -87,7 +87,12 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
             "reason": "No time-frozen GM3 input bundle is available for this trade date.",
         }
     missing = sorted(k for k in REQUIRED_BUNDLE_KEYS if not bundle.get(k))
-    requested_basis = str(bundle.get("historical_input_class") or "UNCLASSIFIED_OR_UNCERTIFIED")
+    provenance = bundle.get("provenance") if isinstance(bundle.get("provenance"), dict) else {}
+    requested_basis = str(
+        bundle.get("historical_input_class")
+        or provenance.get("historical_input_class")
+        or "UNCLASSIFIED_OR_UNCERTIFIED"
+    )
     cert = archive_certification_status(bundle)
     is_archived = requested_basis == "ARCHIVED_AT_TIME" and cert["certified"]
     if is_archived:
@@ -96,9 +101,11 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
         basis = "RECONSTRUCTED_AT_TIME"
     else:
         basis = "UNCLASSIFIED_OR_UNCERTIFIED"
-    strict_oos = bool(
-        is_archived and bundle.get("strict_out_of_sample_backtest_eligible") is True
+    requested_strict_oos = (
+        bundle.get("strict_out_of_sample_backtest_eligible") is True
+        or provenance.get("strict_out_of_sample_backtest_eligible") is True
     )
+    strict_oos = bool(is_archived and requested_strict_oos)
     authoritative = bool(is_archived and strict_oos)
     reason = None
     if missing:
