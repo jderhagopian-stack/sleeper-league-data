@@ -4,7 +4,10 @@ on:
   pull_request:
     paths:
       - 'script/audit_model_governance.py'
+      - 'script/audit_model_sensitivity.py'
+      - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
+      - 'data/model_parameter_registry.json'
       - 'data/gm/**'
   workflow_dispatch:
 
@@ -19,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Validate governed parameter registry
+        run: python script/validate_model_parameter_registry.py
       - name: Run model governance audit
         run: |
           python script/audit_model_governance.py
