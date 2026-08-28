@@ -146,6 +146,7 @@ jobs:
           assert d['interpretation']['historical_validation'] is False
           assert d['interpretation']['coefficient_tuning'] is False
           assert d['interpretation']['uses_exact_lineup_reoptimization'] is True
+          assert d['interpretation']['roster_interaction_v1_24_reapplied'] is True
           assert d['summary']['audited_candidate_count'] >= 1
           print(json.dumps(d['summary'],indent=2))
           PY
