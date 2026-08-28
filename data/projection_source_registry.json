@@ -1,8 +1,9 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "model_component": "FSFFL projection ensemble",
   "policy": {
     "minimum_independent_sources_for_authoritative_ensemble": 2,
+    "preferred_independent_sources_for_high_confidence_ensemble": 3,
     "minimum_player_authority_coverage_for_production": 0.85,
     "default_aggregation": "equal_weight_mean",
     "allow_complex_weighting_without_validation": false,
@@ -10,7 +11,15 @@
     "aggregate_sources_must_declare_components": true,
     "duplicate_information_families_must_not_receive_independent_votes": true,
     "missing_source_behavior": "use_available_independent_sources_only_if_minimum_source_gate_is_met; otherwise retain/non-authoritative fallback",
-    "source_disagreement_is_preserved_for_uncertainty_analysis": true
+    "source_disagreement_is_preserved_for_uncertainty_analysis": true,
+    "historical_accuracy_evidence_is_source_metadata_not_an_unvalidated_weight": true,
+    "external_benchmark_reference": {
+      "name": "Fantasy Football Analytics - Which Site Has the Most Accurate Fantasy Football Projections?",
+      "seasons": "2014-2025",
+      "published": "2026",
+      "url": "https://fantasyfootballanalytics.net/which-projections-are-most-accurate",
+      "key_result": "Simple multi-source averaging was more robust than individual sources and slightly outperformed historical-accuracy weighting overall; retain equal weighting until FSFFL-specific held-out validation supports complexity."
+    }
   },
   "sources": {
     "razzball": {
@@ -21,7 +30,11 @@
       "eligible_for_ensemble": true,
       "normalized_file_pattern": "data/simulator/{season}/sources/projection_razzball.json",
       "provenance_class": "EXTERNAL_CURRENT_FORECAST",
-      "notes": "Existing FSFFL primary statistical projection source. Must not be the sole authoritative source once ensemble promotion occurs."
+      "historical_accuracy_evidence": {
+        "status": "not_covered_by_current_12_season_external_benchmark",
+        "interpretation": "Absence from the benchmark is not evidence of poor accuracy; it means FSFFL should not claim comparable long-run validation yet."
+      },
+      "notes": "Existing FSFFL statistical projection source. Useful as an independent vote, but currently less externally validated than FFToday/FantasyPros/CBS in the identified 2014-2025 benchmark."
     },
     "fftoday": {
       "display_name": "FFToday",
@@ -31,6 +44,11 @@
       "eligible_for_ensemble": true,
       "normalized_file_pattern": "data/simulator/{season}/sources/projection_fftoday.json",
       "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "historical_accuracy_evidence": {
+        "status": "externally_benchmarked_2014_2025",
+        "benchmark": "Fantasy Football Analytics 2026 12-season study",
+        "summary": "Consistently competitive across positions; recent 3-season results were especially strong at WR and TE, with solid QB/RB performance."
+      },
       "notes": "Public season-long statistical projections. Raw passing/rushing/receiving stats are normalized and rescored under FSFFL rules; provider fantasy-point totals are not used."
     },
     "fantasypros": {
@@ -43,7 +61,28 @@
       "eligible_for_ensemble": true,
       "normalized_file_pattern": "data/simulator/{season}/sources/projection_fantasypros.json",
       "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "historical_accuracy_evidence": {
+        "status": "externally_benchmarked_2014_2025",
+        "benchmark": "Fantasy Football Analytics 2026 12-season study",
+        "summary": "Best or near-best long-run accuracy across QB/RB/WR/TE in the published comparison; aggregate nature requires overlap controls."
+      },
       "notes": "Consensus/aggregate source. Underlying component projections must not also be counted as independent votes unless overlap is explicitly de-duplicated."
+    },
+    "cbs": {
+      "display_name": "CBS Sports",
+      "projection_type": "statistical",
+      "independence_family": "cbs",
+      "aggregate_source": false,
+      "eligible_for_ensemble": false,
+      "normalized_file_pattern": "data/simulator/{season}/sources/projection_cbs.json",
+      "provenance_class": "EXTERNAL_CURRENT_FORECAST",
+      "historical_accuracy_evidence": {
+        "status": "externally_benchmarked_2014_2025",
+        "benchmark": "Fantasy Football Analytics 2026 12-season study",
+        "summary": "Strong long-run results, including the best historical RB MAE in the published comparison."
+      },
+      "activation_requirement": "Enable only after a tested FSFFL adapter reliably maps and rescales current CBS statistical projections with acceptable coverage.",
+      "notes": "High-priority third independent source candidate based on external historical accuracy and current public detailed projections."
     }
   }
 }
