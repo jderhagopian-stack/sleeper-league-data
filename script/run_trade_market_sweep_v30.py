@@ -7,6 +7,13 @@ league-wide market value and separately from lineup simulation.
 
 The layer is bounded and may not override hard contender or roster-legality
 gates. No player-specific exceptions are permitted.
+
+Governance note: because this wrapper modifies post-simulation score and buyer
+acceptance fit after the v1.23 candidate selectors have run, every exposed
+negotiation ranking is refreshed from the canonical v1.17 ranking helper.  If
+the post-ranking overlay changes ordering or crosses an acceptance band used by
+upstream selectors, the inherited recommended action is explicitly qualified
+rather than silently presented as authoritative.
 """
 from __future__ import annotations
 
@@ -17,6 +24,7 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 V29 = SCRIPT / "run_trade_market_sweep_v29.py"
+V23 = SCRIPT / "run_trade_market_sweep_v23.py"
 INTERACTION = SCRIPT / "roster_interaction.py"
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.24"
 
@@ -49,6 +57,14 @@ def out_path():
 
 def band(score):
     return "HIGH" if score >= .68 else "MEDIUM" if score >= .48 else "LOW" if score >= .28 else "VERY_LOW"
+
+
+def row_key(row):
+    return (
+        str(row.get("buyer_user_id") or ""),
+        tuple(sorted(map(str, row.get("outgoing_assets") or []))),
+        tuple(sorted(map(str, row.get("return_assets") or []))),
+    )
 
 
 def player_ids_from_actions(actions):
@@ -102,17 +118,41 @@ def apply_row(row, report, ri):
     if br:
         shift = sf(buyer.get("acceptance_fit_shift"))
         prior = sf(br.get("heuristic_acceptance_fit_score"), .5)
+        prior_band = str(br.get("heuristic_acceptance_fit") or band(prior))
         score = round(clamp(prior + shift, 0, 1), 4)
+        new_band = band(score)
         br["heuristic_acceptance_fit_score_pre_roster_interaction"] = prior
+        br["heuristic_acceptance_fit_pre_roster_interaction"] = prior_band
         br["roster_interaction_value_delta"] = round(bdelta, 2)
         br["roster_interaction_acceptance_fit_shift"] = round(shift, 4)
         br["heuristic_acceptance_fit_score"] = score
-        br["heuristic_acceptance_fit"] = band(score)
+        br["heuristic_acceptance_fit"] = new_band
+        br["roster_interaction_crossed_acceptance_band"] = new_band != prior_band
         br["acceptance_fit_basis"] = str(br.get("acceptance_fit_basis") or "") + "_plus_roster_interaction_1_0"
         row["buyer_rationality"] = br
-        row["acceptance_likelihood"] = br["heuristic_acceptance_fit"]
+        row["acceptance_likelihood"] = new_band
 
     return row
+
+
+def refresh_negotiation_ranking(row, ranker):
+    """Reuse the canonical state-aware negotiation transform after overlay."""
+    if row and row.get("buyer_rationality"):
+        row["negotiation_ranking_pre_roster_interaction"] = row.get("negotiation_ranking")
+        row["negotiation_ranking"] = ranker.recompute_negotiation_ranking(row)
+    return row
+
+
+def sort_rows(rows):
+    return sorted(
+        rows or [],
+        key=lambda x: (
+            sf((x.get("negotiation_ranking") or {}).get("score")),
+            sf(x.get("post_sim_score")),
+            str(row_key(x)),
+        ),
+        reverse=True,
+    )
 
 
 def compare(row, current):
@@ -163,6 +203,7 @@ def compare(row, current):
 
 def main():
     v29 = load(V29, "market_v29_for_124")
+    ranker = load(V23, "market_v23_ranking_helper_for_124")
     ri = load(INTERACTION, "roster_interaction_for_124")
     v29.main()
     out = out_path()
@@ -170,17 +211,55 @@ def main():
         return
 
     r = json.loads(out.read_text(encoding="utf-8"))
-    current = apply_row(r.get("current_offer_evaluation") or {}, r, ri)
+    tracked_sections = (
+        "suggested_counteroffers", "market_sweep_alternatives", "top_5_alternatives",
+        "ranked_finalists", "same_partner_counteroffers", "alternate_buyer_candidates",
+        "realistic_counter_alternatives",
+    )
+    pre_orders = {s: [row_key(x) for x in (r.get(s) or [])] for s in tracked_sections}
+
+    current = refresh_negotiation_ranking(apply_row(r.get("current_offer_evaluation") or {}, r, ri), ranker)
     r["current_offer_evaluation"] = current
 
-    for section in ("suggested_counteroffers", "market_sweep_alternatives", "top_5_alternatives", "ranked_finalists", "same_partner_counteroffers", "alternate_buyer_candidates", "realistic_counter_alternatives"):
-        rows = r.get(section) or []
-        r[section] = [apply_row(x, r, ri) for x in rows]
+    band_crossings = 0
+    for section in tracked_sections:
+        rows = []
+        for x in r.get(section) or []:
+            x = refresh_negotiation_ranking(apply_row(x, r, ri), ranker)
+            if ((x.get("buyer_rationality") or {}).get("roster_interaction_crossed_acceptance_band")):
+                band_crossings += 1
+            rows.append(x)
+        r[section] = sort_rows(rows)
+
+    post_orders = {s: [row_key(x) for x in (r.get(s) or [])] for s in tracked_sections}
+    changed_sections = [s for s in tracked_sections if pre_orders[s] != post_orders[s]]
 
     for section in ("suggested_counteroffers", "market_sweep_alternatives"):
         for row in r.get(section) or []:
             row["comparison_to_current_offer"] = compare(row, current)
             row["why_prefer_over_current_offer"] = row["comparison_to_current_offer"]["reason"]
+
+    selection_sensitive = bool(changed_sections or band_crossings)
+    governance = r.setdefault("governance", {})
+    governance["post_ranking_roster_interaction"] = {
+        "ranking_refreshed_after_overlay": True,
+        "canonical_negotiation_ranking_helper": "run_trade_market_sweep_v23.recompute_negotiation_ranking",
+        "sections_with_order_change": changed_sections,
+        "acceptance_band_crossing_count": band_crossings,
+        "upstream_candidate_selection_may_be_sensitive": selection_sensitive,
+        "candidate_universe_rebuilt_after_overlay": False,
+        "reason_candidate_universe_not_rebuilt": "v1.24 receives a filtered v1.23 report rather than the complete pre-filter candidate universe",
+    }
+    governance["recommendation_authority"] = (
+        "PROVISIONAL_POST_RANK_OVERLAY_SENSITIVE" if selection_sensitive
+        else "PROVISIONAL_STABLE_TO_ROSTER_INTERACTION_OVERLAY"
+    )
+    governance["recommended_next_action_empirically_authoritative"] = False
+    governance["recommended_next_action_note"] = (
+        "The inherited action is non-authoritative because roster interaction is provisional; when ordering or an acceptance band changes after the overlay, the complete upstream candidate universe would need to be regenerated under the overlay before treating the action as internally stable."
+        if selection_sensitive else
+        "The inherited action remained internally stable to the bounded roster-interaction overlay on the retained candidate set, but the overlay itself is not empirically calibrated."
+    )
 
     r["model_version"] = MODEL_VERSION
     r.setdefault("policy", {}).update({
@@ -193,8 +272,11 @@ def main():
         "interaction_adjustment_bounded": True,
         "interaction_cannot_override_hard_contender_or_roster_legality_gates": True,
         "depth_chart_competition_context_exposed_not_double_counted": True,
+        "negotiation_ranking_refreshed_after_post_ranking_interaction_overlay": True,
+        "post_overlay_candidate_universe_limit_explicit": True,
+        "provisional_overlay_cannot_silently_create_authoritative_action": True,
     })
-    r.setdefault("simulation", {})["execution_path"] = str((r.get("simulation") or {}).get("execution_path") or "") + "_plus_roster_interaction_1_0"
+    r.setdefault("simulation", {})["execution_path"] = str((r.get("simulation") or {}).get("execution_path") or "") + "_plus_roster_interaction_1_0_plus_post_overlay_ranking_refresh"
     out.write_text(json.dumps(r, indent=2, sort_keys=True), encoding="utf-8")
 
 

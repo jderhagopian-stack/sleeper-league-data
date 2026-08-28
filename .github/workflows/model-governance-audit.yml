@@ -4,7 +4,14 @@ on:
   pull_request:
     paths:
       - 'script/audit_model_governance.py'
+      - 'script/audit_model_sensitivity.py'
+      - 'script/audit_empirical_readiness.py'
+      - 'script/audit_pick_outcome_readiness.py'
+      - 'script/audit_decision_path_integrity.py'
+      - 'script/audit_transaction_evidence_readiness.py'
+      - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
+      - 'data/model_parameter_registry.json'
       - 'data/gm/**'
   workflow_dispatch:
 
@@ -19,10 +26,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Validate governed parameter registry
+        run: python script/validate_model_parameter_registry.py
       - name: Run model governance audit
         run: |
           python script/audit_model_governance.py
           python script/audit_model_sensitivity.py
+          python script/audit_empirical_readiness.py
+          python script/audit_pick_outcome_readiness.py
+          python script/audit_decision_path_integrity.py
+          python script/audit_transaction_evidence_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -33,13 +46,49 @@ jobs:
           assert 'STATE-WEIGHTS-001' in ids
           assert 'DOUBLE-COUNT-001' in ids
           state=[x for x in r['curated_findings'] if x['id']=='STATE-WEIGHTS-001'][0]
-          assert 'exists=False' in state['observation']
+          assert 'state_weight_calibration.json exists=True' in state['observation']
+          assert 'state_weight_training_examples.json exists=False' in state['observation']
+          prior=json.load(open('data/gm/state_weight_calibration.json'))
+          assert prior['status']=='EXPERT_PRIOR_UNVALIDATED'
+          assert prior['provenance']['empirically_validated'] is False
           s=json.load(open('data/audit/model_sensitivity_audit.json'))
           pkg=s['package_discount_divergence']
           assert pkg[-1]['difference_pct_vs_gm22'] > 10
-          assert s['state_weight_source_divergence'][0]['runtime_source']=='embedded_fallback'
+          assert s['state_weight_source_divergence'][0]['runtime_source']=='calibration_artifact'
+
+          e=json.load(open('data/audit/empirical_readiness_audit.json'))
+          eids={x['id']:x for x in e['findings']}
+          assert eids['EMPIRICAL-PROJECTION-001']['authoritative_empirical_claim_allowed'] is False
+          assert eids['EMPIRICAL-UNCERTAINTY-001']['authoritative_empirical_claim_allowed'] is False
+          assert eids['EMPIRICAL-HISTORICAL-TRADE-001']['authoritative_empirical_claim_allowed'] is False
+          assert e['summary']['historical_projection_artifact_count']==0
+          assert e['summary']['frozen_historical_gm3_bundle_count']==0
+
+          p=json.load(open('data/audit/pick_outcome_readiness_audit.json'))
+          assert p['policy']['retention_proxy_is_not_draft_success'] is True
+          assert p['policy']['future_seasons_are_right_censored'] is True
+          assert 'authoritative_empirical_claim_allowed' in p['finding']
+          assert p['summary']['draft_rows'] >= p['summary']['completed_draft_rows']
+
+          d=json.load(open('data/audit/decision_path_integrity_audit.json'))
+          assert d['summary']['production_roster_aware'] is True
+          assert d['summary']['runtime_roster_version_single_source'] is True
+          assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
+          assert d['summary']['final_score_overlap_ablation_required'] is True
+          assert d['summary']['behavioral_predictive_holdout_detected'] is False
+
+          t=json.load(open('data/audit/transaction_evidence_readiness_audit.json'))
+          assert t['policy']['current_market_value_backfill_for_historical_package_fit_forbidden'] is True
+          assert t['policy']['completed_trades_alone_are_not_acceptance_probability_denominator'] is True
+          tids={x['id']:x for x in t['findings']}
+          assert tids['ACCEPTANCE-CALIBRATION-READINESS-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
+          print(json.dumps(e['summary'],indent=2))
+          print(json.dumps(p['summary'],indent=2))
+          print(json.dumps(p['finding'],indent=2))
+          print(json.dumps(d['summary'],indent=2))
+          print(json.dumps(t['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:

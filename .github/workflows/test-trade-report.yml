@@ -12,7 +12,9 @@ on:
       - 'script/run_trade_market_sweep_v30.py'
       - 'script/run_trade_market_sweep_v29.py'
       - 'script/run_trade_market_sweep_v28.py'
+      - 'script/run_trade_market_sweep_v23.py'
       - 'script/run_trade_market_sweep_v13.py'
+      - 'script/audit_roster_cut_sensitivity.py'
       - 'script/roster_aware_trade.py'
       - 'script/roster_interaction.py'
       - 'script/historical_state_behavior.py'
@@ -35,7 +37,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v13.py script/roster_aware_trade.py script/roster_interaction.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test adaptive trigger logic
         run: |
           python - <<'PY'
@@ -65,7 +67,6 @@ jobs:
                     'player:2':{'name':'WEAK_INCUMBENT','base_franchise_value':100,'break_glass_value':100,'market_dynasty':100,'market_redraft':50},
                     'player:3':{'name':'INCOMING','base_franchise_value':1,'break_glass_value':1,'market_dynasty':1,'market_redraft':1}
                   }
-          # Normal legal roster: incoming player is protected; weakest incumbent is cut.
           before=[{'owner_id':'u','roster_id':1,'players':['1','2'],'taxi':[],'reserve':[]}]
           after=[{'owner_id':'u','roster_id':1,'players':['1','2','3'],'taxi':[],'reserve':[]}]
           league={'roster_positions':['QB','BN']};legal,res,acts=m.legalize_trade_rosters(DL,before,after,['u'],league,{})
@@ -75,7 +76,6 @@ jobs:
           assert res['u']['newly_acquired_protected_from_automatic_cut']==['3']
           assert acts[0]['players']==['2']
           assert res['u']['roster_legal'] is True
-          # Pre-existing offseason overage belongs to HOLD too; only incremental burden is charged.
           before2=[{'owner_id':'u','roster_id':1,'players':['1','2','4'],'taxi':[],'reserve':[]}]
           after2=[{'owner_id':'u','roster_id':1,'players':['1','2','4','3'],'taxi':[],'reserve':[]}]
           legal2,res2,acts2=m.legalize_trade_rosters(DL,before2,after2,['u'],league,{})
@@ -116,11 +116,16 @@ jobs:
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-trade-report');a=json.loads((root/'validation-trade.json').read_text());s=json.loads((root/'validation-trade-summary.json').read_text());pdf=root/'validation-trade.pdf'
           assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.24'
-          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True
+          p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True;assert p['negotiation_ranking_refreshed_after_post_ranking_interaction_overlay'] is True;assert p['post_overlay_candidate_universe_limit_explicit'] is True
+          g=(a.get('governance') or {}).get('post_ranking_roster_interaction') or {};assert g.get('ranking_refreshed_after_overlay') is True;assert g.get('candidate_universe_rebuilt_after_overlay') is False
+          assert (a.get('governance') or {}).get('recommended_next_action_empirically_authoritative') is False
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
               sim=x.get('simulation') or {};rr=sim.get('roster_resolution') or {};assert rr
               assert all(v.get('roster_legal') is True for v in rr.values())
+              nr=x.get('negotiation_ranking') or {}
+              if nr:
+                  assert abs(float(nr['state_aware_post_sim_score'])-float(x['post_sim_score']))<1e-6
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
@@ -130,7 +135,19 @@ jobs:
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
           assert '...' not in text and '\u2026' not in text, text
-          print('Market Sweep 1.24 / roster interaction / baseline-aware roster resolution / plain-language report 1.10 no-truncation test passed')
+          print('Market Sweep 1.24 / post-overlay ranking coherence / qualified authority / roster interaction / baseline-aware roster resolution / plain-language report 1.10 test passed')
+          PY
+      - name: Audit downstream cut-plan sensitivity
+        run: |
+          python script/audit_roster_cut_sensitivity.py --report /tmp/fsffl-trade-report/validation-trade.json --output /tmp/fsffl-trade-report/roster-cut-sensitivity.json --sims 1000 --seed 20260821
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/fsffl-trade-report/roster-cut-sensitivity.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['interpretation']['uses_exact_lineup_reoptimization'] is True
+          assert d['summary']['audited_candidate_count'] >= 1
+          print(json.dumps(d['summary'],indent=2))
           PY
       - name: Upload trade report artifacts
         if: always()

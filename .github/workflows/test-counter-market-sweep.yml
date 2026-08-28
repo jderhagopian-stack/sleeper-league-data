@@ -13,6 +13,7 @@ on:
       - 'script/run_trade_market_sweep_v18.py'
       - 'script/run_trade_market_sweep_v19.py'
       - 'script/run_trade_market_sweep_v20.py'
+      - 'script/audit_final_score_ablation.py'
       - 'script/decision_lab_state_aware.py'
       - 'script/gm_state_weighting.py'
       - 'data/gm/state_weight_calibration.json'
@@ -32,7 +33,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile engine
-        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_trade_market_sweep_v20.py script/decision_lab_state_aware.py script/gm_state_weighting.py script/run_roster_decision_lab.py
+        run: python -m py_compile script/run_trade_market_sweep.py script/run_trade_market_sweep_v12.py script/run_trade_market_sweep_v13.py script/run_trade_market_sweep_v14.py script/run_trade_market_sweep_v15.py script/run_trade_market_sweep_v16.py script/run_trade_market_sweep_v17.py script/run_trade_market_sweep_v18.py script/run_trade_market_sweep_v19.py script/run_trade_market_sweep_v20.py script/decision_lab_state_aware.py script/gm_state_weighting.py script/run_roster_decision_lab.py script/audit_final_score_ablation.py
       - name: Validate fast optimizer equivalence
         run: |
           python - <<'PY'
@@ -72,6 +73,18 @@ jobs:
               nr=row['negotiation_ranking']; assert nr['focal_strategic_gain_source']=='state_aware_post_sim_score'; assert abs(float(nr['state_aware_post_sim_score'])-float(row['post_sim_score']))<1e-6
           print('Counter Market Sweep 1.14 state-aware ranking compatibility passed')
           PY
+      - name: Audit final-score overlap sensitivity
+        run: |
+          python script/audit_final_score_ablation.py --report /tmp/state-aware-market-sweep.json --output /tmp/final-score-ablation.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/final-score-ablation.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['summary']['candidate_count'] > 0
+          print(json.dumps(d['summary'],indent=2))
+          print(json.dumps(d['comparisons'],indent=2))
+          PY
       - name: Upload full counter reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -82,5 +95,6 @@ jobs:
             /tmp/counter-market-sweep.log
             /tmp/state-aware-market-sweep.json
             /tmp/state-aware-market-sweep.log
+            /tmp/final-score-ablation.json
           if-no-files-found: error
           retention-days: 14
