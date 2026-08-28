@@ -11,6 +11,7 @@ on:
       - 'script/audit_transaction_evidence_readiness.py'
       - 'script/audit_projection_calibration_readiness.py'
       - 'script/audit_market_value_adjustments.py'
+      - 'script/audit_future_pick_economics.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -41,6 +42,7 @@ jobs:
           python script/audit_transaction_evidence_readiness.py
           python script/audit_projection_calibration_readiness.py
           python script/audit_market_value_adjustments.py
+          python script/audit_future_pick_economics.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -102,6 +104,17 @@ jobs:
           assert mids['MARKET-RANK-CURVE-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-OVERLAY-CORRELATION-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+
+          f=json.load(open('data/audit/future_pick_economics_audit.json'))
+          fids={x['id']:x for x in f['findings']}
+          assert f['production_behavior_changed'] is False
+          assert f['policy']['forecast_uncertainty_is_not_automatically_positive_option_value'] is True
+          assert f['policy']['market_liquidity_and_outcome_optionality_must_be_separated'] is True
+          assert f['summary']['all_expected_runtime_markers_detected'] is True
+          assert f['summary']['registry_consistent'] is True
+          assert fids['PICK-ANCHOR-FALLBACK-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+          assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
+          assert fids['PICK-OPTIONALITY-001']['authoritative_optionality_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -111,6 +124,8 @@ jobs:
           print(json.dumps(t['summary'],indent=2))
           print(json.dumps(q['finding'],indent=2))
           print(json.dumps(m['findings'],indent=2))
+          print(json.dumps(f['summary'],indent=2))
+          print(json.dumps(f['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
