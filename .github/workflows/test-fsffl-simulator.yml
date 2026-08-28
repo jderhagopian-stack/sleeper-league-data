@@ -36,6 +36,9 @@ jobs:
       - name: Normalize Razzball as an ensemble source
         run: python script/normalize_razzball_projection_source.py
 
+      - name: Fetch FFToday independent projection source
+        run: python script/fetch_fftoday_projection_source.py
+
       - name: Fetch optional FantasyPros projection source
         env:
           FANTASYPROS_API_KEY: ${{ secrets.FANTASYPROS_API_KEY }}
@@ -43,7 +46,7 @@ jobs:
           if [ -n "${FANTASYPROS_API_KEY:-}" ]; then
             python script/fetch_fantasypros_projection_source.py
           else
-            echo "FantasyPros key unavailable; ensemble authority gate will decide whether production may be promoted."
+            echo "FantasyPros key unavailable; Razzball + FFToday provide the two-source baseline."
           fi
 
       - name: Build governed projection ensemble
