@@ -9,6 +9,7 @@ on:
       - 'script/fetch_fantasypros_projection_source.py'
       - 'script/projection_source_uncertainty.py'
       - 'script/run_fsffl_season_simulator_projection_uncertainty.py'
+      - 'script/test_projection_uncertainty_simulator.py'
       - 'script/audit_projection_ensemble_governance.py'
       - 'script/test_projection_ensemble.py'
       - '.github/workflows/projection-ensemble-governance.yml'
@@ -25,6 +26,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install simulator test dependency
+        run: python -m pip install --disable-pip-version-check numpy
+
       - name: Compile projection ensemble code
         run: |
           python -m py_compile \
@@ -33,6 +37,7 @@ jobs:
             script/fetch_fantasypros_projection_source.py \
             script/projection_source_uncertainty.py \
             script/run_fsffl_season_simulator_projection_uncertainty.py \
+            script/test_projection_uncertainty_simulator.py \
             script/audit_projection_ensemble_governance.py \
             script/test_projection_ensemble.py
 
@@ -41,4 +46,6 @@ jobs:
 
       - name: Run fast projection ensemble regression tests
         working-directory: script
-        run: python test_projection_ensemble.py
+        run: |
+          python test_projection_ensemble.py
+          python test_projection_uncertainty_simulator.py
