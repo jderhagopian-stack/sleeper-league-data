@@ -850,7 +850,8 @@ def main():
     ap.add_argument("--source", default=None)
     ap.add_argument("--output", required=True)
     a = ap.parse_args()
-    source_path = Path(a.source) if a.source else DEFAULT_SOURCE\n    result = build(a.season, a.transaction_id, source_path)
+    source_path = Path(a.source) if a.source else None
+    result = build(a.season, a.transaction_id, source_path)
     out = Path(a.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
