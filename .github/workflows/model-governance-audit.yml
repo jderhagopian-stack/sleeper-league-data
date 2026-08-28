@@ -12,6 +12,7 @@ on:
       - 'script/audit_projection_calibration_readiness.py'
       - 'script/audit_market_value_adjustments.py'
       - 'script/audit_future_pick_economics.py'
+      - 'script/audit_competitive_state_utility.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -43,6 +44,7 @@ jobs:
           python script/audit_projection_calibration_readiness.py
           python script/audit_market_value_adjustments.py
           python script/audit_future_pick_economics.py
+          python script/audit_competitive_state_utility.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -115,6 +117,15 @@ jobs:
           assert fids['PICK-ANCHOR-FALLBACK-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
           assert fids['PICK-OPTIONALITY-001']['authoritative_optionality_claim_allowed'] is False
+
+          c=json.load(open('data/audit/competitive_state_utility_audit.json'))
+          assert c['production_behavior_changed'] is False
+          assert c['policy']['independent_target_required'] is True
+          assert c['policy']['component_outcomes_cannot_define_their_own_weight_target'] is True
+          assert c['summary']['prior_unvalidated'] is True
+          assert c['summary']['explicit_independent_target_required'] is True
+          assert c['summary']['old_equal_weight_target_present'] is False
+          assert c['summary']['eligible_independent_target_rows']==0
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -126,6 +137,8 @@ jobs:
           print(json.dumps(m['findings'],indent=2))
           print(json.dumps(f['summary'],indent=2))
           print(json.dumps(f['findings'],indent=2))
+          print(json.dumps(c['summary'],indent=2))
+          print(json.dumps(c['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
