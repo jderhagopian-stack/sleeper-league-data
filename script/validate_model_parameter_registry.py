@@ -37,21 +37,22 @@ REQUIRED_FIELDS = {
     "authoritative_use",
 }
 
-# High-leverage families identified by the 1.0 audit plus the explicitly
-# preserved counterfactual/What-If capability. The registry must not regress by
-# silently dropping one of them even when a module is maintained on a feature
-# branch rather than the current checkout.
+# High-leverage families identified by the audit plus the explicitly preserved
+# counterfactual/What-If capability. The registry must not regress by silently
+# dropping one of them.
 REQUIRED_MATERIAL_IDS = {
     "PROJECTION-MEAN-001",
     "PROJECTION-UNCERTAINTY-001",
     "STATE-WEIGHTS-001",
     "CONSOLIDATION-PREMIUM-001",
     "GM22-CONFIG-001",
+    "MARKET-MOMENTUM-001",
     "PICK-MODEL-001",
     "PACKAGE-ECON-001",
     "ROSTER-CUT-001",
     "ROSTER-INTERACTION-001",
     "BEHAVIOR-001",
+    "ACCEPTANCE-GATE-001",
     "TRADE-PRESCREEN-001",
     "DECISION-GATES-001",
     "TEAM-IMPROVEMENT-001",
@@ -131,8 +132,8 @@ def main() -> None:
             "RESEARCH_SUPPORTED_PROXY",
         }:
             update = p["update_policy"].lower()
-            if not any(word in update for word in ("recalibr", "re-estimate", "refit", "update", "rolling")):
-                errors.append(f"{pid}: learned/evidence-derived parameter lacks recalibration policy")
+            if not any(word in update for word in ("recalibr", "re-estimate", "refit", "update", "rolling", "replace")):
+                errors.append(f"{pid}: learned/evidence-derived parameter lacks recalibration/replacement policy")
 
     duplicates = sorted({x for x in ids if ids.count(x) > 1})
     if duplicates:
