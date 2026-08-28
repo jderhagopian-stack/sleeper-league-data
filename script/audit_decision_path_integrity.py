@@ -15,7 +15,7 @@ SCRIPT = ROOT / "script"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.0"
+MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.1"
 
 
 def text(name: str) -> str:
@@ -26,10 +26,10 @@ def main():
     report = text("run_trade_report.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
+    v20 = text("run_trade_market_sweep_v20.py")
     v13 = text("run_trade_market_sweep_v13.py")
     v16 = text("run_trade_market_sweep_v16.py")
     state = text("decision_lab_state_aware.py")
-    behavior = text("behavioral_intelligence_v3.py")
     behavior_prod_test = (ROOT / ".github" / "workflows" / "test-behavioral-intelligence-v3-production.yml").read_text(encoding="utf-8")
 
     production_roster_aware = (
@@ -54,11 +54,15 @@ def main():
         and "realistic" in v16
     )
 
+    # The final score formula lives in v20; the strategic composite is built by
+    # the state-aware profile overlay.  Detect the lineage across both sources
+    # rather than requiring the block names to coexist in one file.
     final_overlap_tokens = {
-        "dynasty_delta": "market_dynasty_delta" in state,
-        "break_glass_delta": "break_glass_delta" in state,
-        "liquidity_block": "liquidity_block" in state,
-        "strategic_value_delta": "strategic_value_delta" in state,
+        "dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
+        "break_glass_delta_in_final_score": "break_glass_delta" in v20 and "resilience_block" in v20,
+        "liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
+        "strategic_value_delta_in_final_score": "strategic_value_delta" in v20 and "resilience_block" in v20,
+        "strategic_composite_built_upstream": "strategic_value_delta" in state and "strategic_score" in state,
     }
     final_composite_overlap = all(final_overlap_tokens.values())
 
@@ -68,6 +72,12 @@ def main():
             "holdout acceptance", "held-out acceptance", "future acceptance",
             "out-of-sample acceptance", "predictive log loss", "brier score",
         )
+    )
+
+    post_overlay_ranking_refresh = (
+        "refresh_negotiation_ranking" in v30
+        and "recompute_negotiation_ranking" in v30
+        and "recommended_next_action_empirically_authoritative" in v30
     )
 
     findings = [
@@ -88,6 +98,13 @@ def main():
             "status": "SINGLE_RUNTIME_SOURCE" if runtime_version_single_source else "DUPLICATE_VERSION_SOURCE",
             "observation": "Production policy metadata must report the resolver version emitted by the simulation that actually ran; no second hard-coded resolver version is authoritative.",
             "software_invariant": runtime_version_single_source,
+        },
+        {
+            "id": "POST-RANK-OVERLAY-001",
+            "severity": "INFO" if post_overlay_ranking_refresh else "CRITICAL",
+            "status": "RANKING_REFRESH_AND_AUTHORITY_QUALIFICATION_PRESENT" if post_overlay_ranking_refresh else "POST_RANKING_MUTATION_NOT_RECONCILED",
+            "observation": "Any wrapper that changes post-simulation score or acceptance fit after candidate selection must refresh exposed rankings and qualify the inherited action when the complete candidate universe is unavailable.",
+            "software_invariant": post_overlay_ranking_refresh,
         },
         {
             "id": "ACCEPTANCE-GATE-001",
@@ -131,6 +148,7 @@ def main():
         "summary": {
             "production_roster_aware": production_roster_aware,
             "runtime_roster_version_single_source": runtime_version_single_source,
+            "post_overlay_ranking_refresh_present": post_overlay_ranking_refresh,
             "provisional_high_leverage_acceptance_gate": acceptance_has_authoritative_gate,
             "final_score_overlap_ablation_required": final_composite_overlap,
             "behavioral_predictive_holdout_detected": behavior_oos_predictive_test,
@@ -144,6 +162,8 @@ def main():
         raise SystemExit("Production trade path failed roster-awareness invariant")
     if not runtime_version_single_source:
         raise SystemExit("Production trade path has a duplicate/stale roster resolver version source")
+    if not post_overlay_ranking_refresh:
+        raise SystemExit("Post-ranking roster interaction is not reconciled with exposed rankings/authority")
 
 
 if __name__ == "__main__":
