@@ -7,10 +7,11 @@ summary, lineup optimizer, Simulator 1.0 season simulation, and decision
 classification used by present-day analysis.
 
 Archived-at-time and reconstructed-at-time bundles are both supported. Archived
-bundles are eligible for strict empirical backtesting; reconstructed bundles
-preserve historical-analysis functionality but are explicitly excluded from
-pristine out-of-sample validation claims and authoritative recommendations until
-reconstruction assumptions are empirically validated.
+bundles are eligible for strict empirical backtesting only when they carry an
+explicit archive certification. Reconstructed bundles preserve historical-
+analysis functionality but are explicitly excluded from pristine out-of-sample
+validation claims and authoritative recommendations until reconstruction
+assumptions are empirically validated.
 """
 from __future__ import annotations
 
@@ -21,11 +22,18 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.3"
+MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.4"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
 }
+ARCHIVE_CERTIFICATION_FLAGS = (
+    "time_frozen",
+    "complete",
+    "no_present_day_market_values",
+    "no_same_season_future_results",
+    "no_future_schedule_info",
+)
 
 
 def load_module(path: Path, name: str):
@@ -51,25 +59,64 @@ def historical_rosters(state, season_data: Dict[str, Any]) -> List[Dict[str, Any
     return rows
 
 
+def archive_certification_status(bundle: Dict[str, Any]) -> Dict[str, Any]:
+    """Return fail-safe archive certification status.
+
+    Archive/OOS status is never inferred from file presence, path, or a bare
+    historical_input_class string. Every required assertion must be explicitly
+    true in archive_certification. Missing or partial certification fails closed.
+    """
+    cert = bundle.get("archive_certification")
+    if not isinstance(cert, dict):
+        return {"certified": False, "missing": ["archive_certification"]}
+    missing = [flag for flag in ARCHIVE_CERTIFICATION_FLAGS if cert.get(flag) is not True]
+    if cert.get("certified") is not True:
+        missing = ["certified", *missing]
+    return {"certified": not missing, "missing": missing}
+
+
 def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
     if not isinstance(bundle, dict) or not bundle:
         return {
             "ready": False,
             "missing": sorted(REQUIRED_BUNDLE_KEYS),
+            "historical_input_class": "UNCLASSIFIED_OR_UNCERTIFIED",
+            "strict_out_of_sample_backtest_eligible": False,
+            "authoritative_recommendation_allowed": False,
+            "archive_certified": False,
             "reason": "No time-frozen GM3 input bundle is available for this trade date.",
         }
     missing = sorted(k for k in REQUIRED_BUNDLE_KEYS if not bundle.get(k))
-    basis = str(bundle.get("historical_input_class") or "ARCHIVED_AT_TIME")
-    is_archived = basis == "ARCHIVED_AT_TIME"
+    requested_basis = str(bundle.get("historical_input_class") or "UNCLASSIFIED_OR_UNCERTIFIED")
+    cert = archive_certification_status(bundle)
+    is_archived = requested_basis == "ARCHIVED_AT_TIME" and cert["certified"]
+    if is_archived:
+        basis = "ARCHIVED_AT_TIME"
+    elif requested_basis == "RECONSTRUCTED_AT_TIME":
+        basis = "RECONSTRUCTED_AT_TIME"
+    else:
+        basis = "UNCLASSIFIED_OR_UNCERTIFIED"
+    strict_oos = bool(
+        is_archived and bundle.get("strict_out_of_sample_backtest_eligible") is True
+    )
+    authoritative = bool(is_archived and strict_oos)
+    reason = None
+    if missing:
+        reason = "Historical GM3 inputs are incomplete."
+    elif requested_basis == "ARCHIVED_AT_TIME" and not cert["certified"]:
+        reason = "Historical bundle requested ARCHIVED_AT_TIME but lacks complete explicit archive certification."
+    elif basis == "UNCLASSIFIED_OR_UNCERTIFIED":
+        reason = "Historical bundle is unclassified or uncertified and cannot be treated as archived/OOS evidence."
     return {
         "ready": not missing,
         "missing": missing,
         "historical_input_class": basis,
-        "strict_out_of_sample_backtest_eligible": bool(
-            bundle.get("strict_out_of_sample_backtest_eligible", is_archived)
-        ) if is_archived else False,
-        "authoritative_recommendation_allowed": bool(is_archived),
-        "reason": None if not missing else "Historical GM3 inputs are incomplete.",
+        "requested_historical_input_class": requested_basis,
+        "strict_out_of_sample_backtest_eligible": strict_oos,
+        "authoritative_recommendation_allowed": authoritative,
+        "archive_certified": bool(cert["certified"]),
+        "archive_certification_missing": cert["missing"],
+        "reason": reason,
     }
 
 
@@ -201,22 +248,21 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "team_state": state_label,
         }
 
-    reconstructed = status.get("historical_input_class") != "ARCHIVED_AT_TIME"
+    basis = status.get("historical_input_class")
+    is_archived = basis == "ARCHIVED_AT_TIME"
     return {
         "adapter_model_version": MODEL_VERSION,
-        "status": (
-            "GRADED_ARCHIVED_AT_TIME"
-            if not reconstructed
-            else "GRADED_RECONSTRUCTED_AT_TIME"
-        ),
-        "historical_input_class": status.get("historical_input_class"),
+        "status": "GRADED_ARCHIVED_AT_TIME" if is_archived else "GRADED_RECONSTRUCTED_AT_TIME",
+        "historical_input_class": basis,
         "strict_out_of_sample_backtest_eligible": bool(status.get("strict_out_of_sample_backtest_eligible")),
         "authoritative_recommendation_allowed": bool(status.get("authoritative_recommendation_allowed")),
-        "recommendation_authority": "AUTHORITATIVE_ELIGIBLE" if not reconstructed else "NON_AUTHORITATIVE_RECONSTRUCTION",
-        "authority_reason": None if not reconstructed else (
+        "recommendation_authority": "AUTHORITATIVE_ELIGIBLE" if status.get("authoritative_recommendation_allowed") else "NON_AUTHORITATIVE_RECONSTRUCTION",
+        "authority_reason": None if status.get("authoritative_recommendation_allowed") else (
+            status.get("reason") or
             "Reconstructed-at-time inputs preserve analysis functionality but include bounded, unvalidated reconstruction assumptions; "
             "the result cannot be used as an authoritative recommendation or pristine out-of-sample validation observation."
         ),
+        "archive_certified": bool(status.get("archive_certified")),
         "same_gm3_core_as_current_trade_analysis": True,
         "decision_lab_model_version": dl.MODEL_VERSION,
         "simulator_model_version": before.get("model_version"),
