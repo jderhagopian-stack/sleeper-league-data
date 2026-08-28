@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import statistics
 
 from build_fsffl_projection_ensemble import build_player_ensemble, dedupe_independence_families
+from projection_source_uncertainty import source_mean_multipliers
 
 
 def source(source_id: str, family: str, points: float, include_player: bool = True):
@@ -68,11 +70,43 @@ def test_global_source_presence_does_not_fake_player_level_authority():
     assert player["authoritative_projection_allowed"] is False
 
 
+def test_source_uncertainty_uses_observed_means_without_moving_ensemble_mean():
+    player = build_player_ensemble(
+        [source("a", "a", 170.0), source("b", "b", 204.0)],
+        minimum_sources=2,
+    )["p1"]
+    multipliers = source_mean_multipliers(player)
+    assert len(multipliers) == 2
+    assert abs(statistics.fmean(multipliers) - 1.0) < 1e-12
+    assert min(multipliers) < 1.0 < max(multipliers)
+
+
+def test_actual_evidence_shrinks_preseason_source_disagreement():
+    player = build_player_ensemble(
+        [source("a", "a", 170.0), source("b", "b", 204.0)],
+        minimum_sources=2,
+    )["p1"]
+    preseason = source_mean_multipliers(player, {"actual_weight": 0.0})
+    midseason = source_mean_multipliers(player, {"actual_weight": 0.5})
+    actual_dominated = source_mean_multipliers(player, {"actual_weight": 1.0})
+    assert max(midseason) - min(midseason) < max(preseason) - min(preseason)
+    assert actual_dominated == [1.0, 1.0]
+    assert abs(statistics.fmean(midseason) - 1.0) < 1e-12
+
+
+def test_non_authoritative_player_cannot_inject_source_uncertainty():
+    player = build_player_ensemble([source("only", "only", 170.0)], minimum_sources=2)["p1"]
+    assert source_mean_multipliers(player) == [1.0]
+
+
 def main():
     test_equal_weight_mean_and_disagreement()
     test_duplicate_information_family_is_not_double_counted()
     test_single_source_is_explicitly_non_authoritative()
     test_global_source_presence_does_not_fake_player_level_authority()
+    test_source_uncertainty_uses_observed_means_without_moving_ensemble_mean()
+    test_actual_evidence_shrinks_preseason_source_disagreement()
+    test_non_authoritative_player_cannot_inject_source_uncertainty()
     print("Projection ensemble regression tests passed.")
 
 
