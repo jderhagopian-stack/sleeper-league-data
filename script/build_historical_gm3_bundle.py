@@ -527,8 +527,11 @@ def neutral_schedule(season: int):
     return {str(k): v for k, v in raw.items() if int(k) <= 14}
 
 
-def build(season: str, transaction_id: str, source_path: Path | None = None):
-    provider = HistoricalStateProvider()
+def build(season: str, transaction_id: str, source_path: Path | None = None, provider=None):
+    # Reuse a caller's already-materialized historical provider when available.
+    # This avoids a second full Sleeper history reconstruction in interactive
+    # historical analysis without changing the historical state itself.
+    provider = provider or HistoricalStateProvider()
     data = provider.data(str(season))
     tx = next(t for t in completed_transactions(data) if str(t.get("transaction_id")) == str(transaction_id))
     ts = int(tx.get("created") or 0)
