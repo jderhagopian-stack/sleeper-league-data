@@ -17,6 +17,8 @@ on:
       - 'script/audit_behavioral_acceptance.py'
       - 'script/audit_roster_interaction_cut_governance.py'
       - 'script/audit_behavioral_acceptance_governance.py'
+      - 'script/audit_final_trade_ranking.py'
+      - 'script/negotiation_ranking.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -53,6 +55,7 @@ jobs:
           python script/audit_behavioral_acceptance.py
           python script/audit_roster_interaction_cut_governance.py
           python script/audit_behavioral_acceptance_governance.py
+          python script/audit_final_trade_ranking.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -151,7 +154,8 @@ jobs:
           assert b['summary']['production_facade_empirical_scope_qualified'] is True
           assert b['summary']['predictive_holdout_test_detected'] is False
           assert b['summary']['accept_reject_denominator_ready'] is False
-          assert b['summary']['canonical_negotiation_ranking_reuses_behavior'] is True
+          assert b['summary']['canonical_negotiation_ranking_reuses_behavior'] is False
+          assert b['summary']['canonical_negotiation_ranking_deduplicated'] is True
           assert bids['BEHAVIOR-RANK-DOUBLE-COUNT-001']['authoritative_incremental_weight_claim_allowed'] is False
 
           z=json.load(open('data/audit/roster_interaction_cut_governance_audit.json'))
@@ -172,10 +176,18 @@ jobs:
           assert b['policy']['revealed_preference_is_not_acceptance_probability'] is True
           assert b['policy']['acceptance_probability_requires_offer_or_choice_denominator'] is True
           assert b['summary']['acceptance_evidence_ready_for_probability_fit'] is False
-          assert b['summary']['behavior_signal_reused_in_negotiation_ranking'] is True
+          assert b['summary']['behavior_signal_reused_in_negotiation_ranking'] is False
           assert b['summary']['registry_consistent'] is True
           assert bids['ACCEPTANCE-PROBABILITY-001']['authoritative_probability_claim_allowed'] is False
           assert bids['BEHAVIOR-ACCEPTANCE-OVERLAP-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+
+          fr=json.load(open('data/audit/final_trade_ranking_audit.json'))
+          assert fr['production_behavior_changed'] is True
+          assert fr['policy']['duplicate_evidence_must_not_receive_positive_incremental_weight'] is True
+          assert fr['summary']['canonical_weights_detected'] is True
+          assert fr['summary']['prior_strategic_acceptance_ratio_preserved'] is True
+          assert fr['summary']['shared_composer_used_by_v18_v20_v23'] is True
+          assert fr['summary']['positive_duplicate_behavior_weight_detected'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -197,6 +209,8 @@ jobs:
           print(json.dumps(z['findings'],indent=2))
           print(json.dumps(b['summary'],indent=2))
           print(json.dumps(b['findings'],indent=2))
+          print(json.dumps(fr['summary'],indent=2))
+          print(json.dumps(fr['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:

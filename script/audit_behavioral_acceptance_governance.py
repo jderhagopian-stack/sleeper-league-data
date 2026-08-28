@@ -16,6 +16,7 @@ BI3=ROOT/"script"/"behavioral_intelligence_v3.py"
 V24=ROOT/"script"/"run_trade_market_sweep_v24.py"
 V26=ROOT/"script"/"run_trade_market_sweep_v26.py"
 V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
+RANKER=ROOT/"script"/"negotiation_ranking.py"
 READINESS=OUT/"transaction_evidence_readiness_audit.json"
 REGISTRY=DATA/"model_parameter_registry.json"
 MODEL_VERSION="FSFFL-Behavioral-Acceptance-Governance-1.0"
@@ -29,6 +30,7 @@ def main():
     v24=V24.read_text(encoding="utf-8")
     v26=V26.read_text(encoding="utf-8")
     v23=V23.read_text(encoding="utf-8")
+    ranker=RANKER.read_text(encoding="utf-8")
     readiness=load(READINESS,{}) or {}
     registry=load(REGISTRY,{}) or {}
     params={str(x.get("id")):x for x in (registry.get("parameters") or [])}
@@ -49,11 +51,12 @@ def main():
         'return "HIGH" if score >= .68 else "MEDIUM" if score >= .48 else "LOW" if score >= .28 else "VERY_LOW"',
         'adjustment = clamp(raw * evidence_weight * .14, -.14, .14)',
     ])
-    final_signal_reuse=all(x in v23 for x in [
-        'acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0, 1)',
-        'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0, 1)',
-        'score = .50 * strategic + .30 * acceptance + .20 * behavior',
-    ])
+    final_signal_reuse=not (
+        'OWNER_BEHAVIOR_WEIGHT = 0.0' in ranker
+        and 'STRATEGIC_WEIGHT = 0.625' in ranker
+        and 'ACCEPTANCE_WEIGHT = 0.375' in ranker
+        and 'behavior_already_in_acceptance_fit": True' in ranker
+    )
     acceptance_ready=False
     for x in readiness.get("findings",[]):
         if x.get("id")=="ACCEPTANCE-CALIBRATION-READINESS-001":
@@ -79,8 +82,8 @@ def main():
       },
       {
         "id":"BEHAVIOR-ACCEPTANCE-OVERLAP-001","severity":"HIGH",
-        "status":"SIGNAL_REUSE_DETECTED" if final_signal_reuse else "NO_REUSE_MARKER_DETECTED",
-        "observation":"The negotiation ranking consumes heuristic acceptance fit after behavior has already adjusted it, then separately consumes owner_behavior adjustment again. This is potential double counting and must be resolved/ablated in the final-ranking dependency.",
+        "status":"SIGNAL_REUSE_DETECTED" if final_signal_reuse else "RESOLVED_BY_ZERO_INCREMENTAL_BEHAVIOR_WEIGHT",
+        "observation":"The prior negotiation rank reused owner behavior after it had already adjusted acceptance fit. The canonical composer now retains behavior as a diagnostic but assigns it zero incremental ranking weight; the distinct strategic/acceptance ratio is preserved by renormalization.",
         "authoritative_incremental_adjustment_claim_allowed":False,
       },
     ]

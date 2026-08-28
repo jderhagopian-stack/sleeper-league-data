@@ -25,6 +25,7 @@ V19_PATH = SCRIPT / "run_trade_market_sweep_v19.py"
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 V18_PATH = Path("script/run_trade_market_sweep_v18.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.14"
+NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
 
 
 def load_module(path: Path, name: str):
@@ -89,8 +90,11 @@ def state_aware_blended_negotiation_score(row):
     strategic = clamp(0.50 + 0.50 * math.tanh(post / 5000.0), 0.0, 1.0)
     acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0.0, 1.0)
     behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0.0, 1.0)
-    score = .50 * strategic + .30 * acceptance + .20 * behavior
-    return {"score": round(score, 4), "focal_strategic_gain_component": round(strategic, 4), "acceptance_fit_component": round(acceptance, 4), "owner_behavior_match_component": round(behavior, 4), "focal_strategic_gain_source": "state_aware_post_sim_score", "state_aware_post_sim_score": round(post, 2), "weights": {"focal_strategic_gain": .50, "acceptance_fit": .30, "owner_behavior_match": .20}}
+    nr = load_module(NEGOTIATION_RANKING, "negotiation_ranking_for_v114")
+    out = nr.compose(strategic, acceptance, behavior)
+    out["focal_strategic_gain_source"] = "state_aware_post_sim_score"
+    out["state_aware_post_sim_score"] = round(post, 2)
+    return out
 
 
 def install_engine_upgrade(engine, overlay):

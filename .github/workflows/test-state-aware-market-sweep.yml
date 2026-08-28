@@ -7,6 +7,8 @@ on:
       - 'script/gm_state_weighting.py'
       - 'script/calibrate_gm_state_weights.py'
       - 'script/run_trade_market_sweep_v20.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/negotiation_ranking.py'
       - 'data/gm/state_weight_calibration.json'
       - '.github/workflows/test-state-aware-market-sweep.yml'
   workflow_dispatch:
@@ -23,7 +25,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile state-aware modules
-        run: python -m py_compile script/decision_lab_state_aware.py script/gm_state_weighting.py script/calibrate_gm_state_weights.py script/run_trade_market_sweep_v20.py
+        run: python -m py_compile script/decision_lab_state_aware.py script/gm_state_weighting.py script/calibrate_gm_state_weights.py script/run_trade_market_sweep_v20.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py
       - name: Verify continuous weights and no threshold cliffs
         run: |
           python - <<'PY'
@@ -126,5 +128,7 @@ jobs:
           cur=d['current_offer_evaluation']['simulation']['strategic']; assert cur['hypothetical_profiles_recomputed'] is True; assert abs(sum(cur['objective_weights'].values())-1)<1e-5; assert all(x['profile_source']=='post_trade_focal_gm' for x in cur['received'])
           for row in d['top_5_alternatives']:
               nr=row['negotiation_ranking']; assert nr['focal_strategic_gain_source']=='state_aware_post_sim_score'; assert abs(float(nr['state_aware_post_sim_score'])-float(row['post_sim_score']))<1e-6
+              assert nr['ranking_model_version']=='FSFFL-Negotiation-Ranking-2.0'
+              assert nr['weights']=={'focal_strategic_gain':0.625,'acceptance_fit':0.375,'owner_behavior_match':0.0}
           print('Final negotiation ranking preserves GM 3.0 state-aware utility')
           PY
