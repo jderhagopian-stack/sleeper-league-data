@@ -6,6 +6,7 @@ on:
       - 'script/audit_model_governance.py'
       - 'script/audit_model_sensitivity.py'
       - 'script/audit_empirical_readiness.py'
+      - 'script/audit_pick_outcome_readiness.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -30,6 +31,7 @@ jobs:
           python script/audit_model_governance.py
           python script/audit_model_sensitivity.py
           python script/audit_empirical_readiness.py
+          python script/audit_pick_outcome_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -57,9 +59,17 @@ jobs:
           assert eids['EMPIRICAL-HISTORICAL-TRADE-001']['authoritative_empirical_claim_allowed'] is False
           assert e['summary']['historical_projection_artifact_count']==0
           assert e['summary']['frozen_historical_gm3_bundle_count']==0
+
+          p=json.load(open('data/audit/pick_outcome_readiness_audit.json'))
+          assert p['policy']['retention_proxy_is_not_draft_success'] is True
+          assert p['policy']['future_seasons_are_right_censored'] is True
+          assert 'authoritative_empirical_claim_allowed' in p['finding']
+          assert p['summary']['draft_rows'] >= p['summary']['completed_draft_rows']
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
+          print(json.dumps(p['summary'],indent=2))
+          print(json.dumps(p['finding'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
