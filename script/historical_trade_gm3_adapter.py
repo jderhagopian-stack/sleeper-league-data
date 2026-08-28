@@ -18,7 +18,7 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
-MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.0"
+MODEL_VERSION = "FSFFL-Historical-GM3-Adapter-1.1"
 REQUIRED_BUNDLE_KEYS = {
     "league", "users", "players", "projections", "schedule",
     "gm_asset_maps", "market_player_values", "market_pick_values", "team_states",
@@ -55,11 +55,39 @@ def bundle_status(bundle: Dict[str, Any] | None) -> Dict[str, Any]:
             "missing": sorted(REQUIRED_BUNDLE_KEYS),
             "reason": "No time-frozen GM3 input bundle is available for this trade date.",
         }
+
     missing = sorted(k for k in REQUIRED_BUNDLE_KEYS if not bundle.get(k))
+    certification_missing = []
+    if bundle.get("time_frozen") is not True:
+        certification_missing.append("time_frozen=true")
+    if bundle.get("complete") is not True:
+        certification_missing.append("complete=true")
+
+    provenance = bundle.get("provenance") or {}
+    provenance_failures = []
+    if provenance.get("current_market_values_used") is not False:
+        provenance_failures.append("provenance.current_market_values_used=false")
+    if provenance.get("same_season_results_used") is not False:
+        provenance_failures.append("provenance.same_season_results_used=false")
+    if provenance.get("future_schedule_used") is not False:
+        provenance_failures.append("provenance.future_schedule_used=false")
+
+    ready = not missing and not certification_missing and not provenance_failures
+    if ready:
+        reason = None
+    elif missing:
+        reason = "Time-frozen GM3 inputs are incomplete."
+    elif certification_missing:
+        reason = "Historical GM3 bundle is not explicitly certified time-frozen and complete."
+    else:
+        reason = "Historical GM3 bundle provenance does not satisfy the no-leakage certification policy."
+
     return {
-        "ready": not missing,
+        "ready": ready,
         "missing": missing,
-        "reason": None if not missing else "Time-frozen GM3 inputs are incomplete.",
+        "missing_certifications": certification_missing,
+        "provenance_failures": provenance_failures,
+        "reason": reason,
     }
 
 
@@ -87,6 +115,8 @@ def evaluate(state, season_data, actions, participants, bundle, sims=1000, seed=
             "status": "NOT_GRADED",
             "reason": status["reason"],
             "missing_time_frozen_inputs": status["missing"],
+            "missing_bundle_certifications": status.get("missing_certifications") or [],
+            "bundle_provenance_failures": status.get("provenance_failures") or [],
             "same_gm3_core_as_current_trade_analysis": True,
             "current_values_used": False,
             "standalone_historical_score_used": False,
