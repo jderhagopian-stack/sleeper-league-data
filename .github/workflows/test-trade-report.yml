@@ -14,6 +14,7 @@ on:
       - 'script/run_trade_market_sweep_v28.py'
       - 'script/run_trade_market_sweep_v23.py'
       - 'script/run_trade_market_sweep_v13.py'
+      - 'script/audit_roster_cut_sensitivity.py'
       - 'script/roster_aware_trade.py'
       - 'script/roster_interaction.py'
       - 'script/historical_state_behavior.py'
@@ -36,7 +37,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/run_trade_market_sweep_v13.py script/roster_aware_trade.py script/roster_interaction.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test adaptive trigger logic
         run: |
           python - <<'PY'
@@ -135,6 +136,18 @@ jobs:
           assert not [x for x in banned if x in text], text
           assert '...' not in text and '\u2026' not in text, text
           print('Market Sweep 1.24 / post-overlay ranking coherence / qualified authority / roster interaction / baseline-aware roster resolution / plain-language report 1.10 test passed')
+          PY
+      - name: Audit downstream cut-plan sensitivity
+        run: |
+          python script/audit_roster_cut_sensitivity.py --report /tmp/fsffl-trade-report/validation-trade.json --output /tmp/fsffl-trade-report/roster-cut-sensitivity.json --sims 1000 --seed 20260821
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/fsffl-trade-report/roster-cut-sensitivity.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['interpretation']['uses_exact_lineup_reoptimization'] is True
+          assert d['summary']['audited_candidate_count'] >= 1
+          print(json.dumps(d['summary'],indent=2))
           PY
       - name: Upload trade report artifacts
         if: always()
