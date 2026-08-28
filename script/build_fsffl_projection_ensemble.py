@@ -5,21 +5,6 @@ The builder is deliberately simple: eligible independent sources receive equal
 weight unless a future, versioned calibration demonstrates that a more complex
 weighting scheme improves held-out accuracy. It preserves per-source values and
 source disagreement for downstream uncertainty work.
-
-Normalized source files must contain:
-{
-  "season": "2026",
-  "source_id": "razzball",
-  "players": {
-    "<sleeper_id>": {
-      "player_name": "...",
-      "position": "QB|RB|WR|TE",
-      "team": "...",
-      "fsffl_projected_points": 123.4,
-      "fsffl_projected_ppg": 12.34
-    }
-  }
-}
 """
 
 from __future__ import annotations
@@ -53,7 +38,6 @@ def finite_number(value: Any) -> bool:
 def resolve_sources(season: str, registry: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     available: List[Dict[str, Any]] = []
     missing: List[Dict[str, Any]] = []
-
     for source_id, cfg in (registry.get("sources") or {}).items():
         if not cfg.get("eligible_for_ensemble", False):
             continue
@@ -73,61 +57,44 @@ def resolve_sources(season: str, registry: Dict[str, Any]) -> Tuple[List[Dict[st
         if payload_source_id != source_id:
             missing.append({"source_id": source_id, "path": str(path), "reason": "source_id_mismatch"})
             continue
-        players = payload.get("players") or {}
-        if not players:
+        if not (payload.get("players") or {}):
             missing.append({"source_id": source_id, "path": str(path), "reason": "empty_players"})
             continue
         available.append({"source_id": source_id, "config": cfg, "path": path, "payload": payload})
-
     return available, missing
 
 
 def dedupe_independence_families(sources: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    kept: List[Dict[str, Any]] = []
-    rejected: List[Dict[str, Any]] = []
+    kept, rejected = [], []
     families: Dict[str, str] = {}
-
     for source in sources:
         cfg = source["config"]
         family = str(cfg.get("independence_family") or source["source_id"])
         if family in families:
-            rejected.append({
-                "source_id": source["source_id"],
-                "reason": "duplicate_independence_family",
-                "independence_family": family,
-                "already_counted_source": families[family],
-            })
+            rejected.append({"source_id": source["source_id"], "reason": "duplicate_independence_family", "independence_family": family, "already_counted_source": families[family]})
             continue
         families[family] = source["source_id"]
         kept.append(source)
     return kept, rejected
 
 
-def build_player_ensemble(sources: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+def build_player_ensemble(sources: List[Dict[str, Any]], minimum_sources: int = 2) -> Dict[str, Dict[str, Any]]:
     all_ids = set()
     for source in sources:
         all_ids.update(str(x) for x in (source["payload"].get("players") or {}).keys())
 
     output: Dict[str, Dict[str, Any]] = {}
     for sid in sorted(all_ids):
-        observations = []
-        exemplar = None
+        observations, exemplar = [], None
         for source in sources:
             player = (source["payload"].get("players") or {}).get(sid)
             if not player:
                 continue
-            pts = player.get("fsffl_projected_points")
-            ppg = player.get("fsffl_projected_ppg")
+            pts, ppg = player.get("fsffl_projected_points"), player.get("fsffl_projected_ppg")
             if not finite_number(pts):
                 continue
-            if exemplar is None:
-                exemplar = player
-            observations.append({
-                "source_id": source["source_id"],
-                "points": float(pts),
-                "ppg": float(ppg) if finite_number(ppg) else None,
-            })
-
+            exemplar = exemplar or player
+            observations.append({"source_id": source["source_id"], "points": float(pts), "ppg": float(ppg) if finite_number(ppg) else None})
         if not observations or exemplar is None:
             continue
 
@@ -137,6 +104,7 @@ def build_player_ensemble(sources: List[Dict[str, Any]]) -> Dict[str, Dict[str, 
         mean_ppg = statistics.fmean(ppgs) if ppgs else None
         point_sd = statistics.stdev(points) if len(points) >= 2 else 0.0
         disagreement_cv = point_sd / abs(mean_points) if len(points) >= 2 and abs(mean_points) > 1e-9 else 0.0
+        player_authoritative = len(observations) >= minimum_sources
 
         output[sid] = {
             "sleeper_id": sid,
@@ -153,76 +121,79 @@ def build_player_ensemble(sources: List[Dict[str, Any]]) -> Dict[str, Dict[str, 
             "source_ppg": {x["source_id"]: (round(x["ppg"], 3) if x["ppg"] is not None else None) for x in observations},
             "source_disagreement_sd_points": round(point_sd, 3),
             "source_disagreement_cv": round(disagreement_cv, 5),
+            "authoritative_projection_allowed": player_authoritative,
+            "authority_reason": "minimum_independent_sources_met" if player_authoritative else "insufficient_player_level_independent_sources",
         }
     return output
 
 
 def main():
-    league = load_json(DATA / "league.json")
-    registry = load_json(REGISTRY_PATH)
+    league, registry = load_json(DATA / "league.json"), load_json(REGISTRY_PATH)
     if not league:
         raise RuntimeError("Missing data/league.json")
     if not registry:
         raise RuntimeError("Missing data/projection_source_registry.json")
-
     season = str(league.get("season") or "").strip()
     if not season:
         raise RuntimeError("Active season missing from data/league.json")
 
     available, missing = resolve_sources(season, registry)
     independent, duplicate_family_rejections = dedupe_independence_families(available)
-
     policy = registry.get("policy") or {}
     minimum = int(policy.get("minimum_independent_sources_for_authoritative_ensemble", 2))
-    authoritative = len(independent) >= minimum
+    source_gate = len(independent) >= minimum
+    players = build_player_ensemble(independent, minimum_sources=minimum)
+    authoritative_players = sum(1 for x in players.values() if x["authoritative_projection_allowed"])
+    player_authority_rate = authoritative_players / len(players) if players else 0.0
+    minimum_player_coverage = float(policy.get("minimum_player_authority_coverage_for_production", 0.85))
+    authoritative = source_gate and player_authority_rate >= minimum_player_coverage
 
-    players = build_player_ensemble(independent)
     sim_dir = SIM_ROOT / season
-    sources_dir = sim_dir / "sources"
-    outputs_dir = sim_dir / "outputs"
-
+    sources_dir, outputs_dir = sim_dir / "sources", sim_dir / "outputs"
     payload = {
         "season": season,
         "source": "FSFFL governed multi-source ensemble",
-        "model_version": "FSFFL-Projection-Ensemble-1.0",
+        "model_version": "FSFFL-Projection-Ensemble-1.1",
         "ensemble_method": "equal_weight_mean",
         "authoritative_projection_allowed": authoritative,
         "minimum_independent_sources": minimum,
+        "minimum_player_authority_coverage_for_production": minimum_player_coverage,
+        "player_authority_coverage": round(player_authority_rate, 5),
         "independent_sources_used": [x["source_id"] for x in independent],
         "scoring_source": "data/league.json (normalized by each source adapter before ensemble)",
         "players": players,
     }
-
     audit = {
         "season": season,
-        "model_version": "FSFFL-Projection-Ensemble-1.0",
+        "model_version": "FSFFL-Projection-Ensemble-1.1",
         "policy": policy,
         "available_registered_sources": [x["source_id"] for x in available],
         "independent_sources_used": [x["source_id"] for x in independent],
         "missing_or_invalid_sources": missing,
         "duplicate_information_rejections": duplicate_family_rejections,
         "player_count": len(players),
-        "players_with_multiple_sources": sum(1 for x in players.values() if x["source_count"] >= 2),
-        "players_with_single_source": sum(1 for x in players.values() if x["source_count"] == 1),
+        "players_with_authoritative_multi_source_projection": authoritative_players,
+        "players_without_authoritative_multi_source_projection": len(players) - authoritative_players,
+        "player_authority_coverage": round(player_authority_rate, 5),
         "authoritative_projection_allowed": authoritative,
         "quality_gate": {
             "minimum_independent_sources": minimum,
             "independent_sources_available": len(independent),
+            "source_gate_passed": source_gate,
+            "minimum_player_authority_coverage_for_production": minimum_player_coverage,
+            "player_authority_coverage": round(player_authority_rate, 5),
             "passed": authoritative,
         },
-        "governance_note": "Source disagreement is retained for uncertainty analysis. Equal weighting is the default until held-out evidence supports a more complex weighting scheme."
+        "governance_note": "Production promotion now requires both global source independence and sufficient player-level multi-source coverage. Single-source player estimates remain visible in the candidate artifact but cannot count as authoritative projections. Source disagreement is retained for uncertainty analysis."
     }
 
-    # Always emit a candidate artifact and audit. Do not overwrite the production
-    # baseline unless the minimum independent-source gate has been satisfied.
     write_json(sources_dir / "preseason_fsffl_points_candidate_ensemble.json", payload)
     write_json(outputs_dir / "projection_ensemble_audit.json", audit)
-
     if authoritative:
         write_json(sources_dir / "preseason_fsffl_points.json", payload)
-        print(f"Authoritative FSFFL ensemble built from {len(independent)} independent sources for {len(players)} players.")
+        print(f"Authoritative FSFFL ensemble built from {len(independent)} independent sources for {len(players)} players; player authority coverage={player_authority_rate:.1%}.")
     else:
-        print(f"Candidate ensemble built, but authority gate failed: {len(independent)}/{minimum} independent sources available. Production baseline was not overwritten.")
+        print(f"Candidate ensemble built; production authority gate failed. independent_sources={len(independent)}/{minimum}, player_authority_coverage={player_authority_rate:.1%}/{minimum_player_coverage:.1%}. Production baseline was not overwritten.")
 
 
 if __name__ == "__main__":
