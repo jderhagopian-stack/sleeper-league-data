@@ -10,6 +10,7 @@ on:
       - 'script/audit_decision_path_integrity.py'
       - 'script/audit_transaction_evidence_readiness.py'
       - 'script/audit_projection_calibration_readiness.py'
+      - 'script/audit_market_value_adjustments.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -39,6 +40,7 @@ jobs:
           python script/audit_decision_path_integrity.py
           python script/audit_transaction_evidence_readiness.py
           python script/audit_projection_calibration_readiness.py
+          python script/audit_market_value_adjustments.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -92,6 +94,14 @@ jobs:
           assert q['finding']['production_behavior_changed'] is False
           assert q['finding']['all_expected_runtime_markers_detected'] is True
           assert q['finding']['authoritative_empirical_claim_allowed'] is False
+
+          m=json.load(open('data/audit/market_value_adjustments_audit.json'))
+          mids={x['id']:x for x in m['findings']}
+          assert m['production_behavior_changed'] is False
+          assert m['policy']['same_source_market_trend_requires_incremental_validation'] is True
+          assert mids['MARKET-RANK-CURVE-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+          assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+          assert mids['MARKET-OVERLAY-CORRELATION-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -100,6 +110,7 @@ jobs:
           print(json.dumps(d['summary'],indent=2))
           print(json.dumps(t['summary'],indent=2))
           print(json.dumps(q['finding'],indent=2))
+          print(json.dumps(m['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
