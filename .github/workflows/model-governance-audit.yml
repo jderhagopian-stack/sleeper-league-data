@@ -15,6 +15,7 @@ on:
       - 'script/audit_competitive_state_utility.py'
       - 'script/audit_package_economics.py'
       - 'script/audit_roster_interaction_cut_governance.py'
+      - 'script/audit_behavioral_acceptance_governance.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
       - 'data/model_parameter_registry.json'
@@ -49,6 +50,7 @@ jobs:
           python script/audit_competitive_state_utility.py
           python script/audit_package_economics.py
           python script/audit_roster_interaction_cut_governance.py
+          python script/audit_behavioral_acceptance_governance.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -151,6 +153,17 @@ jobs:
           assert z['summary']['registry_consistent'] is True
           assert zids['ROSTER-CUT-PRESCREEN-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert zids['ROSTER-INTERACTION-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+
+          b=json.load(open('data/audit/behavioral_acceptance_governance_audit.json'))
+          bids={x['id']:x for x in b['findings']}
+          assert b['production_behavior_changed'] is False
+          assert b['policy']['revealed_preference_is_not_acceptance_probability'] is True
+          assert b['policy']['acceptance_probability_requires_offer_or_choice_denominator'] is True
+          assert b['summary']['acceptance_evidence_ready_for_probability_fit'] is False
+          assert b['summary']['behavior_signal_reused_in_negotiation_ranking'] is True
+          assert b['summary']['registry_consistent'] is True
+          assert bids['ACCEPTANCE-PROBABILITY-001']['authoritative_probability_claim_allowed'] is False
+          assert bids['BEHAVIOR-ACCEPTANCE-OVERLAP-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps(s['trade_score_elasticity'],indent=2))
           print(json.dumps(e['summary'],indent=2))
@@ -168,6 +181,8 @@ jobs:
           print(json.dumps(k['findings'],indent=2))
           print(json.dumps(z['summary'],indent=2))
           print(json.dumps(z['findings'],indent=2))
+          print(json.dumps(b['summary'],indent=2))
+          print(json.dumps(b['findings'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
