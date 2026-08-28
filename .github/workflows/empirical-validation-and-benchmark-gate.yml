@@ -85,16 +85,21 @@ jobs:
           PY
       - name: Run executable grouped reconstruction sensitivity
         run: |
+          # This CI sweep is a governance diagnostic, not an empirical coefficient
+          # estimator. Common random numbers are retained across scenarios; 100
+          # simulations keep the seven-case bounded perturbation inside the runtime
+          # gate without changing production simulation settings or model outputs.
           python script/audit_historical_reconstruction_sensitivity.py \
             --season 2023 \
             --transaction-id 950954472107368448 \
-            --sims 250 \
+            --sims 100 \
             --output /tmp/historical-reconstruction-sensitivity.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/historical-reconstruction-sensitivity.json'))
           assert d['summary']['authoritative_regardless_of_flip'] is False
           assert d['summary']['strict_oos_backtest_observation'] is False
+          assert d['n_sims_per_scenario']==100
           assert len(d['scenario_groups'])==6
           PY
       - name: Audit empirical validation readiness
