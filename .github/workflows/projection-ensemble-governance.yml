@@ -80,5 +80,5 @@ jobs:
           assert 'razzball' in audit['independent_sources_used']
           assert 'fftoday' in audit['independent_sources_used']
           assert audit['authoritative_projection_allowed'] is True
-          assert audit['player_authority_coverage'] >= audit['quality_gate']['minimum_player_authority_coverage']
+          assert audit['player_authority_coverage'] >= audit['quality_gate']['minimum_player_authority_coverage_for_production']
           PY
