@@ -985,7 +985,7 @@
       "MochaSmevs",
       "HUNGRY DAWGS"
     ],
-    "nfl_team": null,
+    "nfl_team": "GB",
     "player_id": "4144",
     "player_name": "Jonnu Smith",
     "position": "TE",
@@ -3776,7 +3776,7 @@
       "The Shish Kebab Boys",
       "STINKS"
     ],
-    "nfl_team": "MIA",
+    "nfl_team": "LAR",
     "player_id": "7562",
     "player_name": "Tutu Atwell",
     "position": "WR",
@@ -5284,7 +5284,7 @@
       "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
       "HUNGRY DAWGS"
     ],
-    "nfl_team": "CLE",
+    "nfl_team": null,
     "player_id": "10444",
     "player_name": "Cedric Tillman",
     "position": "WR",
@@ -5696,6 +5696,56 @@
   {
     "events": [
       {
+        "created": 1723339719495,
+        "created_utc": "2024-08-11T01:28:39Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "PVos",
+        "season": "2024",
+        "team_name": "STINKS",
+        "transaction_id": "1128172188626014208",
+        "user_id": "725401251478605824"
+      },
+      {
+        "created": 1785830084550,
+        "created_utc": "2026-08-04T07:54:44Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "chuckthegoat77",
+        "season": "2026",
+        "team_name": "The Associate ",
+        "transaction_id": "1390275776737218560",
+        "user_id": "676939933792964608"
+      },
+      {
+        "created": 1787776246031,
+        "created_utc": "2026-08-26T20:30:46Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "Anthonyder",
+        "season": "2026",
+        "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
+        "transaction_id": "1398438569621659648",
+        "user_id": "845157822193872896"
+      }
+    ],
+    "fsffl_team_history": [
+      "STINKS",
+      "The Associate ",
+      "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47"
+    ],
+    "nfl_team": "DAL",
+    "player_id": "11557",
+    "player_name": "Joe Milton",
+    "position": "QB",
+    "reacquisitions": 0,
+    "recorded_acquisition_events": 3,
+    "trade_acquisitions": 0,
+    "unique_fsffl_teams": 3
+  },
+  {
+    "events": [
+      {
         "created": 1665921712377,
         "created_utc": "2022-10-16T12:01:52Z",
         "event_type": "free_agent",
@@ -5934,7 +5984,7 @@
       "BING BONG DRIGSY\ud83c\udf4e",
       "King B"
     ],
-    "nfl_team": "DET",
+    "nfl_team": null,
     "player_id": "8255",
     "player_name": "Raheem Blackshear",
     "position": "RB",
@@ -6090,6 +6140,44 @@
     "reacquisitions": 0,
     "recorded_acquisition_events": 3,
     "trade_acquisitions": 4,
+    "unique_fsffl_teams": 2
+  },
+  {
+    "events": [
+      {
+        "created": 1717856069988,
+        "created_utc": "2024-06-08T14:14:29Z",
+        "event_type": "waiver",
+        "faab_bid": 11,
+        "manager": "Anthonyder",
+        "season": "2024",
+        "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
+        "transaction_id": "1105172095564095488",
+        "user_id": "845157822193872896"
+      },
+      {
+        "created": 1787599504552,
+        "created_utc": "2026-08-24T19:25:04Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "nuckyniners",
+        "season": "2026",
+        "team_name": "Chef Niners",
+        "transaction_id": "1397697262125064192",
+        "user_id": "709546576091090944"
+      }
+    ],
+    "fsffl_team_history": [
+      "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
+      "Chef Niners"
+    ],
+    "nfl_team": "BUF",
+    "player_id": "11575",
+    "player_name": "Ray Davis",
+    "position": "RB",
+    "reacquisitions": 0,
+    "recorded_acquisition_events": 2,
+    "trade_acquisitions": 3,
     "unique_fsffl_teams": 2
   },
   {
@@ -8869,44 +8957,6 @@
   {
     "events": [
       {
-        "created": 1723339719495,
-        "created_utc": "2024-08-11T01:28:39Z",
-        "event_type": "waiver",
-        "faab_bid": 1,
-        "manager": "PVos",
-        "season": "2024",
-        "team_name": "STINKS",
-        "transaction_id": "1128172188626014208",
-        "user_id": "725401251478605824"
-      },
-      {
-        "created": 1785830084550,
-        "created_utc": "2026-08-04T07:54:44Z",
-        "event_type": "waiver",
-        "faab_bid": 1,
-        "manager": "chuckthegoat77",
-        "season": "2026",
-        "team_name": "The Associate ",
-        "transaction_id": "1390275776737218560",
-        "user_id": "676939933792964608"
-      }
-    ],
-    "fsffl_team_history": [
-      "STINKS",
-      "The Associate "
-    ],
-    "nfl_team": "DAL",
-    "player_id": "11557",
-    "player_name": "Joe Milton",
-    "position": "QB",
-    "reacquisitions": 0,
-    "recorded_acquisition_events": 2,
-    "trade_acquisitions": 0,
-    "unique_fsffl_teams": 2
-  },
-  {
-    "events": [
-      {
         "created": 1727355108201,
         "created_utc": "2024-09-26T12:51:48Z",
         "event_type": "free_agent",
@@ -10251,32 +10301,6 @@
   {
     "events": [
       {
-        "created": 1717856069988,
-        "created_utc": "2024-06-08T14:14:29Z",
-        "event_type": "waiver",
-        "faab_bid": 11,
-        "manager": "Anthonyder",
-        "season": "2024",
-        "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-        "transaction_id": "1105172095564095488",
-        "user_id": "845157822193872896"
-      }
-    ],
-    "fsffl_team_history": [
-      "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47"
-    ],
-    "nfl_team": "BUF",
-    "player_id": "11575",
-    "player_name": "Ray Davis",
-    "position": "RB",
-    "reacquisitions": 0,
-    "recorded_acquisition_events": 1,
-    "trade_acquisitions": 3,
-    "unique_fsffl_teams": 1
-  },
-  {
-    "events": [
-      {
         "created": 1721869784614,
         "created_utc": "2024-07-25T01:09:44Z",
         "event_type": "waiver",
@@ -10811,6 +10835,32 @@
     "player_id": "11567",
     "player_name": "Jordan Travis",
     "position": "QB",
+    "reacquisitions": 0,
+    "recorded_acquisition_events": 1,
+    "trade_acquisitions": 1,
+    "unique_fsffl_teams": 1
+  },
+  {
+    "events": [
+      {
+        "created": 1787702876617,
+        "created_utc": "2026-08-26T00:07:56Z",
+        "event_type": "waiver",
+        "faab_bid": 12,
+        "manager": "Ballard22",
+        "season": "2026",
+        "team_name": "King B",
+        "transaction_id": "1398130835995033600",
+        "user_id": "858530218330144768"
+      }
+    ],
+    "fsffl_team_history": [
+      "King B"
+    ],
+    "nfl_team": "BUF",
+    "player_id": "8134",
+    "player_name": "Khalil Shakir",
+    "position": "WR",
     "reacquisitions": 0,
     "recorded_acquisition_events": 1,
     "trade_acquisitions": 1,
@@ -11541,6 +11591,32 @@
     "player_id": "6427",
     "player_name": "Ashton Dulin",
     "position": "WR",
+    "reacquisitions": 0,
+    "recorded_acquisition_events": 1,
+    "trade_acquisitions": 0,
+    "unique_fsffl_teams": 1
+  },
+  {
+    "events": [
+      {
+        "created": 1787500782723,
+        "created_utc": "2026-08-23T15:59:42Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "ddersimon",
+        "season": "2026",
+        "team_name": "Ball Knower",
+        "transaction_id": "1397283192762814464",
+        "user_id": "840356119955251200"
+      }
+    ],
+    "fsffl_team_history": [
+      "Ball Knower"
+    ],
+    "nfl_team": "WAS",
+    "player_id": "13557",
+    "player_name": "Athan Kaliakmanis",
+    "position": "QB",
     "reacquisitions": 0,
     "recorded_acquisition_events": 1,
     "trade_acquisitions": 0,
@@ -14374,6 +14450,32 @@
     "nfl_team": "LV",
     "player_id": "13305",
     "player_name": "Mike Washington",
+    "position": "RB",
+    "reacquisitions": 0,
+    "recorded_acquisition_events": 1,
+    "trade_acquisitions": 0,
+    "unique_fsffl_teams": 1
+  },
+  {
+    "events": [
+      {
+        "created": 1787343345545,
+        "created_utc": "2026-08-21T20:15:45Z",
+        "event_type": "waiver",
+        "faab_bid": 1,
+        "manager": "ddersimon",
+        "season": "2026",
+        "team_name": "Ball Knower",
+        "transaction_id": "1396622853381566464",
+        "user_id": "840356119955251200"
+      }
+    ],
+    "fsffl_team_history": [
+      "Ball Knower"
+    ],
+    "nfl_team": "NYG",
+    "player_id": "7528",
+    "player_name": "Najee Harris",
     "position": "RB",
     "reacquisitions": 0,
     "recorded_acquisition_events": 1,

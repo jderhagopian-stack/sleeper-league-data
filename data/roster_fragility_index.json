@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-26T11:53:19.481135+00:00",
+  "generated_at_utc": "2026-08-28T21:51:19.745045+00:00",
   "model_version": "GM-2.0",
   "methodology_note": "Fragility measures optimized-lineup value lost when each current optimal starter is removed individually. It is a roster-depth sensitivity metric, not a prediction of injury probability.",
   "teams": [
@@ -7,9 +7,9 @@
       "user_id": "853063390963277824",
       "manager": "Drigs24",
       "team_name": "BING BONG DRIGSY\ud83c\udf4e",
-      "base_optimal_redraft_value": 42140.0,
-      "top_three_starter_dependency_value": 22723.0,
-      "top_three_dependency_pct": 53.92,
+      "base_optimal_redraft_value": 42357.0,
+      "top_three_starter_dependency_value": 22918.0,
+      "top_three_dependency_pct": 54.11,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -18,60 +18,60 @@
           "player": "Ja'Marr Chase",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 9331.0,
-          "replacement_lineup_total": 33522.0,
-          "lineup_value_drop_if_unavailable": 8618.0,
-          "lineup_drop_pct": 20.45
+          "starter_value": 9291.0,
+          "replacement_lineup_total": 33771.0,
+          "lineup_value_drop_if_unavailable": 8586.0,
+          "lineup_drop_pct": 20.27
         },
         {
           "player_id": "9509",
           "player": "Bijan Robinson",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 9793.0,
-          "replacement_lineup_total": 34033.0,
-          "lineup_value_drop_if_unavailable": 8107.0,
-          "lineup_drop_pct": 19.24
+          "starter_value": 9903.0,
+          "replacement_lineup_total": 34074.0,
+          "lineup_value_drop_if_unavailable": 8283.0,
+          "lineup_drop_pct": 19.56
         },
         {
           "player_id": "11604",
           "player": "Brock Bowers",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 6007.0,
-          "replacement_lineup_total": 36142.0,
-          "lineup_value_drop_if_unavailable": 5998.0,
-          "lineup_drop_pct": 14.23
+          "starter_value": 6053.0,
+          "replacement_lineup_total": 36308.0,
+          "lineup_value_drop_if_unavailable": 6049.0,
+          "lineup_drop_pct": 14.28
         },
         {
           "player_id": "11635",
           "player": "Ladd McConkey",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2946.0,
-          "replacement_lineup_total": 39907.0,
-          "lineup_value_drop_if_unavailable": 2233.0,
-          "lineup_drop_pct": 5.3
-        },
-        {
-          "player_id": "7588",
-          "player": "Javonte Williams",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 3540.0,
-          "replacement_lineup_total": 40286.0,
-          "lineup_value_drop_if_unavailable": 1854.0,
-          "lineup_drop_pct": 4.4
+          "starter_value": 3240.0,
+          "replacement_lineup_total": 39822.0,
+          "lineup_value_drop_if_unavailable": 2535.0,
+          "lineup_drop_pct": 5.98
         },
         {
           "player_id": "8150",
           "player": "Kyren Williams",
           "position": "RB",
+          "slot": "RB",
+          "starter_value": 3454.0,
+          "replacement_lineup_total": 40523.0,
+          "lineup_value_drop_if_unavailable": 1834.0,
+          "lineup_drop_pct": 4.33
+        },
+        {
+          "player_id": "7588",
+          "player": "Javonte Williams",
+          "position": "RB",
           "slot": "FLEX",
-          "starter_value": 3503.0,
-          "replacement_lineup_total": 40323.0,
-          "lineup_value_drop_if_unavailable": 1817.0,
-          "lineup_drop_pct": 4.31
+          "starter_value": 3359.0,
+          "replacement_lineup_total": 40618.0,
+          "lineup_value_drop_if_unavailable": 1739.0,
+          "lineup_drop_pct": 4.11
         }
       ]
     },
@@ -79,9 +79,9 @@
       "user_id": "833709164739014656",
       "manager": "jaco057",
       "team_name": "HUNGRY DAWGS",
-      "base_optimal_redraft_value": 27534.0,
-      "top_three_starter_dependency_value": 20756.0,
-      "top_three_dependency_pct": 75.38,
+      "base_optimal_redraft_value": 27926.0,
+      "top_three_starter_dependency_value": 21171.0,
+      "top_three_dependency_pct": 75.81,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -90,60 +90,60 @@
           "player": "Josh Allen",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 10406.0,
-          "replacement_lineup_total": 17128.0,
-          "lineup_value_drop_if_unavailable": 10406.0,
-          "lineup_drop_pct": 37.79
+          "starter_value": 10424.0,
+          "replacement_lineup_total": 17502.0,
+          "lineup_value_drop_if_unavailable": 10424.0,
+          "lineup_drop_pct": 37.33
         },
         {
           "player_id": "8130",
           "player": "Trey McBride",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 5610.0,
-          "replacement_lineup_total": 21924.0,
-          "lineup_value_drop_if_unavailable": 5610.0,
-          "lineup_drop_pct": 20.37
+          "starter_value": 5790.0,
+          "replacement_lineup_total": 22136.0,
+          "lineup_value_drop_if_unavailable": 5790.0,
+          "lineup_drop_pct": 20.73
         },
         {
           "player_id": "8137",
           "player": "George Pickens",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 4740.0,
-          "replacement_lineup_total": 22794.0,
-          "lineup_value_drop_if_unavailable": 4740.0,
-          "lineup_drop_pct": 17.22
+          "starter_value": 4957.0,
+          "replacement_lineup_total": 22969.0,
+          "lineup_value_drop_if_unavailable": 4957.0,
+          "lineup_drop_pct": 17.75
         },
         {
           "player_id": "8155",
           "player": "Breece Hall",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 3148.0,
-          "replacement_lineup_total": 24386.0,
-          "lineup_value_drop_if_unavailable": 3148.0,
-          "lineup_drop_pct": 11.43
+          "starter_value": 3021.0,
+          "replacement_lineup_total": 24905.0,
+          "lineup_value_drop_if_unavailable": 3021.0,
+          "lineup_drop_pct": 10.82
         },
         {
           "player_id": "12519",
           "player": "Luther Burden",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2029.0,
-          "replacement_lineup_total": 25505.0,
-          "lineup_value_drop_if_unavailable": 2029.0,
-          "lineup_drop_pct": 7.37
+          "starter_value": 2272.0,
+          "replacement_lineup_total": 25654.0,
+          "lineup_value_drop_if_unavailable": 2272.0,
+          "lineup_drop_pct": 8.14
         },
         {
           "player_id": "13279",
           "player": "Carnell Tate",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 1601.0,
-          "replacement_lineup_total": 25933.0,
-          "lineup_value_drop_if_unavailable": 1601.0,
-          "lineup_drop_pct": 5.81
+          "starter_value": 1462.0,
+          "replacement_lineup_total": 26464.0,
+          "lineup_value_drop_if_unavailable": 1462.0,
+          "lineup_drop_pct": 5.24
         }
       ]
     },
@@ -151,9 +151,9 @@
       "user_id": "725401251478605824",
       "manager": "PVos",
       "team_name": "STINKS",
-      "base_optimal_redraft_value": 30187.0,
-      "top_three_starter_dependency_value": 18831.0,
-      "top_three_dependency_pct": 62.38,
+      "base_optimal_redraft_value": 30620.0,
+      "top_three_starter_dependency_value": 19276.0,
+      "top_three_dependency_pct": 62.95,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -162,60 +162,60 @@
           "player": "Jahmyr Gibbs",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 10318.0,
-          "replacement_lineup_total": 20371.0,
-          "lineup_value_drop_if_unavailable": 9816.0,
-          "lineup_drop_pct": 32.52
+          "starter_value": 10293.0,
+          "replacement_lineup_total": 20768.0,
+          "lineup_value_drop_if_unavailable": 9852.0,
+          "lineup_drop_pct": 32.18
         },
         {
           "player_id": "12507",
           "player": "Omarion Hampton",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 5014.0,
-          "replacement_lineup_total": 25675.0,
-          "lineup_value_drop_if_unavailable": 4512.0,
-          "lineup_drop_pct": 14.95
+          "starter_value": 5622.0,
+          "replacement_lineup_total": 25439.0,
+          "lineup_value_drop_if_unavailable": 5181.0,
+          "lineup_drop_pct": 16.92
         },
         {
           "player_id": "7523",
           "player": "Trevor Lawrence",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 5005.0,
-          "replacement_lineup_total": 25684.0,
-          "lineup_value_drop_if_unavailable": 4503.0,
-          "lineup_drop_pct": 14.92
+          "starter_value": 4684.0,
+          "replacement_lineup_total": 26377.0,
+          "lineup_value_drop_if_unavailable": 4243.0,
+          "lineup_drop_pct": 13.86
         },
         {
           "player_id": "13287",
           "player": "Jeremiyah Love",
           "position": "RB",
           "slot": "FLEX",
-          "starter_value": 3549.0,
-          "replacement_lineup_total": 27140.0,
-          "lineup_value_drop_if_unavailable": 3047.0,
-          "lineup_drop_pct": 10.09
+          "starter_value": 3589.0,
+          "replacement_lineup_total": 27472.0,
+          "lineup_value_drop_if_unavailable": 3148.0,
+          "lineup_drop_pct": 10.28
         },
         {
           "player_id": "8161",
           "player": "Malik Willis",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 1835.0,
-          "replacement_lineup_total": 28854.0,
-          "lineup_value_drop_if_unavailable": 1333.0,
-          "lineup_drop_pct": 4.42
+          "starter_value": 1994.0,
+          "replacement_lineup_total": 29067.0,
+          "lineup_value_drop_if_unavailable": 1553.0,
+          "lineup_drop_pct": 5.07
         },
         {
           "player_id": "12506",
           "player": "Harold Fannin",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 1527.0,
-          "replacement_lineup_total": 28871.0,
-          "lineup_value_drop_if_unavailable": 1316.0,
-          "lineup_drop_pct": 4.36
+          "starter_value": 1348.0,
+          "replacement_lineup_total": 29457.0,
+          "lineup_value_drop_if_unavailable": 1163.0,
+          "lineup_drop_pct": 3.8
         }
       ]
     },
@@ -223,9 +223,9 @@
       "user_id": "844785316274483200",
       "manager": "MochaSmev",
       "team_name": "MochaSmevs",
-      "base_optimal_redraft_value": 38916.0,
-      "top_three_starter_dependency_value": 17782.0,
-      "top_three_dependency_pct": 45.69,
+      "base_optimal_redraft_value": 38809.0,
+      "top_three_starter_dependency_value": 17641.0,
+      "top_three_dependency_pct": 45.46,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -234,60 +234,60 @@
           "player": "Amon-Ra St. Brown",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 8202.0,
-          "replacement_lineup_total": 31241.0,
-          "lineup_value_drop_if_unavailable": 7675.0,
-          "lineup_drop_pct": 19.72
-        },
-        {
-          "player_id": "9224",
-          "player": "Chase Brown",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 5487.0,
-          "replacement_lineup_total": 33789.0,
-          "lineup_value_drop_if_unavailable": 5127.0,
-          "lineup_drop_pct": 13.17
+          "starter_value": 8339.0,
+          "replacement_lineup_total": 30979.0,
+          "lineup_value_drop_if_unavailable": 7830.0,
+          "lineup_drop_pct": 20.18
         },
         {
           "player_id": "6770",
           "player": "Joe Burrow",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 7718.0,
-          "replacement_lineup_total": 33936.0,
-          "lineup_value_drop_if_unavailable": 4980.0,
-          "lineup_drop_pct": 12.8
+          "starter_value": 7876.0,
+          "replacement_lineup_total": 33874.0,
+          "lineup_value_drop_if_unavailable": 4935.0,
+          "lineup_drop_pct": 12.72
         },
         {
-          "player_id": "11566",
-          "player": "Jayden Daniels",
-          "position": "QB",
-          "slot": "SUPER_FLEX",
-          "starter_value": 6891.0,
-          "replacement_lineup_total": 34763.0,
-          "lineup_value_drop_if_unavailable": 4153.0,
-          "lineup_drop_pct": 10.67
+          "player_id": "9224",
+          "player": "Chase Brown",
+          "position": "RB",
+          "slot": "RB",
+          "starter_value": 5226.0,
+          "replacement_lineup_total": 33933.0,
+          "lineup_value_drop_if_unavailable": 4876.0,
+          "lineup_drop_pct": 12.56
         },
         {
           "player_id": "12527",
           "player": "Ashton Jeanty",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 4255.0,
-          "replacement_lineup_total": 35021.0,
-          "lineup_value_drop_if_unavailable": 3895.0,
-          "lineup_drop_pct": 10.01
+          "starter_value": 4555.0,
+          "replacement_lineup_total": 34604.0,
+          "lineup_value_drop_if_unavailable": 4205.0,
+          "lineup_drop_pct": 10.84
+        },
+        {
+          "player_id": "11566",
+          "player": "Jayden Daniels",
+          "position": "QB",
+          "slot": "SUPER_FLEX",
+          "starter_value": 6899.0,
+          "replacement_lineup_total": 34851.0,
+          "lineup_value_drop_if_unavailable": 3958.0,
+          "lineup_drop_pct": 10.2
         },
         {
           "player_id": "12518",
           "player": "Tyler Warren",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 3156.0,
-          "replacement_lineup_total": 35760.0,
-          "lineup_value_drop_if_unavailable": 3156.0,
-          "lineup_drop_pct": 8.11
+          "starter_value": 2899.0,
+          "replacement_lineup_total": 35910.0,
+          "lineup_value_drop_if_unavailable": 2899.0,
+          "lineup_drop_pct": 7.47
         }
       ]
     },
@@ -295,9 +295,9 @@
       "user_id": "845157822193872896",
       "manager": "Anthonyder",
       "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
-      "base_optimal_redraft_value": 44273.0,
-      "top_three_starter_dependency_value": 17440.0,
-      "top_three_dependency_pct": 39.39,
+      "base_optimal_redraft_value": 44983.0,
+      "top_three_starter_dependency_value": 17361.0,
+      "top_three_dependency_pct": 38.59,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -306,60 +306,60 @@
           "player": "Puka Nacua",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 8839.0,
-          "replacement_lineup_total": 36987.0,
-          "lineup_value_drop_if_unavailable": 7286.0,
-          "lineup_drop_pct": 16.46
+          "starter_value": 8955.0,
+          "replacement_lineup_total": 37554.0,
+          "lineup_value_drop_if_unavailable": 7429.0,
+          "lineup_drop_pct": 16.52
         },
         {
           "player_id": "4034",
           "player": "Christian McCaffrey",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 7767.0,
-          "replacement_lineup_total": 38059.0,
-          "lineup_value_drop_if_unavailable": 6214.0,
-          "lineup_drop_pct": 14.04
+          "starter_value": 7510.0,
+          "replacement_lineup_total": 38999.0,
+          "lineup_value_drop_if_unavailable": 5984.0,
+          "lineup_drop_pct": 13.3
         },
         {
           "player_id": "5859",
           "player": "A.J. Brown",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 5493.0,
-          "replacement_lineup_total": 40333.0,
-          "lineup_value_drop_if_unavailable": 3940.0,
-          "lineup_drop_pct": 8.9
+          "starter_value": 5474.0,
+          "replacement_lineup_total": 41035.0,
+          "lineup_value_drop_if_unavailable": 3948.0,
+          "lineup_drop_pct": 8.78
         },
         {
           "player_id": "11564",
           "player": "Drake Maye",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 7505.0,
-          "replacement_lineup_total": 40829.0,
-          "lineup_value_drop_if_unavailable": 3444.0,
-          "lineup_drop_pct": 7.78
+          "starter_value": 7496.0,
+          "replacement_lineup_total": 41504.0,
+          "lineup_value_drop_if_unavailable": 3479.0,
+          "lineup_drop_pct": 7.73
         },
         {
           "player_id": "3198",
           "player": "Derrick Henry",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 4523.0,
-          "replacement_lineup_total": 41303.0,
-          "lineup_value_drop_if_unavailable": 2970.0,
-          "lineup_drop_pct": 6.71
+          "starter_value": 4847.0,
+          "replacement_lineup_total": 41662.0,
+          "lineup_value_drop_if_unavailable": 3321.0,
+          "lineup_drop_pct": 7.38
         },
         {
           "player_id": "8146",
           "player": "Garrett Wilson",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2698.0,
-          "replacement_lineup_total": 43128.0,
-          "lineup_value_drop_if_unavailable": 1145.0,
-          "lineup_drop_pct": 2.59
+          "starter_value": 3115.0,
+          "replacement_lineup_total": 43394.0,
+          "lineup_value_drop_if_unavailable": 1589.0,
+          "lineup_drop_pct": 3.53
         }
       ]
     },
@@ -367,9 +367,9 @@
       "user_id": "858530218330144768",
       "manager": "Ballard22",
       "team_name": "King B",
-      "base_optimal_redraft_value": 38238.0,
-      "top_three_starter_dependency_value": 16978.0,
-      "top_three_dependency_pct": 44.4,
+      "base_optimal_redraft_value": 38374.0,
+      "top_three_starter_dependency_value": 16993.0,
+      "top_three_dependency_pct": 44.28,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 1,
       "most_irreplaceable_starters": [
@@ -378,60 +378,60 @@
           "player": "Jonathan Taylor",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 7542.0,
-          "replacement_lineup_total": 31567.0,
-          "lineup_value_drop_if_unavailable": 6671.0,
-          "lineup_drop_pct": 17.45
-        },
-        {
-          "player_id": "9226",
-          "player": "De'Von Achane",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 6380.0,
-          "replacement_lineup_total": 32729.0,
-          "lineup_value_drop_if_unavailable": 5509.0,
-          "lineup_drop_pct": 14.41
+          "starter_value": 7762.0,
+          "replacement_lineup_total": 31569.0,
+          "lineup_value_drop_if_unavailable": 6805.0,
+          "lineup_drop_pct": 17.73
         },
         {
           "player_id": "4866",
           "player": "Saquon Barkley",
           "position": "RB",
+          "slot": "RB",
+          "starter_value": 6063.0,
+          "replacement_lineup_total": 33268.0,
+          "lineup_value_drop_if_unavailable": 5106.0,
+          "lineup_drop_pct": 13.31
+        },
+        {
+          "player_id": "9226",
+          "player": "De'Von Achane",
+          "position": "RB",
           "slot": "FLEX",
-          "starter_value": 5669.0,
-          "replacement_lineup_total": 33440.0,
-          "lineup_value_drop_if_unavailable": 4798.0,
-          "lineup_drop_pct": 12.55
+          "starter_value": 6039.0,
+          "replacement_lineup_total": 33292.0,
+          "lineup_value_drop_if_unavailable": 5082.0,
+          "lineup_drop_pct": 13.24
         },
         {
           "player_id": "7569",
           "player": "Nico Collins",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 4638.0,
-          "replacement_lineup_total": 34471.0,
-          "lineup_value_drop_if_unavailable": 3767.0,
-          "lineup_drop_pct": 9.85
-        },
-        {
-          "player_id": "11632",
-          "player": "Malik Nabers",
-          "position": "WR",
-          "slot": "WR",
-          "starter_value": 4563.0,
-          "replacement_lineup_total": 34546.0,
-          "lineup_value_drop_if_unavailable": 3692.0,
-          "lineup_drop_pct": 9.66
+          "starter_value": 4657.0,
+          "replacement_lineup_total": 34674.0,
+          "lineup_value_drop_if_unavailable": 3700.0,
+          "lineup_drop_pct": 9.64
         },
         {
           "player_id": "12517",
           "player": "Colston Loveland",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 3536.0,
-          "replacement_lineup_total": 34702.0,
-          "lineup_value_drop_if_unavailable": 3536.0,
-          "lineup_drop_pct": 9.25
+          "starter_value": 3621.0,
+          "replacement_lineup_total": 34753.0,
+          "lineup_value_drop_if_unavailable": 3621.0,
+          "lineup_drop_pct": 9.44
+        },
+        {
+          "player_id": "11632",
+          "player": "Malik Nabers",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 4479.0,
+          "replacement_lineup_total": 34852.0,
+          "lineup_value_drop_if_unavailable": 3522.0,
+          "lineup_drop_pct": 9.18
         }
       ]
     },
@@ -439,9 +439,9 @@
       "user_id": "850548458887704576",
       "manager": "jder52",
       "team_name": "The Shish Kebab Boys",
-      "base_optimal_redraft_value": 32411.0,
-      "top_three_starter_dependency_value": 15871.0,
-      "top_three_dependency_pct": 48.97,
+      "base_optimal_redraft_value": 32853.0,
+      "top_three_starter_dependency_value": 16297.0,
+      "top_three_dependency_pct": 49.61,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -450,60 +450,60 @@
           "player": "Justin Jefferson",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 7092.0,
-          "replacement_lineup_total": 26145.0,
-          "lineup_value_drop_if_unavailable": 6266.0,
-          "lineup_drop_pct": 19.33
+          "starter_value": 6938.0,
+          "replacement_lineup_total": 26737.0,
+          "lineup_value_drop_if_unavailable": 6116.0,
+          "lineup_drop_pct": 18.62
         },
         {
           "player_id": "6904",
           "player": "Jalen Hurts",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 6428.0,
-          "replacement_lineup_total": 26809.0,
-          "lineup_value_drop_if_unavailable": 5602.0,
-          "lineup_drop_pct": 17.28
+          "starter_value": 6408.0,
+          "replacement_lineup_total": 27267.0,
+          "lineup_value_drop_if_unavailable": 5586.0,
+          "lineup_drop_pct": 17.0
         },
         {
           "player_id": "8151",
           "player": "Kenneth Walker",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 4495.0,
-          "replacement_lineup_total": 28408.0,
-          "lineup_value_drop_if_unavailable": 4003.0,
-          "lineup_drop_pct": 12.35
+          "starter_value": 5051.0,
+          "replacement_lineup_total": 28258.0,
+          "lineup_value_drop_if_unavailable": 4595.0,
+          "lineup_drop_pct": 13.99
         },
         {
           "player_id": "4046",
           "player": "Patrick Mahomes",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 4472.0,
-          "replacement_lineup_total": 28765.0,
-          "lineup_value_drop_if_unavailable": 3646.0,
-          "lineup_drop_pct": 11.25
-        },
-        {
-          "player_id": "5850",
-          "player": "Josh Jacobs",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 3125.0,
-          "replacement_lineup_total": 29778.0,
-          "lineup_value_drop_if_unavailable": 2633.0,
-          "lineup_drop_pct": 8.12
+          "starter_value": 4332.0,
+          "replacement_lineup_total": 29343.0,
+          "lineup_value_drop_if_unavailable": 3510.0,
+          "lineup_drop_pct": 10.68
         },
         {
           "player_id": "10229",
           "player": "Rashee Rice",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 3324.0,
-          "replacement_lineup_total": 29913.0,
-          "lineup_value_drop_if_unavailable": 2498.0,
-          "lineup_drop_pct": 7.71
+          "starter_value": 3449.0,
+          "replacement_lineup_total": 30226.0,
+          "lineup_value_drop_if_unavailable": 2627.0,
+          "lineup_drop_pct": 8.0
+        },
+        {
+          "player_id": "5850",
+          "player": "Josh Jacobs",
+          "position": "RB",
+          "slot": "RB",
+          "starter_value": 2918.0,
+          "replacement_lineup_total": 30391.0,
+          "lineup_value_drop_if_unavailable": 2462.0,
+          "lineup_drop_pct": 7.49
         }
       ]
     },
@@ -511,9 +511,9 @@
       "user_id": "709546576091090944",
       "manager": "nuckyniners",
       "team_name": "Chef Niners",
-      "base_optimal_redraft_value": 41418.0,
-      "top_three_starter_dependency_value": 14416.0,
-      "top_three_dependency_pct": 34.81,
+      "base_optimal_redraft_value": 42080.0,
+      "top_three_starter_dependency_value": 14972.0,
+      "top_three_dependency_pct": 35.58,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -522,132 +522,60 @@
           "player": "Jaxon Smith-Njigba",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 8553.0,
-          "replacement_lineup_total": 35343.0,
-          "lineup_value_drop_if_unavailable": 6075.0,
-          "lineup_drop_pct": 14.67
+          "starter_value": 8463.0,
+          "replacement_lineup_total": 36408.0,
+          "lineup_value_drop_if_unavailable": 5672.0,
+          "lineup_drop_pct": 13.48
         },
         {
           "player_id": "8138",
           "player": "James Cook",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 6346.0,
-          "replacement_lineup_total": 37075.0,
-          "lineup_value_drop_if_unavailable": 4343.0,
-          "lineup_drop_pct": 10.49
+          "starter_value": 7003.0,
+          "replacement_lineup_total": 36742.0,
+          "lineup_value_drop_if_unavailable": 5338.0,
+          "lineup_drop_pct": 12.69
         },
         {
           "player_id": "11560",
           "player": "Caleb Williams",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 6661.0,
-          "replacement_lineup_total": 37420.0,
-          "lineup_value_drop_if_unavailable": 3998.0,
-          "lineup_drop_pct": 9.65
+          "starter_value": 6780.0,
+          "replacement_lineup_total": 38118.0,
+          "lineup_value_drop_if_unavailable": 3962.0,
+          "lineup_drop_pct": 9.42
         },
         {
           "player_id": "6797",
           "player": "Justin Herbert",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 5348.0,
-          "replacement_lineup_total": 38733.0,
-          "lineup_value_drop_if_unavailable": 2685.0,
-          "lineup_drop_pct": 6.48
-        },
-        {
-          "player_id": "8144",
-          "player": "Chris Olave",
-          "position": "WR",
-          "slot": "WR",
-          "starter_value": 4165.0,
-          "replacement_lineup_total": 39731.0,
-          "lineup_value_drop_if_unavailable": 1687.0,
-          "lineup_drop_pct": 4.07
+          "starter_value": 5367.0,
+          "replacement_lineup_total": 39531.0,
+          "lineup_value_drop_if_unavailable": 2549.0,
+          "lineup_drop_pct": 6.06
         },
         {
           "player_id": "9484",
           "player": "Tucker Kraft",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 1869.0,
-          "replacement_lineup_total": 40013.0,
-          "lineup_value_drop_if_unavailable": 1405.0,
-          "lineup_drop_pct": 3.39
-        }
-      ]
-    },
-    {
-      "user_id": "846634401482792960",
-      "manager": "jimmygoodjob",
-      "team_name": "Hurts So Good",
-      "base_optimal_redraft_value": 37221.0,
-      "top_three_starter_dependency_value": 12899.0,
-      "top_three_dependency_pct": 34.66,
-      "fragility_score": 1.0,
-      "lineup_incomplete_after_single_absence_count": 0,
-      "most_irreplaceable_starters": [
-        {
-          "player_id": "4881",
-          "player": "Lamar Jackson",
-          "position": "QB",
-          "slot": "QB",
-          "starter_value": 9496.0,
-          "replacement_lineup_total": 30582.0,
-          "lineup_value_drop_if_unavailable": 6639.0,
-          "lineup_drop_pct": 17.84
+          "starter_value": 1970.0,
+          "replacement_lineup_total": 40719.0,
+          "lineup_value_drop_if_unavailable": 1361.0,
+          "lineup_drop_pct": 3.23
         },
         {
-          "player_id": "6786",
-          "player": "CeeDee Lamb",
+          "player_id": "8144",
+          "player": "Chris Olave",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 6924.0,
-          "replacement_lineup_total": 33154.0,
-          "lineup_value_drop_if_unavailable": 4067.0,
-          "lineup_drop_pct": 10.93
-        },
-        {
-          "player_id": "8112",
-          "player": "Drake London",
-          "position": "WR",
-          "slot": "WR",
-          "starter_value": 5050.0,
-          "replacement_lineup_total": 35028.0,
-          "lineup_value_drop_if_unavailable": 2193.0,
-          "lineup_drop_pct": 5.89
-        },
-        {
-          "player_id": "3294",
-          "player": "Dak Prescott",
-          "position": "QB",
-          "slot": "SUPER_FLEX",
-          "starter_value": 4741.0,
-          "replacement_lineup_total": 35337.0,
-          "lineup_value_drop_if_unavailable": 1884.0,
-          "lineup_drop_pct": 5.06
-        },
-        {
-          "player_id": "12512",
-          "player": "Quinshon Judkins",
-          "position": "RB",
-          "slot": "RB",
-          "starter_value": 2023.0,
-          "replacement_lineup_total": 36096.0,
-          "lineup_value_drop_if_unavailable": 1125.0,
+          "starter_value": 4063.0,
+          "replacement_lineup_total": 40808.0,
+          "lineup_value_drop_if_unavailable": 1272.0,
           "lineup_drop_pct": 3.02
-        },
-        {
-          "player_id": "7553",
-          "player": "Kyle Pitts",
-          "position": "TE",
-          "slot": "TE",
-          "starter_value": 1451.0,
-          "replacement_lineup_total": 36335.0,
-          "lineup_value_drop_if_unavailable": 886.0,
-          "lineup_drop_pct": 2.38
         }
       ]
     },
@@ -655,9 +583,9 @@
       "user_id": "844772511156670464",
       "manager": "CoachKoko",
       "team_name": "Trash Incessant Talkers",
-      "base_optimal_redraft_value": 15181.0,
-      "top_three_starter_dependency_value": 8096.0,
-      "top_three_dependency_pct": 53.33,
+      "base_optimal_redraft_value": 15356.0,
+      "top_three_starter_dependency_value": 8324.0,
+      "top_three_dependency_pct": 54.21,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -666,60 +594,60 @@
           "player": "Brock Purdy",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 4057.0,
-          "replacement_lineup_total": 11751.0,
-          "lineup_value_drop_if_unavailable": 3430.0,
-          "lineup_drop_pct": 22.59
+          "starter_value": 3974.0,
+          "replacement_lineup_total": 11995.0,
+          "lineup_value_drop_if_unavailable": 3361.0,
+          "lineup_drop_pct": 21.89
         },
         {
           "player_id": "3163",
           "player": "Jared Goff",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 3772.0,
-          "replacement_lineup_total": 12036.0,
-          "lineup_value_drop_if_unavailable": 3145.0,
-          "lineup_drop_pct": 20.72
+          "starter_value": 3910.0,
+          "replacement_lineup_total": 12059.0,
+          "lineup_value_drop_if_unavailable": 3297.0,
+          "lineup_drop_pct": 21.47
         },
         {
           "player_id": "6790",
           "player": "D'Andre Swift",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 2148.0,
-          "replacement_lineup_total": 13660.0,
-          "lineup_value_drop_if_unavailable": 1521.0,
-          "lineup_drop_pct": 10.02
+          "starter_value": 2279.0,
+          "replacement_lineup_total": 13690.0,
+          "lineup_value_drop_if_unavailable": 1666.0,
+          "lineup_drop_pct": 10.85
         },
         {
           "player_id": "4217",
           "player": "George Kittle",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 1400.0,
-          "replacement_lineup_total": 14408.0,
-          "lineup_value_drop_if_unavailable": 773.0,
-          "lineup_drop_pct": 5.09
-        },
-        {
-          "player_id": "5045",
-          "player": "Courtland Sutton",
-          "position": "WR",
-          "slot": "WR",
-          "starter_value": 836.0,
-          "replacement_lineup_total": 14748.0,
-          "lineup_value_drop_if_unavailable": 433.0,
-          "lineup_drop_pct": 2.85
+          "starter_value": 1342.0,
+          "replacement_lineup_total": 14627.0,
+          "lineup_value_drop_if_unavailable": 729.0,
+          "lineup_drop_pct": 4.75
         },
         {
           "player_id": "7021",
           "player": "Rico Dowdle",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 1033.0,
-          "replacement_lineup_total": 14775.0,
-          "lineup_value_drop_if_unavailable": 406.0,
-          "lineup_drop_pct": 2.67
+          "starter_value": 1090.0,
+          "replacement_lineup_total": 14879.0,
+          "lineup_value_drop_if_unavailable": 477.0,
+          "lineup_drop_pct": 3.11
+        },
+        {
+          "player_id": "5045",
+          "player": "Courtland Sutton",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 810.0,
+          "replacement_lineup_total": 14979.0,
+          "lineup_value_drop_if_unavailable": 377.0,
+          "lineup_drop_pct": 2.46
         }
       ]
     },
@@ -727,9 +655,9 @@
       "user_id": "840356119955251200",
       "manager": "ddersimon",
       "team_name": "Ball Knower",
-      "base_optimal_redraft_value": 16612.0,
-      "top_three_starter_dependency_value": 7522.0,
-      "top_three_dependency_pct": 45.28,
+      "base_optimal_redraft_value": 16371.0,
+      "top_three_starter_dependency_value": 7193.0,
+      "top_three_dependency_pct": 43.94,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -738,60 +666,60 @@
           "player": "Bo Nix",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 4328.0,
-          "replacement_lineup_total": 12922.0,
-          "lineup_value_drop_if_unavailable": 3690.0,
-          "lineup_drop_pct": 22.21
+          "starter_value": 4189.0,
+          "replacement_lineup_total": 12826.0,
+          "lineup_value_drop_if_unavailable": 3545.0,
+          "lineup_drop_pct": 21.65
         },
         {
           "player_id": "2133",
           "player": "Davante Adams",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 2213.0,
-          "replacement_lineup_total": 14399.0,
-          "lineup_value_drop_if_unavailable": 2213.0,
-          "lineup_drop_pct": 13.32
+          "starter_value": 1861.0,
+          "replacement_lineup_total": 14510.0,
+          "lineup_value_drop_if_unavailable": 1861.0,
+          "lineup_drop_pct": 11.37
         },
         {
           "player_id": "5892",
           "player": "David Montgomery",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 2257.0,
-          "replacement_lineup_total": 14993.0,
-          "lineup_value_drop_if_unavailable": 1619.0,
-          "lineup_drop_pct": 9.75
+          "starter_value": 2431.0,
+          "replacement_lineup_total": 14584.0,
+          "lineup_value_drop_if_unavailable": 1787.0,
+          "lineup_drop_pct": 10.92
         },
         {
           "player_id": "11584",
           "player": "Bucky Irving",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 2240.0,
-          "replacement_lineup_total": 15010.0,
-          "lineup_value_drop_if_unavailable": 1602.0,
-          "lineup_drop_pct": 9.64
-        },
-        {
-          "player_id": "2216",
-          "player": "Mike Evans",
-          "position": "WR",
-          "slot": "WR",
-          "starter_value": 1440.0,
-          "replacement_lineup_total": 15172.0,
-          "lineup_value_drop_if_unavailable": 1440.0,
-          "lineup_drop_pct": 8.67
+          "starter_value": 2361.0,
+          "replacement_lineup_total": 14654.0,
+          "lineup_value_drop_if_unavailable": 1717.0,
+          "lineup_drop_pct": 10.49
         },
         {
           "player_id": "5870",
           "player": "Daniel Jones",
           "position": "QB",
           "slot": "SUPER_FLEX",
-          "starter_value": 1848.0,
-          "replacement_lineup_total": 15402.0,
-          "lineup_value_drop_if_unavailable": 1210.0,
-          "lineup_drop_pct": 7.28
+          "starter_value": 2034.0,
+          "replacement_lineup_total": 14981.0,
+          "lineup_value_drop_if_unavailable": 1390.0,
+          "lineup_drop_pct": 8.49
+        },
+        {
+          "player_id": "2216",
+          "player": "Mike Evans",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 1381.0,
+          "replacement_lineup_total": 14990.0,
+          "lineup_value_drop_if_unavailable": 1381.0,
+          "lineup_drop_pct": 8.44
         }
       ]
     },
@@ -799,9 +727,9 @@
       "user_id": "676939933792964608",
       "manager": "chuckthegoat77",
       "team_name": "The Associate ",
-      "base_optimal_redraft_value": 10849.0,
-      "top_three_starter_dependency_value": 6480.0,
-      "top_three_dependency_pct": 59.73,
+      "base_optimal_redraft_value": 11045.0,
+      "top_three_starter_dependency_value": 6848.0,
+      "top_three_dependency_pct": 62.0,
       "fragility_score": 1.0,
       "lineup_incomplete_after_single_absence_count": 0,
       "most_irreplaceable_starters": [
@@ -810,29 +738,29 @@
           "player": "Travis Etienne",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 2833.0,
-          "replacement_lineup_total": 8208.0,
-          "lineup_value_drop_if_unavailable": 2641.0,
-          "lineup_drop_pct": 24.34
+          "starter_value": 3127.0,
+          "replacement_lineup_total": 8111.0,
+          "lineup_value_drop_if_unavailable": 2934.0,
+          "lineup_drop_pct": 26.56
         },
         {
           "player_id": "9758",
           "player": "C.J. Stroud",
           "position": "QB",
           "slot": "QB",
-          "starter_value": 2536.0,
-          "replacement_lineup_total": 8313.0,
-          "lineup_value_drop_if_unavailable": 2536.0,
-          "lineup_drop_pct": 23.38
+          "starter_value": 2588.0,
+          "replacement_lineup_total": 8457.0,
+          "lineup_value_drop_if_unavailable": 2588.0,
+          "lineup_drop_pct": 23.43
         },
         {
           "player_id": "11620",
           "player": "Rome Odunze",
           "position": "WR",
           "slot": "WR",
-          "starter_value": 1495.0,
-          "replacement_lineup_total": 9546.0,
-          "lineup_value_drop_if_unavailable": 1303.0,
+          "starter_value": 1519.0,
+          "replacement_lineup_total": 9719.0,
+          "lineup_value_drop_if_unavailable": 1326.0,
           "lineup_drop_pct": 12.01
         },
         {
@@ -840,30 +768,102 @@
           "player": "Chuba Hubbard",
           "position": "RB",
           "slot": "RB",
-          "starter_value": 1029.0,
-          "replacement_lineup_total": 10012.0,
-          "lineup_value_drop_if_unavailable": 837.0,
-          "lineup_drop_pct": 7.71
+          "starter_value": 923.0,
+          "replacement_lineup_total": 10315.0,
+          "lineup_value_drop_if_unavailable": 730.0,
+          "lineup_drop_pct": 6.61
         },
         {
           "player_id": "8131",
           "player": "Isaiah Likely",
           "position": "TE",
           "slot": "TE",
-          "starter_value": 762.0,
-          "replacement_lineup_total": 10279.0,
-          "lineup_value_drop_if_unavailable": 570.0,
-          "lineup_drop_pct": 5.25
+          "starter_value": 760.0,
+          "replacement_lineup_total": 10478.0,
+          "lineup_value_drop_if_unavailable": 567.0,
+          "lineup_drop_pct": 5.13
         },
         {
-          "player_id": "13305",
-          "player": "Mike Washington",
+          "player_id": "8142",
+          "player": "Alec Pierce",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 694.0,
+          "replacement_lineup_total": 10544.0,
+          "lineup_value_drop_if_unavailable": 501.0,
+          "lineup_drop_pct": 4.54
+        }
+      ]
+    },
+    {
+      "user_id": "846634401482792960",
+      "manager": "jimmygoodjob",
+      "team_name": "Hurts So Good",
+      "base_optimal_redraft_value": 37022.0,
+      "top_three_starter_dependency_value": 12302.0,
+      "top_three_dependency_pct": 33.23,
+      "fragility_score": 0.997,
+      "lineup_incomplete_after_single_absence_count": 0,
+      "most_irreplaceable_starters": [
+        {
+          "player_id": "4881",
+          "player": "Lamar Jackson",
+          "position": "QB",
+          "slot": "QB",
+          "starter_value": 9209.0,
+          "replacement_lineup_total": 30733.0,
+          "lineup_value_drop_if_unavailable": 6289.0,
+          "lineup_drop_pct": 16.99
+        },
+        {
+          "player_id": "6786",
+          "player": "CeeDee Lamb",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 6782.0,
+          "replacement_lineup_total": 33160.0,
+          "lineup_value_drop_if_unavailable": 3862.0,
+          "lineup_drop_pct": 10.43
+        },
+        {
+          "player_id": "3294",
+          "player": "Dak Prescott",
+          "position": "QB",
+          "slot": "SUPER_FLEX",
+          "starter_value": 5071.0,
+          "replacement_lineup_total": 34871.0,
+          "lineup_value_drop_if_unavailable": 2151.0,
+          "lineup_drop_pct": 5.81
+        },
+        {
+          "player_id": "8112",
+          "player": "Drake London",
+          "position": "WR",
+          "slot": "WR",
+          "starter_value": 4934.0,
+          "replacement_lineup_total": 35008.0,
+          "lineup_value_drop_if_unavailable": 2014.0,
+          "lineup_drop_pct": 5.44
+        },
+        {
+          "player_id": "12512",
+          "player": "Quinshon Judkins",
           "position": "RB",
-          "slot": "FLEX",
-          "starter_value": 665.0,
-          "replacement_lineup_total": 10376.0,
-          "lineup_value_drop_if_unavailable": 473.0,
-          "lineup_drop_pct": 4.36
+          "slot": "RB",
+          "starter_value": 1909.0,
+          "replacement_lineup_total": 35904.0,
+          "lineup_value_drop_if_unavailable": 1118.0,
+          "lineup_drop_pct": 3.02
+        },
+        {
+          "player_id": "7553",
+          "player": "Kyle Pitts",
+          "position": "TE",
+          "slot": "TE",
+          "starter_value": 1448.0,
+          "replacement_lineup_total": 36196.0,
+          "lineup_value_drop_if_unavailable": 826.0,
+          "lineup_drop_pct": 2.23
         }
       ]
     }

@@ -1,28 +1,28 @@
 {
   "detected_source_week": null,
   "draft_source": {
-    "mapped_rows": 5536,
-    "mapping_coverage": 0.92098,
+    "mapped_rows": 5112,
+    "mapping_coverage": 0.92075,
     "mapping_methods": {
       "ambiguous_name": 0,
-      "fantasypros_id": 5519,
-      "normalized_name": 17,
-      "unmatched": 475
+      "fantasypros_id": 5097,
+      "normalized_name": 15,
+      "unmatched": 440
     },
-    "rows": 6011
+    "rows": 5552
   },
   "fsffl_roster_coverage": {
     "active_non_taxi_players": {
       "coverage": 1.0,
-      "covered": 221,
+      "covered": 220,
       "missing": 0,
-      "total": 221
+      "total": 220
     },
     "all_rostered_players": {
-      "coverage": 0.9959,
-      "covered": 243,
+      "coverage": 0.99588,
+      "covered": 242,
       "missing": 1,
-      "total": 244
+      "total": 243
     },
     "missing_players": [
       {
@@ -35,9 +35,9 @@
       }
     ]
   },
-  "generated_at_utc": "2026-08-26T11:52:37.115478+00:00",
-  "mapped_rows": 6276,
-  "mapping_coverage": 0.92023,
+  "generated_at_utc": "2026-08-28T21:50:36.968021+00:00",
+  "mapped_rows": 5852,
+  "mapping_coverage": 0.91998,
   "quality_flags": [
     {
       "code": "NO_EXPLICIT_WEEK_COLUMN",
@@ -46,12 +46,12 @@
     },
     {
       "code": "NAME_FALLBACK_USED",
-      "message": "17 rows required normalized-name fallback across weekly + draft sources.",
+      "message": "15 rows required normalized-name fallback across weekly + draft sources.",
       "severity": "info"
     }
   ],
   "season": "2026",
-  "source_rows": 6820,
+  "source_rows": 6361,
   "weekly_source": {
     "mapped_rows": 740,
     "mapping_coverage": 0.91471,

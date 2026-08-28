@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-26T11:53:05.610105+00:00",
+  "generated_at_utc": "2026-08-28T21:51:05.298360+00:00",
   "model_version": "FSFFL-GM-3.0-Historical-Breakout-v1",
   "training_window": {
     "start_season": 2018,
@@ -18,7 +18,7 @@
     ]
   },
   "veteran_next_year": {
-    "sample": 1147,
+    "sample": 1146,
     "by_position": {
       "QB": {
         "sample": 163,
@@ -837,10 +837,10 @@
         }
       },
       "WR": {
-        "sample": 443,
+        "sample": 442,
         "breakouts": 32,
-        "base_breakout_rate": 0.0722,
-        "major_breakout_rate": 0.0361,
+        "base_breakout_rate": 0.0724,
+        "major_breakout_rate": 0.0362,
         "feature_tables": {
           "age": [
             {
@@ -850,8 +850,8 @@
               "breakout_rate": 0.1818,
               "shrunk_breakout_rate": 0.1405,
               "major_breakout_rate": 0.0606,
-              "likelihood_ratio_vs_position": 1.945,
-              "weight": 0.959
+              "likelihood_ratio_vs_position": 1.941,
+              "weight": 0.957
             },
             {
               "value": "AGE_23_24",
@@ -860,8 +860,8 @@
               "breakout_rate": 0.0821,
               "shrunk_breakout_rate": 0.0808,
               "major_breakout_rate": 0.0448,
-              "likelihood_ratio_vs_position": 1.119,
-              "weight": 0.162
+              "likelihood_ratio_vs_position": 1.116,
+              "weight": 0.159
             },
             {
               "value": "AGE_25_26",
@@ -870,18 +870,18 @@
               "breakout_rate": 0.0775,
               "shrunk_breakout_rate": 0.0768,
               "major_breakout_rate": 0.0388,
-              "likelihood_ratio_vs_position": 1.063,
-              "weight": 0.089
+              "likelihood_ratio_vs_position": 1.061,
+              "weight": 0.086
             },
             {
               "value": "AGE_27_28",
-              "sample": 79,
+              "sample": 78,
               "breakouts": 4,
-              "breakout_rate": 0.0506,
-              "shrunk_breakout_rate": 0.055,
-              "major_breakout_rate": 0.0253,
-              "likelihood_ratio_vs_position": 0.761,
-              "weight": -0.393
+              "breakout_rate": 0.0513,
+              "shrunk_breakout_rate": 0.0556,
+              "major_breakout_rate": 0.0256,
+              "likelihood_ratio_vs_position": 0.768,
+              "weight": -0.381
             },
             {
               "value": "AGE_29_PLUS",
@@ -890,8 +890,8 @@
               "breakout_rate": 0.0147,
               "shrunk_breakout_rate": 0.0278,
               "major_breakout_rate": 0.0147,
-              "likelihood_ratio_vs_position": 0.385,
-              "weight": -1.379
+              "likelihood_ratio_vs_position": 0.384,
+              "weight": -1.38
             }
           ],
           "draft_capital": [
@@ -902,8 +902,8 @@
               "breakout_rate": 0.115,
               "shrunk_breakout_rate": 0.1086,
               "major_breakout_rate": 0.0354,
-              "likelihood_ratio_vs_position": 1.504,
-              "weight": 0.588
+              "likelihood_ratio_vs_position": 1.5,
+              "weight": 0.585
             },
             {
               "value": "ROUND_3",
@@ -912,18 +912,18 @@
               "breakout_rate": 0.0986,
               "shrunk_breakout_rate": 0.0928,
               "major_breakout_rate": 0.0704,
-              "likelihood_ratio_vs_position": 1.285,
-              "weight": 0.361
+              "likelihood_ratio_vs_position": 1.282,
+              "weight": 0.359
             },
             {
               "value": "ROUND_2",
-              "sample": 121,
+              "sample": 120,
               "breakouts": 7,
-              "breakout_rate": 0.0579,
-              "shrunk_breakout_rate": 0.0599,
-              "major_breakout_rate": 0.0331,
-              "likelihood_ratio_vs_position": 0.829,
-              "weight": -0.27
+              "breakout_rate": 0.0583,
+              "shrunk_breakout_rate": 0.0603,
+              "major_breakout_rate": 0.0333,
+              "likelihood_ratio_vs_position": 0.833,
+              "weight": -0.263
             },
             {
               "value": "ROUND_4_PLUS",
@@ -932,8 +932,8 @@
               "breakout_rate": 0.0362,
               "shrunk_breakout_rate": 0.0408,
               "major_breakout_rate": 0.0217,
-              "likelihood_ratio_vs_position": 0.565,
-              "weight": -0.825
+              "likelihood_ratio_vs_position": 0.564,
+              "weight": -0.827
             }
           ],
           "prior_snap": [
@@ -944,18 +944,18 @@
               "breakout_rate": 0.1026,
               "shrunk_breakout_rate": 0.0923,
               "major_breakout_rate": 0.0769,
-              "likelihood_ratio_vs_position": 1.278,
-              "weight": 0.353
+              "likelihood_ratio_vs_position": 1.275,
+              "weight": 0.351
             },
             {
               "value": "SNAP_70_PLUS",
-              "sample": 228,
+              "sample": 227,
               "breakouts": 21,
-              "breakout_rate": 0.0921,
-              "shrunk_breakout_rate": 0.0905,
-              "major_breakout_rate": 0.057,
-              "likelihood_ratio_vs_position": 1.253,
-              "weight": 0.325
+              "breakout_rate": 0.0925,
+              "shrunk_breakout_rate": 0.0909,
+              "major_breakout_rate": 0.0573,
+              "likelihood_ratio_vs_position": 1.255,
+              "weight": 0.328
             },
             {
               "value": "SNAP_45_69",
@@ -964,15 +964,15 @@
               "breakout_rate": 0.0693,
               "shrunk_breakout_rate": 0.0698,
               "major_breakout_rate": 0.0,
-              "likelihood_ratio_vs_position": 0.966,
-              "weight": -0.05
+              "likelihood_ratio_vs_position": 0.964,
+              "weight": -0.052
             },
             {
               "value": "SNAP_LT_20",
               "sample": 13,
               "breakouts": 0,
               "breakout_rate": 0.0,
-              "shrunk_breakout_rate": 0.0438,
+              "shrunk_breakout_rate": 0.0439,
               "major_breakout_rate": 0.0,
               "likelihood_ratio_vs_position": 0.606,
               "weight": -0.722
@@ -982,7 +982,7 @@
               "sample": 62,
               "breakouts": 0,
               "breakout_rate": 0.0,
-              "shrunk_breakout_rate": 0.0176,
+              "shrunk_breakout_rate": 0.0177,
               "major_breakout_rate": 0.0,
               "likelihood_ratio_vs_position": 0.244,
               "weight": -1.5
@@ -994,20 +994,20 @@
               "sample": 66,
               "breakouts": 9,
               "breakout_rate": 0.1364,
-              "shrunk_breakout_rate": 0.1214,
+              "shrunk_breakout_rate": 0.1215,
               "major_breakout_rate": 0.0303,
-              "likelihood_ratio_vs_position": 1.681,
-              "weight": 0.75
+              "likelihood_ratio_vs_position": 1.678,
+              "weight": 0.747
             },
             {
               "value": "PPG_ALREADY_HIGH",
-              "sample": 187,
+              "sample": 186,
               "breakouts": 15,
-              "breakout_rate": 0.0802,
-              "shrunk_breakout_rate": 0.0794,
-              "major_breakout_rate": 0.0749,
-              "likelihood_ratio_vs_position": 1.1,
-              "weight": 0.137
+              "breakout_rate": 0.0806,
+              "shrunk_breakout_rate": 0.0798,
+              "major_breakout_rate": 0.0753,
+              "likelihood_ratio_vs_position": 1.103,
+              "weight": 0.141
             },
             {
               "value": "PPG_BELOW_AVG",
@@ -1016,8 +1016,8 @@
               "breakout_rate": 0.0569,
               "shrunk_breakout_rate": 0.0591,
               "major_breakout_rate": 0.0,
-              "likelihood_ratio_vs_position": 0.818,
-              "weight": -0.291
+              "likelihood_ratio_vs_position": 0.816,
+              "weight": -0.293
             },
             {
               "value": "PPG_LOW",
@@ -1027,7 +1027,7 @@
               "shrunk_breakout_rate": 0.0281,
               "major_breakout_rate": 0.0,
               "likelihood_ratio_vs_position": 0.389,
-              "weight": -1.362
+              "weight": -1.363
             }
           ],
           "experience": [
@@ -1036,10 +1036,10 @@
               "sample": 86,
               "breakouts": 9,
               "breakout_rate": 0.1047,
-              "shrunk_breakout_rate": 0.0985,
+              "shrunk_breakout_rate": 0.0986,
               "major_breakout_rate": 0.0465,
-              "likelihood_ratio_vs_position": 1.364,
-              "weight": 0.448
+              "likelihood_ratio_vs_position": 1.361,
+              "weight": 0.445
             },
             {
               "value": "EXP_YEAR_4_5",
@@ -1048,8 +1048,8 @@
               "breakout_rate": 0.096,
               "shrunk_breakout_rate": 0.0927,
               "major_breakout_rate": 0.048,
-              "likelihood_ratio_vs_position": 1.284,
-              "weight": 0.36
+              "likelihood_ratio_vs_position": 1.281,
+              "weight": 0.357
             },
             {
               "value": "EXP_YEAR_3",
@@ -1058,53 +1058,53 @@
               "breakout_rate": 0.0959,
               "shrunk_breakout_rate": 0.0908,
               "major_breakout_rate": 0.0411,
-              "likelihood_ratio_vs_position": 1.257,
-              "weight": 0.33
+              "likelihood_ratio_vs_position": 1.255,
+              "weight": 0.327
             },
             {
               "value": "EXP_YEAR_6_PLUS",
-              "sample": 159,
+              "sample": 158,
               "breakouts": 4,
-              "breakout_rate": 0.0252,
-              "shrunk_breakout_rate": 0.0304,
-              "major_breakout_rate": 0.0189,
-              "likelihood_ratio_vs_position": 0.421,
-              "weight": -1.248
+              "breakout_rate": 0.0253,
+              "shrunk_breakout_rate": 0.0306,
+              "major_breakout_rate": 0.019,
+              "likelihood_ratio_vs_position": 0.423,
+              "weight": -1.242
             }
           ]
         },
         "learned_weights": {
           "age": {
-            "AGE_29_PLUS": -1.379,
-            "AGE_27_28": -0.393,
-            "AGE_25_26": 0.089,
-            "AGE_23_24": 0.162,
-            "AGE_22_OR_YOUNGER": 0.959
+            "AGE_29_PLUS": -1.38,
+            "AGE_27_28": -0.381,
+            "AGE_25_26": 0.086,
+            "AGE_23_24": 0.159,
+            "AGE_22_OR_YOUNGER": 0.957
           },
           "draft_capital": {
-            "ROUND_1": 0.588,
-            "ROUND_4_PLUS": -0.825,
-            "ROUND_3": 0.361,
-            "ROUND_2": -0.27
+            "ROUND_1": 0.585,
+            "ROUND_4_PLUS": -0.827,
+            "ROUND_3": 0.359,
+            "ROUND_2": -0.263
           },
           "prior_snap": {
-            "SNAP_70_PLUS": 0.325,
-            "SNAP_UNKNOWN": 0.353,
-            "SNAP_45_69": -0.05,
+            "SNAP_70_PLUS": 0.328,
+            "SNAP_UNKNOWN": 0.351,
+            "SNAP_45_69": -0.052,
             "SNAP_20_44": -1.5,
             "SNAP_LT_20": -0.722
           },
           "prior_ppg": {
-            "PPG_NEAR_BREAKOUT": 0.75,
-            "PPG_ALREADY_HIGH": 0.137,
-            "PPG_BELOW_AVG": -0.291,
-            "PPG_LOW": -1.362
+            "PPG_NEAR_BREAKOUT": 0.747,
+            "PPG_ALREADY_HIGH": 0.141,
+            "PPG_BELOW_AVG": -0.293,
+            "PPG_LOW": -1.363
           },
           "experience": {
-            "EXP_YEAR_6_PLUS": -1.248,
-            "EXP_YEAR_4_5": 0.36,
-            "EXP_YEAR_3": 0.33,
-            "EXP_YEAR_2": 0.448
+            "EXP_YEAR_6_PLUS": -1.242,
+            "EXP_YEAR_4_5": 0.357,
+            "EXP_YEAR_3": 0.327,
+            "EXP_YEAR_2": 0.445
           }
         }
       }
@@ -1294,64 +1294,64 @@
         }
       },
       "WR": {
-        "base_rate": 0.0722,
+        "base_rate": 0.0724,
         "curve": [
           {
             "top_fraction": 0.1,
             "sample": 44,
-            "score_cutoff": 1.57,
+            "score_cutoff": 1.563,
             "precision": 0.1818,
             "recall": 0.25,
-            "lift_vs_base": 2.517
+            "lift_vs_base": 2.511
           },
           {
             "top_fraction": 0.15,
             "sample": 66,
-            "score_cutoff": 1.433,
+            "score_cutoff": 1.432,
             "precision": 0.197,
             "recall": 0.4062,
-            "lift_vs_base": 2.727
+            "lift_vs_base": 2.721
           },
           {
             "top_fraction": 0.2,
-            "sample": 89,
-            "score_cutoff": 1.171,
-            "precision": 0.1685,
+            "sample": 88,
+            "score_cutoff": 1.224,
+            "precision": 0.1705,
             "recall": 0.4688,
-            "lift_vs_base": 2.333
+            "lift_vs_base": 2.354
           },
           {
             "top_fraction": 0.25,
-            "sample": 111,
-            "score_cutoff": 0.79,
-            "precision": 0.1712,
-            "recall": 0.5938,
-            "lift_vs_base": 2.37
+            "sample": 110,
+            "score_cutoff": 0.794,
+            "precision": 0.1818,
+            "recall": 0.625,
+            "lift_vs_base": 2.511
           },
           {
             "top_fraction": 0.33,
             "sample": 146,
-            "score_cutoff": 0.504,
+            "score_cutoff": 0.5,
             "precision": 0.1644,
             "recall": 0.75,
-            "lift_vs_base": 2.276
+            "lift_vs_base": 2.271
           },
           {
             "top_fraction": 0.5,
-            "sample": 222,
-            "score_cutoff": -0.591,
-            "precision": 0.1261,
+            "sample": 221,
+            "score_cutoff": -0.568,
+            "precision": 0.1267,
             "recall": 0.875,
-            "lift_vs_base": 1.746
+            "lift_vs_base": 1.75
           }
         ],
         "recommended": {
           "top_fraction": 0.1,
           "sample": 44,
-          "score_cutoff": 1.57,
+          "score_cutoff": 1.563,
           "precision": 0.1818,
           "recall": 0.25,
-          "lift_vs_base": 2.517
+          "lift_vs_base": 2.511
         }
       }
     }

@@ -1,12 +1,12 @@
 {
-  "generated_at_utc": "2026-08-26T11:53:05.610126+00:00",
+  "generated_at_utc": "2026-08-28T21:51:05.298387+00:00",
   "model_version": "FSFFL-GM-3.0-Historical-Breakout-v1",
   "status": "HISTORICAL_BACKTEST_COMPLETE",
   "training_window": {
     "start_season": 2018,
     "end_season": 2025
   },
-  "veteran_sample": 1147,
+  "veteran_sample": 1146,
   "rookie_sample": 322,
   "veteran_position_summary": {
     "QB": {
@@ -46,15 +46,15 @@
       }
     },
     "WR": {
-      "sample": 443,
-      "base_breakout_rate": 0.0722,
+      "sample": 442,
+      "base_breakout_rate": 0.0724,
       "recommended_cutoff": {
         "top_fraction": 0.1,
         "sample": 44,
-        "score_cutoff": 1.57,
+        "score_cutoff": 1.563,
         "precision": 0.1818,
         "recall": 0.25,
-        "lift_vs_base": 2.517
+        "lift_vs_base": 2.511
       }
     }
   },
@@ -143,7 +143,7 @@
       "player": "Drake London",
       "position": "WR",
       "season": 2023,
-      "score": 3.07,
+      "score": 3.062,
       "breakout": true,
       "major_breakout": false,
       "features": {
@@ -188,7 +188,7 @@
       "player": "Brandon Aiyuk",
       "position": "WR",
       "season": 2021,
-      "score": 2.273,
+      "score": 2.264,
       "breakout": true,
       "major_breakout": false,
       "features": {
@@ -203,7 +203,7 @@
       "player": "Chris Godwin",
       "position": "WR",
       "season": 2018,
-      "score": 2.258,
+      "score": 2.253,
       "breakout": true,
       "major_breakout": true,
       "features": {
@@ -248,7 +248,7 @@
       "player": "Mike Williams",
       "position": "WR",
       "season": 2020,
-      "score": 2.14,
+      "score": 2.126,
       "breakout": true,
       "major_breakout": false,
       "features": {
@@ -293,7 +293,7 @@
       "player": "JuJu Smith-Schuster",
       "position": "WR",
       "season": 2019,
-      "score": 2.094,
+      "score": 2.096,
       "breakout": true,
       "major_breakout": false,
       "features": {
@@ -308,7 +308,7 @@
       "player": "Nico Collins",
       "position": "WR",
       "season": 2022,
-      "score": 2.046,
+      "score": 2.038,
       "breakout": true,
       "major_breakout": true,
       "features": {
@@ -415,7 +415,7 @@
       "player": "Josh Palmer",
       "position": "WR",
       "season": 2022,
-      "score": 2.843,
+      "score": 2.836,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -430,7 +430,7 @@
       "player": "Rashod Bateman",
       "position": "WR",
       "season": 2022,
-      "score": 2.695,
+      "score": 2.682,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -457,21 +457,6 @@
       }
     },
     {
-      "player": "Justin Jefferson",
-      "position": "WR",
-      "season": 2021,
-      "score": 2.485,
-      "breakout": false,
-      "major_breakout": false,
-      "features": {
-        "age": "AGE_22_OR_YOUNGER",
-        "draft_capital": "ROUND_1",
-        "prior_snap": "SNAP_UNKNOWN",
-        "prior_ppg": "PPG_ALREADY_HIGH",
-        "experience": "EXP_YEAR_2"
-      }
-    },
-    {
       "player": "Kyle Rudolph",
       "position": "TE",
       "season": 2019,
@@ -484,6 +469,21 @@
         "prior_snap": "SNAP_70_PLUS",
         "prior_ppg": "PPG_NEAR_BREAKOUT",
         "experience": "EXP_YEAR_6_PLUS"
+      }
+    },
+    {
+      "player": "Justin Jefferson",
+      "position": "WR",
+      "season": 2021,
+      "score": 2.479,
+      "breakout": false,
+      "major_breakout": false,
+      "features": {
+        "age": "AGE_22_OR_YOUNGER",
+        "draft_capital": "ROUND_1",
+        "prior_snap": "SNAP_UNKNOWN",
+        "prior_ppg": "PPG_ALREADY_HIGH",
+        "experience": "EXP_YEAR_2"
       }
     },
     {
@@ -505,7 +505,7 @@
       "player": "D.J. Moore",
       "position": "WR",
       "season": 2019,
-      "score": 2.457,
+      "score": 2.456,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -520,7 +520,7 @@
       "player": "CeeDee Lamb",
       "position": "WR",
       "season": 2021,
-      "score": 2.457,
+      "score": 2.456,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -535,7 +535,7 @@
       "player": "Ja'Marr Chase",
       "position": "WR",
       "season": 2022,
-      "score": 2.457,
+      "score": 2.456,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -640,7 +640,7 @@
       "player": "Corey Davis",
       "position": "WR",
       "season": 2018,
-      "score": 2.273,
+      "score": 2.264,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -655,7 +655,7 @@
       "player": "Rondale Moore",
       "position": "WR",
       "season": 2022,
-      "score": 2.212,
+      "score": 2.214,
       "breakout": false,
       "major_breakout": false,
       "features": {
@@ -670,7 +670,7 @@
       "player": "Mike Williams",
       "position": "WR",
       "season": 2019,
-      "score": 2.183,
+      "score": 2.169,
       "breakout": false,
       "major_breakout": false,
       "features": {

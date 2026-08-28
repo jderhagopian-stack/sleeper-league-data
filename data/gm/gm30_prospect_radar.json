@@ -1,7 +1,7 @@
 {
   "model_version": "FSFFL-GM-3.0-Prospect-Engine-v1.2-Public-Data-Features",
-  "prospect_count": 47,
-  "signal_eligible_count": 46,
+  "prospect_count": 48,
+  "signal_eligible_count": 47,
   "sparse_prior_count": 1,
   "signal_min_feature_coverage": 0.55,
   "rank_min_feature_coverage": 0.35,
@@ -19,7 +19,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 1,
-      "market_dynasty": 6433.0,
+      "market_dynasty": 6344.0,
       "draft_capital_pick": 3.0,
       "components": {
         "draft_capital": 99.2,
@@ -48,7 +48,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 2,
-      "market_dynasty": 4287.0,
+      "market_dynasty": 4274.0,
       "draft_capital_pick": 4.0,
       "components": {
         "draft_capital": 98.8,
@@ -77,7 +77,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 3,
-      "market_dynasty": 4068.0,
+      "market_dynasty": 4040.0,
       "draft_capital_pick": 1.0,
       "components": {
         "draft_capital": 100.0,
@@ -106,7 +106,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 5,
-      "market_dynasty": 3282.0,
+      "market_dynasty": 3276.0,
       "draft_capital_pick": 32.0,
       "components": {
         "draft_capital": 87.9,
@@ -133,7 +133,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 8,
-      "market_dynasty": 2446.0,
+      "market_dynasty": 2392.0,
       "draft_capital_pick": 16.0,
       "components": {
         "draft_capital": 94.1,
@@ -162,7 +162,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 10,
-      "market_dynasty": 2370.0,
+      "market_dynasty": 2311.0,
       "draft_capital_pick": 13.0,
       "components": {
         "draft_capital": 95.3,
@@ -189,7 +189,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 11,
-      "market_dynasty": 2059.0,
+      "market_dynasty": 1939.0,
       "draft_capital_pick": 39.0,
       "components": {
         "draft_capital": 85.2,
@@ -208,33 +208,6 @@
       ]
     },
     {
-      "player_id": "13305",
-      "name": "Mike Washington",
-      "position": "RB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "LV",
-      "prospect_score": 70.8,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 12,
-      "market_dynasty": 1943.0,
-      "draft_capital_pick": 122.0,
-      "components": {
-        "draft_capital": 52.7,
-        "rushing_yards_share": 97.0,
-        "scrimmage_yards_share": 97.0,
-        "rushing_efficiency": 56.1,
-        "receiving_yards_share": 72.6,
-        "athleticism": 93.6,
-        "age": 20.0
-      },
-      "model_position_rank": 3,
-      "model_rookie_rank": 28,
-      "signals": []
-    },
-    {
       "player_id": "13349",
       "name": "Eli Stowers",
       "position": "TE",
@@ -245,8 +218,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 13,
-      "market_dynasty": 1917.0,
+      "market_rookie_rank": 12,
+      "market_dynasty": 1926.0,
       "draft_capital_pick": 54.0,
       "components": {
         "draft_capital": 79.3,
@@ -264,6 +237,33 @@
       ]
     },
     {
+      "player_id": "13305",
+      "name": "Mike Washington",
+      "position": "RB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "LV",
+      "prospect_score": 70.8,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 13,
+      "market_dynasty": 1825.0,
+      "draft_capital_pick": 122.0,
+      "components": {
+        "draft_capital": 52.7,
+        "rushing_yards_share": 97.0,
+        "scrimmage_yards_share": 97.0,
+        "rushing_efficiency": 56.1,
+        "receiving_yards_share": 72.6,
+        "athleticism": 93.6,
+        "age": 20.0
+      },
+      "model_position_rank": 3,
+      "model_rookie_rank": 28,
+      "signals": []
+    },
+    {
       "player_id": "13276",
       "name": "Omar Cooper",
       "position": "WR",
@@ -274,8 +274,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 14,
-      "market_dynasty": 1868.0,
+      "market_rookie_rank": 15,
+      "market_dynasty": 1812.0,
       "draft_capital_pick": 30.0,
       "components": {
         "draft_capital": 88.7,
@@ -305,7 +305,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 16,
-      "market_dynasty": 1686.0,
+      "market_dynasty": 1628.0,
       "draft_capital_pick": 80.0,
       "components": {
         "draft_capital": 69.1,
@@ -321,60 +321,6 @@
       "signals": []
     },
     {
-      "player_id": "13289",
-      "name": "Drew Allar",
-      "position": "QB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "PIT",
-      "prospect_score": 68.1,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 17,
-      "market_dynasty": 1542.0,
-      "draft_capital_pick": 76.0,
-      "components": {
-        "draft_capital": 70.7,
-        "passing_efficiency": 61.1,
-        "td_int_efficiency": 89.5,
-        "sack_rate_inverse": 59.7,
-        "rushing_value": 73.1,
-        "completion_efficiency": 66.0,
-        "age": 40.0
-      },
-      "model_position_rank": 4,
-      "model_rookie_rank": 31,
-      "signals": []
-    },
-    {
-      "player_id": "13272",
-      "name": "Carson Beck",
-      "position": "QB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "ARI",
-      "prospect_score": 69.7,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 20,
-      "market_dynasty": 1449.0,
-      "draft_capital_pick": 65.0,
-      "components": {
-        "draft_capital": 75.0,
-        "passing_efficiency": 77.1,
-        "td_int_efficiency": 86.9,
-        "sack_rate_inverse": 48.8,
-        "rushing_value": 70.2,
-        "completion_efficiency": 78.1,
-        "age": 20.0
-      },
-      "model_position_rank": 3,
-      "model_rookie_rank": 29,
-      "signals": []
-    },
-    {
       "player_id": "13285",
       "name": "Malachi Fields",
       "position": "WR",
@@ -385,8 +331,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 22,
-      "market_dynasty": 1436.0,
+      "market_rookie_rank": 20,
+      "market_dynasty": 1460.0,
       "draft_capital_pick": 74.0,
       "components": {
         "draft_capital": 71.5,
@@ -402,6 +348,33 @@
       "signals": []
     },
     {
+      "player_id": "13272",
+      "name": "Carson Beck",
+      "position": "QB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "ARI",
+      "prospect_score": 69.7,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 21,
+      "market_dynasty": 1430.0,
+      "draft_capital_pick": 65.0,
+      "components": {
+        "draft_capital": 75.0,
+        "passing_efficiency": 77.1,
+        "td_int_efficiency": 86.9,
+        "sack_rate_inverse": 48.8,
+        "rushing_value": 70.2,
+        "completion_efficiency": 78.1,
+        "age": 20.0
+      },
+      "model_position_rank": 3,
+      "model_rookie_rank": 29,
+      "signals": []
+    },
+    {
       "player_id": "13320",
       "name": "Zachariah Branch",
       "position": "WR",
@@ -412,8 +385,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 24,
-      "market_dynasty": 1362.0,
+      "market_rookie_rank": 22,
+      "market_dynasty": 1415.0,
       "draft_capital_pick": 79.0,
       "components": {
         "draft_capital": 69.5,
@@ -441,8 +414,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 25,
-      "market_dynasty": 1340.0,
+      "market_rookie_rank": 24,
+      "market_dynasty": 1356.0,
       "draft_capital_pick": 47.0,
       "components": {
         "draft_capital": 82.0,
@@ -460,6 +433,33 @@
       ]
     },
     {
+      "player_id": "13301",
+      "name": "Antonio Williams",
+      "position": "WR",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "WAS",
+      "prospect_score": 74.5,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 25,
+      "market_dynasty": 1350.0,
+      "draft_capital_pick": 71.0,
+      "components": {
+        "draft_capital": 72.7,
+        "receiving_yards_share": 89.6,
+        "dominator": 85.8,
+        "target_share": 91.8,
+        "receiving_efficiency": 57.2,
+        "athleticism": 49.8,
+        "age": 40.0
+      },
+      "model_position_rank": 17,
+      "model_rookie_rank": 23,
+      "signals": []
+    },
+    {
       "player_id": "13296",
       "name": "Caleb Douglas",
       "position": "WR",
@@ -471,7 +471,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 26,
-      "market_dynasty": 1331.0,
+      "market_dynasty": 1316.0,
       "draft_capital_pick": 75.0,
       "components": {
         "draft_capital": 71.1,
@@ -489,59 +489,30 @@
       ]
     },
     {
-      "player_id": "13301",
-      "name": "Antonio Williams",
-      "position": "WR",
+      "player_id": "13289",
+      "name": "Drew Allar",
+      "position": "QB",
       "class": 2026,
       "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "WAS",
-      "prospect_score": 74.5,
+      "nfl_team": "PIT",
+      "prospect_score": 68.1,
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 27,
-      "market_dynasty": 1279.0,
-      "draft_capital_pick": 71.0,
+      "market_dynasty": 1282.0,
+      "draft_capital_pick": 76.0,
       "components": {
-        "draft_capital": 72.7,
-        "receiving_yards_share": 89.6,
-        "dominator": 85.8,
-        "target_share": 91.8,
-        "receiving_efficiency": 57.2,
-        "athleticism": 49.8,
+        "draft_capital": 70.7,
+        "passing_efficiency": 61.1,
+        "td_int_efficiency": 89.5,
+        "sack_rate_inverse": 59.7,
+        "rushing_value": 73.1,
+        "completion_efficiency": 66.0,
         "age": 40.0
       },
-      "model_position_rank": 17,
-      "model_rookie_rank": 23,
-      "signals": [
-        "DRAFT_SLEEPER"
-      ]
-    },
-    {
-      "player_id": "13337",
-      "name": "Emmett Johnson",
-      "position": "RB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "KC",
-      "prospect_score": 66.2,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 28,
-      "market_dynasty": 1092.0,
-      "draft_capital_pick": 161.0,
-      "components": {
-        "draft_capital": 37.5,
-        "rushing_yards_share": 100.0,
-        "scrimmage_yards_share": 100.0,
-        "rushing_efficiency": 58.0,
-        "receiving_yards_share": 85.4,
-        "athleticism": 47.4,
-        "age": 40.0
-      },
-      "model_position_rank": 6,
-      "model_rookie_rank": 34,
+      "model_position_rank": 4,
+      "model_rookie_rank": 31,
       "signals": []
     },
     {
@@ -555,8 +526,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 29,
-      "market_dynasty": 1086.0,
+      "market_rookie_rank": 28,
+      "market_dynasty": 1226.0,
       "draft_capital_pick": 84.0,
       "components": {
         "draft_capital": 67.6,
@@ -574,6 +545,33 @@
       ]
     },
     {
+      "player_id": "13337",
+      "name": "Emmett Johnson",
+      "position": "RB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "KC",
+      "prospect_score": 66.2,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 29,
+      "market_dynasty": 1113.0,
+      "draft_capital_pick": 161.0,
+      "components": {
+        "draft_capital": 37.5,
+        "rushing_yards_share": 100.0,
+        "scrimmage_yards_share": 100.0,
+        "rushing_efficiency": 58.0,
+        "receiving_yards_share": 85.4,
+        "athleticism": 47.4,
+        "age": 40.0
+      },
+      "model_position_rank": 6,
+      "model_rookie_rank": 34,
+      "signals": []
+    },
+    {
       "player_id": "13347",
       "name": "Demond Claiborne",
       "position": "RB",
@@ -585,7 +583,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 32,
-      "market_dynasty": 833.0,
+      "market_dynasty": 824.0,
       "draft_capital_pick": 198.0,
       "components": {
         "draft_capital": 23.0,
@@ -601,33 +599,6 @@
       "signals": []
     },
     {
-      "player_id": "13303",
-      "name": "Cade Klubnik",
-      "position": "QB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "NYJ",
-      "prospect_score": 64.6,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 34,
-      "market_dynasty": 773.0,
-      "draft_capital_pick": 110.0,
-      "components": {
-        "draft_capital": 57.4,
-        "passing_efficiency": 69.6,
-        "td_int_efficiency": 88.1,
-        "sack_rate_inverse": 49.5,
-        "rushing_value": 75.5,
-        "completion_efficiency": 67.0,
-        "age": 40.0
-      },
-      "model_position_rank": 5,
-      "model_rookie_rank": 35,
-      "signals": []
-    },
-    {
       "player_id": "13402",
       "name": "Skyler Bell",
       "position": "WR",
@@ -638,8 +609,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 35,
-      "market_dynasty": 699.0,
+      "market_rookie_rank": 34,
+      "market_dynasty": 709.0,
       "draft_capital_pick": 125.0,
       "components": {
         "draft_capital": 51.6,
@@ -657,6 +628,60 @@
       ]
     },
     {
+      "player_id": "13303",
+      "name": "Cade Klubnik",
+      "position": "QB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "NYJ",
+      "prospect_score": 64.6,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 35,
+      "market_dynasty": 708.0,
+      "draft_capital_pick": 110.0,
+      "components": {
+        "draft_capital": 57.4,
+        "passing_efficiency": 69.6,
+        "td_int_efficiency": 88.1,
+        "sack_rate_inverse": 49.5,
+        "rushing_value": 75.5,
+        "completion_efficiency": 67.0,
+        "age": 40.0
+      },
+      "model_position_rank": 5,
+      "model_rookie_rank": 35,
+      "signals": []
+    },
+    {
+      "player_id": "13424",
+      "name": "Seth McGowan",
+      "position": "RB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "IND",
+      "prospect_score": 53.2,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 36,
+      "market_dynasty": 541.0,
+      "draft_capital_pick": 237.0,
+      "components": {
+        "draft_capital": 7.8,
+        "rushing_yards_share": 96.7,
+        "scrimmage_yards_share": 96.7,
+        "rushing_efficiency": 52.9,
+        "receiving_yards_share": 65.2,
+        "athleticism": 73.8,
+        "age": 0.0
+      },
+      "model_position_rank": 12,
+      "model_rookie_rank": 46,
+      "signals": []
+    },
+    {
       "player_id": "13302",
       "name": "Adam Randall",
       "position": "RB",
@@ -667,8 +692,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 36,
-      "market_dynasty": 676.0,
+      "market_rookie_rank": 37,
+      "market_dynasty": 533.0,
       "draft_capital_pick": 174.0,
       "components": {
         "draft_capital": 32.4,
@@ -684,33 +709,6 @@
       "signals": []
     },
     {
-      "player_id": "13424",
-      "name": "Seth McGowan",
-      "position": "RB",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "IND",
-      "prospect_score": 53.2,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 38,
-      "market_dynasty": 455.0,
-      "draft_capital_pick": 237.0,
-      "components": {
-        "draft_capital": 7.8,
-        "rushing_yards_share": 96.7,
-        "scrimmage_yards_share": 96.7,
-        "rushing_efficiency": 52.9,
-        "receiving_yards_share": 65.2,
-        "athleticism": 73.8,
-        "age": 0.0
-      },
-      "model_position_rank": 12,
-      "model_rookie_rank": 45,
-      "signals": []
-    },
-    {
       "player_id": "13353",
       "name": "Chris Brazzell",
       "position": "WR",
@@ -722,7 +720,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 39,
-      "market_dynasty": 435.0,
+      "market_dynasty": 403.0,
       "draft_capital_pick": 83.0,
       "components": {
         "draft_capital": 68.0,
@@ -740,33 +738,6 @@
       ]
     },
     {
-      "player_id": "13533",
-      "name": "Barion Brown",
-      "position": "WR",
-      "class": 2026,
-      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "NO",
-      "prospect_score": 60.2,
-      "feature_coverage": 1.0,
-      "signal_eligible": true,
-      "rank_eligible": true,
-      "market_rookie_rank": 40,
-      "market_dynasty": 434.0,
-      "draft_capital_pick": 190.0,
-      "components": {
-        "draft_capital": 26.2,
-        "receiving_yards_share": 91.4,
-        "dominator": 78.1,
-        "target_share": 94.7,
-        "receiving_efficiency": 48.4,
-        "athleticism": 64.7,
-        "age": 40.0
-      },
-      "model_position_rank": 21,
-      "model_rookie_rank": 39,
-      "signals": []
-    },
-    {
       "player_id": "13329",
       "name": "Malik Benson",
       "position": "WR",
@@ -777,8 +748,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 41,
-      "market_dynasty": 423.0,
+      "market_rookie_rank": 40,
+      "market_dynasty": 397.0,
       "draft_capital_pick": 195.0,
       "components": {
         "draft_capital": 24.2,
@@ -794,30 +765,30 @@
       "signals": []
     },
     {
-      "player_id": "13423",
-      "name": "Eli Heidenreich",
-      "position": "RB",
+      "player_id": "13533",
+      "name": "Barion Brown",
+      "position": "WR",
       "class": 2026,
       "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "PIT",
-      "prospect_score": 55.4,
+      "nfl_team": "NO",
+      "prospect_score": 60.2,
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 44,
-      "market_dynasty": 238.0,
-      "draft_capital_pick": 230.0,
+      "market_rookie_rank": 41,
+      "market_dynasty": 371.0,
+      "draft_capital_pick": 190.0,
       "components": {
-        "draft_capital": 10.5,
-        "rushing_yards_share": 76.8,
-        "scrimmage_yards_share": 100.0,
-        "rushing_efficiency": 72.3,
-        "receiving_yards_share": 100.0,
-        "athleticism": 45.6,
-        "age": 20.0
+        "draft_capital": 26.2,
+        "receiving_yards_share": 91.4,
+        "dominator": 78.1,
+        "target_share": 94.7,
+        "receiving_efficiency": 48.4,
+        "athleticism": 64.7,
+        "age": 40.0
       },
-      "model_position_rank": 11,
-      "model_rookie_rank": 43,
+      "model_position_rank": 21,
+      "model_rookie_rank": 39,
       "signals": []
     },
     {
@@ -831,8 +802,8 @@
       "feature_coverage": 1.0,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 45,
-      "market_dynasty": 181.0,
+      "market_rookie_rank": 44,
+      "market_dynasty": 250.0,
       "draft_capital_pick": 182.0,
       "components": {
         "draft_capital": 29.3,
@@ -848,6 +819,33 @@
       "signals": []
     },
     {
+      "player_id": "13423",
+      "name": "Eli Heidenreich",
+      "position": "RB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "PIT",
+      "prospect_score": 55.4,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": 45,
+      "market_dynasty": 220.0,
+      "draft_capital_pick": 230.0,
+      "components": {
+        "draft_capital": 10.5,
+        "rushing_yards_share": 76.8,
+        "scrimmage_yards_share": 100.0,
+        "rushing_efficiency": 72.3,
+        "receiving_yards_share": 100.0,
+        "athleticism": 45.6,
+        "age": 20.0
+      },
+      "model_position_rank": 11,
+      "model_rookie_rank": 43,
+      "signals": []
+    },
+    {
       "player_id": "13404",
       "name": "Garrett Nussmeier",
       "position": "QB",
@@ -859,7 +857,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 46,
-      "market_dynasty": 119.0,
+      "market_dynasty": 67.0,
       "draft_capital_pick": 249.0,
       "components": {
         "draft_capital": 3.1,
@@ -870,8 +868,8 @@
         "completion_efficiency": 66.8,
         "age": 0.0
       },
-      "model_position_rank": 7,
-      "model_rookie_rank": 46,
+      "model_position_rank": 8,
+      "model_rookie_rank": 47,
       "signals": []
     },
     {
@@ -902,6 +900,33 @@
       "signals": []
     },
     {
+      "player_id": "13557",
+      "name": "Athan Kaliakmanis",
+      "position": "QB",
+      "class": 2026,
+      "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
+      "nfl_team": "WAS",
+      "prospect_score": 53.3,
+      "feature_coverage": 1.0,
+      "signal_eligible": true,
+      "rank_eligible": true,
+      "market_rookie_rank": null,
+      "market_dynasty": null,
+      "draft_capital_pick": 223.0,
+      "components": {
+        "draft_capital": 13.3,
+        "passing_efficiency": 72.4,
+        "td_int_efficiency": 94.5,
+        "sack_rate_inverse": 79.9,
+        "rushing_value": 70.3,
+        "completion_efficiency": 54.0,
+        "age": 20.0
+      },
+      "model_position_rank": 7,
+      "model_rookie_rank": 45,
+      "signals": []
+    },
+    {
       "player_id": "13281",
       "name": "Jordyn Tyson",
       "position": "WR",
@@ -913,7 +938,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 4,
-      "market_dynasty": 3316.0,
+      "market_dynasty": 3363.0,
       "draft_capital_pick": 8.0,
       "components": {
         "draft_capital": 97.3,
@@ -941,7 +966,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 6,
-      "market_dynasty": 2989.0,
+      "market_dynasty": 3034.0,
       "draft_capital_pick": 20.0,
       "components": {
         "draft_capital": 92.6,
@@ -970,7 +995,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 7,
-      "market_dynasty": 2814.0,
+      "market_dynasty": 2703.0,
       "draft_capital_pick": 24.0,
       "components": {
         "draft_capital": 91.0,
@@ -999,7 +1024,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 9,
-      "market_dynasty": 2381.0,
+      "market_dynasty": 2332.0,
       "draft_capital_pick": 33.0,
       "components": {
         "draft_capital": 87.5,
@@ -1026,8 +1051,8 @@
       "feature_coverage": 0.92,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 15,
-      "market_dynasty": 1809.0,
+      "market_rookie_rank": 14,
+      "market_dynasty": 1824.0,
       "draft_capital_pick": 108.0,
       "components": {
         "draft_capital": 58.2,
@@ -1042,32 +1067,30 @@
       "signals": []
     },
     {
-      "player_id": "13288",
-      "name": "Nicholas Singleton",
-      "position": "RB",
+      "player_id": "13311",
+      "name": "Chris Bell",
+      "position": "WR",
       "class": 2026,
       "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "TEN",
-      "prospect_score": 60.3,
+      "nfl_team": "MIA",
+      "prospect_score": 80.3,
       "feature_coverage": 0.92,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 18,
-      "market_dynasty": 1508.0,
-      "draft_capital_pick": 165.0,
+      "market_rookie_rank": 17,
+      "market_dynasty": 1531.0,
+      "draft_capital_pick": 94.0,
       "components": {
-        "draft_capital": 35.9,
-        "rushing_yards_share": 85.8,
-        "scrimmage_yards_share": 85.8,
-        "rushing_efficiency": 48.4,
-        "receiving_yards_share": 80.7,
+        "draft_capital": 63.7,
+        "receiving_yards_share": 99.1,
+        "dominator": 98.7,
+        "target_share": 99.3,
+        "receiving_efficiency": 72.1,
         "age": 40.0
       },
-      "model_position_rank": 9,
-      "model_rookie_rank": 38,
-      "signals": [
-        "BUST_RISK"
-      ]
+      "model_position_rank": 10,
+      "model_rookie_rank": 14,
+      "signals": []
     },
     {
       "player_id": "13413",
@@ -1080,8 +1103,8 @@
       "feature_coverage": 0.92,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 19,
-      "market_dynasty": 1476.0,
+      "market_rookie_rank": 18,
+      "market_dynasty": 1523.0,
       "draft_capital_pick": 176.0,
       "components": {
         "draft_capital": 31.6,
@@ -1096,32 +1119,30 @@
       "signals": []
     },
     {
-      "player_id": "13311",
-      "name": "Chris Bell",
-      "position": "WR",
+      "player_id": "13288",
+      "name": "Nicholas Singleton",
+      "position": "RB",
       "class": 2026,
       "prospect_stage": "NFL_ROOKIE_ACTIVE_PRIOR",
-      "nfl_team": "MIA",
-      "prospect_score": 80.3,
+      "nfl_team": "TEN",
+      "prospect_score": 60.3,
       "feature_coverage": 0.92,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 21,
-      "market_dynasty": 1444.0,
-      "draft_capital_pick": 94.0,
+      "market_rookie_rank": 19,
+      "market_dynasty": 1495.0,
+      "draft_capital_pick": 165.0,
       "components": {
-        "draft_capital": 63.7,
-        "receiving_yards_share": 99.1,
-        "dominator": 98.7,
-        "target_share": 99.3,
-        "receiving_efficiency": 72.1,
+        "draft_capital": 35.9,
+        "rushing_yards_share": 85.8,
+        "scrimmage_yards_share": 85.8,
+        "rushing_efficiency": 48.4,
+        "receiving_yards_share": 80.7,
         "age": 40.0
       },
-      "model_position_rank": 10,
-      "model_rookie_rank": 14,
-      "signals": [
-        "DRAFT_SLEEPER"
-      ]
+      "model_position_rank": 9,
+      "model_rookie_rank": 38,
+      "signals": []
     },
     {
       "player_id": "13414",
@@ -1135,7 +1156,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 23,
-      "market_dynasty": 1407.0,
+      "market_dynasty": 1377.0,
       "draft_capital_pick": 90.0,
       "components": {
         "draft_capital": 65.2,
@@ -1161,7 +1182,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 31,
-      "market_dynasty": 959.0,
+      "market_dynasty": 852.0,
       "draft_capital_pick": 187.0,
       "components": {
         "draft_capital": 27.3,
@@ -1187,7 +1208,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 33,
-      "market_dynasty": 812.0,
+      "market_dynasty": 769.0,
       "draft_capital_pick": 115.0,
       "components": {
         "draft_capital": 55.5,
@@ -1215,7 +1236,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 43,
-      "market_dynasty": 247.0,
+      "market_dynasty": 278.0,
       "draft_capital_pick": 197.0,
       "components": {
         "draft_capital": 23.4,
@@ -1241,7 +1262,7 @@
       "signal_eligible": true,
       "rank_eligible": true,
       "market_rookie_rank": 30,
-      "market_dynasty": 1006.0,
+      "market_dynasty": 875.0,
       "draft_capital_pick": 95.0,
       "components": {
         "draft_capital": 63.3,
@@ -1266,8 +1287,8 @@
       "feature_coverage": 0.89,
       "signal_eligible": true,
       "rank_eligible": true,
-      "market_rookie_rank": 37,
-      "market_dynasty": 487.0,
+      "market_rookie_rank": 38,
+      "market_dynasty": 502.0,
       "draft_capital_pick": 61.0,
       "components": {
         "draft_capital": 76.6,
@@ -1295,7 +1316,7 @@
       "signal_eligible": false,
       "rank_eligible": false,
       "market_rookie_rank": 42,
-      "market_dynasty": 358.0,
+      "market_dynasty": 337.0,
       "draft_capital_pick": null,
       "components": {
         "age": 0.0

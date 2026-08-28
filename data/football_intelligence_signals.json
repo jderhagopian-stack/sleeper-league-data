@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-26T11:53:10.091088+00:00",
+  "generated_at_utc": "2026-08-28T21:51:10.027399+00:00",
   "model_version": "FSFFL-GM-3.0-Football-Intelligence-v2-Preseason-Usage",
   "active_season": 2026,
   "season_phase": "PRESEASON",
@@ -19,13 +19,13 @@
   "usage_records": 0,
   "snap_records": 0,
   "prior_snap_records": 419,
-  "manual_intelligence_records": 89,
+  "manual_intelligence_records": 98,
   "preseason_usage_records": 56,
   "preseason_usage_diagnostics": {
     "events_found": 49,
-    "completed_events": 33,
+    "completed_events": 37,
     "summary_failures": 0,
-    "players_with_any_boxscore_record": 280,
+    "players_with_any_boxscore_record": 286,
     "players_with_meaningful_usage_signal": 56
   },
   "usage": {},
@@ -2966,6 +2966,36 @@
     }
   },
   "manual_intelligence": {
+    "10218": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 19172.3",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "10218",
+      "name": "Xavier Hutchinson",
+      "team": "HOU",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 11876.2,
+      "trending_drop_score": 19172.3,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
     "10235": {
       "depth_chart_rise": false,
       "starter_reps": false,
@@ -2980,7 +3010,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 3984.0",
+          "detail": "strong drop velocity score 5935.6",
           "strength": 0.45
         }
       ],
@@ -2990,11 +3020,101 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 3984.0,
+      "trending_drop_score": 5935.6,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "10444": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 11443.0",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "10444",
+      "name": "Cedric Tillman",
+      "team": null,
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 11443.05,
+      "depth_rank": 5,
+      "injury_status": "Questionable",
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "10860": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 7->8",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "10860",
+      "name": "Malik Cunningham",
+      "team": "DET",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 8,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
+    },
+    "11306": {
+      "depth_chart_rise": true,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 11->10",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "11306",
+      "name": "Xavier Gipson",
+      "team": "NYG",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 10,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "11435": {
       "depth_chart_rise": false,
@@ -3010,7 +3130,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 40234.9",
+          "detail": "strong drop velocity score 34461.9",
           "strength": 0.45
         }
       ],
@@ -3020,7 +3140,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 40234.95,
+      "trending_drop_score": 34461.9,
       "depth_rank": 4,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3040,7 +3160,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12690.8",
+          "detail": "strong drop velocity score 9722.0",
           "strength": 0.45
         }
       ],
@@ -3050,7 +3170,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12690.8,
+      "trending_drop_score": 9722.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3070,7 +3190,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 23197.1",
+          "detail": "strong drop velocity score 18089.6",
           "strength": 0.45
         }
       ],
@@ -3079,10 +3199,70 @@
       "team": "NYJ",
       "position": "RB",
       "fsffl_rostered": false,
-      "trending_add_score": 7063.2,
-      "trending_drop_score": 23197.05,
+      "trending_add_score": 3415.5,
+      "trending_drop_score": 18089.55,
       "depth_rank": 3,
       "injury_status": "Questionable",
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "11576": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 5559.4",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "11576",
+      "name": "Braelon Allen",
+      "team": "NYJ",
+      "position": "RB",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 5559.4,
+      "depth_rank": 2,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "11586": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 3680.0",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "11586",
+      "name": "Blake Corum",
+      "team": "LAR",
+      "position": "RB",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 3680.0,
+      "depth_rank": 2,
+      "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
@@ -3093,26 +3273,14 @@
       "preseason_role": false,
       "injury_opportunity": false,
       "coach_praise": false,
-      "depth_chart_fall": true,
-      "injury_concern": true,
+      "depth_chart_fall": false,
+      "injury_concern": false,
       "role_loss": true,
       "evidence": [
         {
-          "signal": "depth_chart_fall",
-          "source": "nflverse_depth_chart",
-          "detail": "depth rank fell 4->8",
-          "strength": 0.9
-        },
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to IR",
-          "strength": 0.9
-        },
-        {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 47532.6",
+          "detail": "strong drop velocity score 19531.5",
           "strength": 0.45
         }
       ],
@@ -3121,70 +3289,40 @@
       "team": "ARI",
       "position": "RB",
       "fsffl_rostered": false,
-      "trending_add_score": 15554.4,
-      "trending_drop_score": 47532.6,
+      "trending_add_score": 7511.4,
+      "trending_drop_score": 19531.5,
       "depth_rank": 8,
       "injury_status": "IR",
-      "evidence_count": 3,
-      "max_evidence_strength": 0.9
-    },
-    "11596": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": true,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "11596",
-      "name": "Ben Sinnott",
-      "team": "WAS",
-      "position": "TE",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 3,
-      "injury_status": "Questionable",
       "evidence_count": 1,
-      "max_evidence_strength": 0.9
+      "max_evidence_strength": 0.45
     },
-    "11616": {
-      "depth_chart_rise": false,
+    "11617": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
       "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
-      "injury_concern": true,
+      "injury_concern": false,
       "role_loss": false,
       "evidence": [
         {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 7->6",
           "strength": 0.9
         }
       ],
-      "player_id": "11616",
-      "name": "Jacob Cowing",
-      "team": "SF",
+      "player_id": "11617",
+      "name": "Malachi Corley",
+      "team": "CLE",
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
       "trending_drop_score": 0.0,
-      "depth_rank": 7,
-      "injury_status": "Questionable",
+      "depth_rank": 6,
+      "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.9
     },
@@ -3202,7 +3340,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 17433.5",
+          "detail": "strong drop velocity score 11924.5",
           "strength": 0.45
         }
       ],
@@ -3212,7 +3350,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 17433.45,
+      "trending_drop_score": 11924.55,
       "depth_rank": 5,
       "injury_status": "NA",
       "evidence_count": 1,
@@ -3232,7 +3370,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13316.0",
+          "detail": "strong drop velocity score 13691.2",
           "strength": 0.45
         }
       ],
@@ -3241,8 +3379,8 @@
       "team": "KC",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 8886.6,
-      "trending_drop_score": 13315.95,
+      "trending_add_score": 6125.4,
+      "trending_drop_score": 13691.25,
       "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3262,7 +3400,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 3384.0",
+          "detail": "strong drop velocity score 5652.9",
           "strength": 0.45
         }
       ],
@@ -3272,7 +3410,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 3384.0,
+      "trending_drop_score": 5652.9,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3292,7 +3430,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 25116.8",
+          "detail": "strong drop velocity score 19178.6",
           "strength": 0.45
         }
       ],
@@ -3302,39 +3440,39 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 25116.75,
+      "trending_drop_score": 19178.55,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "11631": {
-      "depth_chart_rise": false,
+    "11633": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
       "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
-      "injury_concern": true,
+      "injury_concern": false,
       "role_loss": false,
       "evidence": [
         {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 12->11",
           "strength": 0.9
         }
       ],
-      "player_id": "11631",
-      "name": "Brian Thomas",
-      "team": "JAX",
+      "player_id": "11633",
+      "name": "Jamari Thrash",
+      "team": "CLE",
       "position": "WR",
-      "fsffl_rostered": true,
+      "fsffl_rostered": false,
       "trending_add_score": 0.0,
       "trending_drop_score": 0.0,
-      "depth_rank": null,
-      "injury_status": "Questionable",
+      "depth_rank": 11,
+      "injury_status": "IR",
       "evidence_count": 1,
       "max_evidence_strength": 0.9
     },
@@ -3352,7 +3490,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 17861.8",
+          "detail": "strong drop velocity score 12333.2",
           "strength": 0.45
         }
       ],
@@ -3361,8 +3499,8 @@
       "team": "BUF",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 2421.0,
-      "trending_drop_score": 17861.85,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 12333.15,
       "depth_rank": 3,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -3382,7 +3520,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 21878.0",
+          "detail": "strong drop velocity score 18974.0",
           "strength": 0.45
         }
       ],
@@ -3391,8 +3529,8 @@
       "team": "LAC",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 2555.0,
-      "trending_drop_score": 21878.0,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 18974.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3412,7 +3550,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15108.8",
+          "detail": "strong drop velocity score 11242.4",
           "strength": 0.45
         }
       ],
@@ -3422,11 +3560,41 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15108.8,
+      "trending_drop_score": 11242.35,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "11748": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 9->10",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "11748",
+      "name": "Bub Means",
+      "team": "NO",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 10,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "11834": {
       "depth_chart_rise": false,
@@ -3451,12 +3619,42 @@
       "team": "NO",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 56273.7,
-      "trending_drop_score": 0.0,
+      "trending_add_score": 37105.95,
+      "trending_drop_score": 3584.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.88
+    },
+    "11994": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 6->7",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "11994",
+      "name": "Kameron Johnson",
+      "team": "TB",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 7,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "12455": {
       "depth_chart_rise": false,
@@ -3472,7 +3670,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 26201.0",
+          "detail": "strong drop velocity score 20842.5",
           "strength": 0.45
         }
       ],
@@ -3482,7 +3680,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 26201.0,
+      "trending_drop_score": 20842.5,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3502,7 +3700,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 20794.4",
+          "detail": "strong drop velocity score 17391.6",
           "strength": 0.45
         }
       ],
@@ -3511,8 +3709,8 @@
       "team": "DAL",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 13575.6,
-      "trending_drop_score": 20794.4,
+      "trending_add_score": 7465.2,
+      "trending_drop_score": 17391.6,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3532,7 +3730,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13197.2",
+          "detail": "strong drop velocity score 9932.0",
           "strength": 0.45
         }
       ],
@@ -3542,7 +3740,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13197.25,
+      "trending_drop_score": 9932.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3562,7 +3760,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 21465.3",
+          "detail": "strong drop velocity score 12348.3",
           "strength": 0.45
         }
       ],
@@ -3572,71 +3770,11 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 21465.3,
+      "trending_drop_score": 12348.3,
       "depth_rank": 14,
       "injury_status": "IR",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "12486": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15000.0",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "12486",
-      "name": "Dillon Gabriel",
-      "team": "CLE",
-      "position": "QB",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 14999.95,
-      "depth_rank": 3,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "12487": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": true,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "12487",
-      "name": "Terrance Ferguson",
-      "team": "LAR",
-      "position": "TE",
-      "fsffl_rostered": true,
-      "trending_add_score": 33181.6,
-      "trending_drop_score": 16395.2,
-      "depth_rank": 3,
-      "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.9
     },
     "12493": {
       "depth_chart_rise": false,
@@ -3652,7 +3790,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 32406.8",
+          "detail": "strong drop velocity score 31690.0",
           "strength": 0.45
         }
       ],
@@ -3662,7 +3800,7 @@
       "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 32406.75,
+      "trending_drop_score": 31690.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3682,7 +3820,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 16600.2",
+          "detail": "strong drop velocity score 15210.3",
           "strength": 0.45
         }
       ],
@@ -3692,14 +3830,14 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 16600.15,
+      "trending_drop_score": 15210.3,
       "depth_rank": null,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "12497": {
-      "depth_chart_rise": false,
+    "12498": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
@@ -3707,26 +3845,26 @@
       "coach_praise": false,
       "depth_chart_fall": false,
       "injury_concern": false,
-      "role_loss": true,
+      "role_loss": false,
       "evidence": [
         {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 3488.0",
-          "strength": 0.45
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 2->1",
+          "strength": 0.9
         }
       ],
-      "player_id": "12497",
-      "name": "Tory Horton",
-      "team": "SEA",
-      "position": "WR",
+      "player_id": "12498",
+      "name": "Mason Taylor",
+      "team": "NYJ",
+      "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 3488.0,
-      "depth_rank": 4,
-      "injury_status": "Questionable",
+      "trending_drop_score": 0.0,
+      "depth_rank": 1,
+      "injury_status": null,
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
     "12500": {
       "depth_chart_rise": false,
@@ -3742,7 +3880,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 20237.4",
+          "detail": "strong drop velocity score 14225.0",
           "strength": 0.45
         }
       ],
@@ -3752,7 +3890,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 20237.4,
+      "trending_drop_score": 14224.95,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3772,7 +3910,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14436.5",
+          "detail": "strong drop velocity score 10363.2",
           "strength": 0.45
         }
       ],
@@ -3782,7 +3920,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 14436.5,
+      "trending_drop_score": 10363.25,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3802,7 +3940,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 18331.8",
+          "detail": "strong drop velocity score 11334.0",
           "strength": 0.45
         }
       ],
@@ -3812,7 +3950,7 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 18331.8,
+      "trending_drop_score": 11334.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3826,13 +3964,19 @@
       "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
-      "injury_concern": false,
+      "injury_concern": true,
       "role_loss": true,
       "evidence": [
         {
+          "signal": "injury_concern",
+          "source": "sleeper_player_metadata",
+          "detail": "injury status changed to Questionable",
+          "strength": 0.9
+        },
+        {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12818.8",
+          "detail": "strong drop velocity score 10479.2",
           "strength": 0.45
         }
       ],
@@ -3842,11 +3986,41 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12818.75,
+      "trending_drop_score": 10479.25,
+      "depth_rank": 3,
+      "injury_status": "Questionable",
+      "evidence_count": 2,
+      "max_evidence_strength": 0.9
+    },
+    "12521": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 2->3",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "12521",
+      "name": "Elijah Arroyo",
+      "team": "SEA",
+      "position": "TE",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
     "12524": {
       "depth_chart_rise": false,
@@ -3862,7 +4036,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 23953.6",
+          "detail": "strong drop velocity score 17522.0",
           "strength": 0.45
         }
       ],
@@ -3871,8 +4045,8 @@
       "team": "CLE",
       "position": "QB",
       "fsffl_rostered": true,
-      "trending_add_score": 9193.6,
-      "trending_drop_score": 23953.6,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 17522.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -3892,7 +4066,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 18761.7",
+          "detail": "strong drop velocity score 17417.4",
           "strength": 0.45
         }
       ],
@@ -3902,7 +4076,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 18761.7,
+      "trending_drop_score": 17417.4,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -3922,7 +4096,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9880.2",
+          "detail": "strong drop velocity score 14245.7",
           "strength": 0.45
         }
       ],
@@ -3931,9 +4105,39 @@
       "team": "WAS",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 4781.7,
-      "trending_drop_score": 9880.2,
+      "trending_add_score": 5882.4,
+      "trending_drop_score": 14245.65,
       "depth_rank": 1,
+      "injury_status": "Questionable",
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "12534": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 4056.0",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "12534",
+      "name": "Kyle Monangai",
+      "team": "CHI",
+      "position": "RB",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 4056.0,
+      "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
@@ -3952,7 +4156,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 19213.2",
+          "detail": "strong drop velocity score 16846.0",
           "strength": 0.45
         }
       ],
@@ -3962,7 +4166,7 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 19213.2,
+      "trending_drop_score": 16846.0,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
@@ -3982,7 +4186,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 35716.1",
+          "detail": "strong drop velocity score 28847.2",
           "strength": 0.45
         }
       ],
@@ -3992,38 +4196,8 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 35716.05,
+      "trending_drop_score": 28847.25,
       "depth_rank": 4,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "12547": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12058.0",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "12547",
-      "name": "Kyle Williams",
-      "team": "NE",
-      "position": "WR",
-      "fsffl_rostered": false,
-      "trending_add_score": 9035.5,
-      "trending_drop_score": 12058.0,
-      "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
@@ -4042,7 +4216,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 19136.4",
+          "detail": "strong drop velocity score 14500.4",
           "strength": 0.45
         }
       ],
@@ -4052,7 +4226,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 19136.4,
+      "trending_drop_score": 14500.4,
       "depth_rank": 7,
       "injury_status": null,
       "evidence_count": 1,
@@ -4072,7 +4246,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13768.2",
+          "detail": "strong drop velocity score 11678.0",
           "strength": 0.45
         }
       ],
@@ -4082,7 +4256,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13768.2,
+      "trending_drop_score": 11677.95,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
@@ -4102,7 +4276,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15857.2",
+          "detail": "strong drop velocity score 15486.0",
           "strength": 0.45
         }
       ],
@@ -4112,11 +4286,41 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15857.2,
+      "trending_drop_score": 15486.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "13270": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 6->7",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "13270",
+      "name": "CJ Daniels",
+      "team": "LAR",
+      "position": "WR",
+      "fsffl_rostered": true,
+      "trending_add_score": 5992.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 7,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "13276": {
       "depth_chart_rise": false,
@@ -4132,7 +4336,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 18574.8",
+          "detail": "strong drop velocity score 20769.6",
           "strength": 0.45
         }
       ],
@@ -4141,8 +4345,8 @@
       "team": "NYJ",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 4479.2,
-      "trending_drop_score": 18574.8,
+      "trending_add_score": 6125.2,
+      "trending_drop_score": 20769.6,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4162,7 +4366,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 26236.0",
+          "detail": "strong drop velocity score 21136.4",
           "strength": 0.45
         }
       ],
@@ -4171,12 +4375,42 @@
       "team": "NO",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 10296.8,
-      "trending_drop_score": 26236.0,
+      "trending_add_score": 7953.6,
+      "trending_drop_score": 21136.4,
       "depth_rank": 2,
       "injury_status": "Doubtful",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "13285": {
+      "depth_chart_rise": true,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 5->4",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "13285",
+      "name": "Malachi Fields",
+      "team": "NYG",
+      "position": "WR",
+      "fsffl_rostered": true,
+      "trending_add_score": 10966.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 4,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "13286": {
       "depth_chart_rise": false,
@@ -4208,8 +4442,8 @@
       "evidence_count": 1,
       "max_evidence_strength": 0.88
     },
-    "13306": {
-      "depth_chart_rise": false,
+    "13311": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
@@ -4217,26 +4451,26 @@
       "coach_praise": false,
       "depth_chart_fall": false,
       "injury_concern": false,
-      "role_loss": true,
+      "role_loss": false,
       "evidence": [
         {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11073.6",
-          "strength": 0.45
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 5->4",
+          "strength": 0.9
         }
       ],
-      "player_id": "13306",
-      "name": "Taylen Green",
-      "team": "CLE",
-      "position": "QB",
+      "player_id": "13311",
+      "name": "Chris Bell",
+      "team": "MIA",
+      "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 8286.0,
-      "trending_drop_score": 11073.6,
+      "trending_add_score": 9859.85,
+      "trending_drop_score": 0.0,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
     "13320": {
       "depth_chart_rise": false,
@@ -4252,7 +4486,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 17857.2",
+          "detail": "strong drop velocity score 16522.4",
           "strength": 0.45
         }
       ],
@@ -4262,13 +4496,13 @@
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 17857.2,
+      "trending_drop_score": 16522.4,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "13330": {
+    "13329": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
@@ -4282,7 +4516,43 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 28288.4",
+          "detail": "strong drop velocity score 17351.1",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "13329",
+      "name": "Malik Benson",
+      "team": "LV",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 10536.9,
+      "trending_drop_score": 17351.1,
+      "depth_rank": 4,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "13330": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 1->2",
+          "strength": 0.9
+        },
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 28491.3",
           "strength": 0.45
         }
       ],
@@ -4292,11 +4562,41 @@
       "position": "TE",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 28288.35,
-      "depth_rank": 1,
+      "trending_drop_score": 28491.3,
+      "depth_rank": 2,
+      "injury_status": "Questionable",
+      "evidence_count": 2,
+      "max_evidence_strength": 0.9
+    },
+    "13349": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 2->3",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "13349",
+      "name": "Eli Stowers",
+      "team": "PHI",
+      "position": "TE",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 3,
       "injury_status": "Questionable",
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
     "1339": {
       "depth_chart_rise": false,
@@ -4312,7 +4612,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 33118.7",
+          "detail": "strong drop velocity score 26116.2",
           "strength": 0.45
         }
       ],
@@ -4322,41 +4622,11 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 33118.65,
+      "trending_drop_score": 26116.2,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "13417": {
-      "depth_chart_rise": true,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "depth_chart_rise",
-          "source": "nflverse_depth_chart",
-          "detail": "depth rank improved 4->3",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "13417",
-      "name": "De'Zhaun Stribling",
-      "team": "SF",
-      "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 3,
-      "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.9
     },
     "19": {
       "depth_chart_rise": false,
@@ -4372,7 +4642,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15043.1",
+          "detail": "strong drop velocity score 11566.8",
           "strength": 0.45
         }
       ],
@@ -4382,7 +4652,7 @@
       "position": "QB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15043.05,
+      "trending_drop_score": 11566.8,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4402,7 +4672,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 37130.4",
+          "detail": "strong drop velocity score 30068.8",
           "strength": 0.45
         }
       ],
@@ -4411,8 +4681,8 @@
       "team": null,
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 15930.0,
-      "trending_drop_score": 37130.4,
+      "trending_add_score": 12779.2,
+      "trending_drop_score": 30068.8,
       "depth_rank": null,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -4432,7 +4702,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13196.8",
+          "detail": "strong drop velocity score 10515.6",
           "strength": 0.45
         }
       ],
@@ -4442,7 +4712,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13196.8,
+      "trending_drop_score": 10515.6,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4462,7 +4732,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 37599.2",
+          "detail": "strong drop velocity score 30520.0",
           "strength": 0.45
         }
       ],
@@ -4471,40 +4741,10 @@
       "team": "NO",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 7644.0,
-      "trending_drop_score": 37599.2,
+      "trending_add_score": 6247.2,
+      "trending_drop_score": 30520.0,
       "depth_rank": 2,
       "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "4039": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 7976.1",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "4039",
-      "name": "Cooper Kupp",
-      "team": "SEA",
-      "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 2412.0,
-      "trending_drop_score": 7976.1,
-      "depth_rank": 3,
-      "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
@@ -4522,7 +4762,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 17238.8",
+          "detail": "strong drop velocity score 13817.6",
           "strength": 0.45
         }
       ],
@@ -4532,14 +4772,14 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 17238.8,
+      "trending_drop_score": 13817.6,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "4144": {
-      "depth_chart_rise": false,
+    "4274": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
@@ -4547,26 +4787,26 @@
       "coach_praise": false,
       "depth_chart_fall": false,
       "injury_concern": false,
-      "role_loss": true,
+      "role_loss": false,
       "evidence": [
         {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 20996.8",
-          "strength": 0.45
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 6->5",
+          "strength": 0.9
         }
       ],
-      "player_id": "4144",
-      "name": "Jonnu Smith",
-      "team": null,
-      "position": "TE",
+      "player_id": "4274",
+      "name": "David Moore",
+      "team": "CAR",
+      "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 20996.85,
-      "depth_rank": null,
+      "trending_drop_score": 0.0,
+      "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
     "4381": {
       "depth_chart_rise": false,
@@ -4582,7 +4822,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13266.4",
+          "detail": "strong drop velocity score 10350.5",
           "strength": 0.45
         }
       ],
@@ -4592,7 +4832,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 13266.4,
+      "trending_drop_score": 10350.55,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -4612,7 +4852,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11594.8",
+          "detail": "strong drop velocity score 5698.0",
           "strength": 0.45
         }
       ],
@@ -4622,69 +4862,9 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11594.8,
+      "trending_drop_score": 5698.0,
       "depth_rank": null,
       "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "4950": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": true,
-      "injury_concern": false,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "depth_chart_fall",
-          "source": "nflverse_depth_chart",
-          "detail": "depth rank fell 3->4",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "4950",
-      "name": "Christian Kirk",
-      "team": "SF",
-      "position": "WR",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 4,
-      "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.9
-    },
-    "5947": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12642.6",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "5947",
-      "name": "Jakobi Meyers",
-      "team": "JAX",
-      "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 12642.6,
-      "depth_rank": 3,
-      "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
@@ -4702,7 +4882,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 26860.5",
+          "detail": "strong drop velocity score 20933.6",
           "strength": 0.45
         }
       ],
@@ -4712,7 +4892,7 @@
       "position": "RB",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 26860.5,
+      "trending_drop_score": 20933.55,
       "depth_rank": 4,
       "injury_status": null,
       "evidence_count": 1,
@@ -4732,7 +4912,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 13409.4",
+          "detail": "strong drop velocity score 11428.5",
           "strength": 0.45
         }
       ],
@@ -4741,8 +4921,8 @@
       "team": "NYG",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 7534.5,
-      "trending_drop_score": 13409.4,
+      "trending_add_score": 3494.7,
+      "trending_drop_score": 11428.5,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4762,7 +4942,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 26551.4",
+          "detail": "strong drop velocity score 20481.3",
           "strength": 0.45
         }
       ],
@@ -4771,12 +4951,42 @@
       "team": "CLE",
       "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 10226.7,
-      "trending_drop_score": 26551.35,
+      "trending_add_score": 9621.0,
+      "trending_drop_score": 20481.3,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "6798": {
+      "depth_chart_rise": true,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 7->6",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "6798",
+      "name": "Jalen Reagor",
+      "team": "MIA",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 6,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "6826": {
       "depth_chart_rise": false,
@@ -4792,7 +5002,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11389.5",
+          "detail": "strong drop velocity score 3627.0",
           "strength": 0.45
         }
       ],
@@ -4802,7 +5012,7 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11389.5,
+      "trending_drop_score": 3627.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -4822,7 +5032,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12448.5",
+          "detail": "strong drop velocity score 9900.3",
           "strength": 0.45
         }
       ],
@@ -4832,73 +5042,43 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12448.5,
+      "trending_drop_score": 9900.3,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "7049": {
+    "6920": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
       "injury_opportunity": false,
       "coach_praise": false,
-      "depth_chart_fall": false,
+      "depth_chart_fall": true,
       "injury_concern": false,
-      "role_loss": true,
+      "role_loss": false,
       "evidence": [
         {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 17323.6",
-          "strength": 0.45
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 7->8",
+          "strength": 0.9
         }
       ],
-      "player_id": "7049",
-      "name": "Jauan Jennings",
-      "team": "MIN",
-      "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 17323.6,
-      "depth_rank": 3,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "7090": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 24892.2",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "7090",
-      "name": "Darnell Mooney",
+      "player_id": "6920",
+      "name": "Isaiah Hodgins",
       "team": "NYG",
       "position": "WR",
-      "fsffl_rostered": true,
+      "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 24892.2,
-      "depth_rank": 4,
+      "trending_drop_score": 0.0,
+      "depth_rank": 8,
       "injury_status": null,
       "evidence_count": 1,
-      "max_evidence_strength": 0.45
+      "max_evidence_strength": 0.9
     },
-    "7564": {
+    "6963": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
@@ -4916,15 +5096,141 @@
           "strength": 0.9
         }
       ],
-      "player_id": "7564",
-      "name": "Ja'Marr Chase",
-      "team": "CIN",
+      "player_id": "6963",
+      "name": "Patrick Taylor",
+      "team": "SF",
+      "position": "RB",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": null,
+      "injury_status": "Questionable",
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
+    },
+    "7049": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 17479.7",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "7049",
+      "name": "Jauan Jennings",
+      "team": "MIN",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 17479.7,
+      "depth_rank": 3,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.45
+    },
+    "7090": {
+      "depth_chart_rise": true,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": true,
+      "evidence": [
+        {
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 4->3",
+          "strength": 0.9
+        },
+        {
+          "signal": "role_loss",
+          "source": "sleeper_trending",
+          "detail": "strong drop velocity score 20922.3",
+          "strength": 0.45
+        }
+      ],
+      "player_id": "7090",
+      "name": "Darnell Mooney",
+      "team": "NYG",
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
+      "trending_drop_score": 20922.3,
+      "depth_rank": 3,
+      "injury_status": null,
+      "evidence_count": 2,
+      "max_evidence_strength": 0.9
+    },
+    "7528": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 2->3",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "7528",
+      "name": "Najee Harris",
+      "team": "NYG",
+      "position": "RB",
+      "fsffl_rostered": true,
+      "trending_add_score": 19038.0,
+      "trending_drop_score": 15729.5,
+      "depth_rank": 3,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
+    },
+    "7562": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 4->5",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "7562",
+      "name": "Tutu Atwell",
+      "team": "LAR",
+      "position": "WR",
+      "fsffl_rostered": false,
+      "trending_add_score": 17250.1,
       "trending_drop_score": 0.0,
-      "depth_rank": 1,
-      "injury_status": "Questionable",
+      "depth_rank": 5,
+      "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.9
     },
@@ -4942,7 +5248,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 15366.6",
+          "detail": "strong drop velocity score 12244.5",
           "strength": 0.45
         }
       ],
@@ -4952,38 +5258,8 @@
       "position": "QB",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
-      "trending_drop_score": 15366.6,
+      "trending_drop_score": 12244.5,
       "depth_rank": 2,
-      "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.45
-    },
-    "7608": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": false,
-      "role_loss": true,
-      "evidence": [
-        {
-          "signal": "role_loss",
-          "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11448.0",
-          "strength": 0.45
-        }
-      ],
-      "player_id": "7608",
-      "name": "Khalil Herbert",
-      "team": "SF",
-      "position": "RB",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 11448.0,
-      "depth_rank": 6,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
@@ -5002,7 +5278,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12811.2",
+          "detail": "strong drop velocity score 15048.8",
           "strength": 0.45
         }
       ],
@@ -5012,7 +5288,7 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 12811.2,
+      "trending_drop_score": 15048.8,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -5032,13 +5308,13 @@
         {
           "signal": "injury_concern",
           "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
+          "detail": "injury status changed to IR",
           "strength": 0.9
         },
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 31082.0",
+          "detail": "strong drop velocity score 37851.8",
           "strength": 0.45
         }
       ],
@@ -5048,10 +5324,40 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 31081.95,
+      "trending_drop_score": 37851.75,
       "depth_rank": null,
-      "injury_status": "Questionable",
+      "injury_status": "IR",
       "evidence_count": 2,
+      "max_evidence_strength": 0.9
+    },
+    "8126": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": true,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "injury_concern",
+          "source": "sleeper_player_metadata",
+          "detail": "injury status changed to Questionable",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "8126",
+      "name": "Wan'Dale Robinson",
+      "team": "TEN",
+      "position": "WR",
+      "fsffl_rostered": true,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 2,
+      "injury_status": "Questionable",
+      "evidence_count": 1,
       "max_evidence_strength": 0.9
     },
     "8132": {
@@ -5068,7 +5374,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 9113.5",
+          "detail": "strong drop velocity score 13105.8",
           "strength": 0.45
         }
       ],
@@ -5077,8 +5383,8 @@
       "team": "ARI",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 4331.25,
-      "trending_drop_score": 9113.5,
+      "trending_add_score": 1985.0,
+      "trending_drop_score": 13105.75,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -5098,7 +5404,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 11872.4",
+          "detail": "strong drop velocity score 9701.7",
           "strength": 0.45
         }
       ],
@@ -5108,13 +5414,13 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 11872.35,
+      "trending_drop_score": 9701.65,
       "depth_rank": 5,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "8144": {
+    "8142": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
@@ -5132,9 +5438,9 @@
           "strength": 0.9
         }
       ],
-      "player_id": "8144",
-      "name": "Chris Olave",
-      "team": "NO",
+      "player_id": "8142",
+      "name": "Alec Pierce",
+      "team": "IND",
       "position": "WR",
       "fsffl_rostered": true,
       "trending_add_score": 0.0,
@@ -5158,7 +5464,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 14188.7",
+          "detail": "strong drop velocity score 11500.7",
           "strength": 0.45
         }
       ],
@@ -5167,42 +5473,12 @@
       "team": "CAR",
       "position": "WR",
       "fsffl_rostered": false,
-      "trending_add_score": 4700.85,
-      "trending_drop_score": 14188.65,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 11500.65,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
-    },
-    "8151": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": true,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "8151",
-      "name": "Kenneth Walker",
-      "team": "KC",
-      "position": "RB",
-      "fsffl_rostered": true,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": null,
-      "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.9
     },
     "8154": {
       "depth_chart_rise": false,
@@ -5218,7 +5494,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 21418.8",
+          "detail": "strong drop velocity score 18907.2",
           "strength": 0.45
         }
       ],
@@ -5227,8 +5503,8 @@
       "team": "ATL",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 6987.9,
-      "trending_drop_score": 21418.8,
+      "trending_add_score": 5800.5,
+      "trending_drop_score": 18907.2,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
@@ -5248,7 +5524,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 26846.8",
+          "detail": "strong drop velocity score 29490.4",
           "strength": 0.45
         }
       ],
@@ -5257,8 +5533,8 @@
       "team": "DET",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 7918.4,
-      "trending_drop_score": 26846.8,
+      "trending_add_score": 5446.4,
+      "trending_drop_score": 29490.4,
       "depth_rank": 2,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -5294,72 +5570,6 @@
       "evidence_count": 1,
       "max_evidence_strength": 0.88
     },
-    "8230": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": true,
-      "injury_concern": true,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "depth_chart_fall",
-          "source": "nflverse_depth_chart",
-          "detail": "depth rank fell 7->8",
-          "strength": 0.9
-        },
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to IR",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "8230",
-      "name": "Ty Chandler",
-      "team": "NO",
-      "position": "RB",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 8,
-      "injury_status": "IR",
-      "evidence_count": 2,
-      "max_evidence_strength": 0.9
-    },
-    "8255": {
-      "depth_chart_rise": false,
-      "starter_reps": false,
-      "camp_buzz": false,
-      "preseason_role": false,
-      "injury_opportunity": false,
-      "coach_praise": false,
-      "depth_chart_fall": false,
-      "injury_concern": true,
-      "role_loss": false,
-      "evidence": [
-        {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
-          "strength": 0.9
-        }
-      ],
-      "player_id": "8255",
-      "name": "Raheem Blackshear",
-      "team": "DET",
-      "position": "RB",
-      "fsffl_rostered": false,
-      "trending_add_score": 0.0,
-      "trending_drop_score": 0.0,
-      "depth_rank": 8,
-      "injury_status": "Questionable",
-      "evidence_count": 1,
-      "max_evidence_strength": 0.9
-    },
     "8698": {
       "depth_chart_rise": false,
       "starter_reps": false,
@@ -5374,7 +5584,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 19279.5",
+          "detail": "strong drop velocity score 12068.2",
           "strength": 0.45
         }
       ],
@@ -5384,11 +5594,41 @@
       "position": "TE",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 19279.5,
+      "trending_drop_score": 12068.25,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "8800": {
+      "depth_chart_rise": true,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": false,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 4->3",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "8800",
+      "name": "Malik Davis",
+      "team": "DAL",
+      "position": "RB",
+      "fsffl_rostered": false,
+      "trending_add_score": 123769.8,
+      "trending_drop_score": 21740.4,
+      "depth_rank": 3,
+      "injury_status": null,
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "9225": {
       "depth_chart_rise": false,
@@ -5404,7 +5644,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 19796.0",
+          "detail": "strong drop velocity score 17206.0",
           "strength": 0.45
         }
       ],
@@ -5413,8 +5653,8 @@
       "team": "PHI",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 12598.6,
-      "trending_drop_score": 19796.0,
+      "trending_add_score": 9683.1,
+      "trending_drop_score": 17206.0,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -5434,7 +5674,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 28617.8",
+          "detail": "strong drop velocity score 25380.9",
           "strength": 0.45
         }
       ],
@@ -5443,12 +5683,42 @@
       "team": "JAX",
       "position": "TE",
       "fsffl_rostered": true,
-      "trending_add_score": 20472.75,
-      "trending_drop_score": 28617.75,
+      "trending_add_score": 14126.85,
+      "trending_drop_score": 25380.9,
       "depth_rank": 1,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
+    },
+    "9481": {
+      "depth_chart_rise": false,
+      "starter_reps": false,
+      "camp_buzz": false,
+      "preseason_role": false,
+      "injury_opportunity": false,
+      "coach_praise": false,
+      "depth_chart_fall": true,
+      "injury_concern": false,
+      "role_loss": false,
+      "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 2->3",
+          "strength": 0.9
+        }
+      ],
+      "player_id": "9481",
+      "name": "Luke Musgrave",
+      "team": "GB",
+      "position": "TE",
+      "fsffl_rostered": false,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 3,
+      "injury_status": "PUP",
+      "evidence_count": 1,
+      "max_evidence_strength": 0.9
     },
     "9482": {
       "depth_chart_rise": false,
@@ -5464,7 +5734,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 12434.4",
+          "detail": "strong drop velocity score 10158.8",
           "strength": 0.45
         }
       ],
@@ -5473,8 +5743,8 @@
       "team": "LV",
       "position": "TE",
       "fsffl_rostered": false,
-      "trending_add_score": 2538.0,
-      "trending_drop_score": 12434.4,
+      "trending_add_score": 5287.5,
+      "trending_drop_score": 10158.75,
       "depth_rank": 2,
       "injury_status": null,
       "evidence_count": 1,
@@ -5487,10 +5757,16 @@
       "preseason_role": false,
       "injury_opportunity": true,
       "coach_praise": false,
-      "depth_chart_fall": false,
+      "depth_chart_fall": true,
       "injury_concern": false,
       "role_loss": false,
       "evidence": [
+        {
+          "signal": "depth_chart_fall",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank fell 8->9",
+          "strength": 0.9
+        },
         {
           "signal": "injury_opportunity",
           "source": "direct_next_man_up",
@@ -5505,10 +5781,10 @@
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
       "trending_drop_score": 0.0,
-      "depth_rank": 8,
+      "depth_rank": 9,
       "injury_status": null,
-      "evidence_count": 1,
-      "max_evidence_strength": 0.88
+      "evidence_count": 2,
+      "max_evidence_strength": 0.9
     },
     "9494": {
       "depth_chart_rise": false,
@@ -5524,7 +5800,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 21218.8",
+          "detail": "strong drop velocity score 19364.4",
           "strength": 0.45
         }
       ],
@@ -5534,46 +5810,40 @@
       "position": "WR",
       "fsffl_rostered": false,
       "trending_add_score": 0.0,
-      "trending_drop_score": 21218.85,
+      "trending_drop_score": 19364.4,
       "depth_rank": null,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "9500": {
-      "depth_chart_rise": false,
+    "9497": {
+      "depth_chart_rise": true,
       "starter_reps": false,
       "camp_buzz": false,
       "preseason_role": false,
-      "injury_opportunity": true,
+      "injury_opportunity": false,
       "coach_praise": false,
       "depth_chart_fall": false,
-      "injury_concern": true,
+      "injury_concern": false,
       "role_loss": false,
       "evidence": [
         {
-          "signal": "injury_concern",
-          "source": "sleeper_player_metadata",
-          "detail": "injury status changed to Questionable",
+          "signal": "depth_chart_rise",
+          "source": "nflverse_depth_chart",
+          "detail": "depth rank improved 9->7",
           "strength": 0.9
-        },
-        {
-          "signal": "injury_opportunity",
-          "source": "direct_next_man_up",
-          "detail": "direct player ahead (Alec Pierce) is materially unavailable: PUP",
-          "strength": 0.88
         }
       ],
-      "player_id": "9500",
-      "name": "Josh Downs",
-      "team": "IND",
+      "player_id": "9497",
+      "name": "Jalin Hyatt",
+      "team": "NYG",
       "position": "WR",
-      "fsffl_rostered": true,
+      "fsffl_rostered": false,
       "trending_add_score": 0.0,
       "trending_drop_score": 0.0,
-      "depth_rank": 2,
+      "depth_rank": 7,
       "injury_status": "Questionable",
-      "evidence_count": 2,
+      "evidence_count": 1,
       "max_evidence_strength": 0.9
     },
     "9502": {
@@ -5590,7 +5860,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 53896.4",
+          "detail": "strong drop velocity score 55610.8",
           "strength": 0.45
         }
       ],
@@ -5598,9 +5868,9 @@
       "name": "Tank Dell",
       "team": "HOU",
       "position": "WR",
-      "fsffl_rostered": true,
-      "trending_add_score": 16816.0,
-      "trending_drop_score": 53896.4,
+      "fsffl_rostered": false,
+      "trending_add_score": 6640.8,
+      "trending_drop_score": 55610.8,
       "depth_rank": 5,
       "injury_status": "Questionable",
       "evidence_count": 1,
@@ -5620,7 +5890,7 @@
         {
           "signal": "role_loss",
           "source": "sleeper_trending",
-          "detail": "strong drop velocity score 24370.7",
+          "detail": "strong drop velocity score 23292.9",
           "strength": 0.45
         }
       ],
@@ -5629,14 +5899,14 @@
       "team": "TB",
       "position": "RB",
       "fsffl_rostered": true,
-      "trending_add_score": 8105.4,
-      "trending_drop_score": 24370.65,
+      "trending_add_score": 5440.5,
+      "trending_drop_score": 23292.9,
       "depth_rank": 3,
       "injury_status": null,
       "evidence_count": 1,
       "max_evidence_strength": 0.45
     },
-    "9511": {
+    "9997": {
       "depth_chart_rise": false,
       "starter_reps": false,
       "camp_buzz": false,
@@ -5654,14 +5924,14 @@
           "strength": 0.9
         }
       ],
-      "player_id": "9511",
-      "name": "Keaton Mitchell",
-      "team": "LAC",
-      "position": "RB",
+      "player_id": "9997",
+      "name": "Zay Flowers",
+      "team": "BAL",
+      "position": "WR",
       "fsffl_rostered": true,
-      "trending_add_score": 26785.8,
-      "trending_drop_score": 22562.1,
-      "depth_rank": 2,
+      "trending_add_score": 0.0,
+      "trending_drop_score": 0.0,
+      "depth_rank": 1,
       "injury_status": "Questionable",
       "evidence_count": 1,
       "max_evidence_strength": 0.9
@@ -5756,22 +6026,50 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 36,
-      "pass_attempt_share": 0.507,
+      "pass_attempts": 54,
+      "pass_attempt_share": 0.5192,
       "carries": 3,
-      "carry_share": 0.0556,
+      "carry_share": 0.039,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
       "touches": 3,
-      "touch_share": 0.0294,
-      "latest_game_role_share": 0.6053,
+      "touch_share": 0.021,
+      "latest_game_role_share": 0.5455,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.727,
+      "signal_strength": 0.732,
+      "signal_reasons": [
+        "PASS_ATTEMPT_SHARE"
+      ],
+      "limitations": [
+        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
+        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
+      ]
+    },
+    "12511": {
+      "source_season": 2026,
+      "source": "ESPN_PRESEASON_BOXSCORE",
+      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
+      "games": 3,
+      "starter_games": 0,
+      "starter_rate": 0.0,
+      "pass_attempts": 39,
+      "pass_attempt_share": 0.375,
+      "carries": 1,
+      "carry_share": 0.013,
+      "targets": 0,
+      "target_share": 0.0,
+      "receptions": 0,
+      "touches": 1,
+      "touch_share": 0.007,
+      "latest_game_role_share": 0.4545,
+      "latest_game_starter": false,
+      "meaningful_role_signal": true,
+      "signal_strength": 0.681,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
       ],
@@ -5784,22 +6082,22 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 37,
-      "pass_attempt_share": 0.5522,
-      "carries": 3,
-      "carry_share": 0.0462,
+      "pass_attempts": 41,
+      "pass_attempt_share": 0.4141,
+      "carries": 5,
+      "carry_share": 0.0568,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
-      "touches": 3,
-      "touch_share": 0.0283,
-      "latest_game_role_share": 0.4688,
+      "touches": 5,
+      "touch_share": 0.0336,
+      "latest_game_role_share": 0.125,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.743,
+      "signal_strength": 0.695,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
       ],
@@ -5840,22 +6138,22 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 31,
-      "pass_attempt_share": 0.4189,
-      "carries": 2,
-      "carry_share": 0.0426,
+      "pass_attempts": 45,
+      "pass_attempt_share": 0.4091,
+      "carries": 4,
+      "carry_share": 0.0541,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
-      "touches": 2,
-      "touch_share": 0.0225,
-      "latest_game_role_share": 0.3846,
+      "touches": 4,
+      "touch_share": 0.0296,
+      "latest_game_role_share": 0.3889,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.697,
+      "signal_strength": 0.693,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
       ],
@@ -5868,22 +6166,22 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 37,
-      "pass_attempt_share": 0.5,
-      "carries": 2,
-      "carry_share": 0.0426,
+      "pass_attempts": 46,
+      "pass_attempt_share": 0.4182,
+      "carries": 3,
+      "carry_share": 0.0405,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
-      "touches": 2,
-      "touch_share": 0.0225,
-      "latest_game_role_share": 0.6154,
+      "touches": 3,
+      "touch_share": 0.0222,
+      "latest_game_role_share": 0.25,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.725,
+      "signal_strength": 0.696,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
       ],
@@ -5896,52 +6194,24 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 36,
-      "pass_attempt_share": 0.5806,
-      "carries": 5,
-      "carry_share": 0.102,
+      "pass_attempts": 38,
+      "pass_attempt_share": 0.4471,
+      "carries": 9,
+      "carry_share": 0.12,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
-      "touches": 5,
-      "touch_share": 0.0588,
-      "latest_game_role_share": 0.4848,
+      "touches": 9,
+      "touch_share": 0.0726,
+      "latest_game_role_share": 0.087,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.753,
+      "signal_strength": 0.706,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
-      ],
-      "limitations": [
-        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
-        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
-      ]
-    },
-    "12670": {
-      "source_season": 2026,
-      "source": "ESPN_PRESEASON_BOXSCORE",
-      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
-      "starter_games": 0,
-      "starter_rate": 0.0,
-      "pass_attempts": 0,
-      "pass_attempt_share": 0.0,
-      "carries": 0,
-      "carry_share": 0.0,
-      "targets": 10,
-      "target_share": 0.1613,
-      "receptions": 6,
-      "touches": 6,
-      "touch_share": 0.0706,
-      "latest_game_role_share": 0.1212,
-      "latest_game_starter": false,
-      "meaningful_role_signal": true,
-      "signal_strength": 0.663,
-      "signal_reasons": [
-        "TARGET_SHARE"
       ],
       "limitations": [
         "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
@@ -6172,6 +6442,34 @@
         "ROUTE_PARTICIPATION_NOT_AVAILABLE"
       ]
     },
+    "13557": {
+      "source_season": 2026,
+      "source": "ESPN_PRESEASON_BOXSCORE",
+      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
+      "games": 2,
+      "starter_games": 0,
+      "starter_rate": 0.0,
+      "pass_attempts": 24,
+      "pass_attempt_share": 0.4528,
+      "carries": 2,
+      "carry_share": 0.0345,
+      "targets": 0,
+      "target_share": 0.0,
+      "receptions": 0,
+      "touches": 2,
+      "touch_share": 0.0215,
+      "latest_game_role_share": 0.5385,
+      "latest_game_starter": false,
+      "meaningful_role_signal": true,
+      "signal_strength": 0.708,
+      "signal_reasons": [
+        "PASS_ATTEMPT_SHARE"
+      ],
+      "limitations": [
+        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
+        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
+      ]
+    },
     "13405": {
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
@@ -6278,34 +6576,6 @@
       "signal_strength": 0.683,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
-      ],
-      "limitations": [
-        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
-        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
-      ]
-    },
-    "12472": {
-      "source_season": 2026,
-      "source": "ESPN_PRESEASON_BOXSCORE",
-      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
-      "starter_games": 0,
-      "starter_rate": 0.0,
-      "pass_attempts": 0,
-      "pass_attempt_share": 0.0,
-      "carries": 14,
-      "carry_share": 0.2593,
-      "targets": 3,
-      "target_share": 0.0526,
-      "receptions": 3,
-      "touches": 17,
-      "touch_share": 0.1889,
-      "latest_game_role_share": 0.3171,
-      "latest_game_starter": false,
-      "meaningful_role_signal": true,
-      "signal_strength": 0.663,
-      "signal_reasons": [
-        "TOUCH_SHARE"
       ],
       "limitations": [
         "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
@@ -6512,22 +6782,22 @@
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
-      "pass_attempts": 37,
-      "pass_attempt_share": 0.5,
-      "carries": 4,
-      "carry_share": 0.0784,
+      "pass_attempts": 60,
+      "pass_attempt_share": 0.5607,
+      "carries": 7,
+      "carry_share": 0.0778,
       "targets": 0,
       "target_share": 0.0,
       "receptions": 0,
-      "touches": 4,
-      "touch_share": 0.0388,
-      "latest_game_role_share": 0.2791,
+      "touches": 7,
+      "touch_share": 0.0424,
+      "latest_game_role_share": 0.697,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.725,
+      "signal_strength": 0.746,
       "signal_reasons": [
         "PASS_ATTEMPT_SHARE"
       ],
@@ -6564,54 +6834,26 @@
         "ROUTE_PARTICIPATION_NOT_AVAILABLE"
       ]
     },
-    "13278": {
-      "source_season": 2026,
-      "source": "ESPN_PRESEASON_BOXSCORE",
-      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
-      "starter_games": 0,
-      "starter_rate": 0.0,
-      "pass_attempts": 0,
-      "pass_attempt_share": 0.0,
-      "carries": 0,
-      "carry_share": 0.0,
-      "targets": 14,
-      "target_share": 0.1944,
-      "receptions": 11,
-      "touches": 11,
-      "touch_share": 0.1068,
-      "latest_game_role_share": 0.1395,
-      "latest_game_starter": false,
-      "meaningful_role_signal": true,
-      "signal_strength": 0.686,
-      "signal_reasons": [
-        "TARGET_SHARE"
-      ],
-      "limitations": [
-        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
-        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
-      ]
-    },
     "13270": {
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
       "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 2,
+      "games": 3,
       "starter_games": 0,
       "starter_rate": 0.0,
       "pass_attempts": 0,
       "pass_attempt_share": 0.0,
       "carries": 0,
       "carry_share": 0.0,
-      "targets": 18,
-      "target_share": 0.25,
-      "receptions": 10,
-      "touches": 10,
-      "touch_share": 0.0971,
-      "latest_game_role_share": 0.3023,
+      "targets": 24,
+      "target_share": 0.2308,
+      "receptions": 15,
+      "touches": 15,
+      "touch_share": 0.0909,
+      "latest_game_role_share": 0.1875,
       "latest_game_starter": false,
       "meaningful_role_signal": true,
-      "signal_strength": 0.725,
+      "signal_strength": 0.712,
       "signal_reasons": [
         "TARGET_SHARE"
       ],
@@ -7068,34 +7310,6 @@
         "ROUTE_PARTICIPATION_NOT_AVAILABLE"
       ]
     },
-    "7527": {
-      "source_season": 2026,
-      "source": "ESPN_PRESEASON_BOXSCORE",
-      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
-      "games": 1,
-      "starter_games": 0,
-      "starter_rate": 0.0,
-      "pass_attempts": 13,
-      "pass_attempt_share": 0.3611,
-      "carries": 1,
-      "carry_share": 0.0278,
-      "targets": 0,
-      "target_share": 0.0,
-      "receptions": 0,
-      "touches": 1,
-      "touch_share": 0.0185,
-      "latest_game_role_share": 0.3611,
-      "latest_game_starter": false,
-      "meaningful_role_signal": true,
-      "signal_strength": 0.676,
-      "signal_reasons": [
-        "PASS_ATTEMPT_SHARE"
-      ],
-      "limitations": [
-        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
-        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
-      ]
-    },
     "11616": {
       "source_season": 2026,
       "source": "ESPN_PRESEASON_BOXSCORE",
@@ -7235,20 +7449,76 @@
         "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
         "ROUTE_PARTICIPATION_NOT_AVAILABLE"
       ]
+    },
+    "13402": {
+      "source_season": 2026,
+      "source": "ESPN_PRESEASON_BOXSCORE",
+      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
+      "games": 1,
+      "starter_games": 0,
+      "starter_rate": 0.0,
+      "pass_attempts": 0,
+      "pass_attempt_share": 0.0,
+      "carries": 1,
+      "carry_share": 0.0417,
+      "targets": 10,
+      "target_share": 0.2703,
+      "receptions": 7,
+      "touches": 8,
+      "touch_share": 0.16,
+      "latest_game_role_share": 0.2703,
+      "latest_game_starter": false,
+      "meaningful_role_signal": true,
+      "signal_strength": 0.739,
+      "signal_reasons": [
+        "TARGET_SHARE"
+      ],
+      "limitations": [
+        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
+        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
+      ]
+    },
+    "12467": {
+      "source_season": 2026,
+      "source": "ESPN_PRESEASON_BOXSCORE",
+      "evidence_type": "STRUCTURED_PRESEASON_USAGE",
+      "games": 1,
+      "starter_games": 0,
+      "starter_rate": 0.0,
+      "pass_attempts": 0,
+      "pass_attempt_share": 0.0,
+      "carries": 8,
+      "carry_share": 0.2424,
+      "targets": 2,
+      "target_share": 0.0769,
+      "receptions": 1,
+      "touches": 9,
+      "touch_share": 0.1957,
+      "latest_game_role_share": 0.1957,
+      "latest_game_starter": false,
+      "meaningful_role_signal": true,
+      "signal_strength": 0.667,
+      "signal_reasons": [
+        "TOUCH_SHARE"
+      ],
+      "limitations": [
+        "BOX_SCORE_ROLE_EVIDENCE_NOT_TRUE_SNAP_SHARE",
+        "ROUTE_PARTICIPATION_NOT_AVAILABLE"
+      ]
     }
   },
   "warnings": [
     "CURRENT_REGULAR_SEASON_USAGE_NOT_EXPECTED"
   ],
   "current_catalyst_ingestion": {
-    "generated_at_utc": "2026-08-26T11:53:15.184044+00:00",
+    "generated_at_utc": "2026-08-28T21:51:15.192906+00:00",
     "model_version": "FSFFL-GM-3.0-Current-Catalysts-v4.1-Position-Safe-Depth",
     "season": 2026,
     "season_phase": "PRESEASON",
-    "automatic_catalyst_records": 89,
-    "sleeper_trending_add_players": 110,
-    "sleeper_trending_drop_players": 106,
-    "depth_chart_players_matched": 3299,
+    "automatic_catalyst_records": 98,
+    "sleeper_trending_add_players": 108,
+    "sleeper_trending_drop_players": 107,
+    "depth_chart_players_matched": 3306,
     "public_news_entries": 10,
     "public_news_available": true,
     "public_news_source": "https://www.cbssports.com/fantasy/football/players/news/all/",

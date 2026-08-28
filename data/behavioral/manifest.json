@@ -1,8 +1,9 @@
 {
   "action_context_model_version": "FSFFL-Behavioral-Action-Context-1.1",
-  "generated_at_utc": "2026-08-26T11:52:30.793728+00:00",
+  "empirical_validation_status": "NOT_PREDICTIVELY_VALIDATED",
+  "generated_at_utc": "2026-08-28T21:50:30.339846+00:00",
   "historical_state_provider": {
-    "cached_pre_transaction_state_count": 1394,
+    "cached_pre_transaction_state_count": 1400,
     "max_cumulative_ownership_anomalies": 1,
     "model_version": "FSFFL-Historical-State-Provider-1.0",
     "provenance": {
@@ -16,18 +17,20 @@
       "2025",
       "2026"
     ],
-    "transaction_count": 1394
+    "transaction_count": 1400
   },
   "interactive_history_rebuild": false,
   "league_bias_audit": {
-    "QB": -0.0041,
-    "RB": 0.0169,
-    "TE": -0.0779,
-    "WR": 0.0259
+    "QB": -0.0038,
+    "RB": 0.0171,
+    "TE": -0.0778,
+    "WR": 0.0255
   },
   "owner_count": 12,
+  "predictive_holdout_validated": false,
   "production_status": "PRODUCTION",
   "profile_model_version": "FSFFL-Behavioral-Intelligence-3.0",
   "profile_path": "data/behavioral/behavioral_intelligence_v3.json",
+  "source_research_model_version": "FSFFL-Behavioral-Intelligence-3.0-RESEARCH",
   "validated_research_model_version": "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
 }

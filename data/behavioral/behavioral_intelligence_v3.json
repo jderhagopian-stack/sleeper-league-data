@@ -1,13 +1,13 @@
 {
   "action_context_audit": {
-    "action_side_count": 1598,
-    "average_context_confidence": 0.9003,
+    "action_side_count": 1604,
+    "average_context_confidence": 0.9005,
     "event_type_counts": {
-      "acquisition": 1222,
+      "acquisition": 1228,
       "draft": 144,
       "trade": 232
     },
-    "historical_state_cached_pre_transaction_count": 1394,
+    "historical_state_cached_pre_transaction_count": 1400,
     "historical_state_max_cumulative_ownership_anomalies": 1,
     "owner_count": 12
   },
@@ -24,17 +24,19 @@
     "production_facade": true,
     "production_promotion_preserves_research_implementation": true,
     "shared_historical_state_provider": true,
+    "software_promotion_is_not_empirical_validation": true,
     "state_conditioned_traits_preserved": true,
     "surplus_accumulation_strengthens_intrinsic_preference": true
   },
-  "cache_generated_at_utc": "2026-08-26T11:52:30.793728+00:00",
+  "cache_generated_at_utc": "2026-08-28T21:50:30.339846+00:00",
   "cache_policy": {
     "interactive_history_rebuild": false,
     "market_sweep_reads_compact_cache_only": true,
     "refresh_time_only": true
   },
+  "empirical_validation_status": "NOT_PREDICTIVELY_VALIDATED",
   "historical_state_provider": {
-    "cached_pre_transaction_state_count": 1394,
+    "cached_pre_transaction_state_count": 1400,
     "max_cumulative_ownership_anomalies": 1,
     "model_version": "FSFFL-Historical-State-Provider-1.0",
     "provenance": {
@@ -48,13 +50,13 @@
       "2025",
       "2026"
     ],
-    "transaction_count": 1394
+    "transaction_count": 1400
   },
   "league_bias_audit": {
-    "QB": -0.0041,
-    "RB": 0.0169,
-    "TE": -0.0779,
-    "WR": 0.0259
+    "QB": -0.0038,
+    "RB": 0.0171,
+    "TE": -0.0778,
+    "WR": 0.0255
   },
   "limitations": [
     "The action-type opportunity prior is empirical league behavior, not a perfect reconstruction of every available alternative at each decision timestamp.",
@@ -67,10 +69,10 @@
   "opportunity_environment": {
     "league_action_type_position_mix": {
       "acquisition": {
-        "QB": 0.2192,
-        "RB": 0.2904,
-        "TE": 0.1723,
-        "WR": 0.318
+        "QB": 0.2203,
+        "RB": 0.2911,
+        "TE": 0.1713,
+        "WR": 0.3173
       },
       "draft": {
         "QB": 0.1697,
@@ -109,80 +111,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 11.624,
-            "average_expected_choice_share": 0.2497,
+            "average_expected_choice_share": 0.2503,
             "exit_weight": 10.771,
             "exit_when_position_needed": 0.2312,
             "need_only_preference_for_comparison": 0.0579,
             "need_response": 0.2688,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0735,
+              "acquisition": -0.0777,
               "draft": 0.3524,
               "trade": 0.1046
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9603,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.0476,
+              "score": 0.0463,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5367
           },
           "RB": {
             "acquisition_weight": 16.07,
-            "average_expected_choice_share": 0.2856,
+            "average_expected_choice_share": 0.2859,
             "exit_weight": 10.881,
             "exit_when_position_needed": 0.1026,
             "need_only_preference_for_comparison": 0.2914,
             "need_response": 0.1431,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0274,
+              "acquisition": -0.0295,
               "draft": 0.064,
               "trade": -0.21
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9603,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0846,
+              "score": -0.0852,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6416
           },
           "TE": {
             "acquisition_weight": 6.472,
-            "average_expected_choice_share": 0.1847,
+            "average_expected_choice_share": 0.1841,
             "exit_weight": 5.293,
             "exit_when_position_needed": 0.5114,
             "need_only_preference_for_comparison": -0.9989,
             "need_response": 0.5899,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1465,
+              "acquisition": -0.1419,
               "draft": -0.6878,
               "trade": -0.2137
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9603,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1845,
+              "score": -0.1831,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.2983
           },
           "WR": {
             "acquisition_weight": 17.079,
-            "average_expected_choice_share": 0.2799,
+            "average_expected_choice_share": 0.2797,
             "exit_weight": 13.43,
             "exit_when_position_needed": 0.1087,
             "need_only_preference_for_comparison": 0.586,
             "need_response": 0.1519,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2474,
+              "acquisition": 0.2492,
               "draft": 0.2713,
               "trade": 0.1552
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9603,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1578,
+              "score": 0.1583,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6263
@@ -730,7 +732,7 @@
     },
     "709546576091090944": {
       "context_normalized": {
-        "average_context_confidence": 0.9158,
+        "average_context_confidence": 0.9163,
         "draft_context": {
           "average_redundancy_when_drafting": 0.4537,
           "bpa_reach_signal_available": false,
@@ -739,67 +741,67 @@
           "weighted_draft_sample": 8.387
         },
         "opportunity_normalization_sample": {
-          "acquisition": 6.108,
+          "acquisition": 6.325,
           "draft": 8.387,
           "trade": 12.164
         },
         "positions": {
           "QB": {
             "acquisition_weight": 5.108,
-            "average_expected_choice_share": 0.2116,
+            "average_expected_choice_share": 0.2119,
             "exit_weight": 5.556,
             "exit_when_position_needed": 0.1949,
-            "need_only_preference_for_comparison": -0.1054,
+            "need_only_preference_for_comparison": -0.1058,
             "need_response": 0.346,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.4568,
+              "acquisition": -0.466,
               "draft": -0.101,
               "trade": -0.1765
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9473,
+              "confidence": 0.9477,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1653,
+              "score": -0.1688,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5009
           },
           "RB": {
-            "acquisition_weight": 11.173,
-            "average_expected_choice_share": 0.3627,
+            "acquisition_weight": 11.389,
+            "average_expected_choice_share": 0.3618,
             "exit_weight": 9.704,
             "exit_when_position_needed": 0.3451,
-            "need_only_preference_for_comparison": 0.138,
-            "need_response": 0.4365,
+            "need_only_preference_for_comparison": 0.1545,
+            "need_response": 0.4282,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.3343,
+              "acquisition": 0.3998,
               "draft": 0.7096,
               "trade": -0.2864
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9473,
+              "confidence": 0.9477,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1289,
+              "score": 0.142,
               "strength": "LOW"
             },
-            "surplus_or_redundant_accumulation": 0.4058
+            "surplus_or_redundant_accumulation": 0.4117
           },
           "TE": {
             "acquisition_weight": 1.41,
-            "average_expected_choice_share": 0.1447,
+            "average_expected_choice_share": 0.1454,
             "exit_weight": 1.966,
             "exit_when_position_needed": 0.2166,
-            "need_only_preference_for_comparison": -0.6083,
+            "need_only_preference_for_comparison": -0.6198,
             "need_response": 0.538,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1458,
+              "acquisition": -0.1646,
               "draft": -0.2889,
               "trade": -0.3309
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9473,
+              "confidence": 0.9477,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2098,
+              "score": -0.2128,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.3327
@@ -807,27 +809,27 @@
           "WR": {
             "acquisition_weight": 11.758,
             "average_expected_choice_share": 0.281,
-            "exit_weight": 6.175,
-            "exit_when_position_needed": 0.1189,
-            "need_only_preference_for_comparison": 0.5757,
+            "exit_weight": 6.391,
+            "exit_when_position_needed": 0.1149,
+            "need_only_preference_for_comparison": 0.5711,
             "need_response": 0.1846,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2683,
+              "acquisition": 0.2307,
               "draft": -0.3197,
               "trade": 0.7938
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9473,
+              "confidence": 0.9477,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.2462,
+              "score": 0.2396,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.5948
           }
         },
-        "weighted_context_sample": 34.982,
+        "weighted_context_sample": 35.198,
         "weighted_source_mix": {
-          "acquisition": 11.539,
+          "acquisition": 11.756,
           "draft": 8.387,
           "trade": 15.055
         }
@@ -835,22 +837,22 @@
       "manager": "nuckyniners",
       "persistent_bi2": {
         "position_acquisition_share": {
-          "QB": 0.1663,
-          "RB": 0.3756,
-          "TE": 0.0643,
-          "WR": 0.3937
+          "QB": 0.1655,
+          "RB": 0.3787,
+          "TE": 0.064,
+          "WR": 0.3918
         },
         "position_exit_share": {
-          "QB": 0.2841,
-          "RB": 0.3722,
-          "TE": 0.0903,
-          "WR": 0.2533
+          "QB": 0.2817,
+          "RB": 0.369,
+          "TE": 0.0895,
+          "WR": 0.2598
         },
         "source_mix": {
           "draft_n": 36.0,
-          "drop_n": 26.0,
+          "drop_n": 27.0,
           "trade_n": 24.0,
-          "waiver_n": 33.0
+          "waiver_n": 34.0
         },
         "traits": {
           "draft_pick_accumulation": {
@@ -863,13 +865,13 @@
             "weighted_sample": 24.0
           },
           "faab_aggressiveness": {
-            "confidence": 0.4919,
-            "score": 0.7369,
+            "confidence": 0.4929,
+            "score": 0.6939,
             "sources": [
               "waiver"
             ],
             "strength": "VERY_HIGH",
-            "weighted_sample": 33.0
+            "weighted_sample": 34.0
           },
           "large_package_tolerance": {
             "confidence": 0.4751,
@@ -882,7 +884,7 @@
           },
           "qb_accumulation": {
             "confidence": 0.98,
-            "score": -0.4457,
+            "score": -0.4483,
             "sources": [
               "draft",
               "drop",
@@ -890,11 +892,11 @@
               "waiver"
             ],
             "strength": "HIGH",
-            "weighted_sample": 56.3
+            "weighted_sample": 56.68
           },
           "rb_affinity": {
             "confidence": 0.98,
-            "score": 0.5024,
+            "score": 0.5148,
             "sources": [
               "draft",
               "drop",
@@ -902,11 +904,11 @@
               "waiver"
             ],
             "strength": "HIGH",
-            "weighted_sample": 56.3
+            "weighted_sample": 56.68
           },
           "te_affinity": {
             "confidence": 0.98,
-            "score": -0.6785,
+            "score": -0.68,
             "sources": [
               "draft",
               "drop",
@@ -914,11 +916,11 @@
               "waiver"
             ],
             "strength": "VERY_HIGH",
-            "weighted_sample": 56.3
+            "weighted_sample": 56.68
           },
           "wr_affinity": {
             "confidence": 0.98,
-            "score": 0.5748,
+            "score": 0.5672,
             "sources": [
               "draft",
               "drop",
@@ -926,11 +928,11 @@
               "waiver"
             ],
             "strength": "HIGH",
-            "weighted_sample": 56.3
+            "weighted_sample": 56.68
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": 0.3185,
+            "score": 0.3157,
             "sources": [
               "draft",
               "drop",
@@ -938,30 +940,30 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 56.3
+            "weighted_sample": 56.68
           }
         },
-        "weighted_action_sample": 56.3
+        "weighted_action_sample": 56.68
       },
       "state_conditioned_bi2": {
         "contender": {
           "position_acquisition_share": {
-            "QB": 0.1629,
-            "RB": 0.5043,
+            "QB": 0.1467,
+            "RB": 0.5538,
             "TE": 0.0,
-            "WR": 0.3328
+            "WR": 0.2996
           },
           "position_exit_share": {
             "QB": 0.0,
-            "RB": 0.7942,
-            "TE": 0.1029,
-            "WR": 0.1029
+            "RB": 0.7201,
+            "TE": 0.0933,
+            "WR": 0.1866
           },
           "source_mix": {
             "draft_n": 0.0,
-            "drop_n": 2.22,
+            "drop_n": 2.86,
             "trade_n": 1.28,
-            "waiver_n": 2.86
+            "waiver_n": 3.5
           },
           "traits": {
             "draft_pick_accumulation": {
@@ -974,13 +976,13 @@
               "weighted_sample": 1.28
             },
             "faab_aggressiveness": {
-              "confidence": 0.1503,
+              "confidence": 0.1772,
               "score": -0.45,
               "sources": [
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 2.86
+              "weighted_sample": 3.5
             },
             "large_package_tolerance": {
               "confidence": 0.0739,
@@ -992,18 +994,18 @@
               "weighted_sample": 1.28
             },
             "qb_accumulation": {
-              "confidence": 0.2465,
-              "score": -0.457,
+              "confidence": 0.2691,
+              "score": -0.511,
               "sources": [
                 "drop",
                 "trade",
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 2.26
+              "weighted_sample": 2.51
             },
             "rb_affinity": {
-              "confidence": 0.2465,
+              "confidence": 0.2691,
               "score": 1,
               "sources": [
                 "drop",
@@ -1011,10 +1013,10 @@
                 "waiver"
               ],
               "strength": "VERY_HIGH",
-              "weighted_sample": 2.26
+              "weighted_sample": 2.51
             },
             "te_affinity": {
-              "confidence": 0.2465,
+              "confidence": 0.2691,
               "score": -1,
               "sources": [
                 "drop",
@@ -1022,32 +1024,32 @@
                 "waiver"
               ],
               "strength": "VERY_HIGH",
-              "weighted_sample": 2.26
+              "weighted_sample": 2.51
             },
             "wr_affinity": {
-              "confidence": 0.2465,
-              "score": 0.3312,
-              "sources": [
-                "drop",
-                "trade",
-                "waiver"
-              ],
-              "strength": "MODERATE",
-              "weighted_sample": 2.26
-            },
-            "youth_preference": {
-              "confidence": 0.2465,
-              "score": -0.0706,
+              "confidence": 0.2691,
+              "score": 0.1984,
               "sources": [
                 "drop",
                 "trade",
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 2.26
+              "weighted_sample": 2.51
+            },
+            "youth_preference": {
+              "confidence": 0.2691,
+              "score": -0.0885,
+              "sources": [
+                "drop",
+                "trade",
+                "waiver"
+              ],
+              "strength": "LOW",
+              "weighted_sample": 2.51
             }
           },
-          "weighted_action_sample": 2.26
+          "weighted_action_sample": 2.51
         },
         "elite_contender": {
           "position_acquisition_share": {
@@ -1395,80 +1397,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 10.888,
-            "average_expected_choice_share": 0.203,
+            "average_expected_choice_share": 0.2036,
             "exit_weight": 9.776,
             "exit_when_position_needed": 0.2,
             "need_only_preference_for_comparison": 0.2377,
             "need_response": 0.2323,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.3831,
+              "acquisition": 0.3794,
               "draft": -0.3794,
               "trade": 0.8395
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9415,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.2257,
+              "score": 0.2245,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.6172
           },
           "RB": {
             "acquisition_weight": 6.655,
-            "average_expected_choice_share": 0.32,
+            "average_expected_choice_share": 0.3203,
             "exit_weight": 8.66,
             "exit_when_position_needed": 0.2449,
             "need_only_preference_for_comparison": -0.1253,
             "need_response": 0.2643,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.3011,
+              "acquisition": -0.3035,
               "draft": -0.0826,
               "trade": -0.6999
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9415,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2554,
+              "score": -0.2562,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.5357
           },
           "TE": {
             "acquisition_weight": 6.291,
-            "average_expected_choice_share": 0.1376,
+            "average_expected_choice_share": 0.137,
             "exit_weight": 4.817,
             "exit_when_position_needed": 0.2056,
             "need_only_preference_for_comparison": -0.2882,
             "need_response": 0.2081,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.0142,
+              "acquisition": 0.0179,
               "draft": 0.3081,
               "trade": 0.406
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9415,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1426,
+              "score": 0.1438,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6025
           },
           "WR": {
             "acquisition_weight": 10.23,
-            "average_expected_choice_share": 0.3394,
+            "average_expected_choice_share": 0.339,
             "exit_weight": 8.417,
             "exit_when_position_needed": 0.288,
             "need_only_preference_for_comparison": 0.1757,
             "need_response": 0.2304,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0961,
+              "acquisition": -0.0938,
               "draft": 0.154,
               "trade": -0.5455
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9415,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1129,
+              "score": -0.1122,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6083
@@ -2049,80 +2051,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 14.651,
-            "average_expected_choice_share": 0.2144,
+            "average_expected_choice_share": 0.2152,
             "exit_weight": 16.631,
             "exit_when_position_needed": 0.217,
             "need_only_preference_for_comparison": 0.1786,
             "need_response": 0.2606,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.1967,
+              "acquisition": 0.1927,
               "draft": -0.024,
               "trade": 0.6615
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9548,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.2493,
+              "score": 0.2475,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.5324
           },
           "RB": {
             "acquisition_weight": 13.201,
-            "average_expected_choice_share": 0.3068,
+            "average_expected_choice_share": 0.3073,
             "exit_weight": 13.97,
             "exit_when_position_needed": 0.2405,
             "need_only_preference_for_comparison": 0.08,
             "need_response": 0.2634,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.3046,
+              "acquisition": 0.302,
               "draft": -0.464,
               "trade": -0.3874
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9548,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.0105,
+              "score": 0.0093,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5332
           },
           "TE": {
             "acquisition_weight": 3.164,
-            "average_expected_choice_share": 0.1326,
+            "average_expected_choice_share": 0.1319,
             "exit_weight": 5.67,
             "exit_when_position_needed": 0.0812,
             "need_only_preference_for_comparison": -0.2263,
             "need_response": 0.222,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1015,
+              "acquisition": -0.0981,
               "draft": -0.4739,
               "trade": -0.2223
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9548,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1333,
+              "score": -0.1317,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6264
           },
           "WR": {
             "acquisition_weight": 14.225,
-            "average_expected_choice_share": 0.3461,
+            "average_expected_choice_share": 0.3455,
             "exit_weight": 16.112,
             "exit_when_position_needed": 0.1475,
             "need_only_preference_for_comparison": -0.0572,
             "need_response": 0.1377,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.3998,
+              "acquisition": -0.3967,
               "draft": 0.962,
               "trade": -0.1537
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9548,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1515,
+              "score": -0.1501,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.63
@@ -2233,7 +2235,7 @@
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": 0.0952,
+            "score": 0.0943,
             "sources": [
               "draft",
               "drop",
@@ -2344,7 +2346,7 @@
             },
             "youth_preference": {
               "confidence": 0.9684,
-              "score": 0.0285,
+              "score": 0.026,
               "sources": [
                 "draft",
                 "drop",
@@ -2472,7 +2474,7 @@
     },
     "840356119955251200": {
       "context_normalized": {
-        "average_context_confidence": 0.9273,
+        "average_context_confidence": 0.927,
         "draft_context": {
           "average_redundancy_when_drafting": 0.6254,
           "bpa_reach_signal_available": false,
@@ -2481,118 +2483,118 @@
           "weighted_draft_sample": 7.052
         },
         "opportunity_normalization_sample": {
-          "acquisition": 8.272,
+          "acquisition": 8.684,
           "draft": 7.052,
           "trade": 12.129
         },
         "positions": {
           "QB": {
-            "acquisition_weight": 5.707,
-            "average_expected_choice_share": 0.2388,
-            "exit_weight": 3.511,
-            "exit_when_position_needed": 0.2307,
-            "need_only_preference_for_comparison": -0.0369,
-            "need_response": 0.3313,
+            "acquisition_weight": 5.913,
+            "average_expected_choice_share": 0.2378,
+            "exit_weight": 3.717,
+            "exit_when_position_needed": 0.2179,
+            "need_only_preference_for_comparison": -0.0209,
+            "need_response": 0.3197,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0728,
+              "acquisition": -0.0223,
               "draft": 0.4421,
               "trade": -0.5343
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9552,
+              "confidence": 0.9553,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1072,
+              "score": -0.0951,
               "strength": "LOW"
             },
-            "surplus_or_redundant_accumulation": 0.4815
+            "surplus_or_redundant_accumulation": 0.4898
           },
           "RB": {
-            "acquisition_weight": 13.708,
-            "average_expected_choice_share": 0.2473,
+            "acquisition_weight": 13.914,
+            "average_expected_choice_share": 0.2468,
             "exit_weight": 12.46,
             "exit_when_position_needed": 0.0277,
-            "need_only_preference_for_comparison": 0.9043,
-            "need_response": 0.0292,
+            "need_only_preference_for_comparison": 0.9103,
+            "need_response": 0.0288,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.01,
+              "acquisition": 0.0501,
               "draft": -0.2626,
               "trade": 1.0
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9552,
+              "confidence": 0.9553,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.4864,
+              "score": 0.4907,
               "strength": "HIGH"
             },
-            "surplus_or_redundant_accumulation": 0.8054
+            "surplus_or_redundant_accumulation": 0.8069
           },
           "TE": {
             "acquisition_weight": 4.512,
-            "average_expected_choice_share": 0.2005,
+            "average_expected_choice_share": 0.2002,
             "exit_weight": 3.338,
             "exit_when_position_needed": 0.5602,
             "need_only_preference_for_comparison": -1.0,
             "need_response": 0.6683,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2571,
+              "acquisition": 0.219,
               "draft": -0.2209,
               "trade": -0.4026
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9552,
+              "confidence": 0.9553,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1166,
+              "score": -0.1213,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.2388
           },
           "WR": {
             "acquisition_weight": 5.363,
-            "average_expected_choice_share": 0.3134,
-            "exit_weight": 6.793,
-            "exit_when_position_needed": 0.1414,
-            "need_only_preference_for_comparison": 0.1908,
+            "average_expected_choice_share": 0.3152,
+            "exit_weight": 6.983,
+            "exit_when_position_needed": 0.1538,
+            "need_only_preference_for_comparison": 0.1714,
             "need_response": 0.0931,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1942,
+              "acquisition": -0.2468,
               "draft": 0.0414,
               "trade": -0.6932
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9552,
+              "confidence": 0.9553,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2627,
+              "score": -0.2743,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.6929
           }
         },
-        "weighted_context_sample": 37.008,
+        "weighted_context_sample": 37.403,
         "weighted_source_mix": {
-          "acquisition": 13.101,
+          "acquisition": 13.512,
           "draft": 7.052,
-          "trade": 16.855
+          "trade": 16.839
         }
       },
       "manager": "ddersimon",
       "persistent_bi2": {
         "position_acquisition_share": {
-          "QB": 0.1885,
-          "RB": 0.4518,
-          "TE": 0.1461,
-          "WR": 0.2136
+          "QB": 0.1916,
+          "RB": 0.4523,
+          "TE": 0.1446,
+          "WR": 0.2115
         },
         "position_exit_share": {
-          "QB": 0.1082,
-          "RB": 0.5028,
-          "TE": 0.1063,
-          "WR": 0.2827
+          "QB": 0.114,
+          "RB": 0.4953,
+          "TE": 0.1047,
+          "WR": 0.286
         },
         "source_mix": {
           "draft_n": 33.0,
-          "drop_n": 38.0,
+          "drop_n": 40.0,
           "trade_n": 22.0,
-          "waiver_n": 44.0
+          "waiver_n": 46.0
         },
         "traits": {
           "draft_pick_accumulation": {
@@ -2605,13 +2607,13 @@
             "weighted_sample": 22.0
           },
           "faab_aggressiveness": {
-            "confidence": 0.498,
-            "score": 0.1992,
+            "confidence": 0.4984,
+            "score": 0.1672,
             "sources": [
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 44.0
+            "weighted_sample": 46.0
           },
           "large_package_tolerance": {
             "confidence": 0.468,
@@ -2624,7 +2626,7 @@
           },
           "qb_accumulation": {
             "confidence": 0.98,
-            "score": -0.3717,
+            "score": -0.3613,
             "sources": [
               "draft",
               "drop",
@@ -2632,11 +2634,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 56.9
+            "weighted_sample": 57.66
           },
           "rb_affinity": {
             "confidence": 0.98,
-            "score": 0.8072,
+            "score": 0.8092,
             "sources": [
               "draft",
               "drop",
@@ -2644,11 +2646,11 @@
               "waiver"
             ],
             "strength": "VERY_HIGH",
-            "weighted_sample": 56.9
+            "weighted_sample": 57.66
           },
           "te_affinity": {
             "confidence": 0.98,
-            "score": -0.2695,
+            "score": -0.277,
             "sources": [
               "draft",
               "drop",
@@ -2656,11 +2658,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 56.9
+            "weighted_sample": 57.66
           },
           "wr_affinity": {
             "confidence": 0.98,
-            "score": -0.1456,
+            "score": -0.154,
             "sources": [
               "draft",
               "drop",
@@ -2668,11 +2670,11 @@
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 56.9
+            "weighted_sample": 57.66
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": -0.1149,
+            "score": -0.115,
             "sources": [
               "draft",
               "drop",
@@ -2680,30 +2682,30 @@
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 56.9
+            "weighted_sample": 57.66
           }
         },
-        "weighted_action_sample": 56.9
+        "weighted_action_sample": 57.66
       },
       "state_conditioned_bi2": {
         "contender": {
           "position_acquisition_share": {
-            "QB": 0.1953,
-            "RB": 0.4765,
-            "TE": 0.1335,
-            "WR": 0.1946
+            "QB": 0.2031,
+            "RB": 0.4771,
+            "TE": 0.1301,
+            "WR": 0.1897
           },
           "position_exit_share": {
-            "QB": 0.0639,
-            "RB": 0.5218,
-            "TE": 0.083,
-            "WR": 0.3312
+            "QB": 0.0742,
+            "RB": 0.5095,
+            "TE": 0.0811,
+            "WR": 0.3352
           },
           "source_mix": {
             "draft_n": 3.2,
-            "drop_n": 15.11,
+            "drop_n": 16.39,
             "trade_n": 8.2,
-            "waiver_n": 18.41
+            "waiver_n": 19.69
           },
           "traits": {
             "draft_pick_accumulation": {
@@ -2716,13 +2718,13 @@
               "weighted_sample": 8.2
             },
             "faab_aggressiveness": {
-              "confidence": 0.45,
-              "score": -0.0956,
+              "confidence": 0.4574,
+              "score": -0.1239,
               "sources": [
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 18.41
+              "weighted_sample": 19.69
             },
             "large_package_tolerance": {
               "confidence": 0.3205,
@@ -2734,8 +2736,8 @@
               "weighted_sample": 8.2
             },
             "qb_accumulation": {
-              "confidence": 0.8732,
-              "score": -0.349,
+              "confidence": 0.8807,
+              "score": -0.323,
               "sources": [
                 "draft",
                 "drop",
@@ -2743,11 +2745,11 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 16.52
+              "weighted_sample": 17.01
             },
             "rb_affinity": {
-              "confidence": 0.8732,
-              "score": 0.906,
+              "confidence": 0.8807,
+              "score": 0.9084,
               "sources": [
                 "draft",
                 "drop",
@@ -2755,11 +2757,11 @@
                 "waiver"
               ],
               "strength": "VERY_HIGH",
-              "weighted_sample": 16.52
+              "weighted_sample": 17.01
             },
             "te_affinity": {
-              "confidence": 0.8732,
-              "score": -0.3325,
+              "confidence": 0.8807,
+              "score": -0.3495,
               "sources": [
                 "draft",
                 "drop",
@@ -2767,11 +2769,11 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 16.52
+              "weighted_sample": 17.01
             },
             "wr_affinity": {
-              "confidence": 0.8732,
-              "score": -0.2216,
+              "confidence": 0.8807,
+              "score": -0.2412,
               "sources": [
                 "draft",
                 "drop",
@@ -2779,11 +2781,11 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 16.52
+              "weighted_sample": 17.01
             },
             "youth_preference": {
-              "confidence": 0.8732,
-              "score": -0.2421,
+              "confidence": 0.8807,
+              "score": -0.2392,
               "sources": [
                 "draft",
                 "drop",
@@ -2791,10 +2793,10 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 16.52
+              "weighted_sample": 17.01
             }
           },
-          "weighted_action_sample": 16.52
+          "weighted_action_sample": 17.01
         },
         "rebuild": {
           "position_acquisition_share": {
@@ -3028,80 +3030,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 4.372,
-            "average_expected_choice_share": 0.2243,
+            "average_expected_choice_share": 0.2249,
             "exit_weight": 3.453,
             "exit_when_position_needed": 0.2812,
             "need_only_preference_for_comparison": -0.0938,
             "need_response": 0.3521,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.339,
+              "acquisition": -0.3421,
               "draft": -0.4685,
               "trade": -0.2909
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9501,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2743,
+              "score": -0.2758,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.487
           },
           "RB": {
             "acquisition_weight": 12.715,
-            "average_expected_choice_share": 0.2849,
+            "average_expected_choice_share": 0.2854,
             "exit_weight": 10.293,
             "exit_when_position_needed": 0.1534,
             "need_only_preference_for_comparison": 0.2049,
             "need_response": 0.144,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0326,
+              "acquisition": -0.0349,
               "draft": 0.703,
               "trade": -0.3746
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9501,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1227,
+              "score": -0.1238,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6288
           },
           "TE": {
             "acquisition_weight": 3.64,
-            "average_expected_choice_share": 0.1434,
+            "average_expected_choice_share": 0.1428,
             "exit_weight": 2.323,
             "exit_when_position_needed": 0.3936,
             "need_only_preference_for_comparison": -0.361,
             "need_response": 0.4334,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1465,
+              "acquisition": -0.1429,
               "draft": 1.0,
               "trade": -0.2434
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9501,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1212,
+              "score": -0.1195,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.4189
           },
           "WR": {
             "acquisition_weight": 18.819,
-            "average_expected_choice_share": 0.3473,
+            "average_expected_choice_share": 0.3469,
             "exit_weight": 19.398,
             "exit_when_position_needed": 0.2619,
             "need_only_preference_for_comparison": 0.1016,
             "need_response": 0.3169,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.518,
+              "acquisition": 0.5199,
               "draft": -1.0,
               "trade": 0.4731
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9501,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.3699,
+              "score": 0.3708,
               "strength": "HIGH"
             },
             "surplus_or_redundant_accumulation": 0.4919
@@ -3212,7 +3214,7 @@
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": -0.1587,
+            "score": -0.1607,
             "sources": [
               "draft",
               "drop",
@@ -3429,7 +3431,7 @@
             },
             "youth_preference": {
               "confidence": 0.6096,
-              "score": 0.1333,
+              "score": 0.1251,
               "sources": [
                 "drop",
                 "trade",
@@ -3538,7 +3540,7 @@
             },
             "youth_preference": {
               "confidence": 0.7689,
-              "score": -0.2527,
+              "score": -0.2557,
               "sources": [
                 "draft",
                 "drop",
@@ -3572,80 +3574,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 4.01,
-            "average_expected_choice_share": 0.2234,
+            "average_expected_choice_share": 0.2238,
             "exit_weight": 4.181,
             "exit_when_position_needed": 0.185,
             "need_only_preference_for_comparison": -0.3078,
             "need_response": 0.2249,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1014,
+              "acquisition": -0.1048,
               "draft": -0.2651,
               "trade": 0.2904
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9433,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0948,
+              "score": -0.0956,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5652
           },
           "RB": {
             "acquisition_weight": 6.449,
-            "average_expected_choice_share": 0.2998,
+            "average_expected_choice_share": 0.3001,
             "exit_weight": 4.846,
             "exit_when_position_needed": 0.2434,
             "need_only_preference_for_comparison": 0.1571,
             "need_response": 0.1966,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.3439,
+              "acquisition": -0.3462,
               "draft": 0.1564,
               "trade": -0.1331
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9433,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0366,
+              "score": -0.0371,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5784
           },
           "TE": {
             "acquisition_weight": 5.681,
-            "average_expected_choice_share": 0.1615,
+            "average_expected_choice_share": 0.1611,
             "exit_weight": 4.756,
             "exit_when_position_needed": 0.2631,
             "need_only_preference_for_comparison": -0.1988,
             "need_response": 0.3569,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.5657,
+              "acquisition": 0.5694,
               "draft": -0.0479,
               "trade": 0.7278
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9433,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1676,
+              "score": 0.1685,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.4834
           },
           "WR": {
             "acquisition_weight": 6.806,
-            "average_expected_choice_share": 0.3152,
+            "average_expected_choice_share": 0.315,
             "exit_weight": 4.433,
             "exit_when_position_needed": 0.1634,
             "need_only_preference_for_comparison": 0.3495,
             "need_response": 0.1056,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1204,
+              "acquisition": -0.1184,
               "draft": 0.1566,
               "trade": -0.8852
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9433,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0363,
+              "score": -0.0358,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6524
@@ -3756,7 +3758,7 @@
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": 0.2064,
+            "score": 0.2011,
             "sources": [
               "draft",
               "drop",
@@ -4073,7 +4075,7 @@
             },
             "youth_preference": {
               "confidence": 0.7182,
-              "score": 0.0793,
+              "score": 0.0705,
               "sources": [
                 "draft",
                 "drop",
@@ -4183,14 +4185,14 @@
             },
             "youth_preference": {
               "confidence": 0.8616,
-              "score": 0.4258,
+              "score": 0.4153,
               "sources": [
                 "draft",
                 "drop",
                 "trade",
                 "waiver"
               ],
-              "strength": "HIGH",
+              "strength": "MODERATE",
               "weighted_sample": 15.82
             }
           },
@@ -4201,7 +4203,7 @@
     },
     "845157822193872896": {
       "context_normalized": {
-        "average_context_confidence": 0.9105,
+        "average_context_confidence": 0.9107,
         "draft_context": {
           "average_redundancy_when_drafting": 0.6643,
           "bpa_reach_signal_available": false,
@@ -4210,95 +4212,95 @@
           "weighted_draft_sample": 6.919
         },
         "opportunity_normalization_sample": {
-          "acquisition": 19.588,
+          "acquisition": 19.798,
           "draft": 6.919,
           "trade": 22.652
         },
         "positions": {
           "QB": {
-            "acquisition_weight": 12.63,
-            "average_expected_choice_share": 0.2523,
+            "acquisition_weight": 12.839,
+            "average_expected_choice_share": 0.252,
             "exit_weight": 12.733,
             "exit_when_position_needed": 0.1476,
-            "need_only_preference_for_comparison": -0.0549,
-            "need_response": 0.2014,
+            "need_only_preference_for_comparison": -0.0462,
+            "need_response": 0.1982,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2241,
+              "acquisition": 0.2473,
               "draft": 0.2147,
               "trade": -0.4681
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9508,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0671,
+              "score": -0.0598,
               "strength": "LOW"
             },
-            "surplus_or_redundant_accumulation": 0.6322
+            "surplus_or_redundant_accumulation": 0.6382
           },
           "RB": {
             "acquisition_weight": 21.992,
-            "average_expected_choice_share": 0.2948,
+            "average_expected_choice_share": 0.295,
             "exit_weight": 20.311,
             "exit_when_position_needed": 0.1791,
-            "need_only_preference_for_comparison": 0.3607,
+            "need_only_preference_for_comparison": 0.3592,
             "need_response": 0.2042,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.039,
+              "acquisition": 0.0274,
               "draft": -0.0243,
               "trade": 0.321
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9508,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1118,
+              "score": 0.1083,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5883
           },
           "TE": {
             "acquisition_weight": 7.65,
-            "average_expected_choice_share": 0.1651,
-            "exit_weight": 9.707,
-            "exit_when_position_needed": 0.3788,
-            "need_only_preference_for_comparison": -0.7171,
+            "average_expected_choice_share": 0.1649,
+            "exit_weight": 9.916,
+            "exit_when_position_needed": 0.3756,
+            "need_only_preference_for_comparison": -0.7196,
             "need_response": 0.4819,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0697,
+              "acquisition": -0.0723,
               "draft": -0.0903,
               "trade": -0.135
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9508,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0717,
+              "score": -0.0724,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.3906
           },
           "WR": {
             "acquisition_weight": 19.186,
-            "average_expected_choice_share": 0.2878,
+            "average_expected_choice_share": 0.2881,
             "exit_weight": 21.06,
             "exit_when_position_needed": 0.1352,
-            "need_only_preference_for_comparison": 0.3726,
+            "need_only_preference_for_comparison": 0.368,
             "need_response": 0.1358,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1935,
+              "acquisition": -0.2024,
               "draft": -0.1002,
               "trade": 0.1618
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9508,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0116,
+              "score": -0.0147,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6894
           }
         },
-        "weighted_context_sample": 70.408,
+        "weighted_context_sample": 70.617,
         "weighted_source_mix": {
-          "acquisition": 30.261,
+          "acquisition": 30.47,
           "draft": 6.919,
           "trade": 33.228
         }
@@ -4306,22 +4308,22 @@
       "manager": "Anthonyder",
       "persistent_bi2": {
         "position_acquisition_share": {
-          "QB": 0.2035,
-          "RB": 0.3515,
-          "TE": 0.1248,
-          "WR": 0.3203
+          "QB": 0.2056,
+          "RB": 0.3505,
+          "TE": 0.1244,
+          "WR": 0.3194
         },
         "position_exit_share": {
-          "QB": 0.179,
-          "RB": 0.3004,
-          "TE": 0.1612,
-          "WR": 0.3594
+          "QB": 0.1785,
+          "RB": 0.2996,
+          "TE": 0.1636,
+          "WR": 0.3584
         },
         "source_mix": {
           "draft_n": 33.0,
-          "drop_n": 52.0,
+          "drop_n": 53.0,
           "trade_n": 42.0,
-          "waiver_n": 103.0
+          "waiver_n": 104.0
         },
         "traits": {
           "draft_pick_accumulation": {
@@ -4335,12 +4337,12 @@
           },
           "faab_aggressiveness": {
             "confidence": 0.5,
-            "score": 0.0921,
+            "score": 0.0863,
             "sources": [
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 103.0
+            "weighted_sample": 104.0
           },
           "large_package_tolerance": {
             "confidence": 0.4974,
@@ -4353,7 +4355,7 @@
           },
           "qb_accumulation": {
             "confidence": 0.98,
-            "score": -0.3217,
+            "score": -0.3147,
             "sources": [
               "draft",
               "drop",
@@ -4361,11 +4363,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 92.12
+            "weighted_sample": 92.5
           },
           "rb_affinity": {
             "confidence": 0.98,
-            "score": 0.406,
+            "score": 0.402,
             "sources": [
               "draft",
               "drop",
@@ -4373,11 +4375,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 92.12
+            "weighted_sample": 92.5
           },
           "te_affinity": {
             "confidence": 0.98,
-            "score": -0.376,
+            "score": -0.378,
             "sources": [
               "draft",
               "drop",
@@ -4385,11 +4387,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 92.12
+            "weighted_sample": 92.5
           },
           "wr_affinity": {
             "confidence": 0.98,
-            "score": 0.2812,
+            "score": 0.2776,
             "sources": [
               "draft",
               "drop",
@@ -4397,11 +4399,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 92.12
+            "weighted_sample": 92.5
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": -0.0416,
+            "score": -0.0422,
             "sources": [
               "draft",
               "drop",
@@ -4409,10 +4411,10 @@
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 92.12
+            "weighted_sample": 92.5
           }
         },
-        "weighted_action_sample": 92.12
+        "weighted_action_sample": 92.5
       },
       "state_conditioned_bi2": {
         "contender": {
@@ -4527,22 +4529,22 @@
         },
         "elite_contender": {
           "position_acquisition_share": {
-            "QB": 0.1246,
-            "RB": 0.4124,
-            "TE": 0.2109,
-            "WR": 0.2521
+            "QB": 0.1396,
+            "RB": 0.4054,
+            "TE": 0.2073,
+            "WR": 0.2478
           },
           "position_exit_share": {
-            "QB": 0.0883,
-            "RB": 0.4215,
-            "TE": 0.1939,
-            "WR": 0.2963
+            "QB": 0.0871,
+            "RB": 0.4157,
+            "TE": 0.2051,
+            "WR": 0.2922
           },
           "source_mix": {
             "draft_n": 1.28,
-            "drop_n": 1.39,
+            "drop_n": 2.03,
             "trade_n": 4.09,
-            "waiver_n": 2.14
+            "waiver_n": 2.78
           },
           "traits": {
             "draft_pick_accumulation": {
@@ -4555,13 +4557,13 @@
               "weighted_sample": 4.09
             },
             "faab_aggressiveness": {
-              "confidence": 0.1174,
+              "confidence": 0.1468,
               "score": -0.45,
               "sources": [
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 2.14
+              "weighted_sample": 2.78
             },
             "large_package_tolerance": {
               "confidence": 0.2001,
@@ -4573,8 +4575,8 @@
               "weighted_sample": 4.09
             },
             "qb_accumulation": {
-              "confidence": 0.4988,
-              "score": -0.5847,
+              "confidence": 0.5138,
+              "score": -0.5347,
               "sources": [
                 "draft",
                 "drop",
@@ -4582,11 +4584,11 @@
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 5.53
+              "weighted_sample": 5.77
             },
             "rb_affinity": {
-              "confidence": 0.4988,
-              "score": 0.6496,
+              "confidence": 0.5138,
+              "score": 0.6216,
               "sources": [
                 "draft",
                 "drop",
@@ -4594,11 +4596,11 @@
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 5.53
+              "weighted_sample": 5.77
             },
             "te_affinity": {
-              "confidence": 0.4988,
-              "score": 0.0545,
+              "confidence": 0.5138,
+              "score": 0.0365,
               "sources": [
                 "draft",
                 "drop",
@@ -4606,11 +4608,11 @@
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 5.53
+              "weighted_sample": 5.77
             },
             "wr_affinity": {
-              "confidence": 0.4988,
-              "score": 0.0084,
+              "confidence": 0.5138,
+              "score": -0.0088,
               "sources": [
                 "draft",
                 "drop",
@@ -4618,11 +4620,11 @@
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 5.53
+              "weighted_sample": 5.77
             },
             "youth_preference": {
-              "confidence": 0.4988,
-              "score": -0.1396,
+              "confidence": 0.5138,
+              "score": -0.1415,
               "sources": [
                 "draft",
                 "drop",
@@ -4630,10 +4632,10 @@
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 5.53
+              "weighted_sample": 5.77
             }
           },
-          "weighted_action_sample": 5.53
+          "weighted_action_sample": 5.77
         },
         "rebuild": {
           "position_acquisition_share": {
@@ -4857,80 +4859,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 11.602,
-            "average_expected_choice_share": 0.2238,
+            "average_expected_choice_share": 0.2241,
             "exit_weight": 7.781,
             "exit_when_position_needed": 0.0,
             "need_only_preference_for_comparison": 0.3267,
             "need_response": 0.0536,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.5493,
+              "acquisition": 0.5458,
               "draft": -0.1855,
               "trade": 0.3517
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9677,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.2298,
+              "score": 0.2292,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.6935
           },
           "RB": {
             "acquisition_weight": 7.21,
-            "average_expected_choice_share": 0.3189,
+            "average_expected_choice_share": 0.319,
             "exit_weight": 5.996,
             "exit_when_position_needed": 0.0339,
             "need_only_preference_for_comparison": 0.0947,
             "need_response": 0.0424,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.5192,
+              "acquisition": -0.5214,
               "draft": 0.0338,
               "trade": -0.2884
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9677,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2176,
+              "score": -0.218,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.7431
           },
           "TE": {
             "acquisition_weight": 3.467,
-            "average_expected_choice_share": 0.1355,
+            "average_expected_choice_share": 0.1353,
             "exit_weight": 1.173,
             "exit_when_position_needed": 0.1673,
             "need_only_preference_for_comparison": -0.8865,
             "need_response": 0.2213,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.3216,
+              "acquisition": -0.3177,
               "draft": -0.5358,
               "trade": 0.207
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9677,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0364,
+              "score": -0.0357,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5716
           },
           "WR": {
             "acquisition_weight": 12.537,
-            "average_expected_choice_share": 0.3218,
+            "average_expected_choice_share": 0.3216,
             "exit_weight": 11.428,
             "exit_when_position_needed": 0.023,
             "need_only_preference_for_comparison": 0.3578,
             "need_response": 0.0209,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2915,
+              "acquisition": 0.2933,
               "draft": 0.6875,
               "trade": -0.4981
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9677,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.083,
+              "score": -0.0827,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.736
@@ -5401,80 +5403,80 @@
         "positions": {
           "QB": {
             "acquisition_weight": 15.118,
-            "average_expected_choice_share": 0.2317,
+            "average_expected_choice_share": 0.2322,
             "exit_weight": 13.954,
             "exit_when_position_needed": 0.1884,
             "need_only_preference_for_comparison": 0.1011,
             "need_response": 0.2141,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.0328,
+              "acquisition": 0.0289,
               "draft": -0.2445,
               "trade": -0.1021
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9591,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0494,
+              "score": -0.0506,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6084
           },
           "RB": {
             "acquisition_weight": 25.341,
-            "average_expected_choice_share": 0.2718,
+            "average_expected_choice_share": 0.2723,
             "exit_weight": 28.305,
             "exit_when_position_needed": 0.1482,
             "need_only_preference_for_comparison": 0.5524,
             "need_response": 0.1387,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.4259,
+              "acquisition": 0.4227,
               "draft": 0.0832,
               "trade": 0.0501
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9591,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1627,
+              "score": 0.1617,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6348
           },
           "TE": {
             "acquisition_weight": 9.101,
-            "average_expected_choice_share": 0.1809,
+            "average_expected_choice_share": 0.1802,
             "exit_weight": 7.083,
             "exit_when_position_needed": 0.3837,
             "need_only_preference_for_comparison": -0.9482,
             "need_response": 0.4506,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.3689,
+              "acquisition": -0.3639,
               "draft": 0.0317,
               "trade": -0.0572
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9591,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1388,
+              "score": -0.1371,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.408
           },
           "WR": {
             "acquisition_weight": 26.477,
-            "average_expected_choice_share": 0.3156,
+            "average_expected_choice_share": 0.3153,
             "exit_weight": 22.59,
             "exit_when_position_needed": 0.1932,
             "need_only_preference_for_comparison": 0.2452,
             "need_response": 0.1705,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0897,
+              "acquisition": -0.0878,
               "draft": 0.1296,
               "trade": -0.0125
             },
             "opportunity_and_need_adjusted_preference": {
               "confidence": 0.9591,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.024,
+              "score": -0.0234,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6412
@@ -5585,7 +5587,7 @@
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": -0.1048,
+            "score": -0.1059,
             "sources": [
               "draft",
               "drop",
@@ -5696,7 +5698,7 @@
             },
             "youth_preference": {
               "confidence": 0.98,
-              "score": -0.0995,
+              "score": -0.1007,
               "sources": [
                 "draft",
                 "drop",
@@ -5806,7 +5808,7 @@
             },
             "youth_preference": {
               "confidence": 0.8832,
-              "score": -0.1859,
+              "score": -0.1889,
               "sources": [
                 "draft",
                 "drop",
@@ -5824,7 +5826,7 @@
     },
     "853063390963277824": {
       "context_normalized": {
-        "average_context_confidence": 0.9008,
+        "average_context_confidence": 0.901,
         "draft_context": {
           "average_redundancy_when_drafting": 0.6176,
           "bpa_reach_signal_available": false,
@@ -5840,88 +5842,88 @@
         "positions": {
           "QB": {
             "acquisition_weight": 4.039,
-            "average_expected_choice_share": 0.1725,
+            "average_expected_choice_share": 0.1729,
             "exit_weight": 2.259,
             "exit_when_position_needed": 0.2947,
-            "need_only_preference_for_comparison": 0.1339,
+            "need_only_preference_for_comparison": 0.133,
             "need_response": 0.1598,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.2849,
+              "acquisition": -0.2878,
               "draft": 0.3884,
               "trade": -0.2137
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9351,
+              "confidence": 0.9356,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0278,
+              "score": -0.0286,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6307
           },
           "RB": {
             "acquisition_weight": 5.362,
-            "average_expected_choice_share": 0.3012,
+            "average_expected_choice_share": 0.3016,
             "exit_weight": 4.115,
             "exit_when_position_needed": 0.5801,
-            "need_only_preference_for_comparison": 0.0232,
+            "need_only_preference_for_comparison": 0.023,
             "need_response": 0.462,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1845,
+              "acquisition": -0.1873,
               "draft": -0.1028,
               "trade": -0.6417
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9351,
+              "confidence": 0.9356,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.2088,
+              "score": -0.2084,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.3873
           },
           "TE": {
             "acquisition_weight": 3.82,
-            "average_expected_choice_share": 0.1913,
+            "average_expected_choice_share": 0.1907,
             "exit_weight": 2.614,
             "exit_when_position_needed": 0.4699,
-            "need_only_preference_for_comparison": -0.7764,
+            "need_only_preference_for_comparison": -0.7714,
             "need_response": 0.5419,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.2132,
+              "acquisition": -0.209,
               "draft": -0.2023,
               "trade": 0.1797
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9351,
+              "confidence": 0.9356,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0934,
+              "score": -0.0914,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.3399
           },
           "WR": {
             "acquisition_weight": 11.894,
-            "average_expected_choice_share": 0.335,
-            "exit_weight": 7.347,
-            "exit_when_position_needed": 0.2191,
-            "need_only_preference_for_comparison": 0.6193,
+            "average_expected_choice_share": 0.3348,
+            "exit_weight": 7.554,
+            "exit_when_position_needed": 0.2177,
+            "need_only_preference_for_comparison": 0.6153,
             "need_response": 0.2499,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.6827,
+              "acquisition": 0.684,
               "draft": -0.0833,
               "trade": 0.6757
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9351,
+              "confidence": 0.9356,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.33,
+              "score": 0.3283,
               "strength": "MODERATE"
             },
             "surplus_or_redundant_accumulation": 0.54
           }
         },
-        "weighted_context_sample": 31.631,
+        "weighted_context_sample": 31.838,
         "weighted_source_mix": {
-          "acquisition": 17.064,
+          "acquisition": 17.271,
           "draft": 8.701,
           "trade": 5.867
         }
@@ -6469,7 +6471,7 @@
     },
     "858530218330144768": {
       "context_normalized": {
-        "average_context_confidence": 0.9268,
+        "average_context_confidence": 0.9272,
         "draft_context": {
           "average_redundancy_when_drafting": 0.7204,
           "bpa_reach_signal_available": false,
@@ -6478,95 +6480,95 @@
           "weighted_draft_sample": 6.036
         },
         "opportunity_normalization_sample": {
-          "acquisition": 8.241,
+          "acquisition": 8.454,
           "draft": 6.036,
           "trade": 1.968
         },
         "positions": {
           "QB": {
             "acquisition_weight": 2.678,
-            "average_expected_choice_share": 0.2229,
+            "average_expected_choice_share": 0.2233,
             "exit_weight": 3.719,
             "exit_when_position_needed": 0.2226,
-            "need_only_preference_for_comparison": -0.2877,
+            "need_only_preference_for_comparison": -0.2861,
             "need_response": 0.2493,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.1445,
+              "acquisition": -0.1599,
               "draft": -0.0018,
               "trade": -0.8269
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9108,
+              "confidence": 0.9125,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.1358,
+              "score": -0.1421,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.5405
           },
           "RB": {
             "acquisition_weight": 5.123,
-            "average_expected_choice_share": 0.2748,
+            "average_expected_choice_share": 0.275,
             "exit_weight": 3.69,
             "exit_when_position_needed": 0.1231,
-            "need_only_preference_for_comparison": 0.2958,
+            "need_only_preference_for_comparison": 0.2915,
             "need_response": 0.098,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0415,
+              "acquisition": -0.0624,
               "draft": -0.2908,
               "trade": 1.0
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9108,
+              "confidence": 0.9125,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.0252,
+              "score": 0.0162,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6687
           },
           "TE": {
             "acquisition_weight": 2.433,
-            "average_expected_choice_share": 0.1624,
+            "average_expected_choice_share": 0.1636,
             "exit_weight": 2.911,
             "exit_when_position_needed": 0.2841,
-            "need_only_preference_for_comparison": -0.5014,
+            "need_only_preference_for_comparison": -0.5229,
             "need_response": 0.191,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": -0.0646,
+              "acquisition": -0.0821,
               "draft": 0.096,
               "trade": -0.3384
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9108,
+              "confidence": 0.9125,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": -0.0297,
+              "score": -0.0371,
               "strength": "LOW"
             },
             "surplus_or_redundant_accumulation": 0.6671
           },
           "WR": {
-            "acquisition_weight": 6.979,
-            "average_expected_choice_share": 0.3399,
-            "exit_weight": 3.993,
-            "exit_when_position_needed": 0.1377,
-            "need_only_preference_for_comparison": 0.4933,
-            "need_response": 0.1484,
+            "acquisition_weight": 7.192,
+            "average_expected_choice_share": 0.3381,
+            "exit_weight": 4.206,
+            "exit_when_position_needed": 0.1307,
+            "need_only_preference_for_comparison": 0.5174,
+            "need_response": 0.144,
             "opportunity_adjusted_score_by_action_type": {
-              "acquisition": 0.2506,
+              "acquisition": 0.3044,
               "draft": 0.1966,
               "trade": -0.1676
             },
             "opportunity_and_need_adjusted_preference": {
-              "confidence": 0.9108,
+              "confidence": 0.9125,
               "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
-              "score": 0.1403,
+              "score": 0.163,
               "strength": "LOW"
             },
-            "surplus_or_redundant_accumulation": 0.626
+            "surplus_or_redundant_accumulation": 0.6308
           }
         },
-        "weighted_context_sample": 20.831,
+        "weighted_context_sample": 21.044,
         "weighted_source_mix": {
-          "acquisition": 11.827,
+          "acquisition": 12.04,
           "draft": 6.036,
           "trade": 2.968
         }
@@ -6574,22 +6576,22 @@
       "manager": "Ballard22",
       "persistent_bi2": {
         "position_acquisition_share": {
-          "QB": 0.1781,
-          "RB": 0.2955,
-          "TE": 0.1448,
-          "WR": 0.3816
+          "QB": 0.1768,
+          "RB": 0.2934,
+          "TE": 0.1438,
+          "WR": 0.386
         },
         "position_exit_share": {
-          "QB": 0.3306,
-          "RB": 0.2621,
-          "TE": 0.2137,
-          "WR": 0.1935
+          "QB": 0.3254,
+          "RB": 0.2579,
+          "TE": 0.2103,
+          "WR": 0.2063
         },
         "source_mix": {
           "draft_n": 31.0,
-          "drop_n": 37.0,
+          "drop_n": 38.0,
           "trade_n": 3.0,
-          "waiver_n": 44.0
+          "waiver_n": 45.0
         },
         "traits": {
           "draft_pick_accumulation": {
@@ -6602,13 +6604,13 @@
             "weighted_sample": 3.0
           },
           "faab_aggressiveness": {
-            "confidence": 0.498,
-            "score": 0.1286,
+            "confidence": 0.4982,
+            "score": 0.1273,
             "sources": [
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 44.0
+            "weighted_sample": 45.0
           },
           "large_package_tolerance": {
             "confidence": 0.1564,
@@ -6621,7 +6623,7 @@
           },
           "qb_accumulation": {
             "confidence": 0.98,
-            "score": -0.4063,
+            "score": -0.4107,
             "sources": [
               "draft",
               "drop",
@@ -6629,11 +6631,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 36.58
+            "weighted_sample": 36.96
           },
           "rb_affinity": {
             "confidence": 0.98,
-            "score": 0.182,
+            "score": 0.1736,
             "sources": [
               "draft",
               "drop",
@@ -6641,11 +6643,11 @@
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 36.58
+            "weighted_sample": 36.96
           },
           "te_affinity": {
             "confidence": 0.98,
-            "score": -0.276,
+            "score": -0.281,
             "sources": [
               "draft",
               "drop",
@@ -6653,11 +6655,11 @@
               "waiver"
             ],
             "strength": "MODERATE",
-            "weighted_sample": 36.58
+            "weighted_sample": 36.96
           },
           "wr_affinity": {
             "confidence": 0.98,
-            "score": 0.5264,
+            "score": 0.544,
             "sources": [
               "draft",
               "drop",
@@ -6665,11 +6667,11 @@
               "waiver"
             ],
             "strength": "HIGH",
-            "weighted_sample": 36.58
+            "weighted_sample": 36.96
           },
           "youth_preference": {
             "confidence": 0.98,
-            "score": 0.0644,
+            "score": 0.0622,
             "sources": [
               "draft",
               "drop",
@@ -6677,30 +6679,30 @@
               "waiver"
             ],
             "strength": "LOW",
-            "weighted_sample": 36.58
+            "weighted_sample": 36.96
           }
         },
-        "weighted_action_sample": 36.58
+        "weighted_action_sample": 36.96
       },
       "state_conditioned_bi2": {
         "contender": {
           "position_acquisition_share": {
-            "QB": 0.1186,
-            "RB": 0.3421,
-            "TE": 0.1438,
-            "WR": 0.3954
+            "QB": 0.1163,
+            "RB": 0.3353,
+            "TE": 0.141,
+            "WR": 0.4075
           },
           "position_exit_share": {
-            "QB": 0.3557,
-            "RB": 0.2447,
-            "TE": 0.2602,
-            "WR": 0.1394
+            "QB": 0.3475,
+            "RB": 0.2391,
+            "TE": 0.2542,
+            "WR": 0.1592
           },
           "source_mix": {
             "draft_n": 3.2,
-            "drop_n": 11.09,
+            "drop_n": 11.73,
             "trade_n": 1.92,
-            "waiver_n": 14.17
+            "waiver_n": 14.81
           },
           "traits": {
             "draft_pick_accumulation": {
@@ -6713,13 +6715,13 @@
               "weighted_sample": 1.92
             },
             "faab_aggressiveness": {
-              "confidence": 0.4149,
-              "score": 0.1183,
+              "confidence": 0.4215,
+              "score": 0.1168,
               "sources": [
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 14.17
+              "weighted_sample": 14.81
             },
             "large_package_tolerance": {
               "confidence": 0.1067,
@@ -6731,8 +6733,8 @@
               "weighted_sample": 1.92
             },
             "qb_accumulation": {
-              "confidence": 0.6616,
-              "score": -0.6047,
+              "confidence": 0.6717,
+              "score": -0.6123,
               "sources": [
                 "draft",
                 "drop",
@@ -6740,11 +6742,11 @@
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 8.67
+              "weighted_sample": 8.91
             },
             "rb_affinity": {
-              "confidence": 0.6616,
-              "score": 0.3684,
+              "confidence": 0.6717,
+              "score": 0.3412,
               "sources": [
                 "draft",
                 "drop",
@@ -6752,11 +6754,11 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 8.67
+              "weighted_sample": 8.91
             },
             "te_affinity": {
-              "confidence": 0.6616,
-              "score": -0.281,
+              "confidence": 0.6717,
+              "score": -0.295,
               "sources": [
                 "draft",
                 "drop",
@@ -6764,11 +6766,11 @@
                 "waiver"
               ],
               "strength": "MODERATE",
-              "weighted_sample": 8.67
+              "weighted_sample": 8.91
             },
             "wr_affinity": {
-              "confidence": 0.6616,
-              "score": 0.5816,
+              "confidence": 0.6717,
+              "score": 0.63,
               "sources": [
                 "draft",
                 "drop",
@@ -6776,11 +6778,11 @@
                 "waiver"
               ],
               "strength": "HIGH",
-              "weighted_sample": 8.67
+              "weighted_sample": 8.91
             },
             "youth_preference": {
-              "confidence": 0.6616,
-              "score": -0.189,
+              "confidence": 0.6717,
+              "score": -0.1903,
               "sources": [
                 "draft",
                 "drop",
@@ -6788,10 +6790,10 @@
                 "waiver"
               ],
               "strength": "LOW",
-              "weighted_sample": 8.67
+              "weighted_sample": 8.91
             }
           },
-          "weighted_action_sample": 8.67
+          "weighted_action_sample": 8.91
         },
         "elite_contender": {
           "position_acquisition_share": {
@@ -7090,6 +7092,14 @@
       "team_name": "King B"
     }
   },
+  "predictive_holdout_validated": false,
   "production_status": "PRODUCTION",
-  "validated_research_model_version": "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
+  "source_research_model_version": "FSFFL-Behavioral-Intelligence-3.0-RESEARCH",
+  "validated_research_model_version": "FSFFL-Behavioral-Intelligence-3.0-RESEARCH",
+  "validation_scope": [
+    "software_correctness",
+    "boundedness",
+    "non_leakage_and_context_normalization",
+    "runtime_and_cache_behavior"
+  ]
 }
