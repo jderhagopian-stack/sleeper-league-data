@@ -6,11 +6,11 @@ from __future__ import annotations
 from copy import deepcopy
 import statistics
 
-from build_fsffl_projection_ensemble import build_player_ensemble, dedupe_independence_families
+from build_fsffl_projection_ensemble import build_player_ensemble, dedupe_independence_families, historical_evidence_summary
 from projection_source_uncertainty import source_mean_multipliers
 
 
-def source(source_id: str, family: str, points: float, include_player: bool = True):
+def source(source_id: str, family: str, points: float, include_player: bool = True, evidence_status: str | None = None):
     players = {}
     if include_player:
         players["p1"] = {
@@ -21,9 +21,12 @@ def source(source_id: str, family: str, points: float, include_player: bool = Tr
             "fsffl_projected_points": points,
             "fsffl_projected_ppg": points / 17.0,
         }
+    config = {"independence_family": family}
+    if evidence_status is not None:
+        config["historical_accuracy_evidence"] = {"status": evidence_status}
     return {
         "source_id": source_id,
-        "config": {"independence_family": family},
+        "config": config,
         "payload": {"players": players},
     }
 
@@ -70,6 +73,20 @@ def test_global_source_presence_does_not_fake_player_level_authority():
     assert player["authoritative_projection_allowed"] is False
 
 
+def test_historical_evidence_is_reported_without_becoming_a_weight():
+    sources = [
+        source("benchmarked", "a", 170.0, evidence_status="externally_benchmarked_2014_2025"),
+        source("unbenchmarked", "b", 204.0, evidence_status="not_covered_by_current_12_season_external_benchmark"),
+    ]
+    evidence = historical_evidence_summary(sources)
+    assert evidence["externally_benchmarked_sources"] == ["benchmarked"]
+    assert evidence["sources_without_comparable_long_run_benchmark"] == ["unbenchmarked"]
+    assert evidence["externally_benchmarked_source_count"] == 1
+    player = build_player_ensemble(sources, minimum_sources=2)["p1"]
+    assert player["fsffl_projected_points"] == 187.0
+    assert player["ensemble_method"] == "equal_weight_mean"
+
+
 def test_source_uncertainty_uses_observed_means_without_moving_ensemble_mean():
     player = build_player_ensemble(
         [source("a", "a", 170.0), source("b", "b", 204.0)],
@@ -104,6 +121,7 @@ def main():
     test_duplicate_information_family_is_not_double_counted()
     test_single_source_is_explicitly_non_authoritative()
     test_global_source_presence_does_not_fake_player_level_authority()
+    test_historical_evidence_is_reported_without_becoming_a_weight()
     test_source_uncertainty_uses_observed_means_without_moving_ensemble_mean()
     test_actual_evidence_shrinks_preseason_source_disagreement()
     test_non_authoritative_player_cannot_inject_source_uncertainty()
