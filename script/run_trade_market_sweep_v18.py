@@ -23,6 +23,7 @@ V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 V16_PATH = Path("script/run_trade_market_sweep_v16.py")
 OWNER_BEHAVIOR_PATH = Path("data/owner_behavior_profiles.json")
 ASSET_PATH = Path("data/fsffl_asset_values.json")
+NEGOTIATION_RANKING = Path("script/negotiation_ranking.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.10"
 DEFAULT_SEARCH_DEPTH = 60
 MAX_NORMAL_OPTIONS_PER_BUYER = 2
@@ -127,8 +128,9 @@ def advantage_note(row):
 
 def blended_negotiation_score(row):
     br=row.get("buyer_rationality") or {}; md=(row.get("comparison_to_current_offer") or {}).get("metric_deltas_vs_current_offer") or {}; champ=sf(md.get("championship_probability")); wins=sf(md.get("expected_wins")); dyn=sf(md.get("market_dynasty_delta"))
-    strategic=clamp(.50+1.75*champ+.07*wins+dyn/22000.0,0,1); acceptance=clamp(sf(br.get("heuristic_acceptance_fit_score"),.5),0,1); behavior=clamp(.50+sf((br.get("owner_behavior") or {}).get("adjustment"))/.32,0,1); score=.50*strategic+.30*acceptance+.20*behavior
-    return {"score":round(score,4),"focal_strategic_gain_component":round(strategic,4),"acceptance_fit_component":round(acceptance,4),"owner_behavior_match_component":round(behavior,4),"weights":{"focal_strategic_gain":.50,"acceptance_fit":.30,"owner_behavior_match":.20}}
+    strategic=clamp(.50+1.75*champ+.07*wins+dyn/22000.0,0,1); acceptance=clamp(sf(br.get("heuristic_acceptance_fit_score"),.5),0,1); behavior=clamp(.50+sf((br.get("owner_behavior") or {}).get("adjustment"))/.32,0,1)
+    nr=load_module(NEGOTIATION_RANKING,"negotiation_ranking_for_v110")
+    return nr.compose(strategic,acceptance,behavior)
 
 
 def diversified_top_five(viable):
@@ -184,7 +186,7 @@ def main():
     buyer_counts=dict(Counter(str(r.get("buyer_user_id") or "") for r in top5)); unique_buyers=len(buyer_counts)
     report["model_version"]=MODEL_VERSION; report["current_offer_evaluation"]=current; report["ranked_finalists"]=top5; report["top_5_alternatives"]=top5; report["realistic_counter_alternatives"]=realistic[:5]; report["reasonable_longshot_alternatives"]=[r for r in top5 if r.get("report_role")=="REASONABLE_LONGSHOT"]; report["swing_for_fences_alternative"]=swing; report["state_change_dependent_alternatives"]=pivot[:5]; report["recommended_next_action"]=action
     cc=report.setdefault("candidate_counts",{}); cc["acceptance_frontier_simulated"]=len(rows); cc["buyer_current_state_viable"]=len(viable); cc["realistic_acceptance_fit"]=len(realistic); cc["reasonable_longshot_pool"]=len([r for r in viable if r["acceptance_likelihood"] in {"LOW","VERY_LOW"}]); cc["top_five_unique_buyers"]=unique_buyers; cc["top_five_options_by_buyer"]=buyer_counts
-    pol=report.setdefault("policy",{}); pol.update({"five_option_report_when_market_supports_it":True,"reasonable_longshots_can_fill_report":True,"acceptance_likelihood_is_heuristic_not_probability":True,"each_option_explains_acceptance_and_focus_advantage":True,"swing_for_fences_slots_max":1,"longshots_cannot_drive_recommended_action":True,"fast_exact_lineup_dp":True,"GM_owner_behavior_integrated":True,"owner_behavior_sources":["completed_trades","rookie_drafts","waivers"],"owner_behavior_is_evidence_not_veto":True,"acceptance_fit_is_calibrated_probability":False,"top_five_blended_ranking":True,"top_five_blended_ranking_weights":{"focal_strategic_gain":.50,"acceptance_fit":.30,"owner_behavior_match":.20},"buyer_diversity_enabled":True,"normal_max_options_per_buyer":MAX_NORMAL_OPTIONS_PER_BUYER,"buyer_cap_backfills_only_when_needed_for_five":True})
+    pol=report.setdefault("policy",{}); pol.update({"five_option_report_when_market_supports_it":True,"reasonable_longshots_can_fill_report":True,"acceptance_likelihood_is_heuristic_not_probability":True,"each_option_explains_acceptance_and_focus_advantage":True,"swing_for_fences_slots_max":1,"longshots_cannot_drive_recommended_action":True,"fast_exact_lineup_dp":True,"GM_owner_behavior_integrated":True,"owner_behavior_sources":["completed_trades","rookie_drafts","waivers"],"owner_behavior_is_evidence_not_veto":True,"acceptance_fit_is_calibrated_probability":False,"top_five_blended_ranking":True,"top_five_blended_ranking_weights":{"focal_strategic_gain":.625,"acceptance_fit":.375,"owner_behavior_match":0.0},"owner_behavior_already_in_acceptance_fit":True,"buyer_diversity_enabled":True,"normal_max_options_per_buyer":MAX_NORMAL_OPTIONS_PER_BUYER,"buyer_cap_backfills_only_when_needed_for_five":True})
     report["owner_behavior_profiles_available"]=len(beh); report["simulation"]["lineup_reoptimization"]="exact_slot_mask_dynamic_programming"; report["simulation"]["execution_path"]="GM_owner_behavior_plus_blended_ranking_plus_buyer_diversity_then_fast_decision_lab"
     Path(args.output).write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8"); print(json.dumps(report,indent=2))
 
