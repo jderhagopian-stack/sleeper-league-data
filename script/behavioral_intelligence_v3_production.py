@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Validated production facade for FSFFL Behavioral Intelligence 3.0.
+"""Production facade for FSFFL Behavioral Intelligence 3.0.
 
 The underlying implementation remains auditable in behavioral_intelligence_v3.py.
-This facade is the promotion boundary: it accepts only the validated BI3 research
-implementation and stamps the resulting profile as production after all research
-and candidate gates have passed.
+This facade is a software/operational promotion boundary. It does not claim
+that BI3 predicts future manager actions or trade acceptance out of sample.
+
 """
 from __future__ import annotations
 
@@ -38,9 +38,14 @@ def build(context_path):
         raise RuntimeError(f"Unexpected BI3 research output: {payload.get('model_version')}")
     payload["model_version"] = MODEL_VERSION
     payload["production_status"] = "PRODUCTION"
+    payload["empirical_validation_status"] = "NOT_PREDICTIVELY_VALIDATED"
+    payload["predictive_holdout_validated"] = False
+    payload["validation_scope"] = ["software_correctness", "boundedness", "non_leakage_and_context_normalization", "runtime_and_cache_behavior"]
+    payload["source_research_model_version"] = EXPECTED_RESEARCH_VERSION
     payload["validated_research_model_version"] = EXPECTED_RESEARCH_VERSION
     payload.setdefault("architecture", {})["production_facade"] = True
     payload["architecture"]["production_promotion_preserves_research_implementation"] = True
+    payload["architecture"]["software_promotion_is_not_empirical_validation"] = True
     return payload
 
 
