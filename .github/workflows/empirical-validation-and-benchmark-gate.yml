@@ -1,0 +1,80 @@
+name: Empirical Validation and Benchmark Gate
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_empirical_validation_readiness.py'
+      - 'script/audit_final_trade_ranking_governance.py'
+      - 'script/audit_final_score_ablation.py'
+      - 'script/run_historical_trade_analysis.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/empirical-validation-and-benchmark-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  final-audit-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile audit and historical modules
+        run: |
+          python -m py_compile \
+            script/audit_empirical_validation_readiness.py \
+            script/audit_final_trade_ranking_governance.py \
+            script/audit_final_score_ablation.py \
+            script/run_historical_trade_analysis.py
+      - name: Rerun structural model-governance gate
+        run: python script/audit_final_trade_ranking_governance.py
+      - name: Run synthetic grouped final-score ablation regression
+        run: |
+          cat > /tmp/finalists.json <<'JSON'
+          {
+            "model_version": "synthetic-regression-fixture",
+            "ranked_finalists": [
+              {"candidate_key":"A","post_sim_score":100.0,"simulation":{"strategic":{"objective_weights":{"resilience":0.15,"liquidity":0.10},"strategic_value_delta":10.0,"break_glass_delta":4.0,"liquidity_value_delta":6.0}}},
+              {"candidate_key":"B","post_sim_score":98.0,"simulation":{"strategic":{"objective_weights":{"resilience":0.15,"liquidity":0.10},"strategic_value_delta":2.0,"break_glass_delta":1.0,"liquidity_value_delta":2.0}}},
+              {"candidate_key":"C","post_sim_score":95.0,"simulation":{"strategic":{"objective_weights":{"resilience":0.15,"liquidity":0.10},"strategic_value_delta":-1.0,"break_glass_delta":0.0,"liquidity_value_delta":1.0}}}
+            ]
+          }
+          JSON
+          python script/audit_final_score_ablation.py --report /tmp/finalists.json --output /tmp/final-ablation.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/final-ablation.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['summary']['candidate_count']==3
+          assert 'without_all_three_overlap_channels' in d['comparisons']
+          PY
+      - name: Verify historical wrapper still refuses leakage-prone fallback
+        run: |
+          python script/run_historical_trade_analysis.py \
+            --season 2023 \
+            --transaction-id 950954472107368448 \
+            --output /tmp/historical-trade.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/historical-trade.json'))
+          assert d['gm3_evaluation']['status']=='NOT_GRADED'
+          assert d['policy']['current_player_values_not_backfilled_into_historical_grade'] is True
+          assert d['policy']['missing_historical_inputs_result_in_not_graded'] is True
+          assert d['policy']['outcome_layer_separate_from_decision_layer'] is True
+          PY
+      - name: Audit empirical validation readiness
+        run: python script/audit_empirical_validation_readiness.py
+      - name: Upload final audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-final-model-governance-audit
+          path: |
+            data/audit/final_trade_ranking_governance_audit.json
+            data/audit/empirical_validation_readiness.json
+            /tmp/final-ablation.json
+            /tmp/historical-trade.json
+          if-no-files-found: warn
+          retention-days: 30
