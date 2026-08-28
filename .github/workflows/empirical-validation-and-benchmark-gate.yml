@@ -7,6 +7,7 @@ on:
       - 'script/audit_final_trade_ranking_governance.py'
       - 'script/audit_final_score_ablation.py'
       - 'script/run_historical_trade_analysis.py'
+      - 'script/historical_trade_gm3_adapter.py'
       - 'data/model_parameter_registry.json'
       - '.github/workflows/empirical-validation-and-benchmark-gate.yml'
   workflow_dispatch:
@@ -26,7 +27,32 @@ jobs:
             script/audit_empirical_validation_readiness.py \
             script/audit_final_trade_ranking_governance.py \
             script/audit_final_score_ablation.py \
-            script/run_historical_trade_analysis.py
+            script/run_historical_trade_analysis.py \
+            script/historical_trade_gm3_adapter.py
+      - name: Verify explicit historical-bundle certification is mandatory
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('a','script/historical_trade_gm3_adapter.py')
+          a=importlib.util.module_from_spec(spec); spec.loader.exec_module(a)
+          payload={k:{'x':1} for k in a.REQUIRED_BUNDLE_KEYS}
+          payload['provenance']={
+            'current_market_values_used': False,
+            'same_season_results_used': False,
+            'future_schedule_used': False,
+          }
+          s=a.bundle_status(payload)
+          assert s['ready'] is False
+          assert 'time_frozen=true' in s['missing_certifications']
+          assert 'complete=true' in s['missing_certifications']
+          payload['time_frozen']=True; payload['complete']=True
+          s=a.bundle_status(payload)
+          assert s['ready'] is True
+          payload['provenance']['same_season_results_used']=True
+          s=a.bundle_status(payload)
+          assert s['ready'] is False
+          assert 'provenance.same_season_results_used=false' in s['provenance_failures']
+          PY
       - name: Rerun structural model-governance gate
         run: python script/audit_final_trade_ranking_governance.py
       - name: Run synthetic grouped final-score ablation regression
