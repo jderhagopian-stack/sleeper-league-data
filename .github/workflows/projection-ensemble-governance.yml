@@ -7,6 +7,8 @@ on:
       - 'script/build_fsffl_projection_ensemble.py'
       - 'script/normalize_*projection_source.py'
       - 'script/fetch_fantasypros_projection_source.py'
+      - 'script/projection_source_uncertainty.py'
+      - 'script/run_fsffl_season_simulator_projection_uncertainty.py'
       - 'script/audit_projection_ensemble_governance.py'
       - 'script/test_projection_ensemble.py'
       - '.github/workflows/projection-ensemble-governance.yml'
@@ -29,6 +31,8 @@ jobs:
             script/build_fsffl_projection_ensemble.py \
             script/normalize_razzball_projection_source.py \
             script/fetch_fantasypros_projection_source.py \
+            script/projection_source_uncertainty.py \
+            script/run_fsffl_season_simulator_projection_uncertainty.py \
             script/audit_projection_ensemble_governance.py \
             script/test_projection_ensemble.py
 
