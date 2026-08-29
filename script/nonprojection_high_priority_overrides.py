@@ -69,19 +69,40 @@ def install(engine):
             row["break_glass_value"] = round(base * (1.0 + premium_pct), 1)
             row["hold_premium_policy"] = "single_strategic_core_path_no_duplicate_component_adders"
 
-        # The own-pick control bonus has already been set to zero before the
-        # native strategic profile is constructed. Retain explicit provenance.
+        # Pick market value already varies by round/year and, where available,
+        # early/mid/late quality. The native strategic layer then re-added round,
+        # quality, optionality (itself derived from quality), liquidity and own-
+        # pick control premiums. Without residual transaction evidence showing
+        # incremental value beyond the market anchor, those are duplicate or
+        # unvalidated positive adders. Preserve them as diagnostics only.
         for row in payload.get("picks") or []:
             pp = row.get("pick_profile") or {}
             pp["own_pick_control_incremental_value_authorized"] = False
-            comps = row.get("premium_components") or {}
-            if "own_pick_control" in comps:
-                comps["own_pick_control"] = 0.0
+            pp["liquidity_incremental_value_authorized"] = False
+            pp["quality_optionality_incremental_value_authorized"] = False
+
+            prior = dict(row.get("premium_components") or {})
+            row["premium_component_diagnostics"] = prior
+            row["premium_components"] = {
+                "round": 0.0,
+                "specific_pick_quality": 0.0,
+                "optionality": 0.0,
+                "liquidity": 0.0,
+                "own_pick_control": 0.0,
+            }
+            base = _sf(row.get("base_franchise_value"))
+            row["hold_premium_pct"] = 0.0
+            row["hold_premium_value"] = 0.0
+            row["break_glass_value"] = round(base, 1)
+            row["pick_incremental_premium_policy"] = (
+                "market_anchor_only_until_residual_incremental_validation"
+            )
 
         payload["high_priority_nonprojection_policy"] = {
             "player_hold_premium_single_incremental_path": True,
             "duplicate_optionality_liquidity_resilience_appreciation_adders_removed": True,
             "own_pick_control_bonus_incremental_value_authorized": False,
+            "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
             "new_coefficients_introduced": False,
         }
         return payload
