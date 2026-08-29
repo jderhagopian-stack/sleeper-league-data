@@ -1,0 +1,61 @@
+name: Weekly Opponent Adjustment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/validate_apply_weekly_opponent_adjustment.py'
+      - 'script/run_fsffl_interim_weekly_projections.py'
+      - '.github/workflows/weekly-opponent-adjustment.yml'
+
+jobs:
+  validate-and-apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build current interim projection source
+        run: |
+          python script/run_native_preseason_production.py --season 2026
+          python script/build_fftoday_interim_projection_bridge.py --season 2026 --max-source-age-days 14
+          python script/run_fsffl_interim_weekly_projections.py
+      - name: Validate and apply opponent adjustment
+        run: python script/validate_apply_weekly_opponent_adjustment.py --season 2026
+      - name: Enforce opponent-adjustment gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          card=json.loads(Path('data/model_validation/weekly_opponent_adjustment_scorecard.json').read_text())
+          weekly=json.loads(Path('data/simulator/2026/inputs/player_weekly_projections.json').read_text())
+          audit=json.loads(Path('data/simulator/2026/outputs/weekly_projection_audit.json').read_text())
+          sels=card['selection_by_position']
+          retained=[p for p,x in sels.items() if x['retained']]
+          if not retained:
+              raise SystemExit('No position passed the 2025 out-of-sample opponent-adjustment gate')
+          for p in retained:
+              if sels[p]['2025_holdout']['improvement_pct'] <= 0:
+                  raise SystemExit(f'{p} retained without positive 2025 holdout improvement')
+          oa=audit.get('opponent_adjustment') or {}
+          if oa.get('players_adjusted',0) < 220:
+              raise SystemExit(f"too few players adjusted: {oa.get('players_adjusted')}")
+          if weekly.get('model_stage')!='interim_external_season_means_validated_opponent_adjusted_weekly':
+              raise SystemExit('weekly output did not promote opponent-adjusted stage')
+          max_pres=max(abs(float(p.get('opponent_adjustment_mean_preservation_error') or 0)) for p in weekly['players'].values())
+          if max_pres > 0.01:
+              raise SystemExit(f'season mean preservation error too large: {max_pres}')
+          print(json.dumps({'status':'PASS','retained_positions':retained,
+            'production_lambdas':card['production_lambdas'],
+            'players_adjusted':oa.get('players_adjusted'),
+            'max_mean_preservation_error':max_pres},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weekly-opponent-adjustment
+          path: |
+            data/model_validation/weekly_opponent_adjustment_scorecard.json
+            data/simulator/2026/inputs/player_weekly_projections.json
+            data/simulator/2026/outputs/weekly_projection_audit.json
