@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Run the first real-data benchmark for the FSFFL-native projection challenger.
-
-Downloads nflverse regular-season player summaries, constructs strictly lagged
-next-season examples, and evaluates position-specific ridge models on the latest
-completed season. Players who disappear from the following season are retained
-with zero next-season production, avoiding survivorship-biased evaluation.
-"""
+"""Leakage-safe real-data benchmark for the FSFFL-native projection challenger."""
 from __future__ import annotations
 
 import argparse
@@ -15,6 +9,7 @@ import json
 import sys
 import traceback
 import urllib.request
+from collections import defaultdict
 from pathlib import Path
 from typing import List
 
@@ -38,22 +33,35 @@ SOURCE_STATS = {
     "receiving_tds": "receiving_tds",
 }
 STATS = list(SOURCE_STATS)
+TEAM_FEATURES = [
+    "team_lag1_pass_attempts",
+    "team_lag1_rush_attempts",
+    "team_lag1_targets",
+    "team_lag1_offensive_opportunities",
+    "team_lag1_pass_rate",
+    "team_lag1_rushing_tds",
+    "team_lag1_receiving_tds",
+]
 FEATURES = {
     "QB": [
         "lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds", "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
         "lag2_available", "lag2_games", "lag2_attempts", "lag2_passing_yards", "lag2_passing_tds", "lag2_interceptions", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds",
+        *TEAM_FEATURES,
     ],
     "RB": [
         "lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
         "lag2_available", "lag2_games", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
+        *TEAM_FEATURES,
     ],
     "WR": [
         "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
         "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
+        *TEAM_FEATURES,
     ],
     "TE": [
         "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
         "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
+        *TEAM_FEATURES,
     ],
 }
 TARGETS = {
@@ -100,9 +108,44 @@ def normalize_season(rows: List[dict], season: int) -> List[dict]:
     return out
 
 
+def build_team_context(season_rows: List[dict]) -> dict:
+    """Build broad lagged offensive-environment features from the same governed feed.
+
+    These are deliberately simple team-volume/tendency summaries. Because the player
+    seasonal file uses recent_team, traded-player totals can introduce some team-level
+    noise; this challenger is retained only if rolling holdouts show material value.
+    """
+    grouped = defaultdict(lambda: defaultdict(float))
+    for row in season_rows:
+        season = int(row["season"])
+        team = str(row.get("team") or "").strip()
+        if not team:
+            continue
+        key = (season, team)
+        grouped[key]["pass_attempts"] += fval(row.get("attempts"))
+        grouped[key]["rush_attempts"] += fval(row.get("carries"))
+        grouped[key]["targets"] += fval(row.get("targets"))
+        grouped[key]["rushing_tds"] += fval(row.get("rushing_tds"))
+        grouped[key]["receiving_tds"] += fval(row.get("receiving_tds"))
+    out = {}
+    for key, values in grouped.items():
+        opportunities = values["pass_attempts"] + values["rush_attempts"]
+        out[key] = {
+            "team_lag1_pass_attempts": values["pass_attempts"],
+            "team_lag1_rush_attempts": values["rush_attempts"],
+            "team_lag1_targets": values["targets"],
+            "team_lag1_offensive_opportunities": opportunities,
+            "team_lag1_pass_rate": values["pass_attempts"] / opportunities if opportunities else 0.0,
+            "team_lag1_rushing_tds": values["rushing_tds"],
+            "team_lag1_receiving_tds": values["receiving_tds"],
+        }
+    return out
+
+
 def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
     """Create forecast rows using only seasons available before the target year."""
     index = {(int(r["season"]), str(r["player_id"])): r for r in season_rows}
+    team_context = build_team_context(season_rows)
     max_season = max(season for season, _ in index)
     out = []
     for (season, pid), cur in sorted(index.items()):
@@ -125,6 +168,8 @@ def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
             "lag2_games": fval(prev.get("games")) if prev else 0.0,
             "next_games": fval(nxt.get("games")) if nxt else 0.0,
         }
+        for name in TEAM_FEATURES:
+            row[name] = fval(team_context.get((season, cur.get("team")), {}).get(name))
         for stat in STATS:
             row[f"lag1_{stat}"] = fval(cur.get(stat))
             row[f"lag2_{stat}"] = fval(prev.get(stat)) if prev else 0.0
@@ -169,7 +214,7 @@ def run(start_season: int, end_season: int) -> dict:
         }
 
     return {
-        "schema_version": "1.4",
+        "schema_version": "1.5",
         "status": "PASS",
         "source": {"provider": "nflverse/nflverse-data", "release_tag": "stats_player", "asset_family": "stats_player_reg_{season}.csv", "url_template": URL, "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution"},
         "seasons_requested": [start_season, end_season],
@@ -186,9 +231,11 @@ def run(start_season: int, end_season: int) -> dict:
             "hyperparameter_selection": "training-period temporal inner validation only",
             "primary_simple_baseline": "prior-year same-stat persistence where available",
             "multi_year_history": "lag1 plus lag2 player production, with explicit lag2 availability indicator; WR lag2 restricted to receiving volume/production because rolling validation showed lag2 rushing usage was unstable and harmful",
+            "team_environment": "feature-season team pass volume, rush volume, targets, total opportunities, pass rate, and TD environment derived only from the same lagged player-stat feed; no target-season realized team outcomes are features",
+            "team_environment_known_limitation": "recent_team can assign traded-player season totals to the final team, adding team-summary noise; retain only if rolling holdouts show material value",
             "population_mean_baseline_role": "sanity check only",
-            "production_promoted": False,
-        },
+            "production_promoted": False
+        }
     }
 
 
@@ -204,7 +251,7 @@ def main() -> None:
         args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
-        failure = {"schema_version": "1.4", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
+        failure = {"schema_version": "1.5", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
         raise
