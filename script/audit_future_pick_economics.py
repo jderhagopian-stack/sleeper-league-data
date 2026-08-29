@@ -59,7 +59,11 @@ def main():
         "quality_collapse_mix": "(1.0 - strength) * 0.72 + fragility * 0.28" in src,
         "quality_early_late_transform": all(x in src for x in ("0.10 + 0.58 * collapse_risk", "0.10 + 0.58 * strength")),
         "liquidity_constants": all(x in src for x in ("first_round_pick_liquidity", "second_round_pick_liquidity", "third_round_pick_liquidity")),
-        "uncertainty_adds_optionality": "option = clamp(upside + 0.18 * clamp(uncertainty, 0.0, 1.0)" in src,
+        "uncertainty_kept_diagnostic_not_value": (
+            "option = clamp(upside, 0.0, 1.0)" in src
+            and '"forecast_uncertainty": round(clamp(uncertainty, 0.0, 1.0), 4)' in src
+            and '"uncertainty_adds_optionality": False' in src
+        ),
         "own_pick_control_bonus": "control_bonus = 0.10 if original_uid" in src,
         "future_utility_mix": "future_utility = clamp(0.62 * option + 0.38 * q" in src,
     }
@@ -136,12 +140,11 @@ def main():
         {
             "id": "PICK-OPTIONALITY-001",
             "severity": "HIGH",
-            "status": "UNCERTAINTY_REWARDED_BY_HEURISTIC",
+            "status": "FORECAST_UNCERTAINTY_VALUE_BONUS_REMOVED",
             "observation": (
-                "The utility layer adds a positive fraction of modeled uncertainty to pick optionality. Positive "
-                "skew and liquidity can have economic value, but forecast uncertainty is not itself evidence of "
-                "positive expected value. Outcome uncertainty, market liquidity and option value must be "
-                "estimated or validated separately to avoid rewarding ignorance."
+                "Forecast uncertainty is now reported separately and no longer increases pick optionality. "
+                "Upside remains a qualified proxy, while positive skew, liquidity and uncertainty pricing "
+                "must be identified separately before receiving additional value."
             ),
             "authoritative_optionality_claim_allowed": False,
         },
@@ -177,13 +180,14 @@ def main():
 
     payload = {
         "model_version": MODEL_VERSION,
-        "purpose": "Audit future-pick economics without changing production valuation.",
-        "production_behavior_changed": False,
+        "purpose": "Audit and govern future-pick economics without conflating uncertainty with positive value.",
+        "production_behavior_changed": True,
         "policy": {
             "external_market_pick_values_are_anchor_not_training_labels": True,
             "fallback_values_must_remain_explicitly_provisional": True,
             "scenario_weights_are_not_probabilities_without_calibration": True,
             "forecast_uncertainty_is_not_automatically_positive_option_value": True,
+            "forecast_uncertainty_value_bonus_removed": True,
             "market_liquidity_and_outcome_optionality_must_be_separated": True,
             "league_specific_pick_curve_requires_temporal_outcome_readiness": True,
             "promotion_requires_out_of_sample_improvement": True,
