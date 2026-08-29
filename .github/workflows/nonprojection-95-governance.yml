@@ -90,8 +90,19 @@ jobs:
           fids={x['id']:x for x in f['findings']}
           assert f['production_state_changed_by_governed_fix'] is True
           assert f['policy']['forecast_uncertainty_value_bonus_removed'] is True
+          assert f['policy']['market_shape_can_replace_weaker_fixed_fallbacks'] is True
+          assert f['summary']['market_tier_time_fallback_improved'] is True
+          assert f['summary']['scenario_formula_replaced'] is False
+          assert f['summary']['duplicate_pick_premiums_removed'] is True
+          assert f['summary']['downstream_pick_liquidity_optionality_overlap_removed'] is True
+          assert f['summary']['new_liquidity_coefficients_fitted'] is False
+          assert f['runtime_markers']['pick_liquidity_neutralized_in_package_weighting'] is True
+          assert f['runtime_markers']['pick_liquidity_excluded_from_final_primitive_channel'] is True
+          assert f['runtime_markers']['pick_quality_optionality_excluded_from_final_primitive_channel'] is True
           assert fids['PICK-OPTIONALITY-001']['status']=='FORECAST_UNCERTAINTY_VALUE_BONUS_REMOVED'
           assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
+          assert fids['PICK-LIQUIDITY-CONTROL-001']['status']=='INCREMENTAL_PREMIUM_REMOVED_PENDING_VALIDATION'
+          assert fids['PICK-DOUBLE-COUNT-001']['status']=='STRUCTURALLY_DEDUPLICATED'
 
           k=json.load(open('data/audit/package_economics_audit.json'))
           kids={x['id']:x for x in k['findings']}
