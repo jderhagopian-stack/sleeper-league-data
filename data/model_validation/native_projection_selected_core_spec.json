@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "status": "SELECTED_FOR_VALIDATION",
+  "purpose": "Freeze the evidence-supported V1 native-projection feature set before external preseason benchmarking.",
+  "accepted_base": "validated lag-1/lag-2 player-history model",
+  "selected_position_features": {
+    "QB": ["availability_durability"],
+    "RB": [],
+    "WR": ["age_career_stage"],
+    "TE": ["age_career_stage"]
+  },
+  "evidence": {
+    "QB": {"base_mean_improvement_vs_persistence_pct": 5.111424324580009, "selected_mean_improvement_vs_persistence_pct": 5.5164, "approx_delta_percentage_points": 0.4050},
+    "RB": {"base_mean_improvement_vs_persistence_pct": 6.464355068453742, "best_tested_mean_improvement_vs_persistence_pct": 6.6215, "approx_best_delta_percentage_points": 0.1571, "decision": "REJECT_EXTRA_COMPLEXITY"},
+    "WR": {"base_mean_improvement_vs_persistence_pct": 8.098711666817145, "selected_mean_improvement_vs_persistence_pct": 8.6402, "approx_delta_percentage_points": 0.5415},
+    "TE": {"base_mean_improvement_vs_persistence_pct": 4.900412839626465, "selected_mean_improvement_vs_persistence_pct": 6.0023, "approx_delta_percentage_points": 1.1019}
+  },
+  "rejected_for_v1": [
+    "blanket team context",
+    "blanket durability across all positions",
+    "blanket age/career-stage across all positions",
+    "all-family combined challenger",
+    "additional RB context from this experiment"
+  ],
+  "governance": {
+    "no_target_season_realized_context": true,
+    "no_fantasy_scoring_training_target": true,
+    "position_specific_selection": true,
+    "production_promoted": false,
+    "next_gate": "selected-feature rolling benchmark followed by apples-to-apples external preseason benchmark"
+  }
+}
