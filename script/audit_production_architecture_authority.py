@@ -121,22 +121,26 @@ def main():
         "direct_execution_hits": old_trade_hits,
     })
 
-    # The bilateral Trade Review is a separate retrospective product. It may use
-    # v13's fast lineup optimizer as a mechanic, but v13 must not provide the
-    # review's trade judgment.
+    # The bilateral Trade Review is a separate retrospective product. Shared
+    # lineup mechanics must come from the version-neutral optimizer rather than
+    # a historical trade-sweep wrapper.
     v13_uses = re.findall(r"\bv13\.([A-Za-z_][A-Za-z0-9_]*)\s*\(", trade_review)
-    unexpected_v13_uses = sorted(set(v13_uses) - {"fast_reoptimize_touched_lineups"})
+    shared_lineup_optimizer = (
+        "lineup_optimizer.py" in trade_review
+        and "fast_reoptimize_touched_lineups" in trade_review
+        and not v13_uses
+    )
     retrospective_separate = (
         "Retrospective bilateral evaluation of a completed trade" in trade_review
-        and not unexpected_v13_uses
+        and shared_lineup_optimizer
     )
     findings.append({
         "id": "TRADE-REVIEW-005",
         "ok": retrospective_separate,
         "severity": "CRITICAL",
-        "observation": "Retrospective Trade Review is allowed to reuse old mechanical helpers, but not old decision authority.",
+        "observation": "Retrospective Trade Review must use the shared lineup optimizer and must not regain historical trade-sweep decision authority.",
+        "shared_lineup_optimizer": shared_lineup_optimizer,
         "v13_helper_calls": sorted(set(v13_uses)),
-        "unexpected_v13_decision_calls": unexpected_v13_uses,
     })
 
     # GM 3.0 AUTHORITY AND PATCH ORDER
