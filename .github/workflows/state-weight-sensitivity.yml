@@ -1,0 +1,45 @@
+name: State Weight Sensitivity
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_state_weight_sensitivity.py'
+      - 'script/gm_state_weighting.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'data/gm/state_weight_calibration.json'
+      - '.github/workflows/state-weight-sensitivity.yml'
+  workflow_dispatch:
+
+jobs:
+  state-weight-ablation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m py_compile script/audit_state_weight_sensitivity.py
+      - name: Run reasonable-weight perturbation
+        run: |
+          python script/audit_state_weight_sensitivity.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 100 --search-depth 40 \
+            --output /tmp/state-weight-sensitivity.json
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/state-weight-sensitivity.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['perturbation']['within_configured_bounds'] is True
+          assert set(d['comparisons'])=={'production_prior','current_heavy','future_heavy'}
+          assert d['summary']['production_weights_empirically_authoritative'] is False
+          print(json.dumps(d['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: state-weight-sensitivity
+          path: /tmp/state-weight-sensitivity.json
+          retention-days: 30
