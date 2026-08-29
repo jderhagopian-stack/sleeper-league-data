@@ -11,8 +11,20 @@ from run_native_projection_opening_role_by_position_benchmark import attach
 from run_native_opening_role_all_vs_fftoday_historical_benchmark import native_predictions
 from run_native_vs_fftoday_historical_benchmark import LAYOUT, NATIVE_TARGET, eligible_inventory, norm_name
 
+import sportsdataverse.nfl.nfl_projection as sdv_projection
 from sportsdataverse.nfl.nfl_projection import nfl_player_projection
 from sportsdataverse.nfl.nfl_availability import nfl_availability_projection
+
+# sportsdataverse 0.0.75 aging_curve groups a null-age bucket and then attempts
+# float(None). Null ages cannot inform an aging transition, so exclude them
+# only from curve fitting. The projection engine's own fallback age still
+# applies to players whose last_age is missing.
+_sdv_aging_curve = sdv_projection.aging_curve
+def _aging_curve_without_null_age(season_rates, **kwargs):
+    if "age" in season_rates.columns:
+        season_rates = season_rates.filter(season_rates["age"].is_not_null())
+    return _sdv_aging_curve(season_rates, **kwargs)
+sdv_projection.aging_curve = _aging_curve_without_null_age
 
 _last=[0.0]
 _orig=fftsrc.fetch_html
@@ -119,7 +131,8 @@ def main():
         "clean_holdout":True,
         "why_2024_only":"SportsDataverse projection/availability constants were fitted on 2022-2023 folds; its source documents 2024 as the untouched holdout. Earlier seasons would not be valid with current fitted constants.",
         "production_promoted":False,
-        "commercial_dependency_approved":False
+        "commercial_dependency_approved":False,
+        "sportsdataverse_0_0_75_null_age_workaround":True
       },
       "limitations":[
         "This is one clean external holdout season, not a multi-season independent validation.",
