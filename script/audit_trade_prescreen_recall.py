@@ -27,6 +27,32 @@ def load_module(path: Path, name: str):
     return mod
 
 
+def enable_audit_caches(engine):
+    """Memoize read-only production helpers during exhaustive audit enumeration."""
+    for name in ("need_map", "strategic_assets", "command_center", "team_state"):
+        original = getattr(engine, name, None)
+        if original is None:
+            continue
+        cache = {}
+        def make_cached(fn, store):
+            def cached(uid):
+                key = str(uid)
+                if key not in store:
+                    store[key] = fn(uid)
+                return store[key]
+            return cached
+        setattr(engine, name, make_cached(original, cache))
+
+    original_asset_value = engine.asset_value
+    value_cache = {}
+    def cached_asset_value(asset, uid):
+        key = (str(uid), str(asset.get("asset_id")))
+        if key not in value_cache:
+            value_cache[key] = original_asset_value(asset, uid)
+        return value_cache[key]
+    engine.asset_value = cached_asset_value
+
+
 def candidate_key(row):
     return (
         str(row.get("buyer_user_id") or ""),
@@ -81,6 +107,7 @@ def main():
     args = ap.parse_args()
 
     engine = load_module(ENGINE_PATH, "trade_market_sweep_for_prescreen_recall")
+    enable_audit_caches(engine)
     scenario_path = Path(args.scenario)
     if not scenario_path.is_absolute():
         scenario_path = ROOT / scenario_path
