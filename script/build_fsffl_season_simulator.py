@@ -335,6 +335,18 @@ def playoff_bye_count(playoff_teams: int) -> int:
     return 2 if int(playoff_teams) == 6 else 0
 
 
+def standard_playoff_round_count(playoff_teams: int) -> int:
+    return {4: 2, 6: 3, 8: 3}.get(int(playoff_teams), 0)
+
+
+def configured_playoff_weeks(league) -> List[int]:
+    settings = league.get("settings") or {}
+    playoff_teams = int(settings.get("playoff_teams") or 0)
+    start = int(settings.get("playoff_week_start") or 15)
+    rounds = standard_playoff_round_count(playoff_teams)
+    return [start + i for i in range(rounds)]
+
+
 def simulate_playoffs(seed_order, lineups, playoff_weeks, rng, reseed=True):
     """Simulate standard Sleeper 4-, 6-, or 8-team single-elimination brackets."""
     n = len(seed_order)
@@ -410,8 +422,7 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
     reg_weeks = regular_season_weeks(league)
     by_week, opponents = build_schedule(raw_schedule, reg_weeks)
 
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
+    playoff_weeks = configured_playoff_weeks(league)
 
     # Pre-optimize projected lineups for every regular-season and playoff week.
     all_needed_weeks = sorted(set(reg_weeks + playoff_weeks))
@@ -571,8 +582,7 @@ def validate_inputs(league, rosters, users, players, raw_schedule, projections):
     week_rows = 0
     fallback_sd_rows = 0
     playoff_covered = set()
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
+    playoff_weeks = configured_playoff_weeks(league)
     if projection_exists:
         for pid in rostered:
             p = (projections.get("players") or {}).get(pid) or {}
