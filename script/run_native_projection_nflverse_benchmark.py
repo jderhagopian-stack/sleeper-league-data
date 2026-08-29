@@ -49,7 +49,7 @@ FEATURES = {
     ],
     "WR": [
         "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
-        "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds",
+        "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
     ],
     "TE": [
         "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
@@ -185,7 +185,7 @@ def run(start_season: int, end_season: int) -> dict:
             "holdout_policy": "latest completed season in downloaded range",
             "hyperparameter_selection": "training-period temporal inner validation only",
             "primary_simple_baseline": "prior-year same-stat persistence where available",
-            "multi_year_history": "lag1 plus lag2 player production, with explicit lag2 availability indicator",
+            "multi_year_history": "lag1 plus lag2 player production, with explicit lag2 availability indicator; WR lag2 restricted to receiving volume/production because rolling validation showed lag2 rushing usage was unstable and harmful",
             "population_mean_baseline_role": "sanity check only",
             "production_promoted": False,
         },
@@ -204,7 +204,7 @@ def main() -> None:
         args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
-        failure = {"schema_version": "1.4", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [start_season, end_season], "source_url_template": URL}
+        failure = {"schema_version": "1.4", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
         raise
