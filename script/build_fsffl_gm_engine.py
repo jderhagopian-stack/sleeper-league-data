@@ -386,11 +386,13 @@ def build_player_values(
         dynasty = safe_float((drow or {}).get("value"))
         redraft = safe_float((rrow or {}).get("value"))
         # If player is omitted from redraft market, preserve zero rather than fabricate.
+        position = normalize_position(p.get("position") or (drow or {}).get("position"))
+        coverage_supported = bool(drow or rrow)
         values[pid] = {
             "asset_type": "player",
             "player_id": pid,
             "name": p.get("full_name") or (drow or {}).get("name") or pid,
-            "position": p.get("position") or (drow or {}).get("position"),
+            "position": position,
             "nfl_team": p.get("team") or (drow or {}).get("team"),
             "age": p.get("age") or (drow or {}).get("age"),
             "injury_status": p.get("injury_status"),
@@ -400,6 +402,11 @@ def build_player_values(
             "position_rank": (drow or {}).get("position_rank"),
             "trend_30_day": (drow or {}).get("trend_30_day"),
             "market_match": "sleeper_id" if drow and drow.get("sleeper_id") == pid else ("name_position" if drow else "unmatched"),
+            "market_value_authoritative": coverage_supported,
+            "market_coverage_warning": (
+                None if coverage_supported
+                else "No compatible external market row; zero is missing coverage, not evidence of zero asset value."
+            ),
         }
     return values
 
