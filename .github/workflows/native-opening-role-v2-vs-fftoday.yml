@@ -1,0 +1,27 @@
+name: Native Opening Role V2 vs FFToday
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_native_opening_role_all_vs_fftoday_historical_benchmark.py'
+      - '.github/workflows/native-opening-role-v2-vs-fftoday.yml'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run live V2 benchmark
+        run: python script/run_native_opening_role_all_vs_fftoday_historical_benchmark.py
+      - name: Upload scorecard when available
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-opening-role-v2-vs-fftoday
+          path: data/model_validation/native_opening_role_v2_vs_fftoday_scorecard.json
+          if-no-files-found: ignore
