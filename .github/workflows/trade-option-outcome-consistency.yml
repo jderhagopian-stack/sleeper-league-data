@@ -64,15 +64,17 @@ jobs:
           assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18'
           assert r['policy']['competitively_dominated_option_can_be_called_better'] is False
-          assert r['policy']['very_low_acceptance_alternative_can_force_shop'] is False
+          assert r['policy']['low_or_very_low_acceptance_alternative_can_force_shop'] is False
           assert r['policy']['descriptive_state_labels_create_focal_utility_cliffs'] is False
+          assert r['policy']['descriptive_state_labels_create_action_cliffs'] is False
+          assert r['recommended_next_action']=='ACCEPT_NOW',r['recommended_next_action']
           for row in (r.get('suggested_counteroffers') or [])+(r.get('market_sweep_alternatives') or []):
               c=row.get('comparison_to_current_offer') or {}
               if c.get('competitive_relation_vs_current_offer')=='DOMINATED_BY_CURRENT_OFFER':
                   assert c.get('verdict_vs_current_offer')!='BETTER',c
-              if str(row.get('acceptance_likelihood'))=='VERY_LOW':
+              if str(row.get('acceptance_likelihood')) in {'LOW','VERY_LOW'}:
                   assert row.get('actionable_better_than_current_offer') is not True,row
-          print({'recommended_next_action':r.get('recommended_next_action'),'pre_fix_action':r.get('recommended_next_action_pre_outcome_consistency'),'objective_state':((r.get('current_offer_evaluation') or {}).get('simulation') or {}).get('strategic',{}).get('objective_state'),'market_alternatives':[(x.get('return_asset_names'),x.get('acceptance_likelihood'),(x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer')) for x in (r.get('market_sweep_alternatives') or [])[:5]]})
+          print({'recommended_next_action':r.get('recommended_next_action'),'action_basis':(r.get('governance',{}).get('option_outcome_consistency') or {}).get('action_basis'),'objective_state':((r.get('current_offer_evaluation') or {}).get('simulation') or {}).get('strategic',{}).get('objective_state'),'market_alternatives':[(x.get('return_asset_names'),x.get('acceptance_likelihood'),(x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer'),x.get('actionable_better_than_current_offer')) for x in (r.get('market_sweep_alternatives') or [])[:5]]})
           assert Path('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.pdf').exists()
           PY
       - uses: actions/upload-artifact@v4
