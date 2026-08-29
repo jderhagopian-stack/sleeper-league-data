@@ -191,13 +191,13 @@ def contender_guardrail(focus_uid: str, sim: Dict[str, Any]) -> Dict[str, Any]:
     return {"team_state": state, "championship_loss_floor": cap, "passed": passed}
 
 
-def fast_reoptimize(v13, dl, simmod, baseline_lineups, rosters, touched, league, users, players, projections):
-    return v13.fast_reoptimize_touched_lineups(
+def fast_reoptimize(lineupopt, dl, simmod, baseline_lineups, rosters, touched, league, users, players, projections):
+    return lineupopt.fast_reoptimize_touched_lineups(
         dl, simmod, baseline_lineups, rosters, touched, league, users, players, projections
     )
 
 
-def simulate_actions(dl, v13, rosteraware, model_inputs, baseline_lineups, baseline,
+def simulate_actions(dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline,
                      focus_uid: str, actions: List[Dict[str, Any]], sims: int, seed: int):
     simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
     hypothetical, _ = dl.apply_actions(canonical_rosters, actions)
@@ -207,7 +207,7 @@ def simulate_actions(dl, v13, rosteraware, model_inputs, baseline_lineups, basel
     )
     effective_actions = list(actions) + list(cut_actions)
     lineups, reoptimized = fast_reoptimize(
-        v13, dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
+        lineupopt, dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
     )
     hyp = dl.simulate_from_lineups(simmod, league, legal, users, raw_schedule, lineups, sims, seed)
     bidx, hidx = team_index(baseline), team_index(hyp)
@@ -360,9 +360,9 @@ def describe(row):
     return "Hold current roster"
 
 
-def evaluate_row(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
+def evaluate_row(row, focus_uid, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
     actions = trade_actions(focus_uid, row) if row["channel"] == "TRADE" else waiver_actions(focus_uid, row)
-    sim = simulate_actions(dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, focus_uid, actions, sims, seed)
+    sim = simulate_actions(dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline, focus_uid, actions, sims, seed)
     row = copy.deepcopy(row)
     row["focus_user_id"] = str(focus_uid)
     row["simulation"] = sim
@@ -382,9 +382,9 @@ def evaluate_row(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_li
     return row
 
 
-def rerun_candidate(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
+def rerun_candidate(row, focus_uid, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
     fresh = {k: v for k, v in row.items() if k not in {"simulation", "team_improvement_score", "guardrail", "dynasty_value_guardrail", "actionable", "description"}}
-    return evaluate_row(fresh, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed)
+    return evaluate_row(fresh, focus_uid, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed)
 
 
 def main():
@@ -401,7 +401,7 @@ def main():
     focus_uid = str(a.focus_user_id)
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "team_improvement_dl")
-    v13 = load_module(SCRIPT / "run_trade_market_sweep_v13.py", "team_improvement_v13")
+    lineupopt = load_module(SCRIPT / "lineup_optimizer.py", "team_improvement_lineup_optimizer")
     rosteraware = load_module(SCRIPT / "roster_aware_trade.py", "team_improvement_roster")
     model_inputs = dl.load_model_inputs()
     simmod, league, rosters, users, players, season, projections, raw_schedule = model_inputs
@@ -410,14 +410,14 @@ def main():
 
     players_catalog, picks_catalog = asset_catalog(); catalog = {**players_catalog, **picks_catalog}
     raw = trade_candidates(focus_uid, catalog, max(1, a.trade_screen)) + waiver_candidates(focus_uid, players_catalog, model_inputs, max(1, a.waiver_screen))
-    screened = [evaluate_row(x, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline_quick, a.quick_sims, a.seed) for x in raw]
+    screened = [evaluate_row(x, focus_uid, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline_quick, a.quick_sims, a.seed) for x in raw]
     screened.sort(key=lambda x: (bool(x.get("actionable")), sf(x.get("team_improvement_score"))), reverse=True)
 
     confirm_n = min(max(0, a.confirm_top), len(screened))
     confirmed_ids = set(id(x) for x in screened[:confirm_n])
     if confirm_n and a.confirm_sims > a.quick_sims:
         baseline_deep = dl.simulate_from_lineups(simmod, league, rosters, users, raw_schedule, baseline_lineups, a.confirm_sims, a.seed)
-        confirmed = [rerun_candidate(x, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline_deep, a.confirm_sims, a.seed) for x in screened[:confirm_n]]
+        confirmed = [rerun_candidate(x, focus_uid, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline_deep, a.confirm_sims, a.seed) for x in screened[:confirm_n]]
         screened = confirmed + screened[confirm_n:]
         screened.sort(key=lambda x: (bool(x.get("actionable")), sf(x.get("team_improvement_score"))), reverse=True)
 
