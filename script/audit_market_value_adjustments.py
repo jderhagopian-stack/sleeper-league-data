@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the FSFFL market/value adjustment layer without changing outputs."""
+"""Audit the FSFFL market/value adjustment layer and governed de-duplication."""
 from __future__ import annotations
 
 import json
@@ -8,12 +8,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "script" / "build_fsffl_gm_engine.py"
+OVERRIDES = ROOT / "script" / "nonprojection_high_priority_overrides.py"
 REGISTRY = ROOT / "data" / "model_parameter_registry.json"
 OUT = ROOT / "data" / "audit" / "market_value_adjustments_audit.json"
 
 
 def main() -> None:
     text = ENGINE.read_text(encoding="utf-8")
+    override_text = OVERRIDES.read_text(encoding="utf-8")
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     params = {p["id"]: p for p in registry.get("parameters", [])}
 
@@ -29,9 +31,17 @@ def main() -> None:
             '"trend_30_day": entry.get("trend30Day")' in text
             and "def market_momentum_adjustment" in text
         ),
-        "market_trend_reapplied_to_anchor": (
+        "native_market_trend_repricing_path_present": (
             "mom_adj, mom_meta = market_momentum_adjustment(asset)" in text
             and "base * mult * (1.0 + perf_adj + football_adj)" in text
+        ),
+        "governed_market_trend_incremental_value_removed": (
+            "diagnostic_only_market_momentum" in override_text
+            and 'meta["incremental_adjustment_authorized"] = False' in override_text
+            and "return 0.0, meta" in override_text
+        ),
+        "market_trend_counterfactual_preserved_as_diagnostic": (
+            'meta["proposed_incremental_adjustment_diagnostic"]' in override_text
         ),
         "performance_overlay_present": "performance_adjustment(asset, performance, baselines)" in text,
         "usage_overlay_present": "usage_adjustment(asset, usage, snaps)" in text,
@@ -70,49 +80,50 @@ def main() -> None:
             "evidence_tier": consolidation.get("evidence_tier"),
             "observation": (
                 "The prior rank-tier curve repriced the FantasyCalc market anchor using FantasyCalc's own "
-                "overall rank. That same-source transformation has been removed. Rank can remain descriptive, "
-                "but no second premium or discount is applied unless future residual out-of-sample evidence "
-                "demonstrates a stable league-specific effect beyond the market anchor."
+                "overall rank. That same-source transformation remains inactive."
             ),
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
         {
             "id": "MARKET-MOMENTUM-DOUBLE-COUNT-001",
-            "status": "POTENTIAL_SAME_SOURCE_SIGNAL_REUSE",
+            "status": "STRUCTURALLY_DEDUPLICATED_DIAGNOSTIC_ONLY",
             "evidence_tier": market_momentum.get("evidence_tier"),
             "observation": (
-                "FantasyCalc trend30Day is derived from the same market source whose current value is already the anchor, "
-                "then is normalized and reapplied through football_intelligence_adjustment. The current price can already "
-                "embed the information that caused the move, so the trend overlay requires an incremental time-ordered "
-                "test beyond current market value alone before it can be treated as evidence-improving."
+                "FantasyCalc trend30Day is derived from the same market source whose current value is already the anchor. "
+                "No archived time-ordered evidence currently demonstrates incremental predictive value after conditioning "
+                "on today's price. The governed runtime therefore retains the trend and the former proposed adjustment as "
+                "diagnostics, but gives the market-momentum overlay zero incremental valuation weight."
             ),
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
         {
             "id": "MARKET-OVERLAY-CORRELATION-001",
-            "status": "ABLATION_REQUIRED",
+            "status": "ABLATION_REQUIRED_FOR_REMAINING_INDEPENDENT_OVERLAYS",
             "evidence_tier": gm_config.get("evidence_tier"),
             "observation": (
-                "Recent performance, usage/snap trend, injury status, manual news, and market momentum can describe "
-                "overlapping information. A total clamp bounds leverage but does not establish independent predictive value. "
-                "Family-by-family and grouped ablations are required before promotion."
+                "Recent performance, usage/snap trend, injury status and manual news can still describe overlapping "
+                "football information. A total clamp bounds leverage but does not establish independent predictive value. "
+                "Family-by-family and grouped ablations remain required before promotion."
             ),
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
     ]
 
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
             "same_source_rank_repricing_is_removed": True,
-            "same_source_market_trend_requires_incremental_validation": True,
+            "same_source_market_trend_incremental_value_is_removed": True,
+            "market_trend_remains_available_as_diagnostic": True,
+            "market_trend_reintroduction_requires_temporal_holdout_improvement": True,
             "bounded_adjustment_is_not_evidence_of_correctness": True,
             "correlated_overlay_families_require_ablation": True,
             "promotion_requires_temporal_holdout_improvement": True,
+            "new_coefficient_introduced": False,
         },
         "runtime_markers": runtime,
         "registry_missing_required_families": missing_registry,
