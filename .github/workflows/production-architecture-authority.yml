@@ -18,10 +18,14 @@ jobs:
           python-version: '3.12'
       - name: Audit production architecture authority
         run: python script/audit_production_architecture_authority.py
-      - name: Upload architecture audit
+      - name: Audit version dependency freshness
+        run: python script/audit_version_dependency_freshness.py
+      - name: Upload architecture audits
         uses: actions/upload-artifact@v4
         with:
-          name: production-architecture-authority-audit
-          path: data/audit/production_architecture_authority_audit.json
+          name: production-architecture-authority-audits
+          path: |
+            data/audit/production_architecture_authority_audit.json
+            data/audit/version_dependency_freshness_audit.json
           if-no-files-found: error
           retention-days: 14
