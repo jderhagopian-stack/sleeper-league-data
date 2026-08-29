@@ -130,7 +130,7 @@ def roster_with_selected_cuts(dl, hypothetical, touched, resolutions, chosen_pro
     return out, actions
 
 
-def candidate_result(dl, v13, teamlab, simmod, league, hypothetical, touched, resolutions,
+def candidate_result(dl, lineupopt, teamlab, simmod, league, hypothetical, touched, resolutions,
                      candidate_uid, candidate_profile, fixed_profiles, users, players, projections,
                      raw_schedule, baseline_lineups, baseline_idx, sims, seed):
     chosen = dict(fixed_profiles)
@@ -138,7 +138,7 @@ def candidate_result(dl, v13, teamlab, simmod, league, hypothetical, touched, re
     candidate_rosters, candidate_cut_actions = roster_with_selected_cuts(
         dl, hypothetical, touched, resolutions, chosen
     )
-    lineups, _ = v13.fast_reoptimize_touched_lineups(
+    lineups, _ = lineupopt.fast_reoptimize_touched_lineups(
         dl, simmod, baseline_lineups, candidate_rosters, touched,
         league, users, players, projections
     )
@@ -169,7 +169,7 @@ def candidate_result(dl, v13, teamlab, simmod, league, hypothetical, touched, re
     }
 
 
-def optimize_forced_cuts(dl, v13, teamlab, simmod, league, hypothetical, touched, resolutions,
+def optimize_forced_cuts(dl, lineupopt, teamlab, simmod, league, hypothetical, touched, resolutions,
                          users, players, projections, raw_schedule, baseline_lineups,
                          args, baseline_full):
     """Simulate up to three prescreened cuts only when a trade requires one."""
@@ -196,7 +196,7 @@ def optimize_forced_cuts(dl, v13, teamlab, simmod, league, hypothetical, touched
         fixed = dict(chosen_profiles)
         for profile in shortlist:
             screened.append(candidate_result(
-                dl, v13, teamlab, simmod, league, hypothetical, touched, resolutions,
+                dl, lineupopt, teamlab, simmod, league, hypothetical, touched, resolutions,
                 uid, profile, fixed, users, players, projections, raw_schedule,
                 baseline_lineups, screen_bidx, screen_sims, args.seed
             ))
@@ -211,7 +211,7 @@ def optimize_forced_cuts(dl, v13, teamlab, simmod, league, hypothetical, touched
                 full_bidx = dl.team_index(baseline_full)
                 for row in screened[:2]:
                     confirmed.append(candidate_result(
-                        dl, v13, teamlab, simmod, league, hypothetical, touched, resolutions,
+                        dl, lineupopt, teamlab, simmod, league, hypothetical, touched, resolutions,
                         uid, row["profile"], fixed, users, players, projections, raw_schedule,
                         baseline_lineups, full_bidx, int(args.sims), args.seed
                     ))
@@ -306,7 +306,7 @@ def main():
         raise ValueError("Trade Review 1.1 requires exactly two participant user ids")
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "trade_review_dl")
-    v13 = load_module(SCRIPT / "run_trade_market_sweep_v13.py", "trade_review_v13")
+    lineupopt = load_module(SCRIPT / "lineup_optimizer.py", "trade_review_lineup_optimizer")
     rosteraware = load_module(SCRIPT / "roster_aware_trade.py", "trade_review_roster")
     teamlab = load_module(SCRIPT / "run_team_improvement_lab.py", "trade_review_teamlab")
 
@@ -329,7 +329,7 @@ def main():
     )
 
     chosen_profiles, cut_selection_analysis = optimize_forced_cuts(
-        dl, v13, teamlab, simmod, league, hypothetical, touched, resolutions,
+        dl, lineupopt, teamlab, simmod, league, hypothetical, touched, resolutions,
         users, players, projections, raw_schedule, baseline_lineups, args, baseline
     )
 
@@ -349,7 +349,7 @@ def main():
         resolutions[uid] = rr
 
     effective_actions = list(actions) + list(cut_actions)
-    hypothetical_lineups, reoptimized = v13.fast_reoptimize_touched_lineups(
+    hypothetical_lineups, reoptimized = lineupopt.fast_reoptimize_touched_lineups(
         dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
     )
     post = dl.simulate_from_lineups(
