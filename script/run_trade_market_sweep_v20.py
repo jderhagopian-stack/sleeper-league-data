@@ -26,6 +26,7 @@ V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 V18_PATH = Path("script/run_trade_market_sweep_v18.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.14"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
+HIGH_PRIORITY_OVERRIDES = SCRIPT / "nonprojection_high_priority_overrides.py"
 
 
 def load_module(path: Path, name: str):
@@ -99,7 +100,8 @@ def state_aware_blended_negotiation_score(row):
     return out
 
 
-def install_engine_upgrade(engine, overlay):
+def install_engine_upgrade(engine, overlay, high_priority):
+    high_priority.install(engine)
     original_import = engine.import_decision_lab
     def upgraded_import_decision_lab(): return overlay.install(original_import())
     engine.import_decision_lab = upgraded_import_decision_lab
@@ -116,6 +118,7 @@ def output_path_from_argv():
 def main():
     v19 = load_module(V19_PATH, "market_sweep_v19_for_v114")
     overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v114")
+    high_priority = load_module(HIGH_PRIORITY_OVERRIDES, "nonprojection_high_priority_overrides_for_v114")
     original_v19_loader = v19.load_module
     def patched_v19_loader(path: Path, name: str):
         mod = original_v19_loader(path, name)
@@ -123,7 +126,7 @@ def main():
             original_v13_loader = mod.load_module
             def patched_v13_loader(base_path: Path, base_name: str):
                 engine = original_v13_loader(base_path, base_name)
-                if Path(base_path) == mod.BASE_ENGINE: install_engine_upgrade(engine, overlay)
+                if Path(base_path) == mod.BASE_ENGINE: install_engine_upgrade(engine, overlay, high_priority)
                 return engine
             mod.load_module = patched_v13_loader
         elif Path(path) == V18_PATH:
@@ -136,7 +139,7 @@ def main():
     if output and output.exists():
         report = json.loads(output.read_text(encoding="utf-8")); report["model_version"] = MODEL_VERSION
         policy = report.setdefault("policy", {})
-        policy.update({"focal_post_trade_gm_profiles_recomputed": True, "all_competition_classifications_state_aware": True, "continuous_state_weighting": True, "state_aware_objective_weighted_ranking": True, "final_negotiation_ranking_uses_state_aware_post_sim_score": True, "incoming_assets_use_focal_post_trade_profile": True, "seller_profile_not_used_as_focal_strategic_value": True, "historical_calibration_runs_during_interactive_query": False, "runtime_weight_resolution_reads_precomputed_artifacts_only": True, "calibration_fallback_enabled": True, "negotiation_plausibility_separate_from_focal_strategic_value": True})
+        policy.update({"focal_post_trade_gm_profiles_recomputed": True, "all_competition_classifications_state_aware": True, "continuous_state_weighting": True, "state_aware_objective_weighted_ranking": True, "final_negotiation_ranking_uses_state_aware_post_sim_score": True, "incoming_assets_use_focal_post_trade_profile": True, "seller_profile_not_used_as_focal_strategic_value": True, "historical_calibration_runs_during_interactive_query": False, "runtime_weight_resolution_reads_precomputed_artifacts_only": True, "calibration_fallback_enabled": True, "negotiation_plausibility_separate_from_focal_strategic_value": True, "player_hold_premium_single_incremental_path": True, "own_pick_control_bonus_incremental_value_authorized": False})
         current_strategic = (((report.get("current_offer_evaluation") or {}).get("simulation") or {}).get("strategic") or {}); wr = current_strategic.get("weight_resolution") or {}
         report["state_weighting"] = {"model_version": wr.get("calibration_model_version"), "calibration_status": wr.get("calibration_status"), "runtime_source": wr.get("runtime_source"), "objective_state": current_strategic.get("objective_state"), "objective_weights": current_strategic.get("objective_weights"), "inputs": wr.get("inputs"), "adjustments": wr.get("adjustments")}
         report.setdefault("simulation", {})["execution_path"] = "GM3_continuous_state_weights_plus_post_trade_profile_recompute_plus_state_aware_negotiation_ranking_plus_fast_decision_lab"
