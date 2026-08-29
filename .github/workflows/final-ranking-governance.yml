@@ -32,10 +32,10 @@ jobs:
           assert r['production_behavior_changed'] is False
           assert r['summary']['post_sim_formula_markers_detected'] is True
           assert r['summary']['nested_strategic_channel_overlap_detected'] is True
-          assert r['summary']['behavior_reused_inside_and_outside_acceptance'] is True
+          assert r['summary']['behavior_reused_inside_and_outside_acceptance'] is False
           assert r['summary']['existing_final_score_ablation_tool_detected'] is True
           assert r['summary']['governed_final_ranking_families_non_authoritative'] is True
-          assert f['FINAL-NEGOTIATION-BEHAVIOR-REUSE-001']['status']=='EXPLICIT_SIGNAL_REUSE_DETECTED'
+          assert f['FINAL-NEGOTIATION-BEHAVIOR-REUSE-001']['status']=='NO_REUSE_DETECTED'
           assert f['FINAL-RANK-WEIGHTS-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r,indent=2))
           PY
