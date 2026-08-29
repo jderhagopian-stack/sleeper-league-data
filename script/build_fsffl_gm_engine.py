@@ -233,6 +233,35 @@ def fetch_fantasycalc_markets() -> Dict[str, Any]:
         )
 
 
+def market_position_coverage(market: Dict[str, Any]) -> Dict[str, Any]:
+    """Expose when the external market cannot value a league-required position."""
+    required = set(LEAGUE_RULES["positions"])
+    dynasty_positions = {
+        normalize_position(row.get("position"))
+        for row in (market.get("dynasty") or [])
+        if row.get("position")
+    }
+    redraft_positions = {
+        normalize_position(row.get("position"))
+        for row in (market.get("redraft") or [])
+        if row.get("position")
+    }
+    missing_dynasty = sorted(required - dynasty_positions)
+    missing_redraft = sorted(required - redraft_positions)
+    return {
+        "required_positions": sorted(required),
+        "dynasty_positions_available": sorted(dynasty_positions),
+        "redraft_positions_available": sorted(redraft_positions),
+        "missing_dynasty_positions": missing_dynasty,
+        "missing_redraft_positions": missing_redraft,
+        "authoritative_position_coverage": not (missing_dynasty or missing_redraft),
+        "policy": (
+            "Missing required positions must be treated as unsupported valuation coverage, "
+            "not silently interpreted as zero-value evidence."
+        ),
+    }
+
+
 def build_market_indexes(market: Dict[str, Any]):
     out = {}
     for kind in ("dynasty", "redraft"):
@@ -413,7 +442,8 @@ def _perf_points(row):
     return 0.0
 
 
-def load_recent_performance(active_season=2026):
+def load_recent_performance(active_season=None):
+    active_season = int(active_season or LEAGUE_RULES["season"])
     """Load current-season FSFFL weekly production when available."""
     paths = [
         DATA / "stats" / "fsffl" / str(active_season) / "player_weekly_fsffl.json",
@@ -553,7 +583,8 @@ def _read_csv_url(url: str, gzipped: bool = False) -> List[Dict[str, str]]:
     return list(csv.DictReader(io.StringIO(text_data)))
 
 
-def fetch_nflverse_usage(active_season: int = 2026) -> Dict[str, Dict[str, Any]]:
+def fetch_nflverse_usage(active_season: int | None = None) -> Dict[str, Dict[str, Any]]:
+    active_season = int(active_season or LEAGUE_RULES["season"])
     """
     Fetch weekly player stats and derive role/usage signals:
       - carries
@@ -632,7 +663,8 @@ def fetch_nflverse_usage(active_season: int = 2026) -> Dict[str, Dict[str, Any]]
     return out
 
 
-def fetch_nflverse_snaps(active_season: int = 2026) -> Dict[str, Dict[str, Any]]:
+def fetch_nflverse_snaps(active_season: int | None = None) -> Dict[str, Dict[str, Any]]:
+    active_season = int(active_season or LEAGUE_RULES["season"])
     """
     Fetch game-level offensive snap counts. nflverse snap counts are polled
     multiple times per day during the season.
@@ -1568,6 +1600,13 @@ def base_main():
     profile_by_uid, _, _, _ = owner_maps(rosters, profiles)
 
     market = fetch_fantasycalc_markets()
+    market_coverage = market_position_coverage(market)
+    CONFIG["market_settings"]["position_coverage"] = market_coverage
+    if not market_coverage["authoritative_position_coverage"]:
+        CONFIG["notes"].append(
+            "External market coverage is incomplete for one or more league-required positions; "
+            "those positions are non-authoritative until a compatible valuation adapter is configured."
+        )
     market_idx = build_market_indexes(market)
     detected_pick_values = infer_fc_pick_values(market)
 
@@ -1580,10 +1619,10 @@ def base_main():
     owner_by_player = current_owner_by_player(rosters)
     starters = starter_sets(rosters)
 
-    performance = load_recent_performance(active_season=2026)
+    performance = load_recent_performance(active_season=LEAGUE_RULES["season"])
     performance_baselines = build_performance_baselines(performance, player_values)
-    usage = fetch_nflverse_usage(active_season=2026)
-    snaps = fetch_nflverse_snaps(active_season=2026)
+    usage = fetch_nflverse_usage(active_season=LEAGUE_RULES["season"])
+    snaps = fetch_nflverse_snaps(active_season=LEAGUE_RULES["season"])
     manual_intelligence = load_manual_football_intelligence()
 
     team_profiles = build_team_strengths(rosters, player_values, profile_by_uid)
