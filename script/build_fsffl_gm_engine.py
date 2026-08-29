@@ -145,6 +145,19 @@ def clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
 
 
+def recent_trade_count(trade_profile: Dict[str, Any], season: int | None = None, window_years: int = 2) -> float:
+    """Rolling recent-trade count derived from season-keyed history."""
+    season = int(season or LEAGUE_RULES["season"])
+    by_season = trade_profile.get("trades_by_season") or {}
+    if by_season:
+        return sum(
+            safe_float(by_season.get(str(y)))
+            for y in range(season - max(window_years - 1, 0), season + 1)
+        )
+    # Compatibility only for older precomputed behavior artifacts.
+    return safe_float(trade_profile.get("recent_trades_2025_2026"))
+
+
 def safe_float(x: Any, default: float = 0.0) -> float:
     try:
         return float(x)
@@ -1487,7 +1500,7 @@ def build_hsg_trade_opportunities(
 
         seller_trade = profile_trade.get(seller_uid, {})
         activity = safe_float(seller_trade.get("total_trades"))
-        recent = safe_float(seller_trade.get("recent_trades_2025_2026"))
+        recent = recent_trade_count(seller_trade)
         activity_score = clamp((0.6 * min(activity / 40, 1) + 0.4 * min(recent / 15, 1)), 0, 1)
 
         # Generate 1-, 2- and selected 3-asset packages.
@@ -2127,7 +2140,7 @@ def build_hsg_trade_opportunities_v11(
 
         seller_trade = profile_trade.get(seller_uid, {})
         activity = safe_float(seller_trade.get("total_trades"))
-        recent = safe_float(seller_trade.get("recent_trades_2025_2026"))
+        recent = recent_trade_count(seller_trade)
         activity_score = clamp(
             0.6 * min(activity / 40, 1)
             + 0.4 * min(recent / 15, 1),
@@ -3223,7 +3236,7 @@ def build_owner_calibration_report():
     for p in profiles:
         tp = p.get("trade_profile") or {}
         total = safe_float(tp.get("total_trades"))
-        recent = safe_float(tp.get("recent_trades_2025_2026"))
+        recent = recent_trade_count(tp)
         initiated = safe_float(tp.get("initiated_trades"))
         multi = safe_float(tp.get("multi_asset_trades"))
         confidence = (
@@ -4374,7 +4387,7 @@ def _u_activity_score(uid, ctx):
     p = ctx["profile_by_uid"].get(str(uid), {})
     tp = p.get("trade_profile") or {}
     total = safe_float(tp.get("total_trades"))
-    recent = safe_float(tp.get("recent_trades_2025_2026"))
+    recent = recent_trade_count(tp)
     return clamp(
         0.45 * min(total / 40.0, 1.0)
         + 0.30 * min(recent / 15.0, 1.0)
