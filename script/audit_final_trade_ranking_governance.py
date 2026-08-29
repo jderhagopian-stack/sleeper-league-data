@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Governance audit for final trade-ranking formulas and signal overlap.
+"""Govern final trade-ranking composition after structural de-duplication.
 
-This is a structural audit only. It does not retune production coefficients or
-change rankings. It identifies nested/reused channels and requires ablations or
-independent validation before any final-ranking coefficient is promoted.
+The active final score must use primitive evidence channels. Composite GM
+summaries may remain available for explanation, but they must not receive a
+second positive weight on top of their underlying value families.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
 OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.0"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.0"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -30,22 +30,33 @@ def main():
     ablation=ABLATION.read_text(encoding="utf-8") if ABLATION.exists() else ""
     registry=load(REGISTRY,{}) or {}
 
-    post_score_markers=all(x in v20 for x in [
+    primitive_formula=all(x in v20 for x in [
       'current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points',
-      'future_block = dynasty + 0.30 * break_glass + 0.18 * optionality',
+      'future_block = dynasty + 0.18 * optionality',
       'liquidity_block = 0.25 * liquidity',
-      'resilience_block = 0.15 * strategic + 0.08 * break_glass',
+      'resilience_block = 0.15 * resilience',
+      'resilience = sf(s.get("resilience_value_delta"))',
       '- current_mult * 12000.0 * externality + 1200.0 * plausibility',
-      'if row.get("plausibility") == "LOW": score -= 3000.0',
-      'elif row.get("plausibility") == "THEORETICAL_ONLY": score -= 6000.0',
     ])
-    structural_overlap=(
-      'future_block = dynasty + 0.30 * break_glass + 0.18 * optionality' in v20
-      and 'resilience_block = 0.15 * strategic + 0.08 * break_glass' in v20
-      and 'strategic_value_delta' in overlay
-      and 'liquidity_value_delta' in overlay
-      and 'optionality_value_delta' in overlay
+    old_nested_formula=any(x in v20 for x in [
+      'future_block = dynasty + 0.30 * break_glass + 0.18 * optionality',
+      'resilience_block = 0.15 * strategic + 0.08 * break_glass',
+    ])
+    direct_resilience=all(x in overlay for x in [
+      '"replacement_resilience_score"',
+      '"resilience_value_delta"',
+      '"composite_channels_diagnostic_only": ["strategic_value_delta", "break_glass_delta"]',
+    ])
+    composites_still_reported=(
+      '"strategic_value_delta"' in overlay and '"break_glass_delta"' in overlay
     )
+    composites_active_in_final=(
+      'strategic = sf(s.get("strategic_value_delta"))' in v20
+      or 'break_glass = sf(s.get("break_glass_delta"))' in v20
+      or '0.30 * break_glass' in v20
+      or '0.15 * strategic' in v20
+    )
+
     behavior_reuse=all(x in v23 for x in [
       'acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0, 1)',
       'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0, 1)',
@@ -56,64 +67,82 @@ def main():
       'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0.0, 1.0)',
       'score = .50 * strategic + .30 * acceptance + .20 * behavior',
     ])
-    ablation_ready=all(x in ablation for x in [
+
+    prior_ablation_evidence=all(x in ablation for x in [
       'score_without_strategic_composite',
       'score_without_repeated_break_glass',
-      'score_without_direct_liquidity',
       'score_without_all_three_overlap_channels',
       'historical_validation": False',
       'coefficient_tuning": False',
     ])
+
     params={str(x.get("id")):x for x in (registry.get("parameters") or [])}
-    # Registry naming evolved across versions; require at least one governed
-    # final-ranking/decision family and that none claims authoritative empirical use.
-    final_rows=[x for x in params.values() if any(tok in str(x.get("component") or "").lower() for tok in ("ranking","decision lab","trade discovery"))]
-    registry_non_authoritative=bool(final_rows) and all(x.get("authoritative_use") is False for x in final_rows)
+    trade_score=params.get("TRADE-SCORE-001",{})
+    registry_ok=(
+      trade_score.get("authoritative_use") is False
+      and trade_score.get("status")=="PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL"
+    )
 
     findings=[
       {
         "id":"FINAL-SCORE-OVERLAP-001","severity":"HIGH",
-        "status":"NESTED_CHANNELS_ABLATION_REQUIRED" if structural_overlap else "IMPLEMENTATION_DRIFT",
-        "observation":"The post-simulation score separately consumes dynasty, break-glass, optionality, liquidity and a strategic composite derived from GM profiles. Break-glass is explicitly present in both future and resilience blocks, and strategic/liquidity/optionality originate from the same reprofiled asset bundle. These channels require individual and grouped ablations; additive inclusion is not evidence of incremental value.",
+        "status":"STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS" if primitive_formula and not composites_active_in_final else "UNRESOLVED",
+        "observation":"The final post-simulation score now uses simulated current-season impact, dynasty market delta, optionality, liquidity and direct roster-replacement resilience. strategic_value_delta and break_glass_delta remain reportable diagnostics but receive zero incremental final-score weight.",
         "authoritative_incremental_claim_allowed":False,
       },
       {
-        "id":"FINAL-NEGOTIATION-BEHAVIOR-REUSE-001","severity":"CRITICAL" if behavior_reuse or same_reuse_v20 else "INFO",
-        "status":"EXPLICIT_SIGNAL_REUSE_DETECTED" if behavior_reuse or same_reuse_v20 else "NO_REUSE_DETECTED",
-        "observation":"Negotiation ranking consumes heuristic acceptance fit after owner behavior has already modified that fit, then separately adds owner_behavior.adjustment again. This is explicit signal reuse. No new weights should be guessed to compensate; the duplicate path must be removed or one component rebuilt from a behavior-free acceptance base only after regression/ablation testing.",
-        "authoritative_incremental_claim_allowed":False,
+        "id":"FINAL-SCORE-RESILIENCE-001","severity":"INFO",
+        "status":"DIRECT_ROSTER_REPLACEMENT_CHANNEL_ACTIVE" if direct_resilience else "MISSING",
+        "observation":"Resilience is sourced from the team-specific lineup reoptimization signal rather than from the broader strategic composite.",
+        "authoritative_long_run_war_claim_allowed":False,
       },
       {
         "id":"FINAL-RANK-WEIGHTS-001","severity":"HIGH",
         "status":"PROVISIONAL_WEIGHTS_NOT_EMPIRICALLY_IDENTIFIED",
-        "observation":"The 50/30/20 negotiation blend and large post-simulation scaling constants are operational heuristics. Software regressions can preserve behavior, but empirical promotion requires a defensible outcome/choice target and time-ordered validation. The current accepted/rejected offer denominator is unavailable.",
+        "observation":"Structural de-duplication does not validate the surviving scaling constants. Those remain provisional until a defensible historical ranking/choice target supports time-ordered out-of-sample calibration.",
         "authoritative_empirical_claim_allowed":False,
       },
+      {
+        "id":"FINAL-NEGOTIATION-BEHAVIOR-REUSE-001","severity":"CRITICAL" if behavior_reuse or same_reuse_v20 else "INFO",
+        "status":"EXPLICIT_SIGNAL_REUSE_DETECTED" if behavior_reuse or same_reuse_v20 else "NO_REUSE_DETECTED",
+        "observation":"Owner behavior must not receive a second positive ranking weight after it has already modified acceptance fit.",
+        "authoritative_incremental_claim_allowed":False,
+      },
     ]
+
     payload={
       "model_version":MODEL_VERSION,
-      "production_behavior_changed":False,
+      "production_behavior_changed":True,
       "policy":{
+        "primitive_channels_only_in_final_score":True,
+        "composite_gm_channels_are_diagnostic_only":True,
         "do_not_retune_to_preserve_visual_rankings":True,
-        "nested_score_channels_require_grouped_ablation":True,
-        "explicit_signal_reuse_must_not_be_compensated_with_guessed_weights":True,
-        "software_regression_is_not_empirical_validation":True,
+        "structural_deduplication_is_not_empirical_calibration":True,
+        "surviving_weights_remain_provisional":True,
         "final_rank_coefficient_promotion_requires_out_of_sample_improvement":True,
-        "behavioral_acceptance_double_count_requires_structural_resolution":True,
       },
       "summary":{
-        "post_sim_formula_markers_detected":post_score_markers,
-        "nested_strategic_channel_overlap_detected":structural_overlap,
+        "primitive_post_sim_formula_detected":primitive_formula,
+        "old_nested_formula_detected":old_nested_formula,
+        "nested_strategic_channel_overlap_detected":composites_active_in_final,
+        "direct_roster_replacement_resilience_detected":direct_resilience,
+        "composite_channels_still_available_for_diagnostics":composites_still_reported,
+        "prior_grouped_ablation_evidence_preserved":prior_ablation_evidence,
         "behavior_reused_inside_and_outside_acceptance":bool(behavior_reuse or same_reuse_v20),
-        "existing_final_score_ablation_tool_detected":ablation_ready,
-        "governed_final_ranking_families_non_authoritative":registry_non_authoritative,
+        "trade_score_registry_consistent":registry_ok,
       },
       "findings":findings,
     }
     (OUT/"final_trade_ranking_governance_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
-    if not post_score_markers: raise SystemExit("Final post-simulation formula markers drifted")
-    if not ablation_ready: raise SystemExit("Final-score grouped ablation tooling is incomplete")
-    if not registry_non_authoritative: raise SystemExit("Final-ranking governance registry classification is incomplete or authoritative")
+    if not primitive_formula or old_nested_formula or composites_active_in_final:
+        raise SystemExit("Final score is not cleanly composed from primitive channels")
+    if not direct_resilience:
+        raise SystemExit("Direct roster-replacement resilience is missing")
+    if not prior_ablation_evidence:
+        raise SystemExit("Prior grouped ablation evidence is no longer available")
+    if not registry_ok:
+        raise SystemExit("TRADE-SCORE-001 governance drifted")
 
-if __name__=="__main__": main()
+if __name__=="__main__":
+    main()
