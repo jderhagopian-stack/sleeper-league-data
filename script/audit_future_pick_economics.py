@@ -60,10 +60,12 @@ def observed_market_pick_cells(market):
         year = int(ym.group(1))
         rnd = int(rm.group(1))
         low = name.lower()
+        explicit_tier = any(x in low for x in ("early", "mid", "late"))
         tier = "early" if "early" in low else "late" if "late" in low else "mid"
         value = float(row.get("value") or 0.0)
-        if value > 0:
-            cells[(year, tier, rnd)] = value
+        key = (year, tier, rnd)
+        if value > 0 and (key not in cells or explicit_tier):
+            cells[key] = value
     return cells
 
 
