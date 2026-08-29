@@ -135,11 +135,16 @@ def apply_row(row, report, ri):
     return row
 
 
+def recompute_negotiation_ranking(row, ranker):
+    """Compatibility adapter to the version-neutral shared ranking helper."""
+    return ranker.recompute_from_row(row)
+
+
 def refresh_negotiation_ranking(row, ranker):
     """Reuse the canonical state-aware negotiation transform after overlay."""
     if row and row.get("buyer_rationality"):
         row["negotiation_ranking_pre_roster_interaction"] = row.get("negotiation_ranking")
-        row["negotiation_ranking"] = ranker.recompute_from_row(row)
+        row["negotiation_ranking"] = recompute_negotiation_ranking(row, ranker)
     return row
 
 
