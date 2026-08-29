@@ -17,7 +17,7 @@ ROOT=Path(__file__).resolve().parents[1]
 V21=ROOT/"script"/"run_trade_market_sweep_v21.py"
 V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
 RUNNER=V23
-MODEL_VERSION="FSFFL-Acceptance-Gate-Sensitivity-2.0"
+MODEL_VERSION="FSFFL-Acceptance-Gate-Sensitivity-2.1"
 
 
 def replace_required(text,old,new):
@@ -32,11 +32,11 @@ def gate_variant(v21,v23,allowed_expr):
         '    for row in viable:\n        fam = negotiation_family_key(row)',
         f'    for row in viable:\n        if row.get("acceptance_likelihood") not in {allowed_expr}:\n            continue\n        fam = negotiation_family_key(row)',
     )
-    s23=replace_required(
-        v23,
-        '    top = list(report.get("top_5_alternatives") or report.get("ranked_finalists") or [])',
-        f'    top = [r for r in list(report.get("top_5_alternatives") or report.get("ranked_finalists") or []) if r.get("acceptance_likelihood") in {allowed_expr}]',
-    )
+    # v23 intentionally uses compact formatting; inject the counterfactual gate
+    # at the semantic top-option construction rather than depending on spaces.
+    old='    top=list(report.get(\'top_5_alternatives\') or report.get(\'ranked_finalists\') or [])'
+    new=f'    top=[r for r in list(report.get(\'top_5_alternatives\') or report.get(\'ranked_finalists\') or []) if r.get(\'acceptance_likelihood\') in {allowed_expr}]'
+    s23=replace_required(v23,old,new)
     return s21,s23
 
 
@@ -136,7 +136,7 @@ def main():
             "recommended_action_sensitive_if_band_gate_reintroduced":action_sensitive,
             "top_option_sensitive_if_band_gate_reintroduced":top_sensitive,
             "production_recommendation_empirically_authoritative":False,
-            "reason":"Acceptance thresholds lack an accepted/rejected opportunity denominator. Production therefore uses acceptance fit for ranking rather than eligibility; this audit only measures the leverage the old gate would have if restored.",
+            "reason":"Acceptance thresholds lack an accepted/rejected opportunity denominator. Production therefore reports acceptance fit separately from trade quality; this audit only measures the leverage the old gate would have if restored.",
         },
     }
     out=Path(args.output)
