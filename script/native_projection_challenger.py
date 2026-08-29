@@ -5,15 +5,10 @@ This module intentionally starts with a transparent position-specific ridge
 regression rather than a complex ML model. It predicts underlying football
 statistics, never league fantasy points. League scoring belongs downstream.
 
-Input CSV:
-  season, player_id, player_name, position, <features...>, <targets...>
-
-Rows represent information available at the end of a season. The model learns
-to predict the NEXT season target columns. Therefore a row for season 2022 uses
-2022 information to predict the player's 2023 outcome.
-
-For a real dataset, build lagged rows before calling this model. The script can
-also run a deterministic synthetic self-test.
+Rows represent information available before the target season. The model is
+always evaluated on a later season than its training data. In addition to a
+population-mean sanity baseline, any target named ``next_X`` is compared with
+its natural prior-year persistence baseline ``lag1_X`` when that feature exists.
 """
 from __future__ import annotations
 
@@ -21,9 +16,8 @@ import argparse
 import csv
 import json
 import math
-from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Iterable, List, Sequence, Tuple
 
 DEFAULT_ALPHAS = (0.01, 0.1, 1.0, 10.0, 100.0)
 
@@ -83,7 +77,7 @@ class RidgeModel:
                 xty[i] += row[i] * target
                 for j in range(q):
                     xtx[i][j] += row[i] * row[j]
-        for j in range(1, q):  # do not regularize intercept
+        for j in range(1, q):
             xtx[j][j] += self.alpha
         self.coef = _solve(xtx, xty)
         return self
@@ -106,6 +100,7 @@ def choose_alpha_temporally(
     target: str,
     alphas: Iterable[float] = DEFAULT_ALPHAS,
 ) -> Tuple[float, dict]:
+    alphas = tuple(alphas)
     seasons = sorted({int(r["season"]) for r in rows})
     if len(seasons) < 3:
         return 1.0, {"method": "default_insufficient_seasons", "alpha": 1.0}
@@ -160,17 +155,33 @@ def temporal_holdout(
         yt = [float(r[target]) for r in test]
         model = RidgeModel(alpha).fit(Xtr, ytr)
         pred = model.predict(Xt)
-        baseline = [_mean(ytr)] * len(yt)
-        report["targets"][target] = {
+        mean_baseline = [_mean(ytr)] * len(yt)
+        model_mae = mae(yt, pred)
+        mean_mae = mae(yt, mean_baseline)
+        result = {
             "alpha": alpha,
             "alpha_selection": alpha_diag,
-            "model_mae": mae(yt, pred),
-            "mean_train_baseline_mae": mae(yt, baseline),
+            "model_mae": model_mae,
+            "mean_train_baseline_mae": mean_mae,
             "improvement_vs_mean_baseline_pct": (
-                100.0 * (mae(yt, baseline) - mae(yt, pred)) / mae(yt, baseline)
-                if mae(yt, baseline) > 1e-12 else 0.0
+                100.0 * (mean_mae - model_mae) / mean_mae if mean_mae > 1e-12 else 0.0
             ),
         }
+        suffix = target[5:] if target.startswith("next_") else None
+        persistence_feature = f"lag1_{suffix}" if suffix else None
+        if persistence_feature and all(persistence_feature in r for r in test):
+            persistence = [float(r[persistence_feature]) for r in test]
+            persistence_mae = mae(yt, persistence)
+            result.update({
+                "persistence_feature": persistence_feature,
+                "persistence_baseline_mae": persistence_mae,
+                "improvement_vs_persistence_pct": (
+                    100.0 * (persistence_mae - model_mae) / persistence_mae
+                    if persistence_mae > 1e-12 else 0.0
+                ),
+                "beats_persistence": model_mae < persistence_mae,
+            })
+        report["targets"][target] = result
     return report
 
 
@@ -181,25 +192,26 @@ def load_csv(path: Path) -> List[dict]:
 
 def self_test() -> dict:
     rows = []
-    # Synthetic signal: next outcome depends mostly on stable opportunity-like features.
     for season in range(2018, 2025):
         for i in range(24):
-            opp = 40 + i * 3 + (season - 2018) * 1.5
-            eff = 0.8 + (i % 5) * 0.05
-            target = 1.8 * opp + 8 * eff + ((i * 7 + season) % 9 - 4)
+            lag = 50 + i * 5 + (season - 2018) * 8
+            context = (i % 4) * 10
+            target = 0.55 * lag + 2.0 * context + 55 + ((i * 7 + season) % 7 - 3)
             rows.append({
                 "season": season,
                 "position": "WR",
-                "lag_volume": opp,
-                "lag_efficiency": eff,
+                "lag1_receiving_yards": lag,
+                "context": context,
                 "next_receiving_yards": target,
             })
     report = temporal_holdout(
-        rows, "WR", ["lag_volume", "lag_efficiency"], ["next_receiving_yards"]
+        rows, "WR", ["lag1_receiving_yards", "context"], ["next_receiving_yards"]
     )
     result = report["targets"]["next_receiving_yards"]
     assert report["holdout_season"] == 2024
     assert result["model_mae"] < result["mean_train_baseline_mae"]
+    assert result["model_mae"] < result["persistence_baseline_mae"]
+    assert result["beats_persistence"] is True
     assert result["alpha"] in DEFAULT_ALPHAS
     return {"status": "PASS", "report": report}
 
