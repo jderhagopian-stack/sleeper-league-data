@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "purpose": "Define the first league-agnostic FSFFL-native projection challenger. The model forecasts underlying football stat components first; fantasy scoring is applied later by league configuration.",
   "model_principles": {
     "league_agnostic": true,
@@ -30,13 +30,40 @@
     "games_and_games_started",
     "age_and_experience_when_available",
     "team_change_indicator_when_available",
-    "position_and_role_context"
+    "position_and_role_context",
+    "team_offensive_environment",
+    "coaching_and_playcaller_change",
+    "incoming_staff_historical_tendencies",
+    "preseason_team_strength_context"
   ],
+  "team_context_policy": {
+    "purpose": "Capture material changes in opportunity caused by playcalling, scheme, pace, personnel allocation, and expected game script without hard-coding coach-name adjustments.",
+    "candidate_inputs": [
+      "neutral_situation_pass_rate",
+      "early_down_pass_rate",
+      "plays_per_game_and_pace",
+      "red_zone_run_pass_tendency",
+      "qb_designed_run_rate",
+      "backfield_opportunity_concentration",
+      "wr_te_target_concentration",
+      "head_coach_change_indicator",
+      "offensive_coordinator_change_indicator",
+      "playcaller_change_indicator",
+      "quarterback_change_indicator",
+      "major_offensive_personnel_turnover",
+      "incoming_staff_prior_pass_run_tendencies",
+      "incoming_staff_prior_positional_usage_tendencies",
+      "preseason_available_team_strength_or_expected_point_differential"
+    ],
+    "shrinkage_rule": "Historical coach/playcaller tendencies must be shrunk toward league average when sample size is limited so one unusual personnel-driven season is not treated as permanent philosophy.",
+    "anti_leakage_rule": "For a target season, use only team-strength, coaching, personnel, and tendency information genuinely available before that season. Realized target-season wins, scoring margin, EPA, pass rate, or usage are prohibited as training features for that same forecast.",
+    "promotion_rule": "A team/coaching feature is retained only if it materially improves rolling temporal holdouts, uncertainty calibration, or an important projection component. Football plausibility alone is not sufficient."
+  },
   "v1_training_policy": {
     "estimator": "ridge_regression",
     "feature_standardization": true,
     "regularization": "selected only on training seasons",
-    "holdout": "latest season, with all earlier seasons used for training",
+    "holdout": "latest season, with all earlier seasons used for training; rolling-origin holdouts required before production promotion",
     "promotion_rule": "Do not replace production projections unless held-out evidence is materially better or comparably accurate with meaningfully lower dependency/complexity."
   },
   "data_rights": {
