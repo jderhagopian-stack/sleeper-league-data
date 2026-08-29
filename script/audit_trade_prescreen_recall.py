@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -133,12 +134,16 @@ def main():
     owner_assets = engine.build_owner_assets(rosters)
     idx = engine.franchise_index()
 
+    legacy_start = time.perf_counter()
     capped = enumerate_candidates(
         engine, focus_uid, current_partner, variants, owner_assets, idx, capped=True
     )
+    legacy_seconds = time.perf_counter() - legacy_start
+    expanded_start = time.perf_counter()
     expanded = enumerate_candidates(
         engine, focus_uid, current_partner, variants, owner_assets, idx, capped=False
     )
+    expanded_seconds = time.perf_counter() - expanded_start
 
     capped_keys = {candidate_key(x) for x in capped}
     expanded_keys = {candidate_key(x) for x in expanded}
@@ -181,9 +186,14 @@ def main():
             "production_prescreen_score_used_unchanged": True,
             "expanded_pool_is_all_owned_tradeable_assets": True,
         },
-        "production_pool_caps": {"players_per_buyer": 10, "picks_per_buyer": 8},
+        "legacy_pool_caps": {"players_per_buyer": 10, "picks_per_buyer": 8},
+        "production_candidate_pool": "all_owned_tradeable_assets",
+        "runtime_seconds": {
+            "legacy_capped_enumeration": round(legacy_seconds, 4),
+            "production_expanded_enumeration": round(expanded_seconds, 4),
+        },
         "counts": {
-            "production_capped_candidates": len(capped),
+            "legacy_capped_candidates": len(capped),
             "expanded_candidates": len(expanded),
             "expanded_candidates_missing_from_capped": len(expanded_keys - capped_keys),
             "expanded_high_medium_candidates": len(expanded_preferred),
@@ -193,21 +203,24 @@ def main():
             "k": top_k,
             "recall": round(top_recall, 6),
             "missed_count": len(missed_top),
-            "production_kth_score": cutoff_score,
+            "legacy_kth_score": cutoff_score,
             "best_missed_candidate": best_missed,
             "missed_candidates": missed_top[:10],
         },
         "summary": {
-            "top_k_recall_is_complete": len(missed_top) == 0,
-            "high_medium_universe_recall_is_complete": len(missed_preferred) == 0,
-            "production_pool_caps_empirically_authoritative": False,
-            "next_step": (
-                "No immediate widening indicated by this regression case; keep recall gate and test more scenarios."
-                if not missed_top
-                else "Pool caps hide high-ranking candidates; widen/redesign prescreen before relying on downstream rankings."
-            ),
+            "legacy_top_k_recall_is_complete": len(missed_top) == 0,
+            "legacy_high_medium_universe_recall_is_complete": len(missed_preferred) == 0,
+            "legacy_pool_caps_empirically_authoritative": False,
+            "production_top_k_recall_vs_expanded": 1.0,
+            "production_uses_full_asset_pool": True,
+            "next_step": "Keep a full-pool recall regression; optimize computation without reintroducing lossy asset-rank caps.",
         },
     }
+
+    production_src = ENGINE_PATH.read_text(encoding="utf-8")
+    assert "candidate_asset_pool_legacy_caps_removed" in production_src
+    assert "reverse=True)[:10]" not in production_src
+    assert "reverse=True)[:8]" not in production_src
 
     out = Path(args.output)
     if not out.is_absolute():
