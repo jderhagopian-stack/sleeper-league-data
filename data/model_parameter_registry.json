@@ -221,11 +221,11 @@
       ],
       "parameter_family": "future discount, tier multipliers, pick-slot scenarios, uncertainty growth and own-pick control",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current external dynasty pick anchors plus hard-coded GM 3.0 pick economics and scenario formulas",
-      "validation": "Required: temporally comparable FSFFL rookie-draft outcomes and contemporaneous dynasty-market backtest; separate expected-player-value uncertainty from market/optionality pricing",
-      "uncertainty": "material for future-heavy trades; future horizon currently does not independently broaden tier uncertainty while uncertainty can raise optionality",
-      "update_policy": "Annual versioned recalibration after rookie-draft and season outcomes; promote only on holdout improvement",
+      "status": "HEURISTIC_ACTIVE_UNCERTAINTY_VALUE_BONUS_REMOVED",
+      "source": "Current external dynasty pick anchors plus provisional pick-quality/scenario/liquidity transforms; forecast uncertainty is diagnostic and no longer directly rewarded as option value",
+      "validation": "Required: temporally comparable rookie-draft outcomes and contemporaneous dynasty-market backtest; separately identify expected player value, positive skew, market liquidity and forecast uncertainty rather than combining them by assumption.",
+      "uncertainty": "Material for future-heavy trades. Forecast uncertainty remains uncalibrated but no longer creates positive expected value by construction; quality, liquidity, own-pick control and fallback pick curves remain provisional.",
+      "update_policy": "Keep uncertainty diagnostic-only unless historical outcome/market evidence separately identifies an uncertainty or skew premium; recalibrate remaining pick transforms only on time-ordered evidence.",
       "downstream": [
         "asset value",
         "trade value",
@@ -233,7 +233,8 @@
         "alternate history"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Removed the prior +0.18*uncertainty optionality bonus. This is structural correction, not calibration of the remaining pick coefficients."
     },
     {
       "id": "PACKAGE-ECON-001",
