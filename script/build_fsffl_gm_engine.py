@@ -3594,7 +3594,7 @@ GM22 = {
     "model_version": "GM-2.2",
     "roster_size": LEAGUE_RULES["roster_size"],
     "package_weights": [1.0, 0.78, 0.62, 0.50, 0.42],
-    "extra_asset_slot_cost_pct": 0.035,
+    "extra_asset_slot_cost_pct": 0.0,
     "max_static_exit_premium_pct": 0.85,
     "max_replacement_relief_pct": 0.68,
     "rookie_optionality_bonus": 0.16,
@@ -4276,14 +4276,16 @@ def _u_package_effective_value(asset_ids, perspective_uid, ctx, profile_by_uid):
         total += eff
         details.append({"asset_id": aid, "raw_value": round(v,1), "weight": round(w,3), "effective_value": round(eff,1)})
 
-    if len(parts) > 1:
-        slot_cost = sum(v for v,_,_,_ in parts[1:]) * GM22["extra_asset_slot_cost_pct"]
-        total -= slot_cost
-    else:
-        slot_cost = 0.0
+    # Do not impose a generic percentage roster-slot penalty here. The
+    # canonical trade path legalizes the actual post-trade roster, forces any
+    # required incumbent cuts, and carries those cuts into simulation and
+    # strategic valuation. A second generic slot charge would count roster
+    # burden twice. The nonlinear package curve remains provisional.
+    slot_cost = 0.0
     return max(total, 0.0), {
         "parts": details,
-        "roster_slot_cost": round(slot_cost, 1),
+        "roster_slot_cost": 0.0,
+        "roster_slot_cost_source": "exact_downstream_roster_legalization",
         "effective_value": round(max(total,0.0), 1),
     }
 
