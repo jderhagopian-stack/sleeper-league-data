@@ -6,7 +6,9 @@ on:
       - 'script/build_historical_projection_benchmark_input.py'
       - 'script/benchmark_historical_projections.py'
       - 'script/benchmark_historical_projections_common_cohort.py'
+      - 'script/audit_projection_source_sustainability.py'
       - 'data/model_validation/historical_projection_source_inventory.json'
+      - 'data/model_validation/projection_source_candidate_registry.json'
       - '.github/workflows/historical-projection-benchmark.yml'
   workflow_dispatch:
 
@@ -23,10 +25,15 @@ jobs:
           python -m py_compile script/build_historical_projection_benchmark_input.py
           python -m py_compile script/benchmark_historical_projections.py
           python -m py_compile script/benchmark_historical_projections_common_cohort.py
+          python -m py_compile script/audit_projection_source_sustainability.py
       - name: Run deterministic benchmark regression tests
         run: |
           python script/build_historical_projection_benchmark_input.py --self-test
           python script/benchmark_historical_projections.py --self-test
           python script/benchmark_historical_projections_common_cohort.py --self-test
-      - name: Validate source inventory JSON
-        run: python -m json.tool data/model_validation/historical_projection_source_inventory.json > /dev/null
+          python script/audit_projection_source_sustainability.py --self-test
+          python script/audit_projection_source_sustainability.py
+      - name: Validate source governance JSON
+        run: |
+          python -m json.tool data/model_validation/historical_projection_source_inventory.json > /dev/null
+          python -m json.tool data/model_validation/projection_source_candidate_registry.json > /dev/null

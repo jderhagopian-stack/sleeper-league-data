@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Govern projection-source selection so predictive evidence, source independence, access cost, and intended-use rights are evaluated separately before any source becomes a production dependency.",
+  "default_external_projection_license_budget_usd": 0,
+  "selection_policy": {
+    "accuracy_first_with_materiality": "Prefer the source or blend with the best leakage-safe held-out predictive performance, but do not add cost, restrictive dependency, or material complexity for a trivial gain.",
+    "zero_cost_default": "A paid external projection source cannot become a default FSFFL production dependency while the external projection license budget is zero.",
+    "rights_gate": "Benchmark access, public accessibility, or open-source retrieval code does not by itself establish production, redistribution, or commercial-use rights. Intended-use rights must be verified separately before production dependency.",
+    "independence_gate": "Only independently produced fantasy projection systems may count as independent projection-source votes. Underlying football data used to build an FSFFL-native model does not count as a second projection source.",
+    "native_model_preference": "Prefer a simple FSFFL-native challenger built from legally usable underlying football data when it can match or materially improve held-out accuracy without paid projection licensing.",
+    "promotion_rule": "Production promotion requires leakage-safe held-out evidence, sufficient player/position coverage, operational reliability, and intended-use rights consistent with the deployment context."
+  },
+  "candidates": [
+    {
+      "source": "FFToday",
+      "role": "EXTERNAL_PROJECTION_CANDIDATE",
+      "independence_family": "FFTODAY_PROPRIETARY_METHOD",
+      "access_cost_status": "PUBLIC_FREE_ACCESS_OBSERVED",
+      "historical_benchmark_status": "PARTIALLY_VERIFIED",
+      "production_rights_status": "PENDING_TERMS_REVIEW",
+      "production_default_eligible": false,
+      "notes": "Multiple dated historical preseason snapshots are already in the leakage-safe inventory. Predictive superiority and intended-use rights are not assumed."
+    },
+    {
+      "source": "ESPN",
+      "role": "EXTERNAL_PROJECTION_CANDIDATE",
+      "independence_family": "ESPN_PROPRIETARY_METHOD",
+      "access_cost_status": "FREE_RETRIEVAL_MECHANISM_OBSERVED",
+      "historical_benchmark_status": "SNAPSHOT_FREEZE_UNVERIFIED",
+      "production_rights_status": "PENDING_TERMS_REVIEW",
+      "production_default_eligible": false,
+      "notes": "Open-source ffespn tooling demonstrates season-level Week 0 projection retrieval, but that alone does not prove historical values are immutable contemporaneous snapshots or establish production rights."
+    },
+    {
+      "source": "FantasyPros",
+      "role": "OPTIONAL_EXTERNAL_BENCHMARK",
+      "independence_family": "FANTASYPROS_PROPRIETARY_METHOD",
+      "access_cost_status": "RESTRICTED_OR_PAID_FOR_FULL_USE",
+      "historical_benchmark_status": "OPTIONAL_NOT_REQUIRED",
+      "production_rights_status": "RESTRICTED_REQUIRES_SEPARATE_REVIEW",
+      "production_default_eligible": false,
+      "notes": "Do not make FSFFL dependent on this source under the zero-cost default. It may be used only where access and terms legitimately permit."
+    },
+    {
+      "source": "nflverse",
+      "role": "NATIVE_MODEL_INPUT",
+      "independence_family": null,
+      "access_cost_status": "PUBLIC_FREE_DATA_ECOSYSTEM",
+      "historical_benchmark_status": "NOT_A_PROJECTION_SOURCE",
+      "production_rights_status": "VERIFY_PER_DATASET_LICENSE",
+      "production_default_eligible": false,
+      "counts_as_independent_projection_source": false,
+      "notes": "Preferred candidate ecosystem for underlying historical football data. Dataset-specific licensing still must be checked; it cannot satisfy an independent projection-source authority gate."
+    },
+    {
+      "source": "CBS",
+      "role": "ARCHIVE_CANDIDATE",
+      "independence_family": "CBS_PROPRIETARY_METHOD",
+      "access_cost_status": "UNVERIFIED",
+      "historical_benchmark_status": "ARCHIVE_CANDIDATE_UNVERIFIED",
+      "production_rights_status": "UNVERIFIED",
+      "production_default_eligible": false,
+      "notes": "Retain only as a fallback archive candidate unless clean time-frozen historical coverage can be established quickly."
+    }
+  ]
+}
