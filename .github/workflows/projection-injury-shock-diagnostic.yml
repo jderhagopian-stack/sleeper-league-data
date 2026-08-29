@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/diagnose_external_benchmark_injury_shocks.py'
+      - 'script/run_projection_injury_shock_diagnostic.py'
       - '.github/workflows/projection-injury-shock-diagnostic.yml'
   workflow_dispatch:
 
@@ -16,7 +17,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run post-hoc injury shock diagnostic
-        run: python script/diagnose_external_benchmark_injury_shocks.py
+        run: python script/run_projection_injury_shock_diagnostic.py
       - uses: actions/upload-artifact@v4
         with:
           name: projection-injury-shock-diagnostic
