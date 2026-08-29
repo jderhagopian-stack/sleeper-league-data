@@ -1,0 +1,60 @@
+name: FFToday Interim Projection Bridge
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/build_fftoday_interim_projection_bridge.py'
+      - 'script/run_fsffl_interim_weekly_projections.py'
+      - '.github/workflows/fftoday-interim-projection-bridge.yml'
+
+jobs:
+  end-to-end:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build Native V2 shadow source
+        run: python script/run_native_preseason_production.py --season 2026
+      - name: Build FFToday interim season means
+        run: python script/build_fftoday_interim_projection_bridge.py --season 2026 --max-source-age-days 14
+      - name: Build schedule-neutral weekly distributions
+        run: python script/run_fsffl_interim_weekly_projections.py
+      - name: Enforce interim bridge gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=Path('data/simulator/2026')
+          src=json.loads((r/'sources/interim_preseason_fsffl_points.json').read_text())
+          out=json.loads((r/'inputs/player_weekly_projections.json').read_text())
+          aud=json.loads((r/'outputs/weekly_projection_audit.json').read_text())
+          a=src['audit']; g=src['governance']
+          if a['external_projection_coverage_pct'] < 70:
+              raise SystemExit(f"FFToday match coverage too low: {a['external_projection_coverage_pct']}%")
+          if a['fftoday_matched_players'] < 150:
+              raise SystemExit(f"Too few FFToday matched players: {a['fftoday_matched_players']}")
+          if g.get('deployment_scope')!='INTERNAL_PRIVATE_INTERIM_ONLY' or g.get('commercial_use_approved') is not False:
+              raise SystemExit('commercial governance gate missing')
+          if g.get('external_fantasy_points_used') is not False:
+              raise SystemExit('FFToday fantasy points must not be used')
+          if out.get('season_mean_model')!='FFToday-Interim-Raw-Stats':
+              raise SystemExit('weekly layer did not select interim means')
+          if (aud.get('quality_gate') or {}).get('passed') is not True:
+              raise SystemExit('weekly quality gate failed')
+          print(json.dumps({'status':'PASS','fftoday_matched_players':a['fftoday_matched_players'],
+            'native_fallback_players':a['native_fallback_players'],
+            'coverage_pct':a['external_projection_coverage_pct'],
+            'weekly_players':len(out.get('players') or {})},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fftoday-interim-projection-bridge
+          path: |
+            data/simulator/2026/sources/native_preseason_fsffl_points.json
+            data/simulator/2026/sources/interim_preseason_fsffl_points.json
+            data/simulator/2026/inputs/player_weekly_projections.json
+            data/simulator/2026/outputs/weekly_projection_audit.json
