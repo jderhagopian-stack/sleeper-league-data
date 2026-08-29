@@ -54,17 +54,29 @@ def main():
         and "realistic" in v16
     )
 
-    # The final score formula lives in v20; the strategic composite is built by
-    # the state-aware profile overlay.  Detect the lineage across both sources
-    # rather than requiring the block names to coexist in one file.
+    # The final score must use primitive channels only. Composite strategic
+    # and break-glass summaries remain available upstream for explanation but
+    # receive no incremental final-score weight.
     final_overlap_tokens = {
-        "dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
-        "break_glass_delta_in_final_score": "break_glass_delta" in v20 and "resilience_block" in v20,
-        "liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
-        "strategic_value_delta_in_final_score": "strategic_value_delta" in v20 and "resilience_block" in v20,
-        "strategic_composite_built_upstream": "strategic_value_delta" in state and "strategic_score" in state,
+        "primitive_dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
+        "primitive_liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
+        "primitive_optionality_delta_in_final_score": "optionality_value_delta" in v20 and "future_block" in v20,
+        "primitive_resilience_delta_in_final_score": "resilience_value_delta" in v20 and "resilience_block" in v20,
+        "strategic_composite_built_upstream_for_diagnostics": "strategic_value_delta" in state and "strategic_score" in state,
+        "break_glass_built_upstream_for_diagnostics": "break_glass_delta" in state,
     }
-    final_composite_overlap = all(final_overlap_tokens.values())
+    final_composite_overlap = (
+        'strategic = sf(s.get("strategic_value_delta"))' in v20
+        or 'break_glass = sf(s.get("break_glass_delta"))' in v20
+        or '0.30 * break_glass' in v20
+        or '0.15 * strategic' in v20
+    )
+    primitive_final_score = all(final_overlap_tokens[k] for k in (
+        "primitive_dynasty_delta_in_final_score",
+        "primitive_liquidity_delta_in_final_score",
+        "primitive_optionality_delta_in_final_score",
+        "primitive_resilience_delta_in_final_score",
+    )) and not final_composite_overlap
 
     behavior_oos_predictive_test = any(
         token in behavior_prod_test.lower()
@@ -121,10 +133,10 @@ def main():
         {
             "id": "FINAL-SCORE-OVERLAP-001",
             "severity": "HIGH",
-            "status": "ABLATION_REQUIRED" if final_composite_overlap else "NOT_DETECTED",
+            "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
             "observation": (
-                "The state-aware final score separately uses dynasty, break-glass and liquidity families while also using strategic_value_delta, a downstream GM composite built from current/future/liquidity/resilience value. "
-                "This may encode intentional portfolio utility, but incremental value must be established by ablation before the composite can be treated as independent evidence."
+                "The state-aware final score now uses primitive dynasty, optionality, liquidity and direct roster-replacement resilience channels. "
+                "Strategic and break-glass composites remain available for explanation but no longer receive separate final-score weight."
             ),
             "detected_components": final_overlap_tokens,
             "authoritative_empirical_claim_allowed": False,
@@ -151,6 +163,7 @@ def main():
             "post_overlay_ranking_refresh_present": post_overlay_ranking_refresh,
             "provisional_high_leverage_acceptance_gate": acceptance_has_authoritative_gate,
             "final_score_overlap_ablation_required": final_composite_overlap,
+            "primitive_final_score_active": primitive_final_score,
             "behavioral_predictive_holdout_detected": behavior_oos_predictive_test,
         },
         "findings": findings,
