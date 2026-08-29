@@ -244,18 +244,21 @@
       ],
       "parameter_family": "effective value weights for second/third assets, roster-slot drag, replacement relief and consolidation effects",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current hard-coded package weights and portfolio adjustments",
-      "validation": "Required: estimate residual package economics from FSFFL completed trades with frozen contemporaneous value snapshots; broader dynasty transaction evidence is fallback only and must validate mapping",
-      "uncertainty": "high leverage in 2-for-1 and 3-for-1 deals; completed trade geometry alone cannot identify the discount",
-      "update_policy": "Version and refit as transaction/value-snapshot sample grows; promotion requires held-out transaction fit improvement",
+      "status": "HEURISTIC_CURVES_ACTIVE_GENERIC_SLOT_COST_REMOVED",
+      "source": "Legacy high-recall package prescreen plus GM2.2 nonlinear package curve; exact roster legalization supplies actual forced-cut cost",
+      "validation": "Required: prescreen recall against exhaustive tractable universes and residual package-economics validation from frozen contemporaneous value snapshots. Generic slot penalty remains inactive because actual cut burden is modeled directly.",
+      "uncertainty": "Consolidation/package weights and liquidity adjustment remain uncalibrated; generic roster-slot double counting has been structurally removed.",
+      "update_policy": "Keep exact roster-cut cost canonical; retain dual package curves only with explicit prescreen-vs-final provenance until recall and held-out residual evidence justify unification or calibration.",
       "downstream": [
         "trade valuation",
+        "candidate discovery",
         "consolidation recommendations",
-        "seller acceptance"
+        "seller acceptance",
+        "post-trade roster"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "The former 3.5% extra-asset slot penalty is zero because forced cuts are explicitly legalized and valued downstream."
     },
     {
       "id": "ROSTER-CUT-001",
