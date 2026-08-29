@@ -63,7 +63,10 @@ def _extract_fc_rows() -> list[dict[str, Any]]:
     raw = json.loads(FC_PATH.read_text(encoding="utf-8"))
     if isinstance(raw, list):
         return raw
-    for key in ("values", "rows", "data", "players"):
+    # The repository's canonical FantasyCalc snapshot stores the 12-team,
+    # 0.5-PPR superflex dynasty market under `dynasty`. Keep compatibility with
+    # older/generic snapshot shapes as well.
+    for key in ("dynasty", "values", "rows", "data", "players"):
         if isinstance(raw.get(key), list):
             return raw[key]
     return []
