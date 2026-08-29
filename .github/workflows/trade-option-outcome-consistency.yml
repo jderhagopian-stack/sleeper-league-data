@@ -8,6 +8,7 @@ on:
       - 'script/run_trade_market_sweep_v31.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
+      - 'data/audit/skattebo_stevenson_option_regression.json'
       - '.github/workflows/trade-option-outcome-consistency.yml'
   pull_request:
     paths:
@@ -16,18 +17,21 @@ on:
       - 'script/run_trade_market_sweep_v31.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
+      - 'data/audit/skattebo_stevenson_option_regression.json'
       - '.github/workflows/trade-option-outcome-consistency.yml'
   workflow_dispatch:
 
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install report dependencies
+        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile changed production modules
         run: |
           python -m py_compile \
@@ -40,3 +44,40 @@ jobs:
         run: python script/audit_trade_option_outcome_consistency.py
       - name: Run final ranking governance audit
         run: python script/audit_final_trade_ranking_governance.py
+      - name: Run Skattebo production regression
+        run: |
+          rm -rf /tmp/skattebo-regression
+          python script/run_trade_report.py \
+            --scenario data/audit/skattebo_stevenson_option_regression.json \
+            --out-dir /tmp/skattebo-regression \
+            --basename Hurts_So_Good_Skattebo_Regression \
+            --quick-sims 200 \
+            --disable-adaptive-confirmation \
+            --search-depth 60
+      - name: Validate production regression
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.json'))
+          s=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression-summary.json'))
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18'
+          assert r['policy']['competitively_dominated_option_can_be_called_better'] is False
+          assert r['policy']['very_low_acceptance_alternative_can_force_shop'] is False
+          assert r['policy']['descriptive_state_labels_create_focal_utility_cliffs'] is False
+          for row in (r.get('suggested_counteroffers') or [])+(r.get('market_sweep_alternatives') or []):
+              c=row.get('comparison_to_current_offer') or {}
+              if c.get('competitive_relation_vs_current_offer')=='DOMINATED_BY_CURRENT_OFFER':
+                  assert c.get('verdict_vs_current_offer')!='BETTER',c
+              if str(row.get('acceptance_likelihood'))=='VERY_LOW':
+                  assert row.get('actionable_better_than_current_offer') is not True,row
+          print({'recommended_next_action':r.get('recommended_next_action'),'pre_fix_action':r.get('recommended_next_action_pre_outcome_consistency'),'objective_state':((r.get('current_offer_evaluation') or {}).get('simulation') or {}).get('strategic',{}).get('objective_state'),'market_alternatives':[(x.get('return_asset_names'),x.get('acceptance_likelihood'),(x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer')) for x in (r.get('market_sweep_alternatives') or [])[:5]]})
+          assert Path('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.pdf').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skattebo-option-regression
+          path: /tmp/skattebo-regression/*
+          if-no-files-found: error
+          retention-days: 7
