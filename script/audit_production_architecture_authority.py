@@ -54,6 +54,7 @@ def workflow_direct_exec(sources, pattern):
 
 def main():
     trade_report = text(SCRIPT / "run_trade_report.py")
+    trade_engine = text(SCRIPT / "trade_engine.py")
     v31 = text(SCRIPT / "run_trade_market_sweep_v31.py")
     option_governance = text(SCRIPT / "trade_option_governance.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
@@ -69,15 +70,22 @@ def main():
     findings = []
 
     # TRADE DECISION AUTHORITY
-    trade_entry_current = has_all(trade_report, [
-        "MARKET_SWEEP=Path('script/run_trade_market_sweep_v31.py')",
-        "EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'",
-    ])
+    trade_entry_current = (
+        has_all(trade_report, [
+            "MARKET_SWEEP=Path('script/trade_engine.py')",
+            "EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'",
+        ])
+        and has_all(trade_engine, [
+            'CURRENT_ENGINE = SCRIPT / "run_trade_market_sweep_v31.py"',
+            'EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.25"',
+            "load_current_engine().main()",
+        ])
+    )
     findings.append({
         "id": "TRADE-ENTRY-001",
         "ok": trade_entry_current,
         "severity": "CRITICAL",
-        "observation": "Prospective trade reports must enter through v31, not a superseded market-sweep version.",
+        "observation": "Prospective trade reports must enter through the stable trade_engine.py facade, which delegates to the current authoritative v31 implementation and verifies its model version.",
     })
 
     v31_final_authority = (
