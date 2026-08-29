@@ -1,0 +1,25 @@
+name: Non-projection league configuration regression
+
+on:
+  pull_request:
+    paths:
+      - 'script/league_rules.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - 'script/audit_league_configuration.py'
+      - 'data/league.json'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/test-league-configuration.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile non-projection league modules
+        run: python -m py_compile script/league_rules.py script/build_fsffl_gm_engine.py script/audit_league_configuration.py
+      - name: Verify FSFFL regression and cross-league portability
+        run: PYTHONPATH=script python script/audit_league_configuration.py
