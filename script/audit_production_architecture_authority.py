@@ -57,6 +57,7 @@ def main():
     trade_engine = text(SCRIPT / "trade_engine.py")
     v31 = text(SCRIPT / "run_trade_market_sweep_v31.py")
     option_governance = text(SCRIPT / "trade_option_governance.py")
+    roster_overlay = text(SCRIPT / "roster_interaction_overlay.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -90,10 +91,18 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v30.main()",
+            "v29.main()",
+            "roster_interaction_overlay.py",
+            "overlay.apply_to_report(report, interaction, ranker)",
             "trade_option_governance.py",
             "gov.apply_to_report(report)",
             "post_sim_score_is_diagnostic_not_categorical_decision_rule",
+        ])
+        and "run_trade_market_sweep_v30.py" not in v31
+        and has_all(roster_overlay, [
+            "def apply_to_report(report, interaction, ranker):",
+            "negotiation_ranking.recompute_from_row",
+            "legacy_v30_option_comparison_not_executed_in_current_path",
         ])
         and has_all(option_governance, [
             "def compare(row, current):",
@@ -107,23 +116,26 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "v30 may supply upstream mechanics, but v31 must overwrite option comparison and final recommended action before output.",
+        "observation": "Current v31 must bypass historical v30, apply the shared roster-interaction overlay to v29 output, and delegate final comparison/action authority to shared option governance.",
     })
 
     v30_contains_superseded_decision_logic = (
         "if score_delta > 750" in v30 and "elif score_delta < -750" in v30
     )
+    v30_currently_executed = "run_trade_market_sweep_v30.py" in v31
     findings.append({
         "id": "TRADE-LEGACY-003",
-        "ok": True,
-        "severity": "WARN" if v30_contains_superseded_decision_logic else "INFO",
+        "ok": not v30_currently_executed,
+        "severity": "INFO" if not v30_currently_executed else "CRITICAL",
         "observation": (
-            "v30 still contains superseded comparison logic. It is acceptable only as an internal wrapped dependency because v31 reclassifies every exposed comparison and recomputes the final action."
-            if v30_contains_superseded_decision_logic else
+            "Historical v30 still contains its superseded comparison logic for reproducibility, but the current production path no longer executes v30."
+            if v30_contains_superseded_decision_logic and not v30_currently_executed else
+            "Superseded v30 decision logic has regained a current production execution path."
+            if v30_currently_executed else
             "No superseded v30 comparison rule detected."
         ),
         "legacy_logic_present": v30_contains_superseded_decision_logic,
-        "allowed_only_because_downstream_authority_replaced": v31_final_authority,
+        "historical_v30_executed_in_current_path": v30_currently_executed,
     })
 
     old_trade_hits = workflow_direct_exec(
