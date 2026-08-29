@@ -5,11 +5,11 @@ import importlib.util
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-MOD=ROOT/'script'/'run_trade_market_sweep_v31.py'
+MOD=ROOT/'script'/'trade_option_governance.py'
 
 
 def load():
-    spec=importlib.util.spec_from_file_location('market_v31_regression',MOD)
+    spec=importlib.util.spec_from_file_location('trade_option_governance_regression',MOD)
     mod=importlib.util.module_from_spec(spec);assert spec.loader;spec.loader.exec_module(mod);return mod
 
 
