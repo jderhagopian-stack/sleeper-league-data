@@ -273,7 +273,7 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
     for row in market.get("dynasty", []):
         name = row.get("name") or ""
         n = name.lower()
-        m_year = re.search(r"(202[6-9]|2030)", n)
+        m_year = re.search(r"(20\\d{2})", n)
         if not m_year:
             continue
         if "pick" not in n and not any(x in n for x in ("1st", "2nd", "3rd", "first", "second", "third")):
@@ -318,7 +318,9 @@ def fallback_pick_value(year: int, tier: str, rnd: int, detected: Dict[Tuple[int
         2: 2350.0,
         3: 1050.0,
     }
-    year_discount = {2027: 1.0, 2028: 0.88, 2029: 0.77}.get(year, 0.70)
+    first_future_season = int(LEAGUE_RULES["season"]) + 1
+    years_out = max(0, year - first_future_season)
+    year_discount = 0.88 ** years_out
     tier_adj = {"early": 1.20, "mid": 1.0, "late": 0.82}[tier]
     return mids[rnd] * year_discount * tier_adj
 
@@ -3961,7 +3963,7 @@ def _u_pick_profile(aid, uid, ctx):
     parsed = _u_parse_pick(aid, meta) or {}
     quality = ctx["pick_quality"].get(aid, {})
     rnd = int(parsed.get("round") or quality.get("round") or 3)
-    season = int(parsed.get("season") or quality.get("season") or 2029)
+    season = int(parsed.get("season") or quality.get("season") or max(FUTURE_PICK_YEARS))
     qsignal = safe_float(quality.get("quality_signal"), 0.5)
     early = safe_float(quality.get("early_scenario_weight"), 0.33)
     late = safe_float(quality.get("late_scenario_weight"), 0.33)
@@ -3969,15 +3971,15 @@ def _u_pick_profile(aid, uid, ctx):
     if rnd == 1:
         liquidity = GM22["first_round_pick_liquidity"]
         upside = clamp(0.48 + 0.42 * qsignal, 0.48, 0.95)
-        uncertainty = 0.45 + 0.25 * max(season - 2027, 0)
+        uncertainty = 0.45 + 0.25 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
     elif rnd == 2:
         liquidity = GM22["second_round_pick_liquidity"]
         upside = clamp(0.28 + 0.32 * qsignal, 0.28, 0.72)
-        uncertainty = 0.38 + 0.20 * max(season - 2027, 0)
+        uncertainty = 0.38 + 0.20 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
     else:
         liquidity = GM22["third_round_pick_liquidity"]
         upside = clamp(0.12 + 0.20 * qsignal, 0.12, 0.45)
-        uncertainty = 0.28 + 0.16 * max(season - 2027, 0)
+        uncertainty = 0.28 + 0.16 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
 
     # A pick's value distribution is positively skewed; uncertainty is useful
     # optionality rather than pure downside because the pick can improve.
@@ -4235,7 +4237,7 @@ def _u_static_exit_cost(uid, asset_ids, ctx, profile_by_uid):
 def _u_package_effective_value(asset_ids, perspective_uid, ctx, profile_by_uid):
     """
     Nonlinear package value. Quantity cannot freely substitute for quality in
-    an 18-man league. The first asset receives full value; subsequent pieces
+    a finite-roster league. The first asset receives full value; subsequent pieces
     are discounted and incur roster-slot opportunity cost.
     """
     vals = ctx["owner_vals"].get(str(perspective_uid), {})
@@ -5064,7 +5066,7 @@ def main():
     write_json(DATA / "market_regime.json", build_market_regime())
     write_json(DATA / "owner_calibration_report.json", build_owner_calibration_report())
 
-    # GM-2.2: all 12 franchises receive full perspective-specific outputs.
+    # GM-2.2: every franchise receives full perspective-specific outputs.
     universal_result = run_universal_franchise_mode()
 
     print("FSFFL GM Engine v2.2 complete — Strategic Valuation.")
