@@ -17,7 +17,7 @@ DATA=ROOT/"data"
 WEEKLY_URL="https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_{season}.csv"
 SCHEDULE_URL="https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 POSITIONS=("QB","RB","WR","TE")
-LAMBDAS=(0.0,0.25,0.5,0.75,1.0)
+LAMBDAS=(0.0,0.25,0.5,0.75,1.0)\nWINDOWS=(1,2,3)
 SD_FLOOR={"QB":4.0,"RB":3.5,"WR":3.8,"TE":3.0}
 TEAM_ALIAS={"JAC":"JAX","JAX":"JAX","LA":"LAR","LAR":"LAR","SD":"LAC","OAK":"LV","STL":"LAR"}
 
@@ -109,8 +109,29 @@ def defense_factors(source_season:int, scoring):
     _FACTOR_CACHE[source_season]=result
     return result
 
-def stable_player_records(target_season:int, scoring, lam:float):
-    prior,_=defense_factors(target_season-1,scoring)
+_WINDOW_FACTOR_CACHE={}
+def defense_factors_window(target_season:int, window:int, scoring):
+    key=(target_season,window)
+    if key in _WINDOW_FACTOR_CACHE:
+        return _WINDOW_FACTOR_CACHE[key]
+    seasonal=[]
+    audits=[]
+    for s in range(target_season-window,target_season):
+        fac,aud=defense_factors(s,scoring)
+        seasonal.append(fac); audits.append(aud)
+    keys=set().union(*(set(x) for x in seasonal))
+    combined={}
+    for k in keys:
+        vals=[fac[k] for fac in seasonal if k in fac]
+        combined[k]=statistics.fmean(vals) if vals else 1.0
+    result=(combined,{"target_season":target_season,"window":window,
+      "source_seasons":list(range(target_season-window,target_season)),
+      "season_audits":audits,"defense_position_cells":len(combined)})
+    _WINDOW_FACTOR_CACHE[key]=result
+    return result
+
+def stable_player_records(target_season:int, scoring, lam:float, window:int):
+    prior,_=defense_factors_window(target_season,window,scoring)
     rows=[r for r in weekly_rows(target_season,scoring) if r["week"]<=17]
     by=defaultdict(list)
     for r in rows: by[r["player_id"]].append(r)
@@ -145,42 +166,54 @@ def stable_player_records(target_season:int, scoring, lam:float):
 def validate(scoring):
     train_seasons=(2022,2023,2024); test_season=2025
     grid={}
-    for lam in LAMBDAS:
-        reps={str(s):stable_player_records(s,scoring,lam) for s in train_seasons}
-        grid[str(lam)]={"mean_train_improvement_pct":statistics.fmean(r["improvement_pct"] for r in reps.values()),
-                        "by_season":reps}
-    selected={}
-    test={}
+    for window in WINDOWS:
+        for lam in LAMBDAS:
+            reps={str(s):stable_player_records(s,scoring,lam,window) for s in train_seasons}
+            grid[f"w{window}_l{lam}"]={"window":window,"lambda":lam,
+                "mean_train_improvement_pct":statistics.fmean(r["improvement_pct"] for r in reps.values()),
+                "by_season":reps}
+    selected_lambdas={}; selected_windows={}; test={}
     for pos in POSITIONS:
         candidates=[]
-        for lam in LAMBDAS:
-            vals=[grid[str(lam)]["by_season"][str(s)]["by_position"].get(pos,{}).get("improvement_pct",0.0) for s in train_seasons]
-            candidates.append((statistics.fmean(vals),lam,vals))
+        for window in WINDOWS:
+            for lam in LAMBDAS:
+                g=grid[f"w{window}_l{lam}"]
+                vals=[g["by_season"][str(s)]["by_position"].get(pos,{}).get("improvement_pct",0.0) for s in train_seasons]
+                candidates.append((statistics.fmean(vals),window,lam,vals))
         best=max(candidates,key=lambda x:x[0])
-        lam=best[1]
-        rep=stable_player_records(test_season,scoring,lam)["by_position"].get(pos,{})
+        _,window,lam,vals=best
+        rep=stable_player_records(test_season,scoring,lam,window)["by_position"].get(pos,{})
         keep=bool(lam>0 and best[0]>0 and rep.get("improvement_pct",0)>0)
-        selected[pos]=lam if keep else 0.0
-        test[pos]={"selected_lambda_from_2022_2024":lam,
+        selected_lambdas[pos]=lam if keep else 0.0
+        selected_windows[pos]=window if keep else 1
+        test[pos]={"selected_window_from_2022_2024":window,
+                   "selected_lambda_from_2022_2024":lam,
                    "train_mean_improvement_pct":best[0],
-                   "train_season_improvements_pct":best[2],
+                   "train_season_improvements_pct":vals,
                    "2025_holdout":rep,
                    "retained":keep,
-                   "production_lambda":selected[pos]}
-    return {"schema_version":"1.0","status":"PASS",
-      "experiment":"prior_season_defense_vs_position_weekly_mean_adjustment",
+                   "production_lambda":selected_lambdas[pos],
+                   "production_window":selected_windows[pos]}
+    return {"schema_version":"1.1","status":"PASS",
+      "experiment":"multi_year_defense_vs_position_weekly_mean_adjustment",
       "training_holdouts":[2022,2023,2024],"final_out_of_sample_holdout":2025,
-      "candidate_lambdas":list(LAMBDAS),"grid":grid,"selection_by_position":test,
-      "production_lambdas":selected,
+      "candidate_lambdas":list(LAMBDAS),"candidate_windows":list(WINDOWS),"grid":grid,"selection_by_position":test,
+      "production_lambdas":selected_lambdas,"production_windows":selected_windows,
       "governance":{"target_season_results_used_as_features":False,
                     "defense_signal_for_each_holdout":"prior completed season only",
-                    "2026_defense_signal_source_season":2025,
+                    "2026_defense_signal_source_season":"position-specific trailing window ending 2025",
                     "season_projection_total_preserved":True}}
 
 def apply_current(season:int, scoring, scorecard=None):
     scorecard=scorecard or validate(scoring)
     lambdas=scorecard["production_lambdas"]
-    factors,factor_audit=defense_factors(season-1,scoring)
+    windows=scorecard.get("production_windows") or {p:1 for p in POSITIONS}
+    factor_by_position={}
+    factor_audit={}
+    for pos in POSITIONS:
+        fac,aud=defense_factors_window(season,int(windows.get(pos,1)),scoring)
+        factor_by_position[pos]=fac
+        factor_audit[pos]=aud
     root=DATA/"simulator"/str(season)
     path=root/"inputs"/"player_weekly_projections.json"
     out=json.loads(path.read_text())
@@ -197,7 +230,7 @@ def apply_current(season:int, scoring, scorecard=None):
             if wk.get("is_bye"): continue
             opp=sched.get((t,w))
             if not opp: continue
-            raw=factors.get((opp,pos),1.0)
+            raw=factor_by_position[pos].get((opp,pos),1.0)
             active.append((w,opp,1.0+lam*(raw-1.0)))
         if not active:
             missing_opp+=1; continue
@@ -227,19 +260,21 @@ def apply_current(season:int, scoring, scorecard=None):
                 "hardest":{"week":ex[0][0],"opponent":ex[0][1],"multiplier":round(ex[0][2],4)},
                 "easiest":{"week":ex[-1][0],"opponent":ex[-1][1],"multiplier":round(ex[-1][2],4)}})
     out["model_stage"]="interim_external_season_means_validated_opponent_adjusted_weekly"
-    out["opponent_adjustment"]={"method":"prior-season defense-vs-position points allowed",
-        "source_season":season-1,"production_lambdas":lambdas,"season_mean_preserved":True}
+    out["opponent_adjustment"]={"method":"validated trailing-window defense-vs-position points allowed",
+        "latest_source_season":season-1,"production_lambdas":lambdas,
+        "production_windows":windows,"season_mean_preserved":True}
     path.write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
     audit_path=root/"outputs"/"weekly_projection_audit.json"
     aud=json.loads(audit_path.read_text())
-    aud["opponent_adjustment"]={"validated":True,"source_season":season-1,
-      "production_lambdas":lambdas,"players_adjusted":adjusted,
+    aud["opponent_adjustment"]={"validated":True,"latest_source_season":season-1,
+      "production_lambdas":lambdas,"production_windows":windows,"players_adjusted":adjusted,
       "missing_team_players":missing_team,"missing_schedule_players":missing_opp,
       "factor_audit":factor_audit,"examples":examples}
     aud["important_limitations"]=[x for x in aud.get("important_limitations",[]) if "No opponent-specific weekly matchup adjustment yet." not in str(x)]
     aud["important_limitations"].append("Opponent adjustment uses prior-season defense-vs-position strength; it does not yet incorporate current-season defensive injuries/personnel changes or betting-market game environment.")
     audit_path.write_text(json.dumps(aud,indent=2,sort_keys=True)+"\n")
-    return {"players_adjusted":adjusted,"missing_team":missing_team,"missing_schedule":missing_opp,"lambdas":lambdas,"examples":examples}
+    return {"players_adjusted":adjusted,"missing_team":missing_team,"missing_schedule":missing_opp,
+      "lambdas":lambdas,"windows":windows,"examples":examples}
 
 def main():
     p=argparse.ArgumentParser(); p.add_argument("--season",type=int,default=2026)
@@ -249,6 +284,7 @@ def main():
     card=validate(scoring); a.scorecard.parent.mkdir(parents=True,exist_ok=True)
     a.scorecard.write_text(json.dumps(card,indent=2,sort_keys=True)+"\n")
     result={"status":"PASS","production_lambdas":card["production_lambdas"],
+            "production_windows":card["production_windows"],
             "selection_by_position":card["selection_by_position"]}
     if not a.validate_only: result["production_apply"]=apply_current(a.season,scoring,card)
     print(json.dumps(result,indent=2))
