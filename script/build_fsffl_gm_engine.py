@@ -297,22 +297,77 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
     return found
 
 
+def _pick_market_median(values):
+    vals = sorted(float(x) for x in values if x is not None and float(x) > 0)
+    if not vals:
+        return None
+    n = len(vals)
+    return vals[n // 2] if n % 2 else 0.5 * (vals[n // 2 - 1] + vals[n // 2])
+
+
+def _observed_pick_tier_multiplier(
+    detected: Dict[Tuple[int, str, int], float],
+    tier: str,
+    rnd: int,
+):
+    """Infer early/mid/late shape from directly observed same-round market rows."""
+    if tier == "mid":
+        return 1.0
+    ratios = []
+    for (y, t, r), value in detected.items():
+        if r != rnd or t != tier:
+            continue
+        mid = safe_float(detected.get((y, "mid", rnd)))
+        if mid > 0 and safe_float(value) > 0:
+            ratios.append(safe_float(value) / mid)
+    return _pick_market_median(ratios)
+
+
+def _observed_pick_year_factor(
+    detected: Dict[Tuple[int, str, int], float],
+    rnd: int,
+):
+    """Infer a round-specific annual factor from observed generic/mid future picks."""
+    mids = sorted(
+        (y, safe_float(v))
+        for (y, t, r), v in detected.items()
+        if r == rnd and t == "mid" and safe_float(v) > 0
+    )
+    factors = []
+    for (y0, v0), (y1, v1) in zip(mids, mids[1:]):
+        gap = y1 - y0
+        if gap > 0 and v0 > 0 and v1 > 0:
+            factors.append((v1 / v0) ** (1.0 / gap))
+    return _pick_market_median(factors)
+
+
 def fallback_pick_value(year: int, tier: str, rnd: int, detected: Dict[Tuple[int, str, int], float]) -> float:
     if (year, tier, rnd) in detected:
         return detected[(year, tier, rnd)]
 
-    # Try same-year mid then infer early/late.
+    # Prefer the observed same-year market anchor. When FantasyCalc exposes a
+    # generic/mid pick but not early/late for that year, infer the tier shape
+    # from observed same-round early/mid/late rows rather than a universal
+    # hand-set multiplier.
     if (year, "mid", rnd) in detected:
         base = detected[(year, "mid", rnd)]
-        return base * {"early": 1.18, "mid": 1.0, "late": 0.84}[tier]
+        tier_mult = _observed_pick_tier_multiplier(detected, tier, rnd)
+        if tier_mult is not None:
+            return base * tier_mult
 
-    # Try nearest known year for same round/tier.
+    # If a whole year is missing, extrapolate only from the observed same-round
+    # market time curve. This is still an external-market extrapolation, but it
+    # avoids imposing one universal time discount across rounds.
     known = [(y, v) for (y, t, r), v in detected.items() if t == tier and r == rnd]
     if known:
         y0, v0 = min(known, key=lambda z: abs(z[0] - year))
-        return v0 * (0.88 ** max(0, year - y0)) * (1.08 ** max(0, y0 - year))
+        year_factor = _observed_pick_year_factor(detected, rnd)
+        if year_factor is not None and year_factor > 0:
+            return v0 * (year_factor ** (year - y0))
 
-    # Conservative fallback scale, only used if FC did not surface future picks.
+    # Last-resort functionality fallback only when the external source provides
+    # too little pick structure to infer either tier shape or time curve.
+    # These constants remain explicitly provisional and non-authoritative.
     mids = {
         1: 5200.0,
         2: 2350.0,
