@@ -1,0 +1,71 @@
+name: GM3 Non-Projection Governance
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_fsffl_gm30_counterfactual_governed.py'
+      - 'script/gm30_nonprojection_governance.py'
+      - 'script/package_curve_robustness.py'
+      - 'script/nonprojection_high_priority_overrides.py'
+      - 'script/run_gm300_production_pipeline.sh'
+      - 'script/build_fsffl_gm30.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - '.github/workflows/gm30-nonprojection-governance.yml'
+  workflow_dispatch:
+
+jobs:
+  wiring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile governed GM3 entry point
+        run: |
+          python -m py_compile \
+            script/run_fsffl_gm30_counterfactual_governed.py \
+            script/gm30_nonprojection_governance.py \
+            script/package_curve_robustness.py \
+            script/nonprojection_high_priority_overrides.py
+      - name: Verify production runner uses governed entry point
+        run: |
+          grep -q 'python script/run_fsffl_gm30_counterfactual_governed.py' script/run_gm300_production_pipeline.sh
+          ! grep -q '^python script/run_fsffl_gm30_counterfactual.py$' script/run_gm300_production_pipeline.sh
+      - name: Verify GM3 dynamic patch cannot reintroduce governed pick value
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'script')
+          import build_fsffl_gm30 as gm30
+          import nonprojection_high_priority_overrides as hp
+          import gm30_nonprojection_governance as gov
+          import package_curve_robustness as robust
+
+          season=gm30.active_season()
+          gm30.patch_gm22_runtime(season)
+          hp.install(gm30.core)
+          gov.install(gm30.core)
+          robust.install(gm30.core)
+
+          assert gm30.core.NONPROJECTION_HIGH_PRIORITY_OVERRIDES['market_momentum_incremental_value_removed'] is True
+          assert gm30.core.GM30_NONPROJECTION_GOVERNANCE['forecast_uncertainty_incremental_pick_value_authorized'] is False
+          assert gm30.core.GM30_NONPROJECTION_GOVERNANCE['own_pick_control_incremental_value_authorized'] is False
+          assert gm30.core.PACKAGE_CURVE_ROBUSTNESS['single_curve_authoritative'] is False
+
+          native_diag, meta = gm30.core.market_momentum_adjustment({'trend_30_day':1200.0,'market_dynasty':4800.0})
+          assert native_diag == 0.0
+          assert meta['incremental_adjustment_authorized'] is False
+
+          ctx=gm30.core._u_load_context()
+          pick=next((aid for aid in ctx['asset_meta'] if str(aid).startswith('pick:')),None)
+          assert pick is not None
+          uid=str((ctx['asset_meta'].get(pick) or {}).get('current_owner_user_id') or next(iter(ctx['owners'])))
+          pp=gm30.core._u_pick_profile(pick,uid,ctx)
+          assert pp['forecast_uncertainty_incremental_value_authorized'] is False
+          assert pp['own_pick_control_incremental_value_authorized'] is False
+          assert float(pp['own_pick_control_bonus']) == 0.0
+          assert float(pp['upside_optionality']) <= float(pp['upside_optionality_pre_governance_diagnostic']) + 1e-9
+          print('GM3 governed non-projection wiring passed')
+          PY
