@@ -31,21 +31,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from league_rules import load_league_rules, normalize_position, slot_eligible_positions
+
 DATA = Path("data")
 DATA.mkdir(parents=True, exist_ok=True)
+LEAGUE_RULES = load_league_rules(DATA / "league.json", DATA / "traded_picks.json")
 
 FANTASYCALC_URL = "https://api.fantasycalc.com/values/current"
 FC_PARAMS = {
     "isDynasty": "true",
-    "numQbs": 2,
-    "numTeams": 12,
-    "ppr": 0.5,
+    "numQbs": LEAGUE_RULES["market_num_qbs"],
+    "numTeams": LEAGUE_RULES["team_count"],
+    "ppr": LEAGUE_RULES["ppr"],
 }
 FC_REDRAFT_PARAMS = {
     "isDynasty": "false",
-    "numQbs": 2,
-    "numTeams": 12,
-    "ppr": 0.5,
+    "numQbs": LEAGUE_RULES["market_num_qbs"],
+    "numTeams": LEAGUE_RULES["team_count"],
+    "ppr": LEAGUE_RULES["ppr"],
 }
 
 
@@ -69,18 +72,18 @@ USER_TEAM = "Hurts So Good"
 # Legacy compatibility only. GM-2.2 does not hard-code untouchables.
 PROTECTED_HSG_PLAYERS = set()
 
-FUTURE_PICK_YEARS = [2027, 2028, 2029]
-ROUNDS = [1, 2, 3]
-POSITIONS = ("QB", "RB", "WR", "TE")
+FUTURE_PICK_YEARS = list(LEAGUE_RULES["future_pick_years"])
+ROUNDS = list(LEAGUE_RULES["rounds"])
+POSITIONS = tuple(LEAGUE_RULES["positions"])
 
 CONFIG = {
     "model_version": "GM-1.0",
     "market_source": "FantasyCalc current values",
     "market_settings": {
         "dynasty": True,
-        "num_qbs": 2,
-        "num_teams": 12,
-        "ppr": 0.5,
+        "num_qbs": LEAGUE_RULES["market_num_qbs"],
+        "num_teams": LEAGUE_RULES["team_count"],
+        "ppr": LEAGUE_RULES["ppr"],
         "te_premium": False,
     },
     "owner_value_weights": {
@@ -1715,34 +1718,19 @@ CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1.1 fixes runtime dispatch so optimized-lineup and trade-ranking functions are actually used by base_main.",
 ]
 
-FALLBACK_LINEUP_SLOTS = [
-    "QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "SUPER_FLEX"
-]
+FALLBACK_LINEUP_SLOTS = list(LEAGUE_RULES["lineup_slots"])
 
 
 def lineup_slots() -> List[str]:
-    league = load_json(DATA / "league.json", {}) or {}
-    raw = league.get("roster_positions") or FALLBACK_LINEUP_SLOTS
-    slots = [str(x).upper() for x in raw]
-    # Sleeper roster_positions contains bench/IR/taxi entries too.
-    legal = {"QB", "RB", "WR", "TE", "FLEX", "SUPER_FLEX", "SUPERFLEX"}
-    filtered = ["SUPER_FLEX" if x == "SUPERFLEX" else x for x in slots if x in legal]
-    return filtered or list(FALLBACK_LINEUP_SLOTS)
+    return list(LEAGUE_RULES["lineup_slots"]) or list(FALLBACK_LINEUP_SLOTS)
 
 
 LINEUP_SLOTS = lineup_slots()
 
 
 def eligible(position: str, slot: str) -> bool:
-    pos = (position or "").upper()
-    slot = slot.upper()
-    if slot in {"QB", "RB", "WR", "TE"}:
-        return pos == slot
-    if slot == "FLEX":
-        return pos in {"RB", "WR", "TE"}
-    if slot == "SUPER_FLEX":
-        return pos in {"QB", "RB", "WR", "TE"}
-    return False
+    pos = normalize_position(position)
+    return pos in slot_eligible_positions(slot)
 
 
 def optimize_lineup(
@@ -1764,7 +1752,7 @@ def optimize_lineup(
         if pid == "0":
             continue
         a = player_values.get(pid, {})
-        pos = a.get("position")
+        pos = normalize_position(a.get("position"))
         if pos not in POSITIONS:
             continue
         by_pos[pos].append(
@@ -1779,10 +1767,8 @@ def optimize_lineup(
     for slot in LINEUP_SLOTS:
         if slot in POSITIONS:
             fixed_counts[slot] += 1
-        elif slot == "FLEX":
-            flex_slots.append(("FLEX", ("RB", "WR", "TE")))
-        elif slot == "SUPER_FLEX":
-            flex_slots.append(("SUPER_FLEX", ("QB", "RB", "WR", "TE")))
+        elif slot_eligible_positions(slot):
+            flex_slots.append((slot, slot_eligible_positions(slot)))
 
     # Enumerate only the flexible slot position choices.
     flex_choices = [choices for _, choices in flex_slots]
@@ -1817,12 +1803,7 @@ def optimize_lineup(
         rows = []
         total = 0.0
         for slot in LINEUP_SLOTS:
-            eligible_positions = (
-                (slot,) if slot in POSITIONS
-                else ("RB", "WR", "TE") if slot == "FLEX"
-                else ("QB", "RB", "WR", "TE") if slot == "SUPER_FLEX"
-                else ()
-            )
+            eligible_positions = slot_eligible_positions(slot)
             options = []
             for pos in eligible_positions:
                 for val, pid, a in by_pos.get(pos, []):
@@ -1866,9 +1847,7 @@ def optimize_lineup(
     for slot in LINEUP_SLOTS:
         if slot in POSITIONS:
             pos = slot
-        elif slot == "FLEX":
-            pos = next(flex_iter)
-        elif slot == "SUPER_FLEX":
+        elif slot_eligible_positions(slot):
             pos = next(flex_iter)
         else:
             continue
@@ -3617,7 +3596,7 @@ GM_TEAMS_DIR = GM_ROOT / "teams"
 
 GM22 = {
     "model_version": "GM-2.2",
-    "roster_size": 18,
+    "roster_size": LEAGUE_RULES["roster_size"],
     "package_weights": [1.0, 0.78, 0.62, 0.50, 0.42],
     "extra_asset_slot_cost_pct": 0.035,
     "max_static_exit_premium_pct": 0.85,
