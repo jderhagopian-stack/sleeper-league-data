@@ -181,7 +181,8 @@ def main():
     payload = {
         "model_version": MODEL_VERSION,
         "purpose": "Audit and govern future-pick economics without conflating uncertainty with positive value.",
-        "production_behavior_changed": True,
+        "production_behavior_changed": False,
+        "production_state_changed_by_governed_fix": True,
         "policy": {
             "external_market_pick_values_are_anchor_not_training_labels": True,
             "fallback_values_must_remain_explicitly_provisional": True,
