@@ -24,6 +24,7 @@ on:
       - 'data/model_parameter_registry.json'
       - 'data/model_validation/**'
       - 'data/gm/**'
+      - '.github/workflows/model-governance-audit.yml'
   workflow_dispatch:
 
 jobs:
@@ -93,7 +94,10 @@ jobs:
           d=json.load(open('data/audit/decision_path_integrity_audit.json'))
           assert d['summary']['production_roster_aware'] is True
           assert d['summary']['runtime_roster_version_single_source'] is True
-          assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
+          assert d['summary']['provisional_high_leverage_acceptance_gate'] is False
+          assert d['summary']['acceptance_band_authoritative_gate_active'] is False
+          assert d['summary']['acceptance_separate_from_trade_value'] is True
+          assert d['summary']['threshold_free_option_governance'] is True
           assert d['summary']['final_score_overlap_ablation_required'] is True
           assert d['summary']['behavioral_predictive_holdout_detected'] is False
 
@@ -207,8 +211,6 @@ jobs:
           print(json.dumps(b['findings'],indent=2))
           print(json.dumps(z['summary'],indent=2))
           print(json.dumps(z['findings'],indent=2))
-          print(json.dumps(b['summary'],indent=2))
-          print(json.dumps(b['findings'],indent=2))
           print(json.dumps(fr['summary'],indent=2))
           print(json.dumps(fr['findings'],indent=2))
           PY
