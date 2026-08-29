@@ -2,22 +2,17 @@
 """FSFFL Counter & Market Sweep 1.25 - outcome-consistent option governance.
 
 Extends validated 1.24 without changing candidate generation or simulation.
-The prior option-vs-offer layer could call an alternative BETTER solely because
-its state-aware post-simulation score was >750 points higher, even when every
-simulated competitive outcome was worse than the current offer. The inherited
-action logic used the same score-only shortcut and could therefore force a
-SHOP_BEFORE_ACCEPTING recommendation for an objectively dominated or implausible
-alternative.
 
-1.25 separates search/ranking utility from categorical decision semantics:
-- state-aware score remains available for discovery and tradeoff ranking;
-- an option strictly dominated across expected points, expected wins, playoff
-  probability and championship probability cannot be called BETTER solely by
-  composite score, regardless of competitive-state label;
-- for contenders, BETTER additionally requires competitive Pareto dominance;
-- mixed/future-value tradeoffs remain visible as MIXED;
-- only HIGH/MEDIUM counterparty-fit options may alter the headline action;
-- descriptive competitive-state labels never create focal-utility cliffs.
+Architecture:
+- trade quality is determined by simulated football/franchise outcomes, never by
+  counterparty acceptance fit;
+- counterparty acceptance fit remains a separate Behavioral Intelligence output;
+- state-aware score remains a search/tradeoff signal rather than categorical proof;
+- an option dominated across core competitive outcomes cannot be called BETTER
+  solely because of composite score;
+- descriptive competitive-state labels do not create focal-utility cliffs;
+- action guidance exposes feasibility separately instead of hiding LOW/VERY_LOW
+  alternatives or mathematically blending feasibility into trade value.
 
 No player-specific exceptions are permitted.
 """
@@ -29,7 +24,6 @@ SCRIPT=Path(__file__).resolve().parent
 V30=SCRIPT/'run_trade_market_sweep_v30.py'
 MODEL_VERSION='FSFFL-Counter-Market-Sweep-1.25'
 EPS=1e-9
-ACTIONABLE_ACCEPTANCE={'HIGH','MEDIUM'}
 
 def load(path,name):
     spec=importlib.util.spec_from_file_location(name,path)
@@ -93,30 +87,26 @@ def compare(row,current):
     return {'verdict_vs_current_offer':verdict,'raw_score_only_verdict':score_verdict,'post_sim_score_delta_vs_current_offer':score_delta,'metric_deltas_vs_current_offer':deltas,'competitive_relation_vs_current_offer':relation,'outcome_consistency_guard_applied':guard,'outcome_consistency_guard_reason':guard_reason,'reason':lead+', driven by '+', '.join(drivers[:6])+'.','comparison_basis':'state_aware_score_plus_objective_state_outcome_consistency_and_key_simulation_strategic_deltas'}
 
 def acceptance(row):
-    return str(row.get('acceptance_likelihood') or ((row.get('buyer_rationality') or {}).get('heuristic_acceptance_fit')) or '')
-
-def actionable_better(row):
-    comp=row.get('comparison_to_current_offer') or {}
-    return comp.get('verdict_vs_current_offer')=='BETTER' and acceptance(row) in ACTIONABLE_ACCEPTANCE
+    return str(row.get('acceptance_likelihood') or ((row.get('buyer_rationality') or {}).get('heuristic_acceptance_fit')) or 'UNKNOWN')
 
 def current_mutually_viable(current):
-    # The continuous post-simulation objective is authoritative. State labels
-    # are descriptive and cannot reintroduce rebuild/retool cliffs here.
     state=objective_state(current);post=sf(current.get('post_sim_score'))
     focal=post>0
-    if state in {'contender','elite_contender'} and current.get('championship_equity_constraint')=='FAIL':
-        focal=False
+    if state in {'contender','elite_contender'} and current.get('championship_equity_constraint')=='FAIL':focal=False
     buyer=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
     return focal and buyer
 
 def recompute_action(report,inherited):
     current=report.get('current_offer_evaluation') or {}
     if not current_mutually_viable(current):return inherited,'INHERITED_CURRENT_OFFER_NOT_MUTUALLY_VIABLE'
-    counters=[x for x in (report.get('suggested_counteroffers') or []) if actionable_better(x)]
-    markets=[x for x in (report.get('market_sweep_alternatives') or []) if actionable_better(x)]
-    if counters:return 'COUNTER_CURRENT_OFFEROR','ACTIONABLE_BETTER_SAME_PARTNER_COUNTER'
-    if markets:return 'SHOP_BEFORE_ACCEPTING','ACTIONABLE_BETTER_MARKET_ALTERNATIVE'
-    return 'ACCEPT_NOW','NO_REALISTIC_ACTIONABLE_BETTER_OPTION_THAN_MUTUALLY_VIABLE_CURRENT_OFFER'
+    counters=[x for x in (report.get('suggested_counteroffers') or []) if (x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer')=='BETTER']
+    markets=[x for x in (report.get('market_sweep_alternatives') or []) if (x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer')=='BETTER']
+    # Feasibility is intentionally NOT used to alter trade quality. If a better
+    # alternative exists, surface it and its separate Behavioral Intelligence
+    # fit. The report/user decides whether the feasibility warrants pursuing it.
+    if counters:return 'REVIEW_BETTER_COUNTER','BETTER_SAME_PARTNER_COUNTER_EXISTS_FEASIBILITY_REPORTED_SEPARATELY'
+    if markets:return 'REVIEW_BETTER_ALTERNATIVE','BETTER_MARKET_ALTERNATIVE_EXISTS_FEASIBILITY_REPORTED_SEPARATELY'
+    return 'ACCEPT_NOW','NO_BETTER_OPTION_THAN_MUTUALLY_VIABLE_CURRENT_OFFER'
 
 def main():
     v30=load(V30,'market_v30_for_125');v30.main();out=out_path()
@@ -124,12 +114,14 @@ def main():
     report=json.loads(out.read_text(encoding='utf-8'));current=report.get('current_offer_evaluation') or {}
     for section in ('suggested_counteroffers','market_sweep_alternatives'):
         for row in report.get(section) or []:
-            comp=compare(row,current);row['comparison_to_current_offer']=comp;row['why_prefer_over_current_offer']=comp['reason'];row['why_advantageous_for_focus']=comp['reason'];row['actionable_better_than_current_offer']=actionable_better(row)
+            comp=compare(row,current);row['comparison_to_current_offer']=comp;row['why_prefer_over_current_offer']=comp['reason'];row['why_advantageous_for_focus']=comp['reason']
+            row['counterparty_feasibility']={'acceptance_fit':acceptance(row),'source':'BEHAVIORAL_INTELLIGENCE','affects_trade_valuation':False,'reported_separately':True}
+            row['actionable_better_than_current_offer']=comp.get('verdict_vs_current_offer')=='BETTER'
     inherited=str(report.get('recommended_next_action') or 'REVIEW');final_action,action_basis=recompute_action(report,inherited)
     report['recommended_next_action_pre_outcome_consistency']=inherited;report['recommended_next_action']=final_action
-    report.setdefault('governance',{})['option_outcome_consistency']={'search_score_separated_from_better_verdict':True,'competitively_dominated_option_cannot_be_categorical_better':True,'contender_better_requires_competitive_pareto_dominance':True,'headline_action_requires_high_or_medium_counterparty_fit':True,'descriptive_state_labels_create_action_cliffs':False,'current_offer_action_recomputed_after_final_option_comparisons':True,'action_basis':action_basis,'player_specific_exceptions':False}
+    report.setdefault('governance',{})['option_outcome_consistency']={'search_score_separated_from_better_verdict':True,'competitively_dominated_option_cannot_be_categorical_better':True,'contender_better_requires_competitive_pareto_dominance':True,'acceptance_fit_affects_trade_valuation':False,'acceptance_fit_reported_as_separate_behavioral_intelligence':True,'acceptance_fit_hard_gate_on_trade_quality':False,'descriptive_state_labels_create_action_cliffs':False,'current_offer_action_recomputed_after_final_option_comparisons':True,'action_basis':action_basis,'player_specific_exceptions':False}
     report['model_version']=MODEL_VERSION
-    report.setdefault('policy',{}).update({'option_comparison_model_version':'FSFFL-Option-Outcome-Consistency-1.1','state_aware_score_is_search_and_tradeoff_signal_not_categorical_better_proof':True,'competitively_dominated_option_can_be_called_better':False,'contender_better_requires_no_competitive_outcome_regression':True,'contender_better_requires_at_least_one_competitive_outcome_improvement':True,'low_or_very_low_acceptance_alternative_can_force_shop':False,'headline_action_acceptance_fit_required':['HIGH','MEDIUM'],'descriptive_state_labels_create_action_cliffs':False,'mixed_tradeoffs_remain_visible':True,'candidate_generation_unchanged':True,'simulation_unchanged':True})
+    report.setdefault('policy',{}).update({'option_comparison_model_version':'FSFFL-Option-Outcome-Consistency-1.2','state_aware_score_is_search_and_tradeoff_signal_not_categorical_better_proof':True,'competitively_dominated_option_can_be_called_better':False,'contender_better_requires_no_competitive_outcome_regression':True,'contender_better_requires_at_least_one_competitive_outcome_improvement':True,'acceptance_likelihood_is_separate_from_trade_valuation':True,'behavioral_intelligence_informs_counterparty_feasibility_not_trade_value':True,'low_or_very_low_acceptance_changes_trade_quality_verdict':False,'descriptive_state_labels_create_action_cliffs':False,'mixed_tradeoffs_remain_visible':True,'candidate_generation_unchanged':True,'simulation_unchanged':True})
     report.setdefault('simulation',{})['execution_path']=str((report.get('simulation') or {}).get('execution_path') or '')+'_plus_outcome_consistent_option_governance'
     out.write_text(json.dumps(report,indent=2,sort_keys=True),encoding='utf-8')
 
