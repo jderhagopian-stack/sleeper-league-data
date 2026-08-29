@@ -1,22 +1,14 @@
 #!/usr/bin/env python3
 """Run the first real-data benchmark for the FSFFL-native projection challenger.
 
-This script downloads nflverse player_stats CSV releases, aggregates regular-
-season weekly football statistics to player-season rows, creates strictly
-lagged next-season examples, and evaluates position-specific ridge models on a
-latest-season temporal holdout.
+The benchmark downloads nflverse regular-season player summary CSVs, constructs
+strictly lagged next-season examples, and evaluates position-specific ridge
+models on the latest completed season. It predicts football statistics rather
+than fantasy points, and it remains a challenger only.
 
-Important governance properties:
-- targets are underlying football statistics, never fantasy points;
-- season t features are used only to predict season t+1 outcomes;
-- alpha selection occurs inside the training period;
-- the latest available completed season is held out entirely;
-- no external fantasy projection source is used.
-
-Data source: nflverse/nflverse-data player_stats GitHub release.
-The nflverse data ecosystem documents the relevant open datasets as broadly
-CC-BY 4.0; this script records attribution in its output and does not redistribute
-raw source files in the repository.
+The raw nflverse files are not committed. Source attribution is retained here;
+dataset-specific licensing/redistribution terms must still be verified before
+any production redistribution.
 """
 from __future__ import annotations
 
@@ -27,16 +19,15 @@ import json
 import sys
 import traceback
 import urllib.request
-from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from native_projection_challenger import temporal_holdout  # noqa: E402
 
-URL = "https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_{season}.csv"
+URL = "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_{season}.csv"
 POSITIONS = {"QB", "RB", "WR", "TE"}
-SUM_STATS = [
+STATS = [
     "completions", "attempts", "passing_yards", "passing_tds", "interceptions",
     "carries", "rushing_yards", "rushing_tds", "targets", "receptions",
     "receiving_yards", "receiving_tds",
@@ -77,54 +68,35 @@ def fval(value) -> float:
 
 
 def fetch_csv(season: int) -> List[dict]:
-    req = urllib.request.Request(URL.format(season=season), headers={"User-Agent": "FSFFL-native-projection-benchmark/1.0"})
+    req = urllib.request.Request(
+        URL.format(season=season),
+        headers={"User-Agent": "FSFFL-native-projection-benchmark/1.0"},
+    )
     with urllib.request.urlopen(req, timeout=60) as response:
         text = response.read().decode("utf-8-sig")
     return list(csv.DictReader(io.StringIO(text)))
 
 
-def aggregate_season(rows: Iterable[dict], season: int) -> List[dict]:
-    """Aggregate weekly regular-season nflverse rows to player-season totals."""
-    grouped: Dict[str, dict] = {}
-    weeks = defaultdict(set)
-    position_votes = defaultdict(Counter)
-    team_votes = defaultdict(Counter)
-
+def normalize_season(rows: List[dict], season: int) -> List[dict]:
+    """Normalize one nflverse regular-season player summary file."""
+    out = []
     for raw in rows:
         if raw.get("season_type") and str(raw.get("season_type")).upper() != "REG":
             continue
         pid = str(raw.get("player_id") or raw.get("gsis_id") or "").strip()
-        if not pid:
-            continue
         position = str(raw.get("position") or raw.get("position_group") or "").upper().strip()
-        if position not in POSITIONS:
+        if not pid or position not in POSITIONS:
             continue
-        name = str(raw.get("player_display_name") or raw.get("player_name") or "").strip()
-        team = str(raw.get("recent_team") or raw.get("team") or "").strip()
-        if pid not in grouped:
-            grouped[pid] = {
-                "season": season,
-                "player_id": pid,
-                "player_name": name,
-                "position": position,
-                "team": team,
-                **{stat: 0.0 for stat in SUM_STATS},
-            }
-        position_votes[pid][position] += 1
-        if team:
-            team_votes[pid][team] += 1
-        week = raw.get("week")
-        if week not in (None, ""):
-            weeks[pid].add(str(week))
-        for stat in SUM_STATS:
-            grouped[pid][stat] += fval(raw.get(stat))
-
-    out = []
-    for pid, row in grouped.items():
-        row["position"] = position_votes[pid].most_common(1)[0][0]
-        if team_votes[pid]:
-            row["team"] = team_votes[pid].most_common(1)[0][0]
-        row["games"] = float(len(weeks[pid])) if weeks[pid] else fval(row.get("games"))
+        row = {
+            "season": int(raw.get("season") or season),
+            "player_id": pid,
+            "player_name": str(raw.get("player_display_name") or raw.get("player_name") or "").strip(),
+            "position": position,
+            "team": str(raw.get("recent_team") or raw.get("team") or "").strip(),
+            "games": fval(raw.get("games")),
+        }
+        for stat in STATS:
+            row[stat] = fval(raw.get(stat))
         out.append(row)
     return out
 
@@ -146,7 +118,7 @@ def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
             "lag1_games": fval(cur.get("games")),
             "next_games": fval(nxt.get("games")),
         }
-        for stat in SUM_STATS:
+        for stat in STATS:
             row[f"lag1_{stat}"] = fval(cur.get(stat))
             row[f"next_{stat}"] = fval(nxt.get(stat))
         out.append(row)
@@ -158,9 +130,15 @@ def run(start_season: int, end_season: int) -> dict:
     source_counts = {}
     for season in range(start_season, end_season + 1):
         raw = fetch_csv(season)
-        aggregated = aggregate_season(raw, season)
-        all_seasons.extend(aggregated)
-        source_counts[str(season)] = {"raw_rows": len(raw), "player_seasons": len(aggregated)}
+        normalized = normalize_season(raw, season)
+        if not normalized:
+            raise ValueError(f"{season}: no QB/RB/WR/TE player rows after normalization; source schema may have changed")
+        all_seasons.extend(normalized)
+        source_counts[str(season)] = {
+            "raw_rows": len(raw),
+            "eligible_player_seasons": len(normalized),
+            "columns": sorted(raw[0].keys()) if raw else [],
+        }
 
     lagged = make_lagged_rows(all_seasons)
     reports = {}
@@ -170,33 +148,44 @@ def run(start_season: int, end_season: int) -> dict:
     summary = {}
     for position, report in reports.items():
         target_results = list(report["targets"].values())
+        with_persistence = [r for r in target_results if "persistence_baseline_mae" in r]
         summary[position] = {
             "holdout_season": report["holdout_season"],
             "train_n": report["train_n"],
             "holdout_n": report["holdout_n"],
-            "targets_beating_mean_baseline": sum(r["model_mae"] < r["mean_train_baseline_mae"] for r in target_results),
             "target_count": len(target_results),
+            "targets_beating_mean_baseline": sum(r["model_mae"] < r["mean_train_baseline_mae"] for r in target_results),
+            "targets_beating_persistence": sum(bool(r.get("beats_persistence")) for r in with_persistence),
+            "targets_with_persistence_baseline": len(with_persistence),
             "mean_improvement_vs_mean_baseline_pct": sum(r["improvement_vs_mean_baseline_pct"] for r in target_results) / len(target_results),
+            "mean_improvement_vs_persistence_pct": (
+                sum(r["improvement_vs_persistence_pct"] for r in with_persistence) / len(with_persistence)
+                if with_persistence else None
+            ),
         }
 
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "status": "PASS",
         "source": {
             "provider": "nflverse/nflverse-data",
-            "release": "player_stats",
+            "release_tag": "stats_player",
+            "asset_family": "stats_player_reg_{season}.csv",
             "url_template": URL,
-            "attribution": "nflverse community data; retain source attribution and verify dataset-specific license before production distribution",
+            "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution",
         },
         "seasons_requested": [start_season, end_season],
         "source_counts": source_counts,
         "lagged_example_rows": len(lagged),
+        "coverage_note": "V1 evaluates returning NFL players with a prior-season row. Rookies require a separate projection path before production use.",
         "benchmark_summary": summary,
         "position_reports": reports,
         "governance": {
             "fantasy_points_used_as_target": False,
             "holdout_policy": "latest completed season in downloaded range",
             "hyperparameter_selection": "training-period temporal inner validation only",
+            "primary_simple_baseline": "prior-year same-stat persistence where available",
+            "population_mean_baseline_role": "sanity check only",
             "production_promoted": False,
         },
     }
@@ -215,12 +204,13 @@ def main() -> None:
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
         failure = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "status": "FAIL",
             "error_type": type(exc).__name__,
             "error": str(exc),
             "traceback": traceback.format_exc(),
             "seasons_requested": [args.start_season, args.end_season],
+            "source_url_template": URL,
         }
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
