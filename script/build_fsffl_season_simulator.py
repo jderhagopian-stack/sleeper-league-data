@@ -269,60 +269,122 @@ def team_week_score(lineup, rng):
     return sum(sample_player(row, rng) for row in lineup)
 
 
-def seed_teams(records, points_for):
-    return sorted(records, key=lambda rid: (records[rid], points_for[rid], -rid), reverse=True)
+def standings_key(rid, records, points_for, points_against=None):
+    """Sleeper-standard standing order: record, PF, then higher PA."""
+    pa = points_against or {}
+    return (records[rid], points_for[rid], pa.get(rid, 0.0), -rid)
+
+
+def seed_teams(records, points_for, points_against=None, divisions=None, playoff_teams=6):
+    """Seed using Sleeper's division-winner rule when divisions are configured.
+
+    Division winners occupy the top seeds, ordered by the same standings
+    tiebreakers. Remaining teams follow as wild cards. Without divisions, this
+    reduces to overall standings order.
+    """
+    all_order = sorted(
+        records,
+        key=lambda rid: standings_key(rid, records, points_for, points_against),
+        reverse=True,
+    )
+    divisions = divisions or {}
+    groups = defaultdict(list)
+    for rid in all_order:
+        div = divisions.get(rid)
+        if div is not None:
+            groups[div].append(rid)
+
+    if len(groups) <= 1:
+        return all_order
+
+    division_winners = [
+        max(members, key=lambda rid: standings_key(rid, records, points_for, points_against))
+        for members in groups.values() if members
+    ]
+    division_winners.sort(
+        key=lambda rid: standings_key(rid, records, points_for, points_against),
+        reverse=True,
+    )
+    others = [rid for rid in all_order if rid not in set(division_winners)]
+    return division_winners + others
+
+
+def playoff_round_count(playoff_teams: int) -> int:
+    if playoff_teams == 4:
+        return 2
+    if playoff_teams in (6, 8):
+        return 3
+    raise ValueError(f"Unsupported Sleeper playoff-team count: {playoff_teams}; expected 4, 6, or 8")
+
+
+def first_round_byes(playoff_teams: int) -> int:
+    return 2 if playoff_teams == 6 else 0
 
 
 def simulate_playoffs(seed_order, lineups, playoff_weeks, rng):
+    """Simulate standard Sleeper 4-, 6-, or 8-team winner brackets.
+
+    Ties advance the higher seed. Later rounds are reseeded highest-vs-lowest,
+    matching the production behavior FSFFL previously used for its six-team
+    bracket. Alternate/two-week championship structures remain separately
+    governed rather than silently guessed.
     """
-    Default six-team Sleeper-like bracket:
-      Seeds 1-2 bye
-      Week 1: 3v6, 4v5
-      Week 2: 1 vs lower remaining seed, 2 vs higher remaining seed
-      Week 3: title game
-    If fewer than 3 playoff weeks exist, returns best effort.
-    """
-    if len(seed_order) < 6:
+    n = len(seed_order)
+    if n not in (4, 6, 8):
         return None
-    seeds = {rid: i + 1 for i, rid in enumerate(seed_order[:6])}
+    seeds = {rid: i + 1 for i, rid in enumerate(seed_order)}
 
     def score(rid, week):
         return team_week_score(lineups[rid].get(week, []), rng)
 
+    def winner(a, b, week):
+        sa, sb = score(a, week), score(b, week)
+        if sa == sb:
+            return a if seeds[a] < seeds[b] else b
+        return a if sa > sb else b
+
     if not playoff_weeks:
         return seed_order[0]
 
-    w1 = playoff_weeks[0]
-    g1 = (seed_order[2], seed_order[5])
-    g2 = (seed_order[3], seed_order[4])
-    w1w = []
-    for a, b in (g1, g2):
-        sa, sb = score(a, w1), score(b, w1)
-        w1w.append(a if sa >= sb else b)
+    alive = list(seed_order)
+    week_idx = 0
 
-    if len(playoff_weeks) == 1:
-        return min(w1w, key=lambda rid: seeds[rid])
+    if n == 6:
+        w = playoff_weeks[week_idx]
+        alive = [
+            seed_order[0],
+            seed_order[1],
+            winner(seed_order[2], seed_order[5], w),
+            winner(seed_order[3], seed_order[4], w),
+        ]
+        week_idx += 1
+    elif n == 8:
+        w = playoff_weeks[week_idx]
+        alive = [
+            winner(seed_order[0], seed_order[7], w),
+            winner(seed_order[3], seed_order[4], w),
+            winner(seed_order[1], seed_order[6], w),
+            winner(seed_order[2], seed_order[5], w),
+        ]
+        week_idx += 1
 
-    remaining = [seed_order[0], seed_order[1]] + w1w
-    wildcard_sorted = sorted(w1w, key=lambda rid: seeds[rid])
-    # seed 1 gets worse (numerically larger) surviving seed.
-    low = max(w1w, key=lambda rid: seeds[rid])
-    high = min(w1w, key=lambda rid: seeds[rid])
+    # Four remaining teams: highest seed faces lowest, middle two play.
+    if len(alive) == 4:
+        if week_idx >= len(playoff_weeks):
+            return min(alive, key=lambda rid: seeds[rid])
+        alive = sorted(alive, key=lambda rid: seeds[rid])
+        w = playoff_weeks[week_idx]
+        alive = [
+            winner(alive[0], alive[-1], w),
+            winner(alive[1], alive[-2], w),
+        ]
+        week_idx += 1
 
-    w2 = playoff_weeks[1]
-    semis = [(seed_order[0], low), (seed_order[1], high)]
-    finalists = []
-    for a, b in semis:
-        sa, sb = score(a, w2), score(b, w2)
-        finalists.append(a if sa >= sb else b)
-
-    if len(playoff_weeks) == 2:
-        return finalists[0] if seeds[finalists[0]] < seeds[finalists[1]] else finalists[1]
-
-    w3 = playoff_weeks[2]
-    a, b = finalists
-    return a if score(a, w3) >= score(b, w3) else b
-
+    if len(alive) == 2:
+        if week_idx >= len(playoff_weeks):
+            return min(alive, key=lambda rid: seeds[rid])
+        return winner(alive[0], alive[1], playoff_weeks[week_idx])
+    return alive[0] if alive else None
 
 def run_simulation(league, rosters, users, players, raw_schedule, projections, n_sims=DEFAULT_SIMS, seed=20260821):
     season = str(league["season"])
@@ -330,8 +392,12 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
     reg_weeks = regular_season_weeks(league)
     by_week, opponents = build_schedule(raw_schedule, reg_weeks)
 
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
+    settings = league.get("settings") or {}
+    playoff_start = int(settings.get("playoff_week_start") or 15)
+    playoff_teams = int(settings.get("playoff_teams") or 6)
+    playoff_weeks = [
+        playoff_start + i for i in range(playoff_round_count(playoff_teams))
+    ]
 
     # Pre-optimize projected lineups for every regular-season and playoff week.
     all_needed_weeks = sorted(set(reg_weeks + playoff_weeks))
@@ -348,7 +414,7 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
     division_win_counts = defaultdict(int)
     title_counts = defaultdict(int)
 
-    playoff_teams = int((league.get("settings") or {}).get("playoff_teams") or 6)
+    bye_count = first_round_byes(playoff_teams)
 
     # Division members.
     division_members = defaultdict(list)
@@ -358,6 +424,7 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
     for _ in range(n_sims):
         wins = defaultdict(int)
         pf = defaultdict(float)
+        pa = defaultdict(float)
 
         for week in reg_weeks:
             weekly_scores = {}
@@ -367,15 +434,18 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
 
             for a, b in by_week.get(week, []):
                 sa, sb = weekly_scores[a], weekly_scores[b]
+                pa[a] += sb
+                pa[b] += sa
                 if sa >= sb:
                     wins[a] += 1
                 else:
                     wins[b] += 1
 
-        order = seed_teams(wins, pf)
+        divisions_by_rid = {rid: info.get("division") for rid, info in roster_dir.items()}
+        order = seed_teams(
+            wins, pf, pa, divisions=divisions_by_rid, playoff_teams=playoff_teams
+        )
 
-        # Division probabilities are tracked separately; Sleeper seeding rules can
-        # be layered in later if division winners receive explicit seed priority.
         for div, members in division_members.items():
             if div is None or not members:
                 continue
@@ -388,10 +458,10 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
             pf_totals[rid] += pf[rid]
             if i <= playoff_teams:
                 counts[rid]["playoff"] += 1
-            if i <= 2:
+            if i <= bye_count:
                 counts[rid]["bye"] += 1
 
-        # Playoffs require projection coverage for Weeks 15-17.
+        # Playoffs require projection coverage for the configured bracket weeks.
         playoff_projection_complete = all(
             lineups[rid].get(w) and any(x["player_id"] is not None for x in lineups[rid][w])
             for rid in order[:playoff_teams]
@@ -469,7 +539,7 @@ def validate_inputs(league, rosters, users, players, raw_schedule, projections):
         checks.append({"code": code, "passed": bool(passed), "severity": severity, "message": message})
 
     check("LEAGUE_SEASON", bool(season), f"Detected season: {season}")
-    check("ROSTERS_12", len(roster_dir) == int((league.get("settings") or {}).get("num_teams") or 12),
+    check("ROSTER_COUNT_MATCHES_LEAGUE", len(roster_dir) == int((league.get("settings") or {}).get("num_teams") or league.get("total_rosters") or len(roster_dir)),
           f"Roster count: {len(roster_dir)}")
     schedule_ok = all(len(by_week.get(w, [])) == len(roster_dir)//2 for w in reg_weeks)
     check("FULL_REGULAR_SCHEDULE", schedule_ok,
@@ -490,9 +560,9 @@ def validate_inputs(league, rosters, users, players, raw_schedule, projections):
             weeks = p.get("weeks") or {}
             if any(str(w) in weeks for w in reg_weeks):
                 covered.add(pid)
-            if all(str(w) in weeks for w in [15,16,17]):
+            if all(str(w) in weeks for w in playoff_weeks):
                 playoff_covered.add(pid)
-            for w in reg_weeks + [15,16,17]:
+            for w in reg_weeks + playoff_weeks:
                 row = weeks.get(str(w))
                 if row:
                     week_rows += 1
@@ -503,7 +573,7 @@ def validate_inputs(league, rosters, users, players, raw_schedule, projections):
     check("ROSTER_PROJECTION_COVERAGE", coverage >= 0.95,
           f"Regular-season projection coverage: {coverage:.1%} of rostered players.")
     check("PLAYOFF_PROJECTION_COVERAGE", len(playoff_covered) / max(1, len(rostered)) >= 0.95,
-          f"Weeks 15-17 projection coverage: {len(playoff_covered) / max(1, len(rostered)):.1%}.",
+          f"Configured playoff weeks {playoff_weeks} projection coverage: {len(playoff_covered) / max(1, len(rostered)):.1%}.",
           severity="warning")
     check("DISTRIBUTION_WIDTHS", fallback_sd_rows == 0,
           f"{fallback_sd_rows} projection rows require generic SD fallback.",
