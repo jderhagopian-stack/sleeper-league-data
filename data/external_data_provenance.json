@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "governance_version": "FSFFL-External-Data-Provenance-1.0",
+  "checked_at_utc": "2026-08-29T08:45:00Z",
+  "policy": {
+    "default_commercial_status_for_unreviewed_sources": "BLOCKED_PENDING_REVIEW",
+    "publicly_accessible_does_not_imply_commercially_licensed": true,
+    "restricted_sources_may_be_used_for_internal_research_only_when_terms_allow": true,
+    "commercial_production_requires_explicit_permission_or_terms_allowing_commercial_use": true,
+    "derived_parameters_do_not_automatically_escape_upstream_license_constraints": true,
+    "prefer_independent_fsffl_estimation_from_commercially_permissible_or_first_party_evidence": true,
+    "projection_workstream_is_out_of_scope_for_this_branch": true
+  },
+  "sources": [
+    {
+      "id": "FANTASYCALC-MARKET-001",
+      "name": "FantasyCalc",
+      "category": "external_dynasty_market_anchor",
+      "current_repo_artifacts": [
+        "data/market_values_fantasycalc.json"
+      ],
+      "known_nonprojection_uses": [
+        "player dynasty market anchor",
+        "future-pick market anchor",
+        "future-pick early/mid/late market shape",
+        "future-pick round-specific time-discount fallback calibration",
+        "30-day market trend diagnostic"
+      ],
+      "terms_url": "https://fantasycalc.com/terms-of-usage",
+      "terms_effective_date": "2024-02-24",
+      "commercial_status": "LICENSE_REQUIRED",
+      "commercial_use_without_written_permission": false,
+      "attribution_required": true,
+      "wholesale_republication_allowed": false,
+      "current_internal_research_use": "ALLOWED_SUBJECT_TO_TERMS",
+      "commercial_production_authorized": false,
+      "required_before_commercial_deployment": "Obtain express written permission/license from FantasyCalc or remove/replace the dependency.",
+      "notes": "FantasyCalc states that its data is copyrighted and may not be used commercially without express written permission. Public accessibility is not a commercial license."
+    },
+    {
+      "id": "SLEEPER-API-001",
+      "name": "Sleeper API",
+      "category": "league_roster_transaction_player_metadata_source",
+      "current_repo_artifacts": [
+        "data/league.json",
+        "data/players.json",
+        "data/transactions.json",
+        "data/trade_ledger.json",
+        "data/draft_ledger.json"
+      ],
+      "known_nonprojection_uses": [
+        "league rules and scoring configuration",
+        "rosters and ownership",
+        "transactions and trade history",
+        "draft history and draft-pick ownership",
+        "player identifiers and metadata"
+      ],
+      "terms_url": "https://docs.sleeper.com/",
+      "general_terms_url": "https://support.sleeper.com/en/articles/5486620-general-terms-of-use",
+      "commercial_status": "LICENSE_REQUIRED",
+      "commercial_use_without_written_permission": false,
+      "attribution_required": null,
+      "wholesale_republication_allowed": false,
+      "current_internal_research_use": "ALLOWED_NONCOMMERCIAL",
+      "commercial_production_authorized": false,
+      "required_before_commercial_deployment": "Obtain a commercial/API licensing agreement or approved integration status from Sleeper, or redesign ingestion around a separately authorized data path.",
+      "notes": "Sleeper's API documentation says the read-only API is free for non-commercial use and instructs commercial users to contact Sleeper for licensing. Current general terms also restrict commercial third-party retrieval/synchronization without express consent."
+    },
+    {
+      "id": "STATSGUY-MARKET-001",
+      "name": "Stats Guy Fantasy",
+      "category": "candidate_commercial_dynasty_market_anchor",
+      "current_repo_artifacts": [],
+      "known_nonprojection_uses": [],
+      "candidate_uses": [
+        "independent benchmark for future-pick time-discount curves",
+        "commercially permissible current dynasty market anchor challenger",
+        "historical market snapshots for temporal validation",
+        "future-pick early/mid/late market shape"
+      ],
+      "docs_url": "https://statsguyfantasy.com/developers/docs",
+      "terms_url": "https://statsguyfantasy.com/terms",
+      "terms_effective_date": "2026-07-25",
+      "commercial_status": "COMMERCIAL_ALLOWED_WITH_CONDITIONS",
+      "commercial_use_without_separate_license": true,
+      "attribution_required_for_publicly_displayed_data": true,
+      "wholesale_republication_allowed": false,
+      "current_internal_research_use": "ALLOWED",
+      "commercial_production_authorized": true,
+      "conditions": [
+        "Use documented public API rather than scraping.",
+        "Respect documented rate limits.",
+        "Public products displaying Stats Guy Fantasy data must visibly credit and link to Stats Guy Fantasy.",
+        "Do not resell or republish the data wholesale as a standalone or competing data service."
+      ],
+      "notes": "The documented API explicitly permits commercial products and provides historical snapshots. This makes it a candidate challenger/bridge source, not automatically the preferred long-term FSFFL dependency."
+    },
+    {
+      "id": "FSFFL-DERIVED-001",
+      "name": "FSFFL model-derived parameters",
+      "category": "first_party_model_outputs",
+      "current_repo_artifacts": [
+        "data/pick_quality_model.json",
+        "data/audit/future_pick_economics_audit.json"
+      ],
+      "commercial_status": "CONDITIONAL_ON_INPUT_PROVENANCE",
+      "commercial_production_authorized": false,
+      "required_before_commercial_deployment": "For each derived parameter family, document whether the training/calibration evidence is first-party, commercially licensed/permissive, or restricted; restricted upstream data must not be assumed safe merely because it was transformed into a coefficient.",
+      "notes": "This is a governance rule rather than an external provider. A proprietary formula can still carry commercialization risk if it is mechanically derived from a restricted upstream dataset."
+    }
+  ],
+  "commercialization_blockers": [
+    {
+      "source_id": "FANTASYCALC-MARKET-001",
+      "severity": "HIGH",
+      "reason": "Active nonprojection market and future-pick anchor is not licensed for commercial use."
+    },
+    {
+      "source_id": "SLEEPER-API-001",
+      "severity": "HIGH",
+      "reason": "Core league/roster/transaction ingestion depends on an API whose published documentation limits free use to non-commercial purposes."
+    }
+  ],
+  "commercially_permissive_challengers": [
+    "STATSGUY-MARKET-001"
+  ],
+  "next_actions": [
+    "Benchmark Stats Guy Fantasy future-pick curves against current FantasyCalc-derived curves without replacing production assumptions solely because licensing is easier.",
+    "Build an FSFFL-owned future-pick time-value challenger from commercially permissible or licensed historical transaction evidence where identifiable.",
+    "Audit every remaining nonprojection external dataset and add it to this registry before commercial deployment.",
+    "Separately audit projection-source licensing in the active projection workstream to avoid branch conflicts."
+  ]
+}
