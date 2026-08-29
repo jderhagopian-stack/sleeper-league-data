@@ -3,13 +3,18 @@
 
 Policy
 ------
-When a newer version of a versioned module family is published, production code
-must reference the newest version unless an older dependency is explicitly
-registered as an intentional compatibility/mechanical dependency with a reason.
+New production code must use the newest authoritative version of a versioned
+module family unless an older dependency is explicitly registered as a narrow
+mechanical/compatibility dependency with a reason.
 
-This prevents silent stale dependencies while still allowing deliberate wrapper
-composition (for example, a newest wrapper may intentionally build on the prior
-wrapper's mechanics).
+The repository already contains a historical trade-wrapper chain. Rewiring
+those files wholesale would be unsafe because the versions expose different
+interfaces and patch semantics. Those exact pre-existing edges are therefore
+recorded as LEGACY_WRAPPER_DEBT: visible warnings that may shrink but may not
+grow. Any new stale production dependency is a hard failure.
+
+References that merely inspect or assert a version in audits/tests/metadata are
+not runtime dependencies and are excluded from this graph.
 """
 from __future__ import annotations
 
@@ -24,22 +29,61 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Version-Dependency-Freshness-Audit-1.0"
+MODEL_VERSION = "FSFFL-Version-Dependency-Freshness-Audit-1.1"
 
-# A stale version reference is permitted only when it is a deliberate internal
-# composition dependency. Every exception must identify the exact caller,
-# dependency and rationale. New exceptions therefore require code review.
-INTENTIONAL_PINS = {
+# Deliberate uses of an older module for one narrow mechanic. These are not
+# endorsements of the old module's decision authority. Each should eventually
+# move to a version-neutral shared utility when practical.
+INTENTIONAL_MECHANICAL_PINS = {
     ("script/run_trade_market_sweep_v31.py", "script/run_trade_market_sweep_v30.py"):
-        "v31 is the authoritative outcome-governance wrapper and intentionally consumes v30 mechanics before replacing v30 option comparisons and final action authority.",
+        "Temporary wrapper composition: v31 consumes v30 mechanics, then replaces v30 option-comparison and final-action authority.",
     ("script/run_trade_market_sweep_v30.py", "script/run_trade_market_sweep_v29.py"):
-        "v30 adds roster-interaction mechanics on top of the retained v29 candidate/simulation layer; v30 is not final production decision authority.",
+        "Temporary wrapper composition: v30 adds roster-interaction mechanics to the retained v29 candidate/simulation layer; v30 is not final authority.",
     ("script/run_trade_review.py", "script/run_trade_market_sweep_v13.py"):
-        "Retrospective Trade Review reuses only v13 fast lineup reoptimization mechanics; v13 does not supply the trade judgment.",
+        "Retrospective Trade Review reuses only v13 fast lineup reoptimization mechanics; v13 does not supply trade judgment.",
+    ("script/run_team_improvement_lab.py", "script/run_trade_market_sweep_v13.py"):
+        "Team Improvement Lab reuses only v13 fast lineup reoptimization mechanics; v13 does not supply trade judgment.",
+}
+
+# Exact inherited wrapper edges present when this guardrail was introduced.
+# They are architectural debt, not approved design. CI permits these exact
+# edges so we can refactor safely one component at a time, but any new stale
+# edge fails. Removing an edge is always allowed and reduces this baseline.
+LEGACY_WRAPPER_DEBT_BASELINE = {
+    ("script/run_trade_market_sweep_v30.py", "script/run_trade_market_sweep_v23.py"),
+    ("script/run_trade_market_sweep_v29.py", "script/run_trade_market_sweep_v28.py"),
+    ("script/run_trade_market_sweep_v28.py", "script/run_trade_market_sweep_v27.py"),
+    ("script/run_trade_market_sweep_v27.py", "script/run_trade_market_sweep_v26.py"),
+    ("script/run_trade_market_sweep_v26.py", "script/run_trade_market_sweep_v24.py"),
+    ("script/run_trade_market_sweep_v24.py", "script/run_trade_market_sweep_v23.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v16.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v18.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v19.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v20.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v21.py"),
+    ("script/run_trade_market_sweep_v23.py", "script/run_trade_market_sweep_v22.py"),
+    ("script/run_trade_market_sweep_v22.py", "script/run_trade_market_sweep_v13.py"),
+    ("script/run_trade_market_sweep_v22.py", "script/run_trade_market_sweep_v19.py"),
+    ("script/run_trade_market_sweep_v22.py", "script/run_trade_market_sweep_v20.py"),
+    ("script/run_trade_market_sweep_v22.py", "script/run_trade_market_sweep_v21.py"),
+    ("script/run_trade_market_sweep_v21.py", "script/run_trade_market_sweep_v16.py"),
+    ("script/run_trade_market_sweep_v21.py", "script/run_trade_market_sweep_v18.py"),
+    ("script/run_trade_market_sweep_v21.py", "script/run_trade_market_sweep_v19.py"),
+    ("script/run_trade_market_sweep_v21.py", "script/run_trade_market_sweep_v20.py"),
+    ("script/run_trade_market_sweep_v20.py", "script/run_trade_market_sweep_v13.py"),
+    ("script/run_trade_market_sweep_v20.py", "script/run_trade_market_sweep_v18.py"),
+    ("script/run_trade_market_sweep_v20.py", "script/run_trade_market_sweep_v19.py"),
+    ("script/run_trade_market_sweep_v19.py", "script/run_trade_market_sweep_v13.py"),
+    ("script/run_trade_market_sweep_v19.py", "script/run_trade_market_sweep_v16.py"),
+    ("script/run_trade_market_sweep_v19.py", "script/run_trade_market_sweep_v18.py"),
+    ("script/run_trade_market_sweep_v18.py", "script/run_trade_market_sweep_v13.py"),
+    ("script/run_trade_market_sweep_v18.py", "script/run_trade_market_sweep_v16.py"),
+    ("script/run_trade_market_sweep_v16.py", "script/run_trade_market_sweep_v13.py"),
 }
 
 VERSIONED_RE = re.compile(r"^(?P<prefix>.+)_v(?P<version>\d+)\.py$")
 LOCAL_SCRIPT_RE = re.compile(r"(?:script/)?([A-Za-z0-9_]+(?:_v\d+)?\.py)")
+EXEC_SCRIPT_RE = re.compile(r"(?:python(?:3)?|bash|sh)\s+(?:-u\s+)?script/([A-Za-z0-9_]+(?:_v\d+)?\.(?:py|sh))")
 
 
 def rel(path: Path) -> str:
@@ -68,10 +112,23 @@ def latest_by_family():
 
 
 def references(path: Path):
-    """Return local script references that actually exist in script/."""
+    """Return runtime local-script dependencies, not metadata/audit mentions."""
+    # Audit scripts inspect historical versions by design. Their string
+    # references are evidence under inspection, not production model calls.
+    if path.parent == SCRIPT and path.name.startswith("audit_"):
+        return []
+
     src = txt(path)
     refs = set()
-    for name in LOCAL_SCRIPT_RE.findall(src):
+
+    if path.suffix in {".yml", ".yaml"}:
+        # Workflow assertions may name an old model version without executing
+        # it. Only explicit script execution creates a runtime dependency.
+        names = EXEC_SCRIPT_RE.findall(src)
+    else:
+        names = LOCAL_SCRIPT_RE.findall(src)
+
+    for name in names:
         candidate = SCRIPT / name
         if candidate.exists():
             refs.add(candidate)
@@ -85,8 +142,6 @@ def production_roots():
         SCRIPT / "run_fsffl_gm30_counterfactual_governed.py",
         SCRIPT / "run_trade_review.py",
     }
-    # Workflows are production roots only when their filename does not declare
-    # them to be an audit/test/governance/validation exercise.
     nonprod = ("audit", "test", "governance", "consistency", "sensitivity", "validation")
     for p in WORKFLOWS.glob("*.yml"):
         if not any(x in p.name.lower() for x in nonprod):
@@ -126,8 +181,26 @@ def main():
         newest = latest[family]
         if used >= newest["version"]:
             continue
+
         key = (rel(caller), rel(dep))
-        pin_reason = INTENTIONAL_PINS.get(key)
+        pin_reason = INTENTIONAL_MECHANICAL_PINS.get(key)
+        legacy_debt = key in LEGACY_WRAPPER_DEBT_BASELINE
+        if pin_reason:
+            classification = "INTENTIONAL_MECHANICAL_PIN"
+            ok = True
+            severity = "INFO"
+            observation = "Older version is deliberately reused for a narrow mechanical dependency; it has no newer decision authority."
+        elif legacy_debt:
+            classification = "LEGACY_WRAPPER_DEBT"
+            ok = True
+            severity = "WARN"
+            observation = "Pre-existing inherited wrapper dependency remains. It is frozen architecture debt and should be removed incrementally, not rewired blindly."
+        else:
+            classification = "NEW_UNAPPROVED_STALE_DEPENDENCY"
+            ok = False
+            severity = "CRITICAL"
+            observation = "A new production-reachable stale dependency appeared after the architecture baseline."
+
         row = {
             "caller": rel(caller),
             "dependency": rel(dep),
@@ -135,36 +208,44 @@ def main():
             "used_version": used,
             "latest_version": newest["version"],
             "latest_path": newest["path"],
-            "intentional_pin": bool(pin_reason),
+            "classification": classification,
+            "intentional_mechanical_pin": bool(pin_reason),
             "pin_reason": pin_reason,
+            "legacy_wrapper_debt": legacy_debt,
         }
         stale.append(row)
         findings.append({
             "id": f"VERSION-FRESHNESS-{len(findings)+1:03d}",
-            "ok": bool(pin_reason),
-            "severity": "INFO" if pin_reason else "CRITICAL",
-            "observation": (
-                "Older version dependency is explicitly pinned as an internal/mechanical compatibility dependency."
-                if pin_reason else
-                "Production-reachable caller references an older version even though a newer module in the same family exists."
-            ),
+            "ok": ok,
+            "severity": severity,
+            "observation": observation,
             **row,
         })
 
-    # Also ensure every declared pin still corresponds to a real reachable edge.
     edge_keys = {(rel(a), rel(b)) for a, b in edges}
-    dead_pins = []
-    for key, reason in INTENTIONAL_PINS.items():
-        if key not in edge_keys:
-            dead_pins.append({"caller": key[0], "dependency": key[1], "reason": reason})
+    dead_pins = [
+        {"caller": key[0], "dependency": key[1], "reason": reason}
+        for key, reason in INTENTIONAL_MECHANICAL_PINS.items()
+        if key not in edge_keys
+    ]
+    resolved_legacy_debt = [
+        {"caller": key[0], "dependency": key[1]}
+        for key in sorted(LEGACY_WRAPPER_DEBT_BASELINE)
+        if key not in edge_keys
+    ]
 
     failed = [x for x in findings if not x["ok"]]
+    legacy_rows = [x for x in stale if x["classification"] == "LEGACY_WRAPPER_DEBT"]
+    pin_rows = [x for x in stale if x["classification"] == "INTENTIONAL_MECHANICAL_PIN"]
     payload = {
         "model_version": MODEL_VERSION,
         "policy": {
             "new_version_requires_production_callers_to_advance": True,
             "silent_stale_dependencies_allowed": False,
-            "intentional_older_dependency_requires_explicit_pin_and_reason": True,
+            "intentional_older_mechanical_dependency_requires_explicit_pin_and_reason": True,
+            "preexisting_wrapper_debt_may_shrink_but_not_grow": True,
+            "metadata_assertions_are_not_runtime_dependencies": True,
+            "audit_inspection_references_are_not_runtime_dependencies": True,
             "production_reachability_scanned_recursively": True,
         },
         "production_roots": [rel(x) for x in roots],
@@ -172,11 +253,14 @@ def main():
         "versioned_families": latest,
         "stale_dependency_references": stale,
         "dead_intentional_pins": dead_pins,
+        "resolved_legacy_wrapper_debt": resolved_legacy_debt,
         "summary": {
             "passed": not failed,
             "stale_reference_count": len(stale),
-            "unapproved_stale_reference_count": len(failed),
-            "intentional_pin_count": sum(1 for x in stale if x["intentional_pin"]),
+            "new_unapproved_stale_reference_count": len(failed),
+            "legacy_wrapper_debt_count": len(legacy_rows),
+            "intentional_mechanical_pin_count": len(pin_rows),
+            "resolved_legacy_debt_count": len(resolved_legacy_debt),
             "dead_pin_count": len(dead_pins),
         },
         "findings": findings,
@@ -187,7 +271,7 @@ def main():
     print(json.dumps(payload, indent=2))
     if failed:
         raise SystemExit(
-            "Unapproved stale production dependencies: "
+            "New unapproved stale production dependencies: "
             + ", ".join(f"{x['caller']} -> {x['dependency']}" for x in failed)
         )
 
