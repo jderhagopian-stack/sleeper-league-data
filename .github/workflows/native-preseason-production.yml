@@ -1,0 +1,29 @@
+name: Native Preseason Production
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_native_preseason_projections.py'
+      - 'script/run_native_preseason_production.py'
+      - '.github/workflows/native-preseason-production.yml'
+      - 'script/native_projection_challenger.py'
+      - 'script/run_native_projection_nflverse_benchmark.py'
+      - 'script/run_native_projection_core_context_benchmark.py'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build 2026 native baseline
+        run: python script/run_native_preseason_production.py --season 2026
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-preseason-production
+          path: |
+            data/simulator/2026/sources/native_preseason_fsffl_points.json
+            data/simulator/2026/sources/native_raw_stat_projections.json

@@ -1,0 +1,23 @@
+name: Native Projection V2 Refinement
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_native_projection_v2_refinement_benchmark.py'
+      - '.github/workflows/native-projection-v2-refinement.yml'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run targeted V2 refinement benchmark
+        run: python script/run_native_projection_v2_refinement_benchmark.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-projection-v2-refinement
+          path: data/model_validation/native_projection_v2_refinement_benchmark.json

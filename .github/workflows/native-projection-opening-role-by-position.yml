@@ -1,0 +1,23 @@
+name: Native Projection Opening Role by Position
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_native_projection_opening_role_by_position_benchmark.py'
+      - '.github/workflows/native-projection-opening-role-by-position.yml'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run position role benchmark
+        run: python script/run_native_projection_opening_role_by_position_benchmark.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-projection-opening-role-by-position
+          path: data/model_validation/native_projection_opening_role_by_position_benchmark.json

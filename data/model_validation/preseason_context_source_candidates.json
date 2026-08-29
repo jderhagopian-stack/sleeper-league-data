@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "status": "FEASIBILITY_CONFIRMED_LICENSE_REVIEW_PENDING",
+  "purpose": "Candidate historical preseason context sources for the next native projection challenger.",
+  "candidates": [
+    {
+      "provider": "nflverse/nflverse-data",
+      "dataset": "depth_charts",
+      "coverage": "weekly depth charts back to 2001; current format includes timestamped daily snapshots and preseason dates",
+      "candidate_features": ["team assignment", "position/depth slot", "depth rank", "starter/backup role"],
+      "historical_preseason_use": "For each target season, select only the latest depth-chart record demonstrably available before regular-season opening. Never use later in-season revisions.",
+      "strength": "Directly addresses the role-information gap identified by the FFToday benchmark.",
+      "rights_status": "DATASET_SPECIFIC_REVIEW_REQUIRED",
+      "rights_note": "The nflverse-rosters code repository is MIT licensed, but code licensing must not be treated as automatic permission for every underlying data field/source. Depth-chart data source changed after 2024; verify dataset/source terms before commercial production use."
+    },
+    {
+      "provider": "nflverse/nflverse-data",
+      "dataset": "weekly_rosters",
+      "coverage": "week-level roster data back to 2002",
+      "candidate_features": ["target-season team", "roster status", "position", "depth_chart_position"],
+      "historical_preseason_use": "Use only a target-season snapshot/row that can be tied to a pre-Week-1 state; do not infer preseason status from later weekly rows.",
+      "strength": "Potentially supplies target-team and active/reserve context with GSIS identifiers for clean joins.",
+      "rights_status": "DATASET_SPECIFIC_REVIEW_REQUIRED"
+    }
+  ],
+  "priority": "Depth-chart role context first, especially QB, because the external benchmark showed the largest and most stable native gap at QB.",
+  "production_dependency_approved": false
+}

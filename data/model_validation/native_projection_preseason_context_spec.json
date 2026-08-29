@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "status": "PLANNED_VALIDATION",
+  "purpose": "Close the largest externally observed native-projection gap using only information genuinely knowable before Week 1 of the target season.",
+  "external_benchmark_anchor": {
+    "scorecard": "data/model_validation/native_vs_fftoday_external_scorecard.json",
+    "headline": "FFToday won 43 of 54 verified position-stat-season groups on the common cohort.",
+    "priority_by_position": {
+      "QB": {"native_wins": 2, "external_wins": 16, "median_native_improvement_vs_external_pct": -23.134644203754725},
+      "RB": {"native_wins": 3, "external_wins": 15, "median_native_improvement_vs_external_pct": -13.04418613562574},
+      "WR": {"native_wins": 3, "external_wins": 12, "median_native_improvement_vs_external_pct": -4.759998427490261},
+      "TE": {"native_wins": 3, "external_wins": 0, "median_native_improvement_vs_external_pct": 4.411866419344034}
+    }
+  },
+  "diagnosis": {
+    "primary_hypothesis": "The current native V1 relies mainly on prior-season player production and cannot adequately represent target-season role changes that a preseason projection service can observe.",
+    "examples_of_allowed_preseason_context": [
+      "target-season team assignment verified before Week 1",
+      "starter/depth-chart role verified before Week 1",
+      "roster status verified before Week 1",
+      "known preseason injury/availability status when historically timestamped",
+      "coaching/playcaller changes known before Week 1"
+    ],
+    "explicitly_forbidden": [
+      "target-season realized games played",
+      "target-season realized team totals",
+      "in-season depth-chart outcomes",
+      "future injury information",
+      "post-Week-1 transactions used as preseason inputs"
+    ]
+  },
+  "test_order": [
+    "QB preseason role/starter context",
+    "RB preseason role/depth context",
+    "WR preseason role/depth context",
+    "Only revisit TE if additional seasons contradict the current native advantage"
+  ],
+  "retention_rule": "Retain a feature family only if rolling temporal holdouts and the historical external benchmark show material, reasonably stable improvement. Do not add complexity merely because the feature is intuitively relevant.",
+  "commercial_use_rule": "Prefer public or commercially usable source data. Dataset-specific licensing and timestamp provenance must be recorded separately from predictive performance.",
+  "production_promoted": false
+}

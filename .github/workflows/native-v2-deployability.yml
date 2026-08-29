@@ -1,0 +1,63 @@
+name: Native V2 Deployability
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_native_preseason_projections.py'
+      - 'script/run_native_preseason_production.py'
+      - 'script/nativeize_no_history_output.py'
+      - 'script/run_native_no_history_role_benchmark.py'
+      - 'script/run_fsffl_native_weekly_projections.py'
+      - '.github/workflows/native-v2-deployability.yml'
+  workflow_dispatch:
+
+jobs:
+  end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build fully native 2026 season means
+        run: python script/run_native_preseason_production.py --season 2026
+      - name: Build weekly projections from Native V2 means
+        run: python script/run_fsffl_native_weekly_projections.py
+      - name: Enforce deployability gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('data/simulator/2026')
+          native=json.loads((root/'sources/native_preseason_fsffl_points.json').read_text())
+          weekly=json.loads((root/'inputs/player_weekly_projections.json').read_text())
+          audit=json.loads((root/'outputs/weekly_projection_audit.json').read_text())
+          na=native.get('audit') or {}; ng=native.get('governance') or {}
+          coverage=float(na.get('native_coverage_pct') or 0)
+          if coverage < 99.9:
+              raise SystemExit(f'native projection-value coverage is not complete: {coverage}%')
+          if int(na.get('fallback_players') or 0) != 0:
+              raise SystemExit(f"fallback players remain: {na.get('fallback_players')}")
+          if ng.get('external_projection_values_used') is not False:
+              raise SystemExit('external projection values remain in season means')
+          players=weekly.get('players') or {}
+          if len(players) < 200:
+              raise SystemExit(f'weekly player universe unexpectedly small: {len(players)}')
+          q=(audit.get('quality_gate') or {}).get('passed')
+          if q is not True:
+              raise SystemExit(f'weekly quality gate did not pass: {q!r}')
+          if weekly.get('season_mean_model') != 'FSFFL-Native-V2-role-aware':
+              raise SystemExit('weekly output is not using Native V2 means')
+          if weekly.get('external_projection_blend_enabled') is not False or weekly.get('external_projection_values_used') is not False:
+              raise SystemExit('weekly output still depends on external projection values')
+          print(json.dumps({'status':'PASS','native_coverage_pct':coverage,'native_veteran_players':na.get('native_veteran_players'),'native_no_history_players':na.get('native_no_history_players'),'weekly_players':len(players),'external_projection_values_used':False,'weekly_quality_gate_passed':q},indent=2))
+          PY
+      - name: Upload deployable projection outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-v2-deployable-projections
+          path: |
+            data/simulator/2026/sources/native_raw_stat_projections.json
+            data/simulator/2026/sources/native_preseason_fsffl_points.json
+            data/simulator/2026/inputs/player_weekly_projections.json
+            data/simulator/2026/outputs/weekly_projection_audit.json
