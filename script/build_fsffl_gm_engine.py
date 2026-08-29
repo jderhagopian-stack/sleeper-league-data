@@ -279,6 +279,7 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
         if "pick" not in n and not any(x in n for x in ("1st", "2nd", "3rd", "first", "second", "third")):
             continue
         year = int(m_year.group(1))
+        explicit_tier = any(x in n for x in ("early", "mid", "late"))
         tier = "mid"
         if "early" in n:
             tier = "early"
@@ -293,7 +294,11 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
         elif "3rd" in n or "third" in n:
             rnd = 3
         if rnd:
-            found[(year, tier, rnd)] = safe_float(row.get("value"))
+            key = (year, tier, rnd)
+            # Prefer an explicitly labelled Early/Mid/Late row over a generic
+            # "2027 1st" row when both map to the same canonical market cell.
+            if key not in found or explicit_tier:
+                found[key] = safe_float(row.get("value"))
     return found
 
 
@@ -354,6 +359,10 @@ def fallback_pick_value(year: int, tier: str, rnd: int, detected: Dict[Tuple[int
         tier_mult = _observed_pick_tier_multiplier(detected, tier, rnd)
         if tier_mult is not None:
             return base * tier_mult
+        # If the current external source has no observed tier shape, preserve
+        # the prior bounded assumption rather than pretending a new estimate is
+        # empirically supported.
+        return base * {"early": 1.18, "mid": 1.0, "late": 0.84}[tier]
 
     # If a whole year is missing, extrapolate only from the observed same-round
     # market time curve. This is still an external-market extrapolation, but it
@@ -364,6 +373,9 @@ def fallback_pick_value(year: int, tier: str, rnd: int, detected: Dict[Tuple[int
         year_factor = _observed_pick_year_factor(detected, rnd)
         if year_factor is not None and year_factor > 0:
             return v0 * (year_factor ** (year - y0))
+        # Same policy as tier shape: retain the old bounded fallback only when
+        # no empirical same-round time curve can be inferred.
+        return v0 * (0.88 ** max(0, year - y0)) * (1.08 ** max(0, y0 - year))
 
     # Last-resort functionality fallback only when the external source provides
     # too little pick structure to infer either tier shape or time curve.
