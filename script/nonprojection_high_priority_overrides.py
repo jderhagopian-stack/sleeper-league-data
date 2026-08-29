@@ -19,7 +19,17 @@ def _clamp(x, lo, hi):
 
 
 def install(engine):
-    """Install de-duplication overrides on the loaded GM engine module."""
+    """Install de-duplication overrides on a loaded GM engine module.
+
+    Legacy market-sweep layers may load an older engine that does not expose
+    the GM-2.2 strategic-profile helpers. In that case there is nothing to
+    patch here, so return cleanly rather than breaking the sweep runtime.
+    """
+
+    applied = {
+        "gm22_hold_premium_dedup": False,
+        "own_pick_control_bonus_removed": False,
+    }
 
     # A pick's quality model already keys off the original franchise and its
     # projected finish. Merely being the original owner is not independent
@@ -35,6 +45,7 @@ def install(engine):
             return out
 
         engine._u_pick_profile = pick_profile_without_control_bonus
+        applied["own_pick_control_bonus_removed"] = True
 
     # The native GM-2.2 player hold premium first builds a strategic score from
     # current value, future optionality, liquidity and replacement resilience.
@@ -43,7 +54,8 @@ def install(engine):
     # each family has one incremental value path. No replacement coefficient is
     # invented; the pre-existing core transform is retained provisionally.
     original_profiles = getattr(engine, "build_strategic_asset_profiles_for_team", None)
-    if original_profiles is None:
+    if original_profiles is None or not hasattr(engine, "GM22"):
+        engine.NONPROJECTION_HIGH_PRIORITY_OVERRIDES = applied
         return engine
 
     def deduplicated_profiles(uid, ctx=None):
@@ -83,10 +95,6 @@ def install(engine):
             pp["liquidity_incremental_value_authorized"] = False
             pp["quality_optionality_incremental_value_authorized"] = False
 
-            # Retain the original round-liquidity score for explanation, but
-            # neutralize it in generic package-weight logic. The league's
-            # transaction history does not support a 1st>2nd>3rd liquidity
-            # ordering, and frequency alone is not sufficient to fit a new one.
             row["liquidity_score_diagnostic"] = _sf(row.get("liquidity_score"), 0.5)
             row["liquidity_score"] = 0.5
 
@@ -118,4 +126,6 @@ def install(engine):
 
     engine.build_strategic_asset_profiles_for_team = deduplicated_profiles
     engine.build_dynamic_core_values_for_team = deduplicated_profiles
+    applied["gm22_hold_premium_dedup"] = True
+    engine.NONPROJECTION_HIGH_PRIORITY_OVERRIDES = applied
     return engine
