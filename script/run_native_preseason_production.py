@@ -2,9 +2,9 @@
 """Production entrypoint for the FSFFL Native V2 preseason model.
 
 This wrapper keeps the validated projection builder stable while supplying the
-schema-aware timestamped role loader used for 2025+ depth-chart files. It exists
-as a narrow production adapter so the experimental builder does not silently
-misread nflverse's current `pos_grp`/`pos_abb` schema.
+schema-aware timestamped role loader used for 2025+ depth-chart files. After the
+veteran build it replaces the legacy no-history fallback projection values with
+the separately validated native no-history role/age model.
 """
 from __future__ import annotations
 
@@ -44,8 +44,6 @@ def role_map(season: int, as_of: datetime | None = None) -> tuple[dict, dict]:
         position_rows = 0
         for r in snap:
             pid = str(r.get("gsis_id") or "").strip()
-            # In the 2025+ schema pos_grp is a broad group such as Offense;
-            # pos_abb is the football position required by the model.
             pos = str(r.get("pos_abb") or r.get("pos_name") or r.get("pos_grp") or "").upper().strip()
             if not pid or pos not in base.SELECTED:
                 continue
@@ -70,17 +68,15 @@ def role_map(season: int, as_of: datetime | None = None) -> tuple[dict, dict]:
             "role_rows": len(out),
             "teams": len(teams),
         }
-        # Fail closed instead of silently forecasting as though current role
-        # information were absent or based on a partial ingestion batch.
         if len(out) < 100 or len(teams) < 25:
             raise RuntimeError(f"{season}: incomplete current depth-chart snapshot: {audit}")
         return out, audit
 
-    # Preserve the explicitly provisional historical bridge used in validated
-    # 2021-24 backtests. No target-season game statistics enter the features.
     return ORIGINAL_ROLE_MAP(season, as_of)
 
 
 if __name__ == "__main__":
     base.role_map = role_map
     base.main()
+    from nativeize_no_history_output import nativeize
+    nativeize()
