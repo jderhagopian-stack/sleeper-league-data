@@ -1,0 +1,51 @@
+name: Market Momentum De-duplication
+
+on:
+  pull_request:
+    paths:
+      - 'script/nonprojection_high_priority_overrides.py'
+      - 'script/audit_market_value_adjustments.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/market-momentum-dedup.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile market governance modules
+        run: python -m py_compile script/nonprojection_high_priority_overrides.py script/audit_market_value_adjustments.py script/build_fsffl_gm_engine.py
+      - name: Run market/value governance audit
+        run: python script/audit_market_value_adjustments.py
+      - name: Verify runtime wrapper preserves trend but removes incremental repricing
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          def load(path, name):
+              spec=importlib.util.spec_from_file_location(name, path)
+              mod=importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(mod)
+              return mod
+
+          engine=load(Path('script/build_fsffl_gm_engine.py'), 'gm_engine_market_momentum_test')
+          override=load(Path('script/nonprojection_high_priority_overrides.py'), 'np_override_market_momentum_test')
+          asset={'trend_30_day': 1200.0, 'market_dynasty': 4800.0}
+          native, native_meta=engine.market_momentum_adjustment(asset)
+          assert native != 0.0
+          override.install(engine)
+          governed, meta=engine.market_momentum_adjustment(asset)
+          assert governed == 0.0
+          assert meta['incremental_adjustment_authorized'] is False
+          assert meta['proposed_incremental_adjustment_diagnostic'] == round(native, 4)
+          assert meta['trend_30_day'] == native_meta['trend_30_day']
+          assert engine.NONPROJECTION_HIGH_PRIORITY_OVERRIDES['market_momentum_incremental_value_removed'] is True
+          print('Market momentum is diagnostic-only; current market anchor is not repriced.')
+          PY
