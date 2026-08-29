@@ -1,0 +1,44 @@
+name: Stats Guy Player Market Decisions
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_statsguy_player_market_decisions.py'
+      - 'script/package_curve_robustness.py'
+      - 'script/nonprojection_high_priority_overrides.py'
+      - 'data/market_values_fantasycalc.json'
+      - '.github/workflows/statsguy-player-market-decisions.yml'
+  workflow_dispatch:
+
+jobs:
+  bakeoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile decision bake-off
+        run: python -m py_compile script/audit_statsguy_player_market_decisions.py
+      - name: Run provider sensitivity through governed FSFFL opportunities
+        run: python script/audit_statsguy_player_market_decisions.py
+      - name: Validate interpretation
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('data/audit/statsguy_player_market_decision_bakeoff.json'))
+          assert p['historical_winner_test'] is False
+          assert p['interpretation']['fantasycalc_is_regression_reference_not_answer_key'] is True
+          assert p['interpretation']['different_decisions_are_not_automatically_bad'] is True
+          assert p['normalization']['manual_coefficient'] is None
+          assert p['normalization']['matched_current_players'] > 100
+          assert p['summary']['representative_states'] >= 2
+          print(json.dumps(p['summary'],indent=2))
+          print(json.dumps(p['largest_current_provider_disagreements'][:10],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: statsguy-player-market-decision-bakeoff
+          path: data/audit/statsguy_player_market_decision_bakeoff.json
+          if-no-files-found: error

@@ -58,8 +58,8 @@ python script/build_gm30_current_catalysts.py
 echo "[8/10] Build emerging-value intelligence"
 python script/build_gm30_emerging_value.py
 
-echo "[9/10] Run simulator-integrated counterfactual GM"
-python script/run_fsffl_gm30_counterfactual.py
+echo "[9/10] Run governed simulator-integrated counterfactual GM"
+python script/run_fsffl_gm30_counterfactual_governed.py
 
 echo "[10/10] Run consolidated GM 3.0 validation"
 python script/validate_gm30.py
@@ -71,51 +71,32 @@ from pathlib import Path
 
 focal_manager = os.environ.get("GM30_FOCAL_MANAGER", "jimmygoodjob")
 idx = json.load(open("data/gm/franchise_index.json"))
-focal = next(
-    x for x in idx["teams"]
-    if x.get("manager") == focal_manager
-)
+focal = next(x for x in idx["teams"] if x.get("manager") == focal_manager)
 trade_path = Path(focal["paths"]["trade_opportunities"])
 trade = json.load(trade_path.open())
 
 simulated = []
 for opp in trade.get("opportunities") or []:
     for pkg in opp.get("best_candidate_packages") or []:
-        if pkg.get("counterfactual_simulation_status") in {
-            "SCREENED",
-            "FINAL_CONFIRMED",
-        }:
+        if pkg.get("counterfactual_simulation_status") in {"SCREENED", "FINAL_CONFIRMED"}:
             simulated.append(pkg)
 
 if not simulated:
     raise SystemExit("No counterfactual-simulated focal trade packages found")
 
-required = {
-    "expected_points_delta",
-    "expected_wins_delta",
-    "playoff_probability_delta",
-    "bye_probability_delta",
-    "championship_probability_delta",
-}
-
+required = {"expected_points_delta", "expected_wins_delta", "playoff_probability_delta", "bye_probability_delta", "championship_probability_delta"}
 for pkg in simulated:
     summary = pkg.get("gm30_simulation_summary") or {}
     if required.issubset(summary):
         break
 else:
-    raise SystemExit(
-        "Counterfactual simulation missing required outcome deltas"
-    )
+    raise SystemExit("Counterfactual simulation missing required outcome deltas")
 
 validation = json.load(open("data/gm/validation_report.json"))
 if not validation.get("passed"):
     raise SystemExit("GM 3.0 consolidated validation did not pass")
 
-print(
-    "GM 3.0.0 production validation: PASS — "
-    f"{len(simulated)} focal packages simulated; "
-    f"{len(validation.get('warnings') or [])} warnings."
-)
+print("GM 3.0.0 production validation: PASS — " f"{len(simulated)} focal packages simulated; " f"{len(validation.get('warnings') or [])} warnings.")
 PY
 
 echo ""

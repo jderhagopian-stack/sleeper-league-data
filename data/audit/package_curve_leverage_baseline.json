@@ -1,0 +1,23 @@
+{
+  "evidence_type": "current-state bounded sensitivity",
+  "historical_validation": false,
+  "coefficient_tuning": false,
+  "source_workflow": "Package Curve Leverage",
+  "source_run_id": 33248783696,
+  "source_head_commit": "338901d18747a29fae58671613929edf72b81d8c",
+  "teams_audited": 12,
+  "curves": {
+    "production_gm22": [1.0, 0.78, 0.62, 0.50, 0.42],
+    "shallow_counterfactual": [1.0, 0.92, 0.84, 0.78, 0.72],
+    "neutral_counterfactual": [1.0, 1.0, 1.0, 1.0, 1.0]
+  },
+  "summary": {
+    "material_downstream_leverage_detected": true,
+    "teams_with_top_target_flip_under_any_counterfactual": 8,
+    "teams_with_top_package_flip_under_any_counterfactual": 9,
+    "minimum_top_target_overlap_fraction": 0.5,
+    "minimum_top_package_overlap_fraction": 0.0,
+    "authoritative_curve_calibration_available": false
+  },
+  "interpretation": "The exact package curve materially changes GM-2.2 trade-opportunity discovery and therefore can change which candidates reach GM-3 counterfactual simulation. This sensitivity does not identify a correct replacement curve; it supports robust multi-curve candidate discovery and explicit non-authoritative treatment."
+}

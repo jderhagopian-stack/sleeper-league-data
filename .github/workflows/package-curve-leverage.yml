@@ -1,0 +1,44 @@
+name: Package Curve Leverage
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_package_curve_leverage.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - 'script/nonprojection_high_priority_overrides.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/package-curve-leverage.yml'
+  workflow_dispatch:
+
+jobs:
+  sensitivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile package sensitivity audit
+        run: python -m py_compile script/audit_package_curve_leverage.py
+      - name: Run bounded package curve sensitivity
+        run: python script/audit_package_curve_leverage.py
+      - name: Validate interpretation
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('data/audit/package_curve_leverage.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['interpretation']['projection_behavior_changed'] is False
+          assert d['interpretation']['production_behavior_changed'] is False
+          assert d['scope']['final_trade_report_score_directly_uses_this_curve'] is False
+          assert d['scope']['curve_can_affect_preliminary_package_screening_and_trade_idea_ranking'] is True
+          assert d['scope']['teams_audited'] >= 1
+          print(json.dumps(d['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-curve-leverage
+          path: data/audit/package_curve_leverage.json
+          retention-days: 30
