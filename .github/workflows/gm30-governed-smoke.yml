@@ -1,0 +1,57 @@
+name: Governed GM3 Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_fsffl_gm30_counterfactual_governed.py'
+      - 'script/gm30_nonprojection_governance.py'
+      - 'script/package_curve_robustness.py'
+      - 'script/nonprojection_high_priority_overrides.py'
+      - 'script/run_fsffl_gm30_counterfactual.py'
+      - 'script/build_fsffl_gm30.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - '.github/workflows/gm30-governed-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GM30_FOCAL_MANAGER: jimmygoodjob
+      GM30_CF_SCREEN_SIMS: '100'
+      GM30_CF_FOCAL_SCREEN_SIMS: '100'
+      GM30_CF_FINAL_SIMS: '100'
+      GM30_CF_GENERAL_TARGETS: '1'
+      GM30_CF_GENERAL_PACKAGES: '1'
+      GM30_CF_FOCAL_TARGETS: '2'
+      GM30_CF_FOCAL_PACKAGES: '1'
+      GM30_CF_FOCAL_FINALISTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime dependency
+        run: python -m pip install --disable-pip-version-check numpy
+      - name: Run governed GM3 on frozen checked-out inputs
+        run: python script/run_fsffl_gm30_counterfactual_governed.py
+      - name: Verify governed outputs and counterfactual execution
+        run: |
+          python - <<'PY'
+          import json
+          idx=json.load(open('data/gm/franchise_index.json'))
+          assert len(idx.get('teams') or []) == 12
+          focal=next(x for x in idx['teams'] if x.get('manager')=='jimmygoodjob')
+          trade=json.load(open(focal['paths']['trade_opportunities']))
+          gov=trade.get('package_curve_governance') or {}
+          assert gov.get('single_package_curve_authoritative') is False
+          assert gov.get('curve_disagreement_treated_as_model_uncertainty') is True
+          assert gov.get('economic_coefficients_fitted') is False
+          simulated=[p for o in trade.get('opportunities') or [] for p in o.get('best_candidate_packages') or [] if p.get('counterfactual_simulation_status') in {'SCREENED','FINAL_CONFIRMED'}]
+          assert simulated
+          assert any((p.get('gm30_simulation_summary') or {}).get('championship_probability_delta') is not None for p in simulated)
+          validation=json.load(open('data/gm/validation_report.json'))
+          assert validation.get('passed') is True
+          print(f'Governed GM3 smoke passed with {len(simulated)} simulated packages')
+          PY
