@@ -5,14 +5,14 @@ This is not a historical winner test. The repository lacks contemporaneous
 historical FantasyCalc boards, so no pseudo-backtest is manufactured. Instead
 we isolate provider sensitivity: preserve every existing FSFFL owner/team
 adjustment and replace only each matched player's dynasty market anchor with a
-Stats Guy value normalized to the current FSFFL scale. Then run the same
-governed opportunity engine for one representative team per competitive state.
+Stats Guy rank/relative-value ordering mapped onto the existing FSFFL value
+distribution. Then run the same governed opportunity engine for one
+representative team per competitive state.
 """
 from __future__ import annotations
 
 import copy
 import json
-import statistics
 import urllib.request
 from pathlib import Path
 
@@ -27,7 +27,7 @@ API="https://api.statsguyfantasy.com/api/v1/players"
 
 
 def fetch_statsguy():
-    req=urllib.request.Request(API,headers={"User-Agent":"FSFFL-player-market-decision-bakeoff/1.0","Accept":"application/json"})
+    req=urllib.request.Request(API,headers={"User-Agent":"FSFFL-player-market-decision-bakeoff/1.1","Accept":"application/json"})
     with urllib.request.urlopen(req,timeout=30) as r:
         raw=json.load(r)
     out={}
@@ -39,13 +39,23 @@ def fetch_statsguy():
 
 
 def normalized_values():
+    """Map Stats Guy ordering onto the observed FSFFL/FantasyCalc value distribution.
+
+    A single multiplicative scale is inappropriate because provider value curves
+    have different shapes. Quantile mapping keeps the existing cross-sectional
+    value distribution exactly while allowing Stats Guy's relative ordering to
+    move players within it. This uses no fitted economic coefficient and avoids
+    treating FantasyCalc's raw player-specific values as an answer key.
+    """
     fc=json.loads(FC.read_text())
     sg=fetch_statsguy()
     rows={str(r.get("sleeper_id")):r for r in fc.get("dynasty") or [] if r.get("sleeper_id") and core.safe_float(r.get("value"))>0}
-    ratios=[core.safe_float(r["value"])/sg[sid] for sid,r in rows.items() if sid in sg and sg[sid]>0]
-    if not ratios: raise SystemExit("No overlapping FantasyCalc/Stats Guy players")
-    scale=statistics.median(ratios)
-    return rows,{sid:sg[sid]*scale for sid in sg},scale
+    common=[sid for sid in rows if sid in sg and sg[sid]>0]
+    if not common: raise SystemExit("No overlapping FantasyCalc/Stats Guy players")
+    fc_distribution=sorted(core.safe_float(rows[sid]["value"]) for sid in common)
+    sg_order=sorted(common,key=lambda sid:(sg[sid],sid))
+    mapped={sid:fc_distribution[i] for i,sid in enumerate(sg_order)}
+    return rows,mapped,len(common)
 
 
 def representative_uids(ctx):
@@ -101,7 +111,7 @@ def apply_statsguy(ctx,sg_norm):
 
 
 def main():
-    fc_rows,sg_norm,scale=normalized_values()
+    fc_rows,sg_norm,matched=normalized_values()
     hp.install(core)
     robust.install(core)
     base=core._u_load_context()
@@ -120,19 +130,19 @@ def main():
         if sid not in sg_norm: continue
         fcval=core.safe_float(row.get("value")); sgval=core.safe_float(sg_norm[sid])
         if fcval<=0: continue
-        diffs.append({"player_id":sid,"name":row.get("name"),"position":row.get("position"),"fantasycalc":round(fcval,1),"statsguy_normalized":round(sgval,1),"pct_difference":round((sgval/fcval-1)*100,2)})
+        diffs.append({"player_id":sid,"name":row.get("name"),"position":row.get("position"),"fantasycalc":round(fcval,1),"statsguy_quantile_mapped":round(sgval,1),"pct_difference":round((sgval/fcval-1)*100,2)})
     diffs.sort(key=lambda x:abs(x["pct_difference"]),reverse=True)
     comps=[x["comparison"] for x in team_rows]
     payload={
-        "model_version":"FSFFL-StatsGuy-Player-Market-Decision-Bakeoff-1.0",
+        "model_version":"FSFFL-StatsGuy-Player-Market-Decision-Bakeoff-1.1",
         "historical_winner_test":False,
         "reason":"No contemporaneous historical FantasyCalc boards are available in-repo; current FantasyCalc is not treated as ground truth.",
-        "design":"Replace only the player dynasty market anchor; preserve owner-specific adjustment ratios, redraft/current-season inputs, pick treatment, package governance and all other FSFFL logic.",
-        "normalization":{"method":"median FantasyCalc/Stats Guy ratio across overlapping Sleeper player IDs","manual_coefficient":None,"scale":scale,"matched_current_players":len([x for x in fc_rows if x in sg_norm]),"player_assets_changed_in_context":changed},
+        "design":"Replace only the player dynasty market ordering/relative placement; preserve the existing cross-sectional value distribution, owner-specific adjustment ratios, redraft/current-season inputs, pick treatment, package governance and all other FSFFL logic.",
+        "normalization":{"method":"nonparametric quantile mapping: Stats Guy ordering assigned the sorted current FSFFL/FantasyCalc values across the same overlapping players","manual_coefficient":None,"preserves_current_cross_sectional_value_distribution":True,"matched_current_players":matched,"player_assets_changed_in_context":changed},
         "summary":{"representative_states":len(team_rows),"top_target_flips":sum(not x["same_top_target"] for x in comps),"top_package_flips":sum(not x["same_top_package"] for x in comps),"minimum_top10_target_overlap":min([x["top10_target_overlap"] for x in comps] or [1.0]),"minimum_top10_package_overlap":min([x["top10_package_overlap"] for x in comps] or [1.0]),"provider_change_is_decision_relevant":any((not x["same_top_target"]) or x["top10_target_overlap"]<0.8 for x in comps)},
         "teams":team_rows,
         "largest_current_provider_disagreements":diffs[:30],
-        "interpretation":{"different_decisions_are_not_automatically_bad":True,"fantasycalc_is_regression_reference_not_answer_key":True,"production_promotion_requires_no_pathological_downstream_behavior_and_clear_provenance":True,"no_projection_behavior_changed":True,"no_hand_set_conversion_coefficient":True},
+        "interpretation":{"different_decisions_are_not_automatically_bad":True,"fantasycalc_is_regression_reference_not_answer_key":True,"production_promotion_requires_no_pathological_downstream_behavior_and_clear_provenance":True,"no_projection_behavior_changed":True,"no_hand_set_conversion_coefficient":True,"first_median_scale_attempt_rejected_as_distribution_shape_artifact":True},
     }
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n")
     print(json.dumps(payload["summary"],indent=2,sort_keys=True))
