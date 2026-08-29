@@ -1,0 +1,37 @@
+name: Native Projection Selected Core
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_native_projection_selected_core_benchmark.py'
+      - 'script/run_native_projection_core_context_benchmark.py'
+      - 'script/run_native_projection_nflverse_benchmark.py'
+      - 'data/model_validation/native_projection_selected_core_spec.json'
+      - '.github/workflows/native-projection-selected-core.yml'
+
+jobs:
+  selected-core-benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile benchmark
+        run: python -m py_compile script/run_native_projection_selected_core_benchmark.py
+      - name: Validate selected core spec
+        run: python -m json.tool data/model_validation/native_projection_selected_core_spec.json > /dev/null
+      - name: Run rolling 2021-2025 selected-core benchmark
+        run: |
+          python script/run_native_projection_selected_core_benchmark.py \
+            --start-season 2016 \
+            --end-season 2025 \
+            --first-holdout 2021 \
+            --output data/model_validation/native_projection_selected_core_benchmark.json
+      - name: Validate output
+        run: python -m json.tool data/model_validation/native_projection_selected_core_benchmark.json > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-projection-selected-core-benchmark
+          path: data/model_validation/native_projection_selected_core_benchmark.json
+          retention-days: 14
