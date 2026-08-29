@@ -39,10 +39,6 @@ INTENTIONAL_MECHANICAL_PINS = {
         "Temporary wrapper composition: v31 consumes v30 mechanics, then replaces v30 option-comparison and final-action authority.",
     ("script/run_trade_market_sweep_v30.py", "script/run_trade_market_sweep_v29.py"):
         "Temporary wrapper composition: v30 adds roster-interaction mechanics to the retained v29 candidate/simulation layer; v30 is not final authority.",
-    ("script/run_trade_review.py", "script/run_trade_market_sweep_v13.py"):
-        "Retrospective Trade Review reuses only v13 fast lineup reoptimization mechanics; v13 does not supply trade judgment.",
-    ("script/run_team_improvement_lab.py", "script/run_trade_market_sweep_v13.py"):
-        "Team Improvement Lab reuses only v13 fast lineup reoptimization mechanics; v13 does not supply trade judgment.",
 }
 
 # Exact inherited wrapper edges present when this guardrail was introduced.
