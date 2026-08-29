@@ -98,7 +98,8 @@ def main():
     ]
     payload={
       "model_version":MODEL_VERSION,
-      "production_behavior_changed":True,
+      "production_behavior_changed":False,
+      "production_state_changed_by_governed_fix":True,
       "policy":{
         "prescreen_package_curve_is_search_heuristic_not_final_economics":True,
         "generic_roster_slot_penalty_must_not_duplicate_exact_cut_cost":True,
