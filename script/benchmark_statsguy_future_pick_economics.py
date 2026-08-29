@@ -38,17 +38,13 @@ def _request_json(method: str, path: str, *, params: dict[str, Any] | None = Non
     if params:
         url += "?" + urllib.parse.urlencode(params)
     data = None
-    headers = {"User-Agent": "FSFFL-governance-audit/1.1"}
+    headers = {"User-Agent": "FSFFL-governance-audit/1.2"}
     if body is not None:
         data = json.dumps(body).encode("utf-8")
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.load(resp)
-
-
-def _get_json(path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    return _request_json("GET", path, params=params)
 
 
 def _post_json(path: str, body: dict[str, Any]) -> dict[str, Any]:
@@ -97,46 +93,6 @@ def _fc_pick_map() -> dict[tuple[int, str, int], float]:
         if prev is None or (explicit and not prev[1]):
             parsed[key] = (value, explicit)
     return {k: v for k, (v, _) in parsed.items()}
-
-
-def _statsguy_pick_map(payloads: dict[int, dict[str, Any]]) -> tuple[dict[tuple[int, str, int], float], dict[tuple[int, int], float]]:
-    """Parse documented Stats Guy pick cards.
-
-    Current /picks rows use structured IDs such as pick:2027:1:early and place
-    Superflex dynasty value under value.sf_dynasty. Variant is preferred when present,
-    with the ID used as a compatibility fallback.
-    """
-    tiers: dict[tuple[int, str, int], float] = {}
-    bases: dict[tuple[int, int], float] = {}
-    for requested_year, payload in payloads.items():
-        for row in payload.get("picks", []):
-            rid = str(row.get("id") or "")
-            parts = rid.split(":") if rid.startswith("pick:") else []
-            year = int(row.get("year", 0) or 0)
-            rnd = int(row.get("round", 0) or 0)
-            if (not year or not rnd) and len(parts) >= 3:
-                try:
-                    year = year or int(parts[1])
-                    rnd = rnd or int(float(parts[2]))
-                except (TypeError, ValueError):
-                    pass
-            if year != requested_year or rnd not in ROUNDS:
-                continue
-            value_obj = row.get("value", {})
-            value = _num(value_obj.get("sf_dynasty") if isinstance(value_obj, dict) else None)
-            if value is None or value <= 0:
-                continue
-            variant = str(row.get("variant") or "").lower()
-            if not variant and len(parts) >= 4 and parts[3] in {"early", "mid", "late"}:
-                variant = parts[3]
-            if variant in {"early", "mid", "late"}:
-                tiers[(year, variant, rnd)] = value
-            else:
-                # Round-only generic pick IDs are pick:YYYY:R; slot-specific IDs contain a decimal.
-                generic_id = len(parts) == 3 and "." not in parts[2]
-                if generic_id or row.get("slot") in (None, ""):
-                    bases[(year, rnd)] = value
-    return tiers, bases
 
 
 def _tier_shape(values: dict[tuple[int, str, int], float]) -> dict[str, dict[str, float]]:
@@ -189,8 +145,13 @@ def _flatten_shape(shape: dict[str, dict[str, float]]) -> dict[str, float]:
     return {f"{k}:{metric}": value for k, row in shape.items() for metric, value in row.items()}
 
 
-def _historical_eval_snapshot(d: str) -> dict[str, Any]:
-    """Request historical pick values through the documented retro-trade endpoint."""
+def _statsguy_eval_snapshot(d: str) -> dict[str, Any]:
+    """Request a complete dated pick snapshot through the documented trade-evaluation endpoint.
+
+    This route is used for both current and historical challenger evidence. That avoids
+    coupling the benchmark to presentation-specific /picks response cards and guarantees
+    that the current and historical values are parsed through exactly the same contract.
+    """
     ids = []
     for y in YEARS:
         for r in ROUNDS:
@@ -244,7 +205,7 @@ def _historical_probe() -> dict[str, Any]:
     results = []
     for d in HISTORICAL_PROBES:
         try:
-            snap = _historical_eval_snapshot(d)
+            snap = _statsguy_eval_snapshot(d)
             honored = bool(snap["found_assets"] and snap["as_of_dates"] and max(snap["as_of_dates"]) <= d)
             snap["date_parameter_honored"] = honored
             results.append(snap)
@@ -261,27 +222,27 @@ def _historical_probe() -> dict[str, Any]:
 
 def main() -> int:
     fc = _fc_pick_map()
-    statsguy_payloads = {y: _get_json("/picks", {"year": y}) for y in YEARS}
-    sg_tiers, sg_bases = _statsguy_pick_map(statsguy_payloads)
-
     fc_shape = _tier_shape(fc)
-    sg_shape = _tier_shape(sg_tiers)
     fc_time = _time_curve_from_bases({}, fc)
-    sg_time = _time_curve_from_bases(sg_bases, sg_tiers)
+
+    current_requested = date.today().isoformat()
+    current_sg = _statsguy_eval_snapshot(current_requested)
+    sg_shape = current_sg["tier_shape"]
+    sg_time = current_sg["time_curve"]
 
     shape_comparison = _pairwise_deviation(_flatten_shape(fc_shape), _flatten_shape(sg_shape))
     time_comparison = _pairwise_deviation(fc_time, sg_time)
     history = _historical_probe()
 
     payload = {
-        "model_version": "FSFFL-StatsGuy-Future-Pick-Benchmark-1.1",
+        "model_version": "FSFFL-StatsGuy-Future-Pick-Benchmark-1.2",
         "generated_utc": date.today().isoformat(),
         "purpose": "Commercially permissible challenger benchmark; not a production replacement authorization.",
         "projection_behavior_changed": False,
         "production_model_behavior_changed": False,
         "source": {
             "name": "Stats Guy Fantasy",
-            "endpoint": "/api/v1/picks plus /api/v1/trades/evaluate for dated history",
+            "endpoint": "/api/v1/trades/evaluate for current and dated pick snapshots",
             "format": "sf_dynasty",
             "commercial_use": "allowed_with_conditions_per_provider_terms",
             "provider_method": "trade-derived values; future variants use market-informed pick shape",
@@ -294,6 +255,7 @@ def main() -> int:
             "reason_no_threshold": "No hand-set accuracy cutoff is introduced merely to force a source replacement.",
         },
         "fantasycalc_tier_shape": fc_shape,
+        "statsguy_current_snapshot": current_sg,
         "statsguy_tier_shape": sg_shape,
         "tier_shape_comparison": shape_comparison,
         "fantasycalc_time_curve": fc_time,
@@ -304,19 +266,20 @@ def main() -> int:
             "current_market_challenger_observed": bool(sg_shape or sg_time),
             "historical_out_of_sample_pick_curve_validation_available": history["authoritative_temporal_stability_claim_allowed"],
             "replacement_authorized": False,
-            "replacement_reason": "Benchmark evidence must be reviewed; current-market agreement alone is not historical/out-of-sample validation.",
+            "replacement_reason": "Benchmark evidence must be reviewed; market agreement alone does not validate the separate team-to-draft-slot forecast model.",
         },
         "next_step_policy": [
             "If current market shapes materially agree, Stats Guy can serve as a commercially permissible external anchor challenger.",
             "If they materially disagree, investigate methodology and realized league outcomes before choosing either curve.",
             "Do not change team-to-early/mid/late probability formulas from this market benchmark.",
-            "Do not infer historical validation unless dated pick snapshots are actually confirmed by the API.",
+            "Treat current and historical market-shape evidence separately from draft-slot forecast calibration.",
         ],
     }
     OUT.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({
         "tier_shape": shape_comparison,
         "time_curve": time_comparison,
+        "current_statsguy": current_sg,
         "historical": history,
         "replacement_authorized": False,
     }, indent=2))
