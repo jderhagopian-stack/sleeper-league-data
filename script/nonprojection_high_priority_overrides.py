@@ -24,17 +24,17 @@ def install(engine):
     # A pick's quality model already keys off the original franchise and its
     # projected finish. Merely being the original owner is not independent
     # evidence that the same pick is intrinsically more valuable.
-    original_pick_profile = engine._u_pick_profile
+    original_pick_profile = getattr(engine, "_u_pick_profile", None)
+    if original_pick_profile is not None:
+        def pick_profile_without_control_bonus(aid, uid, ctx):
+            out = dict(original_pick_profile(aid, uid, ctx))
+            original_bonus = _sf(out.get("own_pick_control_bonus"))
+            out["own_pick_control_bonus_diagnostic"] = original_bonus
+            out["own_pick_control_bonus"] = 0.0
+            out["own_pick_control_incremental_value_authorized"] = False
+            return out
 
-    def pick_profile_without_control_bonus(aid, uid, ctx):
-        out = dict(original_pick_profile(aid, uid, ctx))
-        original_bonus = _sf(out.get("own_pick_control_bonus"))
-        out["own_pick_control_bonus_diagnostic"] = original_bonus
-        out["own_pick_control_bonus"] = 0.0
-        out["own_pick_control_incremental_value_authorized"] = False
-        return out
-
-    engine._u_pick_profile = pick_profile_without_control_bonus
+        engine._u_pick_profile = pick_profile_without_control_bonus
 
     # The native GM-2.2 player hold premium first builds a strategic score from
     # current value, future optionality, liquidity and replacement resilience.
@@ -42,7 +42,9 @@ def install(engine):
     # again. Collapse this to the existing strategic-score premium transform so
     # each family has one incremental value path. No replacement coefficient is
     # invented; the pre-existing core transform is retained provisionally.
-    original_profiles = engine.build_strategic_asset_profiles_for_team
+    original_profiles = getattr(engine, "build_strategic_asset_profiles_for_team", None)
+    if original_profiles is None:
+        return engine
 
     def deduplicated_profiles(uid, ctx=None):
         payload = original_profiles(uid, ctx)
