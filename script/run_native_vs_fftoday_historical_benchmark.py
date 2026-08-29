@@ -107,7 +107,13 @@ class TableParser(HTMLParser):
 
 
 def fetch_html(url: str) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent":"FSFFL-historical-benchmark/1.0"})
+    req = urllib.request.Request(url, headers={
+        "User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36",
+        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language":"en-US,en;q=0.9",
+        "Referer":"https://www.fftoday.com/",
+        "Connection":"close",
+    })
     with urllib.request.urlopen(req, timeout=60) as r:
         return r.read().decode("latin-1", errors="replace")
 
