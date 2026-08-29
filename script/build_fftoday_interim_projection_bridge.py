@@ -138,9 +138,11 @@ def main():
                     "production_replacement_target":"FSFFL Native V3 or commercially cleared projection source",
                     "important_note":"Public access is not treated as commercial reuse permission."}}
     write_json(out,payload)
+    fallback_names=sorted([r.get("player_name") for sid,r in players.items() if sid not in matched_ids])
     print(json.dumps({"status":"PASS","season":season,"source_date":source_date.isoformat(),
                       "total_players":len(players),"fftoday_matched_players":matched,
                       "native_fallback_players":len(players)-matched,
+                      "fallback_players":fallback_names,
                       "coverage_pct":payload["audit"]["external_projection_coverage_pct"]},indent=2))
 
 if __name__=="__main__": main()
