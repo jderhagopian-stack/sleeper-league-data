@@ -4046,7 +4046,7 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             depth_drop = _u_depth_insurance_drop(uid, pid, ctx)
             dependency = clamp(single_drop / base_lineup * 4.5, 0.0, 1.0)
             depth_insurance = clamp(depth_drop / base_lineup * 5.0, 0.0, 1.0)
-            current_utility = clamp(red / max(base_lineup / 9.0, 1.0) / 4.0, 0.0, 1.0)
+            current_utility = clamp(red / max(base_lineup / max(len(LINEUP_SLOTS), 1), 1.0) / 4.0, 0.0, 1.0)
             # Market-tier scarcity is retained as a diagnostic but is not
             # counted again on top of the market-anchored franchise value.
             # With that duplicated component removed, the remaining distinct
