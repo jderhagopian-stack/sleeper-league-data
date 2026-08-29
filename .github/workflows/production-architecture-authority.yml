@@ -1,0 +1,27 @@
+name: Production Architecture Authority
+
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  architecture-authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit production architecture authority
+        run: python script/audit_production_architecture_authority.py
+      - name: Upload architecture audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-architecture-authority-audit
+          path: data/audit/production_architecture_authority_audit.json
+          if-no-files-found: error
+          retention-days: 14
