@@ -1,0 +1,24 @@
+name: Native Projection High Impact Sweep
+
+on:
+  pull_request:
+    paths:
+      - 'script/run_native_projection_high_impact_sweep.py'
+      - '.github/workflows/native-projection-high-impact-sweep.yml'
+      - 'script/build_native_preseason_projections.py'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run high-impact sweep
+        run: python script/run_native_projection_high_impact_sweep.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-projection-high-impact-sweep
+          path: data/model_validation/native_projection_high_impact_sweep.json
