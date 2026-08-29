@@ -55,6 +55,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from league_rules import normalize_position, normalize_slot, slot_eligible_positions
+
 DATA = Path("data")
 SIM_ROOT = DATA / "simulator"
 DEFAULT_SIMS = 50000
@@ -116,17 +118,15 @@ def regular_season_weeks(league):
 
 
 def lineup_slots(league):
-    return [x for x in (league.get("roster_positions") or []) if x not in {"BN", "IR", "TAXI"}]
+    return [
+        normalize_slot(x) for x in (league.get("roster_positions") or [])
+        if normalize_slot(x) not in {"BN", "BENCH", "IR", "RESERVE", "TAXI"}
+        and slot_eligible_positions(normalize_slot(x))
+    ]
 
 
 def eligible(position: str, slot: str):
-    if slot == position:
-        return True
-    if slot == "FLEX":
-        return position in {"RB", "WR", "TE"}
-    if slot == "SUPER_FLEX":
-        return position in {"QB", "RB", "WR", "TE"}
-    return False
+    return normalize_position(position) in slot_eligible_positions(slot)
 
 
 def build_schedule(raw_schedule, weeks):
