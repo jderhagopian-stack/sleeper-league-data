@@ -45,10 +45,13 @@ jobs:
             --end-season 2025 \
             --output data/model_validation/native_projection_nflverse_benchmark.json
       - name: Validate benchmark output
+        if: success()
         run: python -m json.tool data/model_validation/native_projection_nflverse_benchmark.json > /dev/null
-      - name: Upload benchmark artifact
+      - name: Upload benchmark or failure diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-projection-nflverse-benchmark
           path: data/model_validation/native_projection_nflverse_benchmark.json
+          if-no-files-found: error
           retention-days: 14
