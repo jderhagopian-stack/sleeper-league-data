@@ -19,6 +19,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 ENGINE = ROOT / "script" / "build_fsffl_gm_engine.py"
 OVERRIDES = ROOT / "script" / "nonprojection_high_priority_overrides.py"
+DECISION_LAB = ROOT / "script" / "decision_lab_state_aware.py"
 REGISTRY = DATA / "model_parameter_registry.json"
 PICK_QUALITY = DATA / "pick_quality_model.json"
 MARKET = DATA / "market_values_fantasycalc.json"
@@ -130,6 +131,7 @@ def pick_trade_frequency(trades):
 def main():
     src = ENGINE.read_text(encoding="utf-8")
     overrides = OVERRIDES.read_text(encoding="utf-8") if OVERRIDES.exists() else ""
+    decision_lab = DECISION_LAB.read_text(encoding="utf-8") if DECISION_LAB.exists() else ""
     registry = load_json(REGISTRY, {}) or {}
     pickq = load_json(PICK_QUALITY, {}) or {}
     readiness = load_json(READINESS, {}) or {}
@@ -167,6 +169,16 @@ def main():
             and '"round": 0.0' in overrides
         ),
         "own_pick_control_incremental_value_removed": '"own_pick_control": 0.0' in overrides,
+        "pick_liquidity_neutralized_in_package_weighting": (
+            'row["liquidity_score_diagnostic"]' in overrides
+            and 'row["liquidity_score"] = 0.5' in overrides
+        ),
+        "pick_liquidity_excluded_from_final_primitive_channel": (
+            'pp.get("liquidity_incremental_value_authorized") is False' in decision_lab
+        ),
+        "pick_quality_optionality_excluded_from_final_primitive_channel": (
+            'pp.get("quality_optionality_incremental_value_authorized") is False' in decision_lab
+        ),
     }
 
     cells = observed_market_pick_cells(market)
@@ -274,8 +286,9 @@ def main():
             "observation": (
                 "The external pick anchor already varies by round/year and, where observed or inferred, pick "
                 "quality. The strategic layer previously added round, quality, quality-derived optionality and "
-                "liquidity premiums again. Those positive adders are now diagnostic-only until residual "
-                "incremental validation demonstrates value beyond the anchor."
+                "liquidity premiums again, and the same pick quality/liquidity signals could flow into "
+                "downstream package and final-score channels. Those pick-specific positive paths are now "
+                "diagnostic-only until residual incremental validation demonstrates value beyond the anchor."
             ),
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
@@ -335,6 +348,7 @@ def main():
             "scenario_formula_replaced": False,
             "market_tier_time_fallback_improved": True,
             "duplicate_pick_premiums_removed": True,
+            "downstream_pick_liquidity_optionality_overlap_removed": True,
             "new_liquidity_coefficients_fitted": False,
         },
         "findings": findings,
