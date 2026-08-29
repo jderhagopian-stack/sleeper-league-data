@@ -1,0 +1,23 @@
+name: Scarcity and replacement de-duplication
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_fsffl_gm_engine.py'
+      - 'script/audit_scarcity_replacement_dedup.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/test-scarcity-replacement-dedup.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile non-projection GM modules
+        run: python -m py_compile script/build_fsffl_gm_engine.py script/audit_scarcity_replacement_dedup.py
+      - name: Verify market-tier scarcity is diagnostic only
+        run: python script/audit_scarcity_replacement_dedup.py
