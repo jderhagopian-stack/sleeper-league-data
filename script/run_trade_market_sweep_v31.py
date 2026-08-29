@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
-Extends validated 1.24 without changing candidate generation or simulation.
+Current production composition:
+- v1.23 supplies the retained candidate/simulation chain and roster-aware trade
+  resolution;
+- roster_interaction_overlay applies the validated roster-specific interaction
+  mechanics and refreshes negotiation ranking;
+- trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
+  authority.
 
-Final option comparison/action authority is delegated to the version-neutral
-trade_option_governance component so future FSFFL applications can reuse the
-same validated BETTER/MIXED/WORSE and acceptance-separation semantics.
+Historical v1.24 remains available for reproducibility but is no longer executed
+by the current production path, so its superseded composite-score comparison
+logic cannot run before being overwritten.
 
 No player-specific exceptions are permitted.
 """
@@ -17,7 +23,10 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V30 = SCRIPT / "run_trade_market_sweep_v30.py"
+V29 = SCRIPT / "run_trade_market_sweep_v29.py"
+ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
+ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
+NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
 OPTION_GOVERNANCE = SCRIPT / "trade_option_governance.py"
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.25"
 
@@ -38,14 +47,19 @@ def out_path():
 
 
 def main():
-    v30 = load(V30, "market_v30_for_125")
+    v29 = load(V29, "market_v29_for_125")
+    overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
+    interaction = load(ROSTER_INTERACTION, "roster_interaction_for_125")
+    ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
-    v30.main()
+
+    v29.main()
     out = out_path()
     if not out or not out.exists():
         return
 
     report = json.loads(out.read_text(encoding="utf-8"))
+    overlay.apply_to_report(report, interaction, ranker)
     action_basis = gov.apply_to_report(report)
 
     report.setdefault("governance", {})["option_outcome_consistency"] = {
@@ -78,6 +92,8 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_roster_interaction_overlay_shared_component": True,
+        "historical_v30_executed_in_current_path": False,
     })
     report.setdefault("simulation", {})["execution_path"] = (
         str((report.get("simulation") or {}).get("execution_path") or "")

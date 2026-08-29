@@ -7,6 +7,7 @@ on:
       - 'script/run_trade_market_sweep_v27.py'
       - 'script/run_trade_market_sweep_v31.py'
       - 'script/trade_option_governance.py'
+      - 'script/roster_interaction_overlay.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -17,6 +18,7 @@ on:
       - 'script/run_trade_market_sweep_v27.py'
       - 'script/run_trade_market_sweep_v31.py'
       - 'script/trade_option_governance.py'
+      - 'script/roster_interaction_overlay.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -41,6 +43,7 @@ jobs:
             script/run_trade_market_sweep_v27.py \
             script/run_trade_market_sweep_v31.py \
             script/trade_option_governance.py \
+            script/roster_interaction_overlay.py \
             script/run_trade_report.py \
             script/audit_trade_option_outcome_consistency.py
       - name: Run option outcome consistency regression
@@ -73,6 +76,8 @@ jobs:
           assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
           assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False
           assert p['descriptive_state_labels_create_action_cliffs'] is False
+          assert p['historical_v30_executed_in_current_path'] is False
+          assert p['legacy_v30_option_comparison_not_executed_in_current_path'] is True
           assert g['categorical_score_threshold_removed'] is True
           assert g['post_sim_score_is_diagnostic_not_categorical_decision_rule'] is True
           assert g['acceptance_fit_affects_trade_valuation'] is False

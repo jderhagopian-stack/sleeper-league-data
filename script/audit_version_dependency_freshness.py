@@ -35,10 +35,8 @@ MODEL_VERSION = "FSFFL-Version-Dependency-Freshness-Audit-1.1"
 # endorsements of the old module's decision authority. Each should eventually
 # move to a version-neutral shared utility when practical.
 INTENTIONAL_MECHANICAL_PINS = {
-    ("script/run_trade_market_sweep_v31.py", "script/run_trade_market_sweep_v30.py"):
-        "Temporary wrapper composition: v31 consumes v30 mechanics, then replaces v30 option-comparison and final-action authority.",
-    ("script/run_trade_market_sweep_v30.py", "script/run_trade_market_sweep_v29.py"):
-        "Temporary wrapper composition: v30 adds roster-interaction mechanics to the retained v29 candidate/simulation layer; v30 is not final authority.",
+    ("script/run_trade_market_sweep_v31.py", "script/run_trade_market_sweep_v29.py"):
+        "Current v31 consumes the retained v29 candidate/simulation and roster-resolution layer, then applies version-neutral roster-interaction and option-governance components. Historical v30 is bypassed.",
 }
 
 # Exact inherited wrapper edges present when this guardrail was introduced.

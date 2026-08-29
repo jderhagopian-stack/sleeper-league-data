@@ -18,9 +18,9 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 BASE = SCRIPT / "run_trade_market_sweep.py"
-V13 = SCRIPT / "run_trade_market_sweep_v13.py"
+LINEUP_OPTIMIZER = SCRIPT / "lineup_optimizer.py"
 V20 = SCRIPT / "run_trade_market_sweep_v20.py"
-V30 = SCRIPT / "run_trade_market_sweep_v30.py"
+ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
 OVERLAY = SCRIPT / "decision_lab_state_aware.py"
 ROSTER_AWARE = SCRIPT / "roster_aware_trade.py"
 ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
@@ -64,9 +64,9 @@ def main():
         raise SystemExit("Report is missing focus_user_id")
 
     engine = load(BASE, "cut_audit_base_engine")
-    v13 = load(V13, "cut_audit_v13")
+    lineup_optimizer = load(LINEUP_OPTIMIZER, "cut_audit_lineup_optimizer")
     v20 = load(V20, "cut_audit_v20")
-    v30 = load(V30, "cut_audit_v30")
+    roster_overlay = load(ROSTER_OVERLAY, "cut_audit_roster_overlay")
     overlay = load(OVERLAY, "cut_audit_state_overlay")
     roster_aware = load(ROSTER_AWARE, "cut_audit_roster_aware")
     roster_interaction = load(ROSTER_INTERACTION, "cut_audit_roster_interaction")
@@ -159,7 +159,7 @@ def main():
                 "cut_sensitivity_forced_plan": True,
             }
             effective_actions = list(trade_actions) + [cut_action]
-            hyp_lineups, reoptimized = v13.fast_reoptimize_touched_lineups(
+            hyp_lineups, reoptimized = lineup_optimizer.fast_reoptimize_touched_lineups(
                 dl, simmod, baseline_lineups, hyp_rosters, touched,
                 league, users, players, projections
             )
@@ -197,11 +197,11 @@ def main():
             score = v20.state_aware_post_sim_score(engine, scored, state)
             scored["post_sim_score"] = score
             scored["buyer_user_id"] = buyer_uid
-            # Reapply the same bounded roster-interaction overlay used by the
-            # production v1.24 wrapper so cut-plan comparison reflects the
-            # actual downstream score rather than stopping at v1.14.
+            # Reapply the canonical bounded roster-interaction overlay so
+            # cut-plan comparison reflects the actual downstream score rather
+            # than stopping at the pre-interaction state-aware utility.
             pre_interaction_score = sf(score)
-            scored = v30.apply_row(
+            scored = roster_overlay.apply_row(
                 scored,
                 {"focus_user_id": focus_uid, "current_offer_partner_user_id": buyer_uid},
                 roster_interaction,
@@ -259,6 +259,8 @@ def main():
             "uses_exact_lineup_reoptimization": True,
             "uses_state_aware_v1_14_utility": True,
             "roster_interaction_v1_24_reapplied": True,
+            "shared_roster_interaction_overlay_reapplied": True,
+            "shared_lineup_optimizer_used": True,
         },
         "summary": {
             "audited_candidate_count": len(audited),
