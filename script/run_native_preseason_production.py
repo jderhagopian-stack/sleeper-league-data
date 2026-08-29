@@ -12,6 +12,8 @@ from datetime import datetime
 
 import build_native_preseason_projections as base
 
+ORIGINAL_ROLE_MAP = base.role_map
+
 
 def role_map(season: int, as_of: datetime | None = None) -> tuple[dict, dict]:
     rows = base.fetch_depth(season)
@@ -68,15 +70,15 @@ def role_map(season: int, as_of: datetime | None = None) -> tuple[dict, dict]:
             "role_rows": len(out),
             "teams": len(teams),
         }
-        # Fail closed instead of silently training/forecasting as though current
-        # role information were absent or based on a partial ingestion batch.
+        # Fail closed instead of silently forecasting as though current role
+        # information were absent or based on a partial ingestion batch.
         if len(out) < 100 or len(teams) < 25:
             raise RuntimeError(f"{season}: incomplete current depth-chart snapshot: {audit}")
         return out, audit
 
     # Preserve the explicitly provisional historical bridge used in validated
     # 2021-24 backtests. No target-season game statistics enter the features.
-    return base.role_map(season, as_of)
+    return ORIGINAL_ROLE_MAP(season, as_of)
 
 
 if __name__ == "__main__":
