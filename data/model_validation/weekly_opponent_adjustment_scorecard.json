@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.1",
+  "status": "PASS",
+  "experiment": "multi_year_defense_vs_position_weekly_mean_adjustment",
+  "authoritative_run": {
+    "workflow_run_id": 33261574178,
+    "job_id": 99124316491,
+    "head_sha": "65850f95dc54f2e7bac6c7d8e1830be493fd971c"
+  },
+  "training_holdouts": [2022, 2023, 2024],
+  "final_out_of_sample_holdout": 2025,
+  "candidate_lambdas": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "candidate_windows": [1, 2, 3],
+  "production_lambdas": {
+    "QB": 0.0,
+    "RB": 0.5,
+    "WR": 0.0,
+    "TE": 0.25
+  },
+  "production_windows": {
+    "QB": 1,
+    "RB": 1,
+    "WR": 1,
+    "TE": 3
+  },
+  "selection_by_position": {
+    "QB": {
+      "selected_window_from_2022_2024": 3,
+      "selected_lambda_from_2022_2024": 0.25,
+      "train_mean_improvement_pct": 0.2836433543148072,
+      "train_season_improvements_pct": [0.6224502114036342, 0.18424154376507262, 0.04423830777571477],
+      "2025_holdout": {
+        "n": 454,
+        "baseline_mae": 5.800028613701522,
+        "adjusted_mae": 5.800733274442692,
+        "improvement_pct": -0.012149263186489024
+      },
+      "retained": false,
+      "production_lambda": 0.0,
+      "production_window": 1
+    },
+    "RB": {
+      "selected_window_from_2022_2024": 1,
+      "selected_lambda_from_2022_2024": 0.5,
+      "train_mean_improvement_pct": 0.3531114944058873,
+      "train_season_improvements_pct": [0.7384532099909482, -0.07313353924707634, 0.3940148124737901],
+      "2025_holdout": {
+        "n": 1327,
+        "baseline_mae": 3.9302543017143554,
+        "adjusted_mae": 3.9136091572544993,
+        "improvement_pct": 0.42351316688581003
+      },
+      "retained": true,
+      "production_lambda": 0.5,
+      "production_window": 1
+    },
+    "WR": {
+      "selected_window_from_2022_2024": 1,
+      "selected_lambda_from_2022_2024": 0.0,
+      "train_mean_improvement_pct": 0.0,
+      "train_season_improvements_pct": [0.0, 0.0, 0.0],
+      "2025_holdout": {
+        "n": 1932,
+        "baseline_mae": 3.530209482287897,
+        "adjusted_mae": 3.530209482287897,
+        "improvement_pct": 0.0
+      },
+      "retained": false,
+      "production_lambda": 0.0,
+      "production_window": 1
+    },
+    "TE": {
+      "selected_window_from_2022_2024": 3,
+      "selected_lambda_from_2022_2024": 0.25,
+      "train_mean_improvement_pct": 0.0969472851551076,
+      "train_season_improvements_pct": [0.32267982870907286, 0.1891136591332359, -0.22095163237698595],
+      "2025_holdout": {
+        "n": 1044,
+        "baseline_mae": 2.9699318027119737,
+        "adjusted_mae": 2.9566169916745393,
+        "improvement_pct": 0.4483204302966166
+      },
+      "retained": true,
+      "production_lambda": 0.25,
+      "production_window": 3
+    }
+  },
+  "governance": {
+    "target_season_results_used_as_features": false,
+    "defense_signal_for_each_holdout": "one-to-three completed seasons strictly before the target season",
+    "2026_defense_signal_source": {
+      "RB": "2025 only",
+      "TE": "2023-2025",
+      "QB": "neutralized after failed 2025 holdout",
+      "WR": "neutralized after no validated training signal"
+    },
+    "season_projection_total_preserved": true,
+    "production_rule": "retain only position-specific matchup adjustments with positive training evidence and positive final 2025 out-of-sample improvement"
+  },
+  "interpretation": {
+    "RB": "Prior-year defense-vs-position signal is small but repeatably useful enough to retain at 50% strength.",
+    "TE": "Three-year defense-vs-position signal is small but improves the 2025 holdout and is retained at 25% strength.",
+    "QB": "A three-year signal looked positive in 2022-2024 but failed the 2025 final holdout; production remains neutral.",
+    "WR": "No candidate produced a validated advantage; production remains neutral."
+  }
+}
