@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Run FSFFL trade analysis and emit JSON + plain-English PDF + short answer.
 
-Pipeline 1.14 retains adaptive deep confirmation and adds roster-aware trade
-resolution. Hypothetical trades are legalized before simulation so any forced
-active-roster cuts are included in lineup outcomes, strategic value, buyer
-acceptance analysis, option comparisons, and the final PDF.
+Pipeline 1.18 retains adaptive deep confirmation and roster-aware trade
+resolution, and promotes outcome-consistent option governance. Hypothetical
+trades are legalized before simulation so any forced active-roster cuts are
+included in lineup outcomes, strategic value, buyer acceptance analysis,
+option comparisons, and the final PDF.
 """
 from __future__ import annotations
 import argparse,json,subprocess,sys
 from pathlib import Path
 
-MARKET_SWEEP=Path('script/run_trade_market_sweep_v30.py')
+MARKET_SWEEP=Path('script/run_trade_market_sweep_v31.py')
 PDF_RENDERER=Path('script/render_trade_decision_report_v19.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.17'
-EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.24'
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.18'
+EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'
 REPORT_VERSION='FSFFL-Trade-Decision-Report-1.10'
 DEFAULT_ADAPTIVE_CONFIRM_SIMS=1000
 
@@ -67,7 +68,7 @@ def main():
         if r.get('model_version')!=EXPECTED_ANALYSIS_MODEL:raise RuntimeError(f"Trade report pipeline expected {EXPECTED_ANALYSIS_MODEL}, got {r.get('model_version')}")
     simmeta=r.setdefault('simulation',{})
     simmeta['adaptive_confirmation']={'enabled':not a.disable_adaptive_confirmation,'triggered':triggered,'screening_sims':a.quick_sims,'confirmation_sims':deep_target if triggered else 0,'trigger_reasons':reasons,'final_metrics_source':'deep_confirmation_rerun' if triggered else 'quick_screen'}
-    r.setdefault('policy',{}).update({'adaptive_deep_confirmation_enabled':not a.disable_adaptive_confirmation,'adaptive_confirmation_reruns_full_trade_frontier':True,'contradictory_quick_sim_signals_trigger_confirmation':True,'close_decision_boundaries_trigger_confirmation':True,'final_report_uses_confirmed_metrics_when_triggered':True})
+    r.setdefault('policy',{}).update({'adaptive_deep_confirmation_enabled':not a.disable_adaptive_confirmation,'adaptive_confirmation_reruns_full_trade_frontier':True,'contradictory_quick_sim_signals_trigger_confirmation':True,'close_decision_boundaries_trigger_confirmation':True,'final_report_uses_confirmed_metrics_when_triggered':True,'outcome_consistent_option_governance_enabled':True})
     jp.write_text(json.dumps(r,indent=2,sort_keys=True),encoding='utf-8')
     run([sys.executable,str(PDF_RENDERER),'--input',str(jp),'--output',str(pp)])
     payload={'pipeline_model_version':MODEL_VERSION,'analysis_model_version':r.get('model_version'),'report_model_version':REPORT_VERSION,'recommended_next_action':r.get('recommended_next_action'),'suggested_counteroffer_count':len(r.get('suggested_counteroffers') or []),'market_sweep_alternative_count':len(r.get('market_sweep_alternatives') or []),'adaptive_confirmation':simmeta.get('adaptive_confirmation'),'short_answer':summary(r),'json_report':str(jp),'pdf_report':str(pp),'canonical_model_entry_point':str(MARKET_SWEEP),'delivery_policy':'Always return the short answer and attach/share the plain-English explanatory PDF report for a trade query.'}
