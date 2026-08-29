@@ -116,6 +116,8 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
             f = float(row.get("strategic_score") or 0.0)
         elif feature == "optionality":
             f = _optionality(row)
+        elif feature == "resilience":
+            f = float(row.get("replacement_resilience_score") or 0.0)
         else:
             f = 0.0
         total += base * f
@@ -159,6 +161,8 @@ def install(base_dl):
                 "core_status": p.get("core_status"),
                 "strategic_score": float(p.get("strategic_score") or 0.0),
                 "liquidity_score": float(p.get("liquidity_score") or 0.0),
+                "replacement_resilience_score": float(p.get("replacement_resilience_score") or 0.0),
+                "replacement_resilience_basis": p.get("replacement_resilience_basis"),
                 "future_distribution": p.get("future_distribution"),
                 "pick_profile": p.get("pick_profile"),
                 "objective_state": p.get("objective_state") or weight_resolution["state"],
@@ -182,6 +186,8 @@ def install(base_dl):
             "liquidity_value_delta": round(_weighted_total(rec_rows, "liquidity") - _weighted_total(sent_rows, "liquidity"), 2),
             "strategic_value_delta": round(_weighted_total(rec_rows, "strategic") - _weighted_total(sent_rows, "strategic"), 2),
             "optionality_value_delta": round(_weighted_total(rec_rows, "optionality") - _weighted_total(sent_rows, "optionality"), 2),
+            "resilience_value_delta": round(_weighted_total(rec_rows, "resilience") - _weighted_total(sent_rows, "resilience"), 2),
+            "composite_channels_diagnostic_only": ["strategic_value_delta", "break_glass_delta"],
             "objective_state": weight_resolution["state"],
             "objective_weights": weight_resolution["weights"],
             "weight_resolution": weight_resolution,
