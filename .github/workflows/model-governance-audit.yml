@@ -12,6 +12,7 @@ on:
       - 'script/audit_projection_calibration_readiness.py'
       - 'script/audit_market_value_adjustments.py'
       - 'script/audit_scarcity_replacement_dedup.py'
+      - 'script/audit_playoff_configuration.py'
       - 'script/audit_future_pick_economics.py'
       - 'script/audit_competitive_state_utility.py'
       - 'script/audit_package_economics.py'
@@ -51,6 +52,7 @@ jobs:
           python script/audit_projection_calibration_readiness.py
           python script/audit_market_value_adjustments.py
           python script/audit_scarcity_replacement_dedup.py
+          python script/audit_playoff_configuration.py
           python script/audit_future_pick_economics.py
           python script/audit_competitive_state_utility.py
           python script/audit_package_economics.py
@@ -130,6 +132,14 @@ jobs:
           assert sr['runtime_markers']['market_tier_incremental_premium_zero'] is True
           assert sr['runtime_markers']['replacement_uses_lineup_reoptimization'] is True
           assert sr['registry_consistent'] is True
+
+          pc=json.load(open('data/audit/playoff_configuration_audit.json'))
+          assert pc['production_simulator_rule_behavior_changed'] is True
+          assert pc['production_projection_formula_behavior_changed'] is False
+          assert pc['runtime_markers']['division_winners_get_top_seeds'] is True
+          assert pc['runtime_markers']['six_team_bracket_not_hardcoded'] is True
+          assert pc['runtime_markers']['configured_playoff_weeks_not_15_17_literal'] is True
+          assert pc['policy']['standard_sleeper_brackets_supported']==[4,6,8]
 
           f=json.load(open('data/audit/future_pick_economics_audit.json'))
           fids={x['id']:x for x in f['findings']}
