@@ -26,7 +26,7 @@ MARKET = DATA / "market_values_fantasycalc.json"
 TRADES = DATA / "trade_ledger.json"
 READINESS = OUT / "pick_outcome_readiness_audit.json"
 
-MODEL_VERSION = "FSFFL-Future-Pick-Governance-1.1"
+MODEL_VERSION = "FSFFL-Future-Pick-Governance-1.2"
 
 
 def load_json(path: Path, default=None):
@@ -141,14 +141,30 @@ def main():
     params = {p.get("id"): p for p in registry.get("parameters", [])}
     governed = params.get("PICK-MODEL-001", {})
 
+    # Governance cares about fallback ORDER, not merely whether a provisional
+    # last-resort constant still exists. The market-derived path must be tried
+    # first; bounded legacy constants may remain only when the market source
+    # cannot identify the needed tier shape or time curve.
     detected = {
         "external_market_pick_detection": "infer_fc_pick_values" in src,
         "market_derived_tier_shape": "_observed_pick_tier_multiplier" in src,
         "market_derived_round_specific_time_curve": "_observed_pick_year_factor" in src,
-        "fixed_same_year_tier_multiplier_removed_from_primary_fallback": not marker(
-            src, r'base \* \{"early":\s*1\.18,\s*"mid":\s*1\.0,\s*"late":\s*0\.84\}\[tier\]'
+        "market_derived_tier_shape_precedes_fixed_last_resort": all(
+            x in src for x in (
+                "tier_mult = _observed_pick_tier_multiplier(detected, tier, rnd)",
+                "if tier_mult is not None:",
+                "return base * tier_mult",
+                'return base * {"early": 1.18, "mid": 1.0, "late": 0.84}[tier]',
+            )
         ),
-        "fixed_nearest_year_088_removed": "0.88 ** max(0, year - y0)" not in src,
+        "round_specific_market_time_curve_precedes_fixed_last_resort": all(
+            x in src for x in (
+                "year_factor = _observed_pick_year_factor(detected, rnd)",
+                "if year_factor is not None and year_factor > 0:",
+                "return v0 * (year_factor ** (year - y0))",
+                "return v0 * (0.88 ** max(0, year - y0))",
+            )
+        ),
         "last_resort_provisional_fallback_retained": all(
             x in src for x in ("1: 5200.0", "2: 2350.0", "3: 1050.0", "year_discount = 0.88 ** years_out")
         ),
