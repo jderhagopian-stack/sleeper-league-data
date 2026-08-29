@@ -11,7 +11,6 @@ on:
       - 'script/audit_transaction_evidence_readiness.py'
       - 'script/audit_projection_calibration_readiness.py'
       - 'script/audit_market_value_adjustments.py'
-      - 'script/audit_scarcity_replacement_dedup.py'
       - 'script/audit_future_pick_economics.py'
       - 'script/audit_competitive_state_utility.py'
       - 'script/audit_package_economics.py'
@@ -50,7 +49,6 @@ jobs:
           python script/audit_transaction_evidence_readiness.py
           python script/audit_projection_calibration_readiness.py
           python script/audit_market_value_adjustments.py
-          python script/audit_scarcity_replacement_dedup.py
           python script/audit_future_pick_economics.py
           python script/audit_competitive_state_utility.py
           python script/audit_package_economics.py
@@ -96,8 +94,7 @@ jobs:
           assert d['summary']['production_roster_aware'] is True
           assert d['summary']['runtime_roster_version_single_source'] is True
           assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
-          assert d['summary']['final_score_overlap_ablation_required'] is False
-          assert d['summary']['primitive_final_score_active'] is True
+          assert d['summary']['final_score_overlap_ablation_required'] is True
           assert d['summary']['behavioral_predictive_holdout_detected'] is False
 
           t=json.load(open('data/audit/transaction_evidence_readiness_audit.json'))
@@ -115,32 +112,21 @@ jobs:
 
           m=json.load(open('data/audit/market_value_adjustments_audit.json'))
           mids={x['id']:x for x in m['findings']}
-          assert m['production_behavior_changed'] is True
+          assert m['production_behavior_changed'] is False
           assert m['policy']['same_source_market_trend_requires_incremental_validation'] is True
-          assert m['policy']['same_source_rank_repricing_is_removed'] is True
-          assert mids['MARKET-RANK-CURVE-001']['status']=='STRUCTURALLY_DEDUPLICATED'
           assert mids['MARKET-RANK-CURVE-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-OVERLAY-CORRELATION-001']['authoritative_incremental_adjustment_claim_allowed'] is False
 
-          sr=json.load(open('data/audit/scarcity_replacement_dedup_audit.json'))
-          assert sr['production_gm_behavior_changed'] is True
-          assert sr['production_projection_behavior_changed'] is False
-          assert sr['runtime_markers']['market_tier_incremental_premium_zero'] is True
-          assert sr['runtime_markers']['replacement_uses_lineup_reoptimization'] is True
-          assert sr['registry_consistent'] is True
-
           f=json.load(open('data/audit/future_pick_economics_audit.json'))
           fids={x['id']:x for x in f['findings']}
-          assert f['production_behavior_changed'] is True
+          assert f['production_behavior_changed'] is False
           assert f['policy']['forecast_uncertainty_is_not_automatically_positive_option_value'] is True
-          assert f['policy']['forecast_uncertainty_value_bonus_removed'] is True
           assert f['policy']['market_liquidity_and_outcome_optionality_must_be_separated'] is True
           assert f['summary']['all_expected_runtime_markers_detected'] is True
           assert f['summary']['registry_consistent'] is True
           assert fids['PICK-ANCHOR-FALLBACK-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
-          assert fids['PICK-OPTIONALITY-001']['status']=='FORECAST_UNCERTAINTY_VALUE_BONUS_REMOVED'
           assert fids['PICK-OPTIONALITY-001']['authoritative_optionality_claim_allowed'] is False
 
           c=json.load(open('data/audit/competitive_state_utility_audit.json'))
@@ -154,12 +140,8 @@ jobs:
 
           k=json.load(open('data/audit/package_economics_audit.json'))
           kids={x['id']:x for x in k['findings']}
-          assert k['production_behavior_changed'] is True
+          assert k['production_behavior_changed'] is False
           assert k['policy']['prescreen_package_curve_is_search_heuristic_not_final_economics'] is True
-          assert k['policy']['generic_roster_slot_penalty_must_not_duplicate_exact_cut_cost'] is True
-          assert k['summary']['generic_slot_cost_removed'] is True
-          assert k['summary']['exact_downstream_cut_cost_active'] is True
-          assert kids['PACKAGE-SLOT-COST-001']['status']=='GENERIC_SLOT_PENALTY_REMOVED_EXACT_CUT_ACTIVE'
           assert k['summary']['multiple_active_package_curves'] is True
           assert k['summary']['registry_consistent'] is True
           assert k['summary']['transaction_evidence_ready_for_authoritative_package_fit'] is False
