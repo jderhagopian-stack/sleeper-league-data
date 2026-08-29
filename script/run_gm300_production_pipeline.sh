@@ -58,8 +58,8 @@ python script/build_gm30_current_catalysts.py
 echo "[8/10] Build emerging-value intelligence"
 python script/build_gm30_emerging_value.py
 
-echo "[9/10] Run simulator-integrated counterfactual GM"
-python script/run_fsffl_gm30_counterfactual.py
+echo "[9/10] Run governed simulator-integrated counterfactual GM"
+python script/run_fsffl_gm30_counterfactual_governed.py
 
 echo "[10/10] Run consolidated GM 3.0 validation"
 python script/validate_gm30.py
