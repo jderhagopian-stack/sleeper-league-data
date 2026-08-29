@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install SportsDataverse
-        run: pip install "sportsdataverse @ git+https://github.com/sportsdataverse/sportsdataverse-py@a4826d4f9083886aabd4a32e5ea196251633a22b"
+        run: pip install "sportsdataverse==0.0.75"
       - name: Run clean 2024 three-way benchmark
         run: python script/run_sportsdataverse_bridge_benchmark.py --output artifacts/sportsdataverse_bridge_2024_benchmark.json
       - uses: actions/upload-artifact@v4
