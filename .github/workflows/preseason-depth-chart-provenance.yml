@@ -1,9 +1,10 @@
-name: Preseason Depth Chart Provenance
+name: Preseason Context Provenance
 
 on:
   pull_request:
     paths:
       - 'script/probe_historical_preseason_depth_charts.py'
+      - 'script/probe_historical_preseason_weekly_rosters.py'
       - '.github/workflows/preseason-depth-chart-provenance.yml'
       - 'data/model_validation/native_projection_preseason_context_spec.json'
       - 'data/model_validation/preseason_context_source_candidates.json'
@@ -17,10 +18,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Probe historical preseason depth charts
+      - name: Probe historical depth charts
         run: python script/probe_historical_preseason_depth_charts.py
-      - name: Upload provenance result
+      - name: Probe historical weekly rosters
+        run: python script/probe_historical_preseason_weekly_rosters.py
+      - name: Upload provenance results
         uses: actions/upload-artifact@v4
         with:
-          name: preseason-depth-chart-provenance
-          path: data/model_validation/preseason_depth_chart_provenance_probe.json
+          name: preseason-context-provenance
+          path: |
+            data/model_validation/preseason_depth_chart_provenance_probe.json
+            data/model_validation/preseason_weekly_roster_provenance_probe.json
