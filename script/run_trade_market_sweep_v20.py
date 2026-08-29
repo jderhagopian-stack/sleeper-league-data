@@ -100,7 +100,16 @@ def state_aware_blended_negotiation_score(row):
     return out
 
 
-def install_engine_upgrade(engine, overlay, high_priority):
+def install_engine_upgrade(engine, overlay, high_priority=None):
+    # Keep the installer callable by older audit/runtime helpers that predate
+    # the explicit high-priority override argument. Production callers may pass
+    # the already-loaded module; compatibility callers load the same canonical
+    # override here rather than silently skipping it.
+    if high_priority is None:
+        high_priority = load_module(
+            HIGH_PRIORITY_OVERRIDES,
+            "nonprojection_high_priority_overrides_for_v114_compat",
+        )
     high_priority.install(engine)
     original_import = engine.import_decision_lab
     def upgraded_import_decision_lab(): return overlay.install(original_import())
