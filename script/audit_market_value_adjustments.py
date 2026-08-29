@@ -112,11 +112,15 @@ def main() -> None:
     report = {
         "schema_version": "1.1",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": True,
+        # Legacy compatibility: this field describes whether this read-only
+        # audit script changes production behavior. It does not. The separate
+        # field below records that the governed runtime fix does change state.
+        "production_behavior_changed": False,
         "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
             "same_source_rank_repricing_is_removed": True,
+            "same_source_market_trend_requires_incremental_validation": True,
             "same_source_market_trend_incremental_value_is_removed": True,
             "market_trend_remains_available_as_diagnostic": True,
             "market_trend_reintroduction_requires_temporal_holdout_improvement": True,
