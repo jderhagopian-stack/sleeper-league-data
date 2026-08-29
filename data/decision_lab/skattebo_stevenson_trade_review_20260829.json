@@ -1,0 +1,28 @@
+{
+  "scenario_id": "2026-08-29-skattebo-for-stevenson-picks",
+  "description": "Proposed trade: Chef Niners sends Cam Skattebo to Hurts So Good for Rhamondre Stevenson, Hurts So Good original 2028 2nd, and Hurts So Good original 2029 3rd.",
+  "transaction_status": "proposed",
+  "participant_user_ids": [
+    "709546576091090944",
+    "846634401482792960"
+  ],
+  "actions": [
+    {
+      "type": "trade",
+      "from_user_id": "709546576091090944",
+      "to_user_id": "846634401482792960",
+      "players": ["12481"],
+      "picks": []
+    },
+    {
+      "type": "trade",
+      "from_user_id": "846634401482792960",
+      "to_user_id": "709546576091090944",
+      "players": ["7611"],
+      "picks": [
+        "pick:2028:R2:orig9",
+        "pick:2029:R3:orig9"
+      ]
+    }
+  ]
+}
