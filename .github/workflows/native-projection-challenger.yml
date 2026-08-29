@@ -1,0 +1,72 @@
+name: Native Projection Challenger
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_native_projection_dataset.py'
+      - 'script/native_projection_challenger.py'
+      - 'script/run_native_projection_nflverse_benchmark.py'
+      - 'script/run_native_projection_rolling_benchmark.py'
+      - 'data/model_validation/native_projection_model_spec.json'
+      - '.github/workflows/native-projection-challenger.yml'
+  workflow_dispatch:
+
+jobs:
+  native-projection-self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile native projection tools
+        run: |
+          python -m py_compile script/build_native_projection_dataset.py
+          python -m py_compile script/native_projection_challenger.py
+          python -m py_compile script/run_native_projection_nflverse_benchmark.py
+          python -m py_compile script/run_native_projection_rolling_benchmark.py
+      - name: Run leakage-safe dataset builder self-test
+        run: python script/build_native_projection_dataset.py --self-test
+      - name: Run native projection challenger self-test
+        run: python script/native_projection_challenger.py --self-test
+      - name: Run rolling benchmark structural self-test
+        run: python script/run_native_projection_rolling_benchmark.py --self-test
+      - name: Validate model spec
+        run: python -m json.tool data/model_validation/native_projection_model_spec.json > /dev/null
+
+  nflverse-real-data-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run leakage-safe 2016-2025 real-data benchmark
+        run: |
+          python script/run_native_projection_nflverse_benchmark.py \
+            --start-season 2016 \
+            --end-season 2025 \
+            --output data/model_validation/native_projection_nflverse_benchmark.json
+      - name: Run rolling 2021-2025 temporal holdouts
+        run: |
+          python script/run_native_projection_rolling_benchmark.py \
+            --start-season 2016 \
+            --end-season 2025 \
+            --first-holdout 2021 \
+            --output data/model_validation/native_projection_rolling_benchmark.json
+      - name: Validate benchmark outputs
+        if: success()
+        run: |
+          python -m json.tool data/model_validation/native_projection_nflverse_benchmark.json > /dev/null
+          python -m json.tool data/model_validation/native_projection_rolling_benchmark.json > /dev/null
+      - name: Upload benchmark or failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-projection-nflverse-benchmark
+          path: |
+            data/model_validation/native_projection_nflverse_benchmark.json
+            data/model_validation/native_projection_rolling_benchmark.json
+          if-no-files-found: error
+          retention-days: 14
