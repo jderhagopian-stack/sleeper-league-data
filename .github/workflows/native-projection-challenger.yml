@@ -1,0 +1,29 @@
+name: Native Projection Challenger
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_native_projection_dataset.py'
+      - 'script/native_projection_challenger.py'
+      - 'data/model_validation/native_projection_model_spec.json'
+      - '.github/workflows/native-projection-challenger.yml'
+  workflow_dispatch:
+
+jobs:
+  native-projection-self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile native projection tools
+        run: |
+          python -m py_compile script/build_native_projection_dataset.py
+          python -m py_compile script/native_projection_challenger.py
+      - name: Run leakage-safe dataset builder self-test
+        run: python script/build_native_projection_dataset.py --self-test
+      - name: Run native projection challenger self-test
+        run: python script/native_projection_challenger.py --self-test
+      - name: Validate model spec
+        run: python -m json.tool data/model_validation/native_projection_model_spec.json > /dev/null
