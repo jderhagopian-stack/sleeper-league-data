@@ -366,6 +366,7 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
     for _ in range(n_sims):
         wins = defaultdict(int)
         pf = defaultdict(float)
+        pa = defaultdict(float)
         for week in reg_weeks:
             scores = {}
             for rid in roster_dir:
@@ -385,7 +386,7 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
             pf_totals[rid] += pf[rid]
             if i <= playoff_teams:
                 counts[rid]["playoff"] += 1
-            if i <= 2:
+            if i <= simmod.playoff_bye_count(playoff_teams):
                 counts[rid]["bye"] += 1
 
         champ = simmod.simulate_playoffs(order[:playoff_teams], lineups, playoff_weeks, rng)
