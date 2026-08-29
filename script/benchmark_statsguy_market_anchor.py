@@ -3,8 +3,9 @@
 
 Challenger-only: this script does not change production values. It compares the
 current Stats Guy SF dynasty board with the frozen FantasyCalc snapshot by
-Sleeper ID and performs a time-ordered momentum persistence check using Stats
-Guy historical boards. No arbitrary replacement threshold is introduced.
+Sleeper ID and performs time-ordered tests of whether recent market movement
+adds forward information after accounting for the current player-value level.
+No arbitrary replacement threshold is introduced.
 """
 from __future__ import annotations
 
@@ -32,7 +33,7 @@ def get(path: str, **params):
     url = API + path
     if params:
         url += "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"User-Agent": "FSFFL-market-source-benchmark/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "FSFFL-market-source-benchmark/1.1"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
@@ -63,6 +64,53 @@ def ranks(vals):
 
 def spearman(xs, ys):
     return pearson(ranks(xs), ranks(ys)) if len(xs) >= 3 else None
+
+
+def fit_linear(rows, features):
+    """Small dependency-free OLS solver with an intercept."""
+    p = len(features) + 1
+    xtx = [[0.0] * p for _ in range(p)]
+    xty = [0.0] * p
+    for row in rows:
+        x = [1.0] + [float(row[f]) for f in features]
+        y = float(row["future_change"])
+        for i in range(p):
+            xty[i] += x[i] * y
+            for j in range(p):
+                xtx[i][j] += x[i] * x[j]
+    a = [xtx[i][:] + [xty[i]] for i in range(p)]
+    for col in range(p):
+        pivot = max(range(col, p), key=lambda r: abs(a[r][col]))
+        if abs(a[pivot][col]) < 1e-12:
+            return [0.0] * p
+        a[col], a[pivot] = a[pivot], a[col]
+        d = a[col][col]
+        a[col] = [v / d for v in a[col]]
+        for r in range(p):
+            if r == col:
+                continue
+            factor = a[r][col]
+            a[r] = [a[r][c] - factor * a[col][c] for c in range(p + 1)]
+    return [a[i][-1] for i in range(p)]
+
+
+def predict(row, features, coef):
+    return coef[0] + sum(coef[i+1] * float(row[f]) for i, f in enumerate(features))
+
+
+def errors(rows, features, coef):
+    es = [float(r["future_change"]) - predict(r, features, coef) for r in rows]
+    return {
+        "n": len(es),
+        "mae": statistics.mean(abs(e) for e in es) if es else None,
+        "rmse": math.sqrt(statistics.mean(e*e for e in es)) if es else None,
+    }
+
+
+def residualize(values, control):
+    rows = [{"future_change": float(v), "control": float(c)} for v, c in zip(values, control)]
+    coef = fit_linear(rows, ["control"])
+    return [float(r["future_change"]) - predict(r, ["control"], coef) for r in rows]
 
 
 def fc_players():
@@ -105,29 +153,72 @@ def main():
         }
 
     history_rows = []
-    all_prior, all_future, all_current = [], [], []
+    pooled = []
+    window_samples = []
     for past, now, future in DATES:
         bp, bn, bf = board(past), board(now), board(future)
         common = set(bp) & set(bn) & set(bf)
-        prior, future_change, current = [], [], []
+        sample = []
         for i in common:
             vp, vn, vf = float(bp[i]["value"]), float(bn[i]["value"]), float(bf[i]["value"])
             if vp <= 0 or vn <= 0:
                 continue
-            prior.append((vn-vp)/vp)
-            future_change.append((vf-vn)/vn)
-            current.append(math.log(vn))
-        r = pearson(prior, future_change)
-        history_rows.append({"past":past,"now":now,"future":future,"n":len(prior),"momentum_future_change_pearson":r})
-        all_prior += prior; all_future += future_change; all_current += current
+            sample.append({
+                "player_id": i,
+                "prior_momentum": (vn-vp)/vp,
+                "future_change": (vf-vn)/vn,
+                "current_log_value": math.log(vn),
+            })
+        prior = [r["prior_momentum"] for r in sample]
+        future_change = [r["future_change"] for r in sample]
+        current = [r["current_log_value"] for r in sample]
+        prior_res = residualize(prior, current)
+        future_res = residualize(future_change, current)
+        history_rows.append({
+            "past": past, "now": now, "future": future, "n": len(sample),
+            "momentum_future_change_pearson": pearson(prior, future_change),
+            "partial_pearson_controlling_current_log_value": pearson(prior_res, future_res),
+        })
+        window_samples.append(sample)
+        pooled.extend(sample)
+
+    pooled_prior = [r["prior_momentum"] for r in pooled]
+    pooled_future = [r["future_change"] for r in pooled]
+    pooled_current = [r["current_log_value"] for r in pooled]
+    pooled_partial = pearson(
+        residualize(pooled_prior, pooled_current),
+        residualize(pooled_future, pooled_current),
+    )
+
+    # Strict time order: fit on first three windows, evaluate only on last.
+    train = [r for sample in window_samples[:-1] for r in sample]
+    holdout = list(window_samples[-1])
+    baseline_features = ["current_log_value"]
+    momentum_features = ["current_log_value", "prior_momentum"]
+    baseline_coef = fit_linear(train, baseline_features)
+    momentum_coef = fit_linear(train, momentum_features)
+    base_err = errors(holdout, baseline_features, baseline_coef)
+    mom_err = errors(holdout, momentum_features, momentum_coef)
+    holdout_compare = {
+        "train_windows": [list(x) for x in DATES[:-1]],
+        "holdout_window": list(DATES[-1]),
+        "baseline": base_err,
+        "baseline_plus_momentum": mom_err,
+        "mae_improvement": (base_err["mae"] - mom_err["mae"]) if base_err["mae"] is not None else None,
+        "rmse_improvement": (base_err["rmse"] - mom_err["rmse"]) if base_err["rmse"] is not None else None,
+        "momentum_improves_both_holdout_metrics": bool(
+            base_err["mae"] is not None and mom_err["mae"] < base_err["mae"]
+            and mom_err["rmse"] < base_err["rmse"]
+        ),
+    }
 
     payload = {
-        "model_version": "FSFFL-StatsGuy-Market-Anchor-Benchmark-1.0",
+        "model_version": "FSFFL-StatsGuy-Market-Anchor-Benchmark-1.1",
         "generated": date.today().isoformat(),
         "projection_behavior_changed": False,
         "production_model_behavior_changed": False,
         "source_replacement_authorized": False,
-        "reason_no_automatic_replacement": "Commercial permissibility is necessary but not sufficient; empirical comparability must be reviewed.",
+        "reason_no_automatic_replacement": "Current-provider comparability is measured here; player-market production promotion remains a separate downstream decision test.",
         "current_board": {
             "matched_players": len(ids),
             "fantasycalc_players": len(fc),
@@ -141,11 +232,13 @@ def main():
             "position_rank_correlations": position_corr,
         },
         "historical_momentum_test": {
-            "design": "30-day value change predicting the next ~30-day value change in time-ordered historical Stats Guy boards; diagnostic only.",
+            "design": "Time-ordered 30-day momentum test, including partial correlation controlling current log value and a final-window holdout comparison of current-value-only vs current-value-plus-momentum.",
             "windows": history_rows,
-            "pooled_n": len(all_prior),
-            "pooled_momentum_future_change_pearson": pearson(all_prior, all_future),
-            "note": "This tests persistence/reversal within the challenger market. It does not by itself prove causal football value or justify a production momentum coefficient.",
+            "pooled_n": len(pooled),
+            "pooled_momentum_future_change_pearson": pearson(pooled_prior, pooled_future),
+            "pooled_partial_pearson_controlling_current_log_value": pooled_partial,
+            "temporal_holdout": holdout_compare,
+            "note": "Momentum is eligible for reconsideration only if it adds repeatable out-of-sample information after current value is accounted for; this benchmark does not tune a production coefficient.",
         },
         "governance": {
             "fantasycalc_can_become_optional_if_challenger_is_sufficiently_complete_and_decision_robust": True,
