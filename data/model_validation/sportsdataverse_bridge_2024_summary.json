@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "experiment": "sportsdataverse_bridge_clean_2024_three_way_raw_stat_benchmark",
+  "authoritative_run": {
+    "workflow_run_id": 33260519956,
+    "job_id": 99121549488,
+    "head_sha": "376fdf5f25f5b39d3d532f866f1c72e6f98ef570"
+  },
+  "clean_holdout_season": 2024,
+  "common_cohort": {
+    "player_seasons": 301,
+    "player_stat_rows": 1519,
+    "position_stat_groups": 20
+  },
+  "sportsdataverse_vs_fftoday": {
+    "sportsdataverse_wins": 0,
+    "fftoday_wins": 20,
+    "ties": 0,
+    "mean_sportsdataverse_improvement_vs_fftoday_pct": -34.27018555809923,
+    "median_sportsdataverse_improvement_vs_fftoday_pct": -25.9939173949885
+  },
+  "sportsdataverse_vs_native_v2": {
+    "sportsdataverse_wins": 0,
+    "native_v2_wins": 20,
+    "ties": 0,
+    "mean_sportsdataverse_improvement_vs_native_v2_pct": -20.17970933011817,
+    "median_sportsdataverse_improvement_vs_native_v2_pct": -18.766679136752828
+  },
+  "native_v2_vs_fftoday_same_cohort": {
+    "native_v2_wins": 7,
+    "fftoday_wins": 13,
+    "ties": 0,
+    "mean_native_v2_improvement_vs_fftoday_pct": -11.539630904377015,
+    "median_native_v2_improvement_vs_fftoday_pct": -8.583913099662066
+  },
+  "decision": {
+    "interim_projection_bridge": "REJECT_SPORTSDATAVERSE",
+    "reason": "SportsDataverse lost all 20 position/stat groups to both FFToday and Native V2 on its documented clean 2024 holdout.",
+    "production_promoted": false
+  },
+  "methodology": {
+    "why_2024_only": "SportsDataverse documents 2022-2023 as fitting folds and 2024 as the untouched holdout; applying current fitted constants to earlier seasons would not be an independent historical backtest.",
+    "fantasy_scoring_used": false,
+    "comparison_population": "exact common player-season-position-stat cohort",
+    "season_total_composition": "SportsDataverse projected raw-stat per-game rates multiplied by its separately projected availability games."
+  },
+  "implementation_note": {
+    "sportsdataverse_version": "0.0.75",
+    "null_age_workaround": "The package aging-curve function crashed on a null-age bucket. Benchmark excludes null ages only from aging-curve fitting; projected players retain the package's fallback-age behavior."
+  },
+  "commercial_governance": {
+    "sportsdataverse_software_license": "MIT",
+    "commercial_dependency_approved": false,
+    "reason": "Software licensing does not clear all underlying NFL data-provider rights. In particular, the availability path uses nflverse snap-count data whose upstream provenance requires separate rights review."
+  }
+}
