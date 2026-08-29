@@ -17,7 +17,8 @@ DATA=ROOT/"data"
 WEEKLY_URL="https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_{season}.csv"
 SCHEDULE_URL="https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 POSITIONS=("QB","RB","WR","TE")
-LAMBDAS=(0.0,0.25,0.5,0.75,1.0)\nWINDOWS=(1,2,3)
+LAMBDAS=(0.0,0.25,0.5,0.75,1.0)
+WINDOWS=(1,2,3)
 SD_FLOOR={"QB":4.0,"RB":3.5,"WR":3.8,"TE":3.0}
 TEAM_ALIAS={"JAC":"JAX","JAX":"JAX","LA":"LAR","LAR":"LAR","SD":"LAC","OAK":"LV","STL":"LAR"}
 
