@@ -8,8 +8,8 @@ Optional:
 
 The script compares each source, an equal-weight blend, and (when exactly two
 sources share at least three seasons) a two-source weight learned ONLY on
-pre-holdout seasons and evaluated on the latest season. It also measures
-whether source disagreement predicts larger blend errors.
+pre-holdout seasons and evaluated on the latest season with common coverage.
+It also measures whether source disagreement predicts larger blend errors.
 """
 
 from __future__ import annotations
@@ -177,6 +177,17 @@ def blend_rows(rows, allowed_sources=None, weights=None, seasons=None):
     return output
 
 
+def common_seasons_for_sources(rows, sources):
+    """Return seasons with at least one player-position covered by every source."""
+    sources = set(sources)
+    covered = defaultdict(set)
+    for (season, _, _), group in aligned(rows).items():
+        seen = {r["source"] for r in group}
+        if sources.issubset(seen):
+            covered[season].add(tuple(sorted(sources)))
+    return sorted(season for season, matches in covered.items() if matches)
+
+
 def learn_two_source_weight(rows, sources, train_seasons):
     a, b = sources
     best = None
@@ -212,21 +223,25 @@ def benchmark(rows):
         ),
     }
 
-    if len(sources) == 2 and len(seasons) >= 3:
-        holdout = seasons[-1]
-        train = set(seasons[:-1])
-        learned = learn_two_source_weight(rows, sources, train)
-        if learned:
-            test_rows = blend_rows(rows, sources, learned["weights"], {holdout})
-            equal_test = blend_rows(rows, sources, None, {holdout})
-            result["temporal_holdout"] = {
-                "train_seasons": sorted(train),
-                "holdout_season": holdout,
-                "learned_weights": learned["weights"],
-                "learned_train_mae": learned["train_mae"],
-                "learned_holdout": metrics(test_rows),
-                "equal_weight_holdout": metrics(equal_test),
-            }
+    if len(sources) == 2:
+        common_seasons = common_seasons_for_sources(rows, sources)
+        result["common_source_seasons"] = common_seasons
+        if len(common_seasons) >= 3:
+            holdout = common_seasons[-1]
+            train = set(common_seasons[:-1])
+            learned = learn_two_source_weight(rows, sources, train)
+            if learned:
+                test_rows = blend_rows(rows, sources, learned["weights"], {holdout})
+                equal_test = blend_rows(rows, sources, None, {holdout})
+                if test_rows and equal_test:
+                    result["temporal_holdout"] = {
+                        "train_seasons": sorted(train),
+                        "holdout_season": holdout,
+                        "learned_weights": learned["weights"],
+                        "learned_train_mae": learned["train_mae"],
+                        "learned_holdout": metrics(test_rows),
+                        "equal_weight_holdout": metrics(equal_test),
+                    }
     return result
 
 
@@ -243,7 +258,13 @@ def self_test():
     assert out["equal_weight_multi_source_blend"]["mae"] == 8
     assert out["temporal_holdout"]["holdout_season"] == 2023
     assert out["temporal_holdout"]["learned_weights"]["A"] == 1.0
-    return {"status": "PASS", "checks": 5}
+
+    # A later single-source season must never become the temporal holdout.
+    rows.append({"season": 2024, "player_key": "p1", "position": "WR", "source": "A", "projection": 150, "actual": 145, "snapshot_date": ""})
+    out = benchmark(rows)
+    assert out["common_source_seasons"] == [2021, 2022, 2023]
+    assert out["temporal_holdout"]["holdout_season"] == 2023
+    return {"status": "PASS", "checks": 7}
 
 
 def main():
