@@ -1,0 +1,26 @@
+name: Temporary Dispatch GM Trade Review
+
+on:
+  push:
+    branches:
+      - tmp/skattebo-stevenson-model-report-20260829
+    paths:
+      - .github/workflows/tmp-dispatch-trade-review.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-production-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch existing production trade review workflow on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run run-trade-review.yml \
+            --repo "${{ github.repository }}" \
+            --ref main \
+            -f scenario='data/decision_lab/skattebo_stevenson_trade_review_20260829.json' \
+            -f sims='1000'
