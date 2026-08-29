@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "experiment": "posthoc_injury_shock_diagnostic_native_v2_vs_fftoday",
+  "authoritative_run": {
+    "workflow_run_id": 33258499242,
+    "artifact_id": 9716556007,
+    "artifact_digest": "sha256:b087bbf69feab545235253d7c1a1522982e81fa98181749836e26d60066bd1cc",
+    "head_sha": "5d2108524e74a9d2e13452e0b9910d9a24bec707"
+  },
+  "headline": {
+    "all_common_cohort": {
+      "native_group_wins": 23,
+      "external_group_wins": 31,
+      "native_win_share_pct": 42.592592592592595,
+      "mean_native_improvement_vs_external_pct": -7.715628780640905,
+      "median_native_improvement_vs_external_pct": -4.340365707414756,
+      "player_seasons": 780
+    },
+    "exclude_self_injury": {
+      "native_group_wins": 6,
+      "external_group_wins": 48,
+      "mean_native_improvement_vs_external_pct": -17.42105555644381,
+      "median_native_improvement_vs_external_pct": -14.40183736733118,
+      "player_seasons": 561
+    },
+    "stable_no_shock": {
+      "native_group_wins": 8,
+      "external_group_wins": 46,
+      "native_win_share_pct": 14.814814814814815,
+      "mean_native_improvement_vs_external_pct": -17.45586505316116,
+      "median_native_improvement_vs_external_pct": -13.990000836435207,
+      "player_seasons": 532
+    },
+    "self_injury": {
+      "native_group_wins": 45,
+      "external_group_wins": 9,
+      "mean_native_improvement_vs_external_pct": 7.353018395807969,
+      "median_native_improvement_vs_external_pct": 22.377104431224507,
+      "player_seasons": 219
+    },
+    "teammate_injury_opportunity": {
+      "native_group_wins": 11,
+      "external_group_wins": 21,
+      "mean_native_improvement_vs_external_pct": -40.79178112075557,
+      "median_native_improvement_vs_external_pct": -8.800076268757778,
+      "player_seasons": 27,
+      "groups_scored": 32
+    }
+  },
+  "by_position": {
+    "stable_no_shock": {
+      "QB": {"native_wins": 2, "external_wins": 16, "median_native_improvement_vs_external_pct": -23.16},
+      "RB": {"native_wins": 2, "external_wins": 16, "median_native_improvement_vs_external_pct": -12.30},
+      "WR": {"native_wins": 3, "external_wins": 12, "median_native_improvement_vs_external_pct": -6.93},
+      "TE": {"native_wins": 1, "external_wins": 2, "median_native_improvement_vs_external_pct": -4.79}
+    },
+    "self_injury": {
+      "QB": {"native_wins": 16, "external_wins": 2, "median_native_improvement_vs_external_pct": 22.57},
+      "RB": {"native_wins": 17, "external_wins": 1, "median_native_improvement_vs_external_pct": 24.97},
+      "WR": {"native_wins": 9, "external_wins": 6, "median_native_improvement_vs_external_pct": 10.69},
+      "TE": {"native_wins": 3, "external_wins": 0, "median_native_improvement_vs_external_pct": 27.08}
+    }
+  },
+  "classification": {
+    "self_injury": "Post-hoc: <=14 regular-season offensive game appearances, verified primarily from play-participation data, plus at least one later Out/Doubtful injury report.",
+    "teammate_injury_opportunity": "Post-hoc: non-first-team player whose higher-ranked opening teammate had >=2 Out/Doubtful weeks and whose own weekly opportunity rose by >=25% and >=2 opportunity units during those weeks.",
+    "stable_no_shock": "Neither conservative self-injury nor teammate-injury-opportunity flag."
+  },
+  "interpretation": {
+    "primary": "Subsequent injuries do not explain away FFToday's remaining overall advantage. Native V2 performs exceptionally well in the post-hoc self-injury cohort, so including those seasons improves Native's headline relative standing. Removing conservatively identified injury-affected player-seasons makes FFToday's relative advantage larger.",
+    "teammate_opportunity": "Injury-created opportunity for backups is a real Native weakness in this sample: FFToday wins 21 of 32 eligible groups among 27 conservatively flagged player-seasons.",
+    "causality_caution": "The self-injury result does not prove Native predicts injuries. It may reflect legitimate durability information, more conservative volume forecasts, regression/shrinkage, or favorable alignment with realized missed time. Conditioning on future injury status is itself a selection operation, so the full-season benchmark remains the primary real-world accuracy score.",
+    "not_a_replacement_leaderboard": true
+  },
+  "governance": {
+    "target_season_injury_data_used_for_training": false,
+    "target_season_participation_data_used_for_training": false,
+    "target_season_weekly_data_used_for_training": false,
+    "posthoc_only": true,
+    "benchmark_projection_values_changed": false
+  },
+  "next_model_implication": "Do not adjust or remove injury seasons from the primary benchmark. Investigate injury-created opportunity/backup workload forecasting as a targeted future feature problem, and separately test whether Native's self-injury advantage comes from calibrated preseason durability risk or generic conservative projection bias."
+}
