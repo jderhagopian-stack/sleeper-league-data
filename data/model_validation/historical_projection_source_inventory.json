@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Time-frozen preseason projection sources eligible for FSFFL historical calibration. This inventory stores provenance only; it does not assert predictive superiority.",
+  "eligibility_rule": "A snapshot must be demonstrably published no later than the opening date of the NFL regular season for that season. Same-day snapshots are flagged for manual time-of-day review before authoritative use.",
+  "sources": [
+    {
+      "source": "FFToday",
+      "season": 2021,
+      "position": "QB",
+      "snapshot_date": "2021-09-06",
+      "regular_season_open_date": "2021-09-09",
+      "status": "ELIGIBLE_PRESEASON",
+      "raw_stat_projection_available": true,
+      "url": "https://www.fftoday.com/rankings/playerproj.php?LeagueID=1&PosID=10&Season=2021",
+      "evidence_note": "Archive page labels the projection set 'Regular Season, Updated: 9/6/2021'."
+    },
+    {
+      "source": "FFToday",
+      "season": 2022,
+      "position": "QB",
+      "snapshot_date": "2022-09-05",
+      "regular_season_open_date": "2022-09-08",
+      "status": "ELIGIBLE_PRESEASON",
+      "raw_stat_projection_available": true,
+      "url": "https://www.fftoday.com/rankings/playerproj.php?LeagueID=1&PosID=10&Season=2022",
+      "evidence_note": "Archive page labels the projection set 'Regular Season, Updated: 9/5/2022'."
+    },
+    {
+      "source": "FFToday",
+      "season": 2023,
+      "position": "QB",
+      "snapshot_date": "2023-09-07",
+      "regular_season_open_date": "2023-09-07",
+      "status": "SAME_DAY_REVIEW_REQUIRED",
+      "raw_stat_projection_available": true,
+      "url": "https://www.fftoday.com/rankings/playerproj.php?LeagueID=1&PosID=10&Season=2023",
+      "evidence_note": "Archive page labels the projection set 'Regular Season, Updated: 9/7/2023'. Because this is opening day, it must not be promoted to authoritative calibration until publication timing is shown to precede kickoff."
+    },
+    {
+      "source": "FFToday",
+      "season": 2024,
+      "position": "QB",
+      "snapshot_date": "2024-09-02",
+      "regular_season_open_date": "2024-09-05",
+      "status": "ELIGIBLE_PRESEASON",
+      "raw_stat_projection_available": true,
+      "url": "https://www.fftoday.com/rankings/playerproj.php?LeagueID=1&PosID=10&Season=2024",
+      "evidence_note": "Archive page labels the projection set 'Regular Season, Updated: 9/2/2024'."
+    }
+  ],
+  "position_expansion": {
+    "FFToday_PosID": {
+      "QB": 10,
+      "RB": 20,
+      "WR": 30,
+      "TE": 40
+    },
+    "rule": "Before using another position-season snapshot, verify that its displayed update date matches the eligible time-frozen season snapshot rather than assuming the QB date applies to all positions."
+  },
+  "authoritative_calibration_ready": false,
+  "remaining_requirement": "Add at least one independent source with comparable time-frozen preseason snapshots and normalize projections and realized FSFFL-scored outcomes before source/blend promotion."
+}
