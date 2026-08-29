@@ -17,7 +17,7 @@ plus at least one player identifier:
     player_id or player_name
 
 Output columns match benchmark_historical_projections.py:
-    season,source,player_id,player_name,position,projected_points,actual_points
+    season,source,player_key,player_id,player_name,position,projected_points,actual_points
 """
 from __future__ import annotations
 
@@ -135,9 +135,12 @@ def build(
         seen_projection_keys.add(dedupe)
 
         actual = actual_index.get(pkey)
+        matched_key = pkey
         if actual is None and str(row.get("player_id") or "").strip() and str(row.get("player_name") or "").strip():
             fallback = (season, position, f"name:{norm_name(str(row.get('player_name') or ''))}")
             actual = actual_index.get(fallback)
+            if actual is not None:
+                matched_key = fallback
         if actual is None:
             rejected["unmatched_actual"] += 1
             unmatched.append({
@@ -154,6 +157,7 @@ def build(
         out = {
             "season": int(season),
             "source": source,
+            "player_key": matched_key[2],
             "player_id": str(row.get("player_id") or actual.get("player_id") or ""),
             "player_name": str(row.get("player_name") or actual.get("player_name") or ""),
             "position": position,
@@ -163,14 +167,14 @@ def build(
         output.append(out)
         admitted[(source, season, position)] += 1
 
-    output.sort(key=lambda r: (r["season"], r["source"].lower(), r["position"], r["player_name"], r["player_id"]))
+    output.sort(key=lambda r: (r["season"], r["source"].lower(), r["position"], r["player_key"]))
 
     source_seasons = defaultdict(set)
     for row in output:
         source_seasons[row["source"]].add(row["season"])
 
     diagnostics = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "input_projection_rows": len(projections),
         "input_actual_rows": len(actuals),
         "admitted_rows": len(output),
@@ -188,7 +192,7 @@ def build(
 
 def write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["season", "source", "player_id", "player_name", "position", "projected_points", "actual_points"]
+    fields = ["season", "source", "player_key", "player_id", "player_name", "position", "projected_points", "actual_points"]
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)
         writer.writeheader()
@@ -212,6 +216,7 @@ def self_test() -> None:
     rows, diag = build(projections, actuals, inventory)
     assert len(rows) == 2
     assert rows[0]["actual_points"] == 305.0
+    assert rows[0]["player_key"] == "id:1"
     assert diag["rejected_rows"]["snapshot_not_eligible"] == 1
     assert diag["authoritative_ready_for_source_comparison"] is False
     print("historical projection benchmark input self-test: PASS")
