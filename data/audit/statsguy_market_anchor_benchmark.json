@@ -1,0 +1,44 @@
+{
+  "current_board": {
+    "coverage_of_fantasycalc": 0.9447236180904522,
+    "fantasycalc_players": 398,
+    "matched_players": 376,
+    "position_rank_correlations": {
+      "QB": {"n": 63, "spearman_rank": 0.9759024577572964},
+      "RB": {"n": 105, "spearman_rank": 0.9852579853109315},
+      "TE": {"n": 62, "spearman_rank": 0.9570878150596862},
+      "WR": {"n": 146, "spearman_rank": 0.972852393021374}
+    },
+    "spearman_overall_rank": 0.9744459537024738,
+    "spearman_raw_value": 0.9744404409578059,
+    "statsguy_players": 392,
+    "top_100_overlap": 0.99,
+    "top_25_overlap": 0.96,
+    "top_50_overlap": 0.98
+  },
+  "generated": "2026-08-29",
+  "governance": {
+    "fantasycalc_can_become_optional_if_challenger_is_sufficiently_complete_and_decision_robust": true,
+    "momentum_remains_zero_weight_until_incremental_temporal_value_is_demonstrated": true,
+    "no_new_coefficient_introduced": true,
+    "ranking_and_downstream_decision_robustness_more_important_than_raw_scale": true,
+    "raw_provider_scales_need_not_match": true
+  },
+  "historical_momentum_test": {
+    "design": "30-day value change predicting the next ~30-day value change in time-ordered historical Stats Guy boards; diagnostic only.",
+    "note": "This tests persistence/reversal within the challenger market. It does not by itself prove causal football value or justify a production momentum coefficient.",
+    "pooled_momentum_future_change_pearson": -0.02585395878234657,
+    "pooled_n": 1341,
+    "windows": [
+      {"future": "2026-04-01", "momentum_future_change_pearson": -0.07299847951526121, "n": 347, "now": "2026-03-01", "past": "2026-02-01"},
+      {"future": "2026-05-01", "momentum_future_change_pearson": -0.05446285819508652, "n": 333, "now": "2026-04-01", "past": "2026-03-01"},
+      {"future": "2026-06-01", "momentum_future_change_pearson": -0.11343001996797497, "n": 318, "now": "2026-05-01", "past": "2026-04-01"},
+      {"future": "2026-07-01", "momentum_future_change_pearson": -0.10206629647619443, "n": 343, "now": "2026-06-01", "past": "2026-05-01"}
+    ]
+  },
+  "model_version": "FSFFL-StatsGuy-Market-Anchor-Benchmark-1.0",
+  "production_model_behavior_changed": false,
+  "projection_behavior_changed": false,
+  "reason_no_automatic_replacement": "Commercial permissibility is necessary but not sufficient; empirical comparability must be reviewed.",
+  "source_replacement_authorized": false
+}
