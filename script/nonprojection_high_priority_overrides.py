@@ -83,6 +83,13 @@ def install(engine):
             pp["liquidity_incremental_value_authorized"] = False
             pp["quality_optionality_incremental_value_authorized"] = False
 
+            # Retain the original round-liquidity score for explanation, but
+            # neutralize it in generic package-weight logic. The league's
+            # transaction history does not support a 1st>2nd>3rd liquidity
+            # ordering, and frequency alone is not sufficient to fit a new one.
+            row["liquidity_score_diagnostic"] = _sf(row.get("liquidity_score"), 0.5)
+            row["liquidity_score"] = 0.5
+
             prior = dict(row.get("premium_components") or {})
             row["premium_component_diagnostics"] = prior
             row["premium_components"] = {
