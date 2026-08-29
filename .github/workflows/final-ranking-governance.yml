@@ -8,6 +8,7 @@ on:
       - 'script/run_trade_market_sweep_v20.py'
       - 'script/run_trade_market_sweep_v23.py'
       - 'script/decision_lab_state_aware.py'
+      - 'script/build_fsffl_gm_engine.py'
       - 'data/model_parameter_registry.json'
       - '.github/workflows/final-ranking-governance.yml'
   workflow_dispatch:
@@ -21,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Compile final-ranking modules
+        run: python -m py_compile script/build_fsffl_gm_engine.py script/decision_lab_state_aware.py script/run_trade_market_sweep_v20.py script/audit_final_trade_ranking_governance.py
       - name: Run structural final-ranking governance audit
         run: python script/audit_final_trade_ranking_governance.py
       - name: Validate findings
@@ -29,13 +32,18 @@ jobs:
           import json
           r=json.load(open('data/audit/final_trade_ranking_governance_audit.json'))
           f={x['id']:x for x in r['findings']}
-          assert r['production_behavior_changed'] is False
-          assert r['summary']['post_sim_formula_markers_detected'] is True
-          assert r['summary']['nested_strategic_channel_overlap_detected'] is True
-          assert r['summary']['behavior_reused_inside_and_outside_acceptance'] is True
-          assert r['summary']['existing_final_score_ablation_tool_detected'] is True
-          assert r['summary']['governed_final_ranking_families_non_authoritative'] is True
-          assert f['FINAL-NEGOTIATION-BEHAVIOR-REUSE-001']['status']=='EXPLICIT_SIGNAL_REUSE_DETECTED'
+          assert r['production_behavior_changed'] is True
+          assert r['policy']['primitive_channels_only_in_final_score'] is True
+          assert r['policy']['composite_gm_channels_are_diagnostic_only'] is True
+          assert r['summary']['primitive_post_sim_formula_detected'] is True
+          assert r['summary']['old_nested_formula_detected'] is False
+          assert r['summary']['nested_strategic_channel_overlap_detected'] is False
+          assert r['summary']['direct_roster_replacement_resilience_detected'] is True
+          assert r['summary']['composite_channels_still_available_for_diagnostics'] is True
+          assert r['summary']['prior_grouped_ablation_evidence_preserved'] is True
+          assert r['summary']['behavior_reused_inside_and_outside_acceptance'] is False
+          assert r['summary']['trade_score_registry_consistent'] is True
+          assert f['FINAL-SCORE-OVERLAP-001']['status']=='STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS'
           assert f['FINAL-RANK-WEIGHTS-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r,indent=2))
           PY
