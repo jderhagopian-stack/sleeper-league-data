@@ -19,12 +19,12 @@ def main() -> None:
 
     runtime = {
         "external_market_anchor_present": "FantasyCalc current values" in text,
-        "rank_curve_present": all(
-            marker in text for marker in (
+        "rank_curve_removed": all(
+            marker not in text for marker in (
                 "rank <= 24", "mult = 1.04", "rank <= 60", "mult = 1.02",
                 "rank > 180", "mult = 0.90", "rank > 120", "mult = 0.95",
             )
-        ),
+        ) and "mult = 1.0" in text,
         "market_trend_is_same_source_signal": (
             '"trend_30_day": entry.get("trend30Day")' in text
             and "def market_momentum_adjustment" in text
@@ -59,20 +59,20 @@ def main() -> None:
             "status": "EVIDENCE_BASED_EXTERNAL_ANCHOR_ACTIVE",
             "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
             "observation": (
-                "FantasyCalc current 12-team Superflex half-PPR dynasty value is the runtime market anchor. "
+                "FantasyCalc current dynasty value, requested using the synced league format, is the runtime market anchor. "
                 "It is observable market evidence, not an FSFFL-specific learned coefficient."
             ),
             "authoritative_incremental_adjustment_claim_allowed": True,
         },
         {
             "id": "MARKET-RANK-CURVE-001",
-            "status": "PROVISIONAL_INCREMENTAL_EFFECT_NOT_VALIDATED",
+            "status": "STRUCTURALLY_DEDUPLICATED",
             "evidence_tier": consolidation.get("evidence_tier"),
             "observation": (
-                "A rank-tier curve applies +4% to ranks 1-24, +2% to 25-60, -5% to 121-180, "
-                "and -10% beyond 180 on top of the external market anchor. Because elite scarcity and "
-                "consolidation may already be priced into market value, only residual out-of-sample "
-                "FSFFL transaction evidence can justify this second adjustment."
+                "The prior rank-tier curve repriced the FantasyCalc market anchor using FantasyCalc's own "
+                "overall rank. That same-source transformation has been removed. Rank can remain descriptive, "
+                "but no second premium or discount is applied unless future residual out-of-sample evidence "
+                "demonstrates a stable league-specific effect beyond the market anchor."
             ),
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
@@ -104,9 +104,10 @@ def main() -> None:
     report = {
         "schema_version": "1.0",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
+            "same_source_rank_repricing_is_removed": True,
             "same_source_market_trend_requires_incremental_validation": True,
             "bounded_adjustment_is_not_evidence_of_correctness": True,
             "correlated_overlay_families_require_ablation": True,
