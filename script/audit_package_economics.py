@@ -7,6 +7,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
 ENGINE=ROOT/"script"/"build_fsffl_gm_engine.py"
+ROSTER_AWARE=ROOT/"script"/"roster_aware_trade.py"
+STATE_AWARE=ROOT/"script"/"decision_lab_state_aware.py"
 READINESS=OUT/"transaction_evidence_readiness_audit.json"
 REGISTRY=DATA/"model_parameter_registry.json"
 MODEL_VERSION="FSFFL-Package-Economics-Governance-1.0"
@@ -17,13 +19,15 @@ def load(path,default=None):
 
 def main():
     src=ENGINE.read_text(encoding="utf-8")
+    roster_src=ROSTER_AWARE.read_text(encoding="utf-8")
+    state_src=STATE_AWARE.read_text(encoding="utf-8")
     ready=load(READINESS,{}) or {}
     registry=load(REGISTRY,{}) or {}
     params={x.get("id"):x for x in registry.get("parameters",[])}
     governed=params.get("PACKAGE-ECON-001",{})
     legacy=[1.0,.92,.84]
     strategic=[1.0,.78,.62,.50,.42]
-    slot=.035
+    slot=0.0
     rows=[]
     for n in (1,2,3):
         l=sum(legacy[:n])
@@ -31,7 +35,7 @@ def main():
         rows.append({
           "asset_count":n,
           "legacy_neutral_equal_asset_effective_value":round(l,4),
-          "strategic_neutral_equal_asset_effective_value_after_slot_cost":round(s,4),
+          "strategic_neutral_equal_asset_effective_value":round(s,4),
           "legacy_premium_vs_strategic_pct":round((l/s-1)*100,2) if s else None,
         })
     legacy_runtime=(
@@ -41,7 +45,16 @@ def main():
     strategic_runtime=(
       '"package_weights": [1.0, 0.78, 0.62, 0.50, 0.42]' in src
       and 'weights = GM22["package_weights"]' in src
-      and 'GM22["extra_asset_slot_cost_pct"]' in src
+    )
+    generic_slot_cost_removed=(
+      '"extra_asset_slot_cost_pct": 0.0' in src
+      and '"roster_slot_cost_source": "exact_downstream_roster_legalization"' in src
+    )
+    exact_cut_runtime=(
+      "incremental_overflow = max(0, active_pre_cut - effective_limit)" in roster_src
+      and '"selected_cuts": selected' in roster_src
+      and 'elif typ in {"drop", "cut"}' in state_src
+      and 'sent.extend(f"player:{x}"' in state_src
     )
     liquidity_secondary_adjustment='w = clamp(w + (liq - 0.5) * 0.08' in src
     dual_sources=legacy_runtime and strategic_runtime
@@ -58,8 +71,15 @@ def main():
         "id":"PACKAGE-DUAL-CURVE-001",
         "severity":"HIGH",
         "status":"MULTIPLE_ACTIVE_PACKAGE_CURVES",
-        "observation":"Candidate discovery uses a shallower legacy package-discount curve, while strategic valuation uses the steeper GM2.2 curve plus roster-slot cost and a liquidity adjustment. This is a deliberate-looking but unvalidated multiple-source-of-truth condition until prescreen recall and final ranking are tested together.",
+        "observation":"Candidate discovery uses a shallower legacy package-discount curve, while strategic valuation uses the steeper GM2.2 curve plus a liquidity adjustment. The generic roster-slot percentage charge has been removed because the canonical path already legalizes the actual roster and prices any forced cut. The remaining dual curves are still provisional until prescreen recall and final ranking are tested together.",
         "authoritative_empirical_claim_allowed":False,
+      },
+      {
+        "id":"PACKAGE-SLOT-COST-001",
+        "severity":"HIGH",
+        "status":"GENERIC_SLOT_PENALTY_REMOVED_EXACT_CUT_ACTIVE",
+        "observation":"The canonical trade path computes actual incremental roster overflow, forces the required incumbent cut, and carries that cut into post-trade strategic evaluation. The prior generic percentage slot charge duplicated that roster burden and is now zero.",
+        "authoritative_empirical_claim_allowed":True,
       },
       {
         "id":"PACKAGE-PRESCREEN-PATH-001",
@@ -78,9 +98,10 @@ def main():
     ]
     payload={
       "model_version":MODEL_VERSION,
-      "production_behavior_changed":False,
+      "production_behavior_changed":True,
       "policy":{
         "prescreen_package_curve_is_search_heuristic_not_final_economics":True,
+        "generic_roster_slot_penalty_must_not_duplicate_exact_cut_cost":True,
         "multiple_package_curves_require_explicit_provenance":True,
         "prescreen_recall_test_required_before_curve_unification_or_tuning":True,
         "current_market_value_backfill_for_package_fit_forbidden":True,
@@ -90,6 +111,8 @@ def main():
         "legacy_prescreen_curve_detected":legacy_runtime,
         "strategic_curve_detected":strategic_runtime,
         "strategic_liquidity_adjustment_detected":liquidity_secondary_adjustment,
+        "generic_slot_cost_removed":generic_slot_cost_removed,
+        "exact_downstream_cut_cost_active":exact_cut_runtime,
         "multiple_active_package_curves":dual_sources,
         "transaction_evidence_ready_for_authoritative_package_fit":package_ready,
         "registry_consistent":registry_ok,
@@ -100,5 +123,7 @@ def main():
     (OUT/"package_economics_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
     if not dual_sources: raise SystemExit("Expected package-economics paths changed or were not detected")
+    if not generic_slot_cost_removed or not exact_cut_runtime:
+        raise SystemExit("Package roster-burden de-duplication is incomplete")
     if not registry_ok: raise SystemExit("PACKAGE-ECON-001 registry classification is inconsistent")
 if __name__=="__main__": main()
