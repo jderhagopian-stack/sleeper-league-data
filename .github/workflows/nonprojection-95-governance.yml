@@ -115,6 +115,8 @@ jobs:
           d=json.load(open('data/audit/decision_path_integrity_audit.json'))
           assert d['summary']['final_score_overlap_currently_detected'] is False
           assert d['summary']['primitive_final_score_active'] is True
+          assert d['summary']['acceptance_separate_from_trade_value'] is True
+          assert d['summary']['threshold_free_option_governance'] is True
 
           fr=json.load(open('data/audit/final_trade_ranking_governance_audit.json'))
           ffind={x['id']:x for x in fr['findings']}
@@ -136,8 +138,13 @@ jobs:
           hp=Path('script/nonprojection_high_priority_overrides.py').read_text()
           assert 'negotiation_plausibility_incremental_weight": 0.0' in v20
           assert '+ 1200.0 * plausibility' not in v20
-          assert 'acceptance_band_is_authoritative_candidate_gate": False' in v23
-          assert 'if row.get("acceptance_likelihood") not in {"HIGH", "MEDIUM"}' not in v23
+          v23_compact=''.join(v23.split())
+          assert "'acceptance_band_is_authoritative_candidate_gate':False" in v23_compact
+          assert "'acceptance_band_is_authoritative_action_gate':False" in v23_compact
+          assert "'unsupported_post_sim_score_distance_action_cliff_active':False" in v23_compact
+          assert "'upstream_action_is_provisional_pending_v31_outcome_comparison':True" in v23_compact
+          assert "sf(current.get('post_sim_score'))+750" not in v23_compact
+          assert 'ifrow.get("acceptance_likelihood")notin{"HIGH","MEDIUM"}' not in v23_compact
           assert 'single_strategic_core_path_no_duplicate_component_adders' in hp
           assert 'own_pick_control_bonus"] = 0.0' in hp
 

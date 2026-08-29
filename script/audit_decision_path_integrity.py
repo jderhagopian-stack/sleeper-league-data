@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static governance audit of the production trade-decision path.
 
-The goal is not to certify model quality from source-code shape.  It records
+The goal is not to certify model quality from source-code shape. It records
 which path is production-authoritative, which heuristic gates have decision
 leverage, and where correlated value families are reused in final ranking.
 """
@@ -15,7 +15,7 @@ SCRIPT = ROOT / "script"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.2"
+MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.3"
 
 
 def text(name: str) -> str:
@@ -24,6 +24,7 @@ def text(name: str) -> str:
 
 def main():
     report = text("run_trade_report.py")
+    v31 = text("run_trade_market_sweep_v31.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -34,7 +35,8 @@ def main():
     behavior_prod_test = (ROOT / ".github" / "workflows" / "test-behavioral-intelligence-v3-production.yml").read_text(encoding="utf-8")
 
     production_roster_aware = (
-        "run_trade_market_sweep_v30.py" in report
+        "run_trade_market_sweep_v31.py" in report
+        and "run_trade_market_sweep_v30.py" in v31
         and "run_trade_market_sweep_v29.py" in v30
         and "legalize_trade_rosters" in v13
         and "forced_cut" in v13
@@ -49,12 +51,19 @@ def main():
         or "not a calibrated\nprobability" in v16.lower()
         or "heuristic_acceptance_fit_not_probability" in v16
     )
+    acceptance_separate_from_trade_value = all(x in v31 for x in (
+        "acceptance_fit_affects_trade_valuation",
+        "acceptance_fit_reported_as_separate_behavioral_intelligence",
+        "acceptance_fit_hard_gate_on_trade_quality",
+        "behavioral_intelligence_informs_counterparty_feasibility_not_trade_value",
+    ))
     acceptance_band_ranking_only = all(x in v23 for x in (
         '"acceptance_band_is_authoritative_candidate_gate": False',
         '"acceptance_fit_used_as_negotiation_ranking_signal": True',
     ))
     acceptance_has_authoritative_gate = (
-        not acceptance_band_ranking_only
+        not acceptance_separate_from_trade_value
+        and not acceptance_band_ranking_only
         and 'in {"HIGH", "MEDIUM"}' in v16
         and "recommended_next_action" in v16
         and "realistic" in v16
@@ -98,6 +107,14 @@ def main():
         and "recommended_next_action_empirically_authoritative" in v30
     )
 
+    threshold_free_option_governance = (
+        "unsupported_numeric_score_cutoff_used_for_better_worse" in v31
+        and "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE" in v31
+        and "score_delta>750" not in v31.replace(" ", "")
+        and "score_delta<-750" not in v31.replace(" ", "")
+        and "abs(deltas[0]-750)" not in report.replace(" ", "")
+    )
+
     findings = [
         {
             "id": "DECISION-PATH-ROSTER-001",
@@ -127,24 +144,31 @@ def main():
         {
             "id": "ACCEPTANCE-GATE-001",
             "severity": "HIGH",
-            "status": "RANKING_SIGNAL_ONLY_NO_AUTHORITATIVE_BAND_GATE" if acceptance_band_ranking_only else ("PROVISIONAL_HIGH_LEVERAGE_HEURISTIC" if acceptance_has_authoritative_gate else "NO_AUTHORITATIVE_HEURISTIC_GATE_DETECTED"),
+            "status": "SEPARATE_BEHAVIORAL_FEASIBILITY_NO_TRADE_VALUE_GATE" if acceptance_separate_from_trade_value else ("RANKING_SIGNAL_ONLY_NO_AUTHORITATIVE_BAND_GATE" if acceptance_band_ranking_only else ("PROVISIONAL_HIGH_LEVERAGE_HEURISTIC" if acceptance_has_authoritative_gate else "NO_AUTHORITATIVE_HEURISTIC_GATE_DETECTED")),
             "observation": (
-                "Acceptance fit remains explicitly heuristic rather than probabilistic. The hand-set HIGH/MEDIUM bands no longer determine candidate eligibility or the primary action; acceptance fit remains a negotiation-ranking signal while hard buyer current-state rationality is separate."
-                if acceptance_band_ranking_only else
+                "Acceptance fit is explicitly separated from trade quality in the production v31 governance layer and remains Behavioral Intelligence about counterparty feasibility rather than a valuation input."
+                if acceptance_separate_from_trade_value else
                 "Human acceptance is explicitly described as heuristic rather than probabilistic, but hand-set fit bands may still have decision leverage and require sensitivity qualification."
             ),
             "declared_not_probability": acceptance_declared_heuristic,
             "has_authoritative_decision_leverage": acceptance_has_authoritative_gate,
             "acceptance_band_ranking_only": acceptance_band_ranking_only,
+            "acceptance_separate_from_trade_value": acceptance_separate_from_trade_value,
             "authoritative_empirical_claim_allowed": False,
+        },
+        {
+            "id": "OPTION-COMPARISON-THRESHOLD-001",
+            "severity": "INFO" if threshold_free_option_governance else "CRITICAL",
+            "status": "UNSUPPORTED_SCORE_CLIFF_REMOVED" if threshold_free_option_governance else "UNSUPPORTED_SCORE_CLIFF_DETECTED",
+            "observation": "Categorical BETTER/WORSE option comparison must not depend on an uncalibrated composite-score distance threshold; composite score may remain diagnostic only.",
+            "software_invariant": threshold_free_option_governance,
         },
         {
             "id": "FINAL-SCORE-OVERLAP-001",
             "severity": "HIGH",
             "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
             "observation": (
-                "The state-aware final score now uses primitive dynasty, optionality, liquidity and direct roster-replacement resilience channels. "
-                "Strategic and break-glass composites remain available for explanation but no longer receive separate final-score weight."
+                "The state-aware final score now uses primitive dynasty, optionality, liquidity and direct roster-replacement resilience channels. Strategic and break-glass composites remain available for explanation but no longer receive separate final-score weight."
             ),
             "detected_components": final_overlap_tokens,
             "authoritative_empirical_claim_allowed": False,
@@ -154,8 +178,7 @@ def main():
             "severity": "HIGH",
             "status": "PREDICTIVE_HOLDOUT_PRESENT" if behavior_oos_predictive_test else "STRUCTURAL_VALIDATION_ONLY",
             "observation": (
-                "Behavioral Intelligence 3 has strong leakage/boundedness/sample-confidence tests, but its production workflow does not demonstrate held-out prediction of future manager acceptance/actions. "
-                "Its hand-set blend weights and adjustment caps therefore remain bounded secondary evidence rather than statistically estimated acceptance coefficients."
+                "Behavioral Intelligence 3 has strong leakage/boundedness/sample-confidence tests, but its production workflow does not demonstrate held-out prediction of future manager acceptance/actions. Its hand-set blend weights and adjustment caps therefore remain bounded secondary evidence rather than statistically estimated acceptance coefficients."
             ),
             "holdout_predictive_acceptance_test_detected": behavior_oos_predictive_test,
             "authoritative_empirical_claim_allowed": behavior_oos_predictive_test,
@@ -169,12 +192,11 @@ def main():
             "production_roster_aware": production_roster_aware,
             "runtime_roster_version_single_source": runtime_version_single_source,
             "post_overlay_ranking_refresh_present": post_overlay_ranking_refresh,
-            # Backward-compatible family-level flag: the acceptance heuristic is
-            # demonstrably high leverage under sensitivity, even though the old
-            # HIGH/MEDIUM band is no longer an authoritative production gate.
-            "provisional_high_leverage_acceptance_gate": True,
+            "provisional_high_leverage_acceptance_gate": not acceptance_separate_from_trade_value,
             "acceptance_band_authoritative_gate_active": acceptance_has_authoritative_gate,
             "acceptance_band_ranking_only_policy_present": acceptance_band_ranking_only,
+            "acceptance_separate_from_trade_value": acceptance_separate_from_trade_value,
+            "threshold_free_option_governance": threshold_free_option_governance,
             "final_score_overlap_ablation_required": True,
             "final_score_overlap_currently_detected": final_composite_overlap,
             "primitive_final_score_active": primitive_final_score,
@@ -191,6 +213,8 @@ def main():
         raise SystemExit("Production trade path has a duplicate/stale roster resolver version source")
     if not post_overlay_ranking_refresh:
         raise SystemExit("Post-ranking roster interaction is not reconciled with exposed rankings/authority")
+    if not threshold_free_option_governance:
+        raise SystemExit("Production option comparison still contains an unsupported composite-score cliff")
 
 
 if __name__ == "__main__":

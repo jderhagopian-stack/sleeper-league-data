@@ -6,9 +6,17 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 SCRIPT=ROOT/"script"; DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.0"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.1"
 
 def read(name): return (SCRIPT/name).read_text(encoding="utf-8")
+def compact(s): return ''.join(str(s).split())
+
+def uses_canonical_composer(src):
+    c=compact(src)
+    return (
+        'negotiation_ranking.py' in src
+        and 'nr.compose(strategic,acceptance,behavior)' in c
+    )
 
 def main():
     ranker=read("negotiation_ranking.py")
@@ -23,11 +31,12 @@ def main():
         and "OWNER_BEHAVIOR_WEIGHT = 0.0" in ranker
     )
     ratio_preserved=abs((0.625/0.375)-(0.50/0.30)) < 1e-12
-    shared_composer=(
-        "nr.compose(strategic,acceptance,behavior)" in v18.replace(" ","")
-        and "nr.compose(strategic, acceptance, behavior)" in v20
-        and "nr.compose(strategic, acceptance, behavior)" in v23
-    )
+    composer_paths={
+        'v18':uses_canonical_composer(v18),
+        'v20':uses_canonical_composer(v20),
+        'v23':uses_canonical_composer(v23),
+    }
+    shared_composer=all(composer_paths.values())
     production_refresh_uses_v23=(
         "run_trade_market_sweep_v23.py" in v30
         and "recompute_negotiation_ranking" in v30
@@ -54,7 +63,8 @@ def main():
         "id":"FINAL-RANK-SOURCE-OF-TRUTH-001",
         "severity":"INFO" if shared_composer and production_refresh_uses_v23 else "HIGH",
         "status":"CANONICAL_COMPOSER" if shared_composer and production_refresh_uses_v23 else "MULTIPLE_FORMULAS_REMAIN",
-        "observation":"Legacy, state-aware and post-overlay ranking paths now share the same composer for final strategic/acceptance weighting while retaining their path-specific strategic component construction.",
+        "observation":"Legacy, state-aware and post-overlay ranking paths share the same negotiation_ranking.py composer for final strategic/acceptance weighting while retaining their path-specific strategic component construction. The audit normalizes source whitespace so formatting cannot create a false failure.",
+        "canonical_composer_by_path":composer_paths,
       },
       {
         "id":"FINAL-RANK-EMPIRICAL-001",
@@ -73,11 +83,13 @@ def main():
         "owner_behavior_diagnostic_preserved":True,
         "deduplication_is_not_empirical_validation":True,
         "remaining_ranking_weights_remain_provisional":True,
+        "source_formatting_cannot_determine_governance_pass_fail":True,
       },
       "summary":{
         "canonical_weights_detected":canonical_weights,
         "prior_strategic_acceptance_ratio_preserved":ratio_preserved,
         "shared_composer_used_by_v18_v20_v23":shared_composer,
+        "canonical_composer_by_path":composer_paths,
         "production_post_overlay_refresh_uses_v23":production_refresh_uses_v23,
         "owner_behavior_diagnostic_retained":diagnostic_retained,
         "positive_duplicate_behavior_weight_detected":duplicate_positive_behavior_weight,

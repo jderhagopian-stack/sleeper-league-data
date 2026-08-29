@@ -96,11 +96,17 @@ def patch_v21_selectors(mod):
     mod.select_normal_four_strict=normal;mod.select_swing_distinct=swing;return mod
 
 def recompute_action_without_acceptance_band_gate(report):
-    """Recompute action from continuous focal utility and bilateral viability."""
+    """Recompute provisional upstream action without an acceptance or score-distance cliff.
+
+    This layer predates the final outcome-consistency comparison in v31. It may
+    identify that a higher continuous objective score exists, but it must not
+    require an arbitrary magnitude such as +750. v31 performs the authoritative
+    BETTER/MIXED/WORSE decision from interpretable outcomes downstream.
+    """
     top=list(report.get('top_5_alternatives') or report.get('ranked_finalists') or [])
     if not top:return 'DECLINE'
     current=report.get('current_offer_evaluation') or {};current_buyer_ok=bool((current.get('buyer_rationality') or {}).get('current_state_viable'));current_focal_ok=focal_state_beneficial(current);best=top[0]
-    if current_focal_ok and current_buyer_ok:return 'SHOP_BEFORE_ACCEPTING' if sf(best.get('post_sim_score'))>sf(current.get('post_sim_score'))+750 else 'ACCEPT_NOW'
+    if current_focal_ok and current_buyer_ok:return 'SHOP_BEFORE_ACCEPTING' if sf(best.get('post_sim_score'))>sf(current.get('post_sim_score')) else 'ACCEPT_NOW'
     if any(r.get('candidate_type')=='SAME_PARTNER_COUNTER' for r in top[:5]):return 'COUNTER_CURRENT_OFFEROR'
     return 'SHOP_BEFORE_ACCEPTING'
 
@@ -136,7 +142,7 @@ def main():
     v22.load_module=patched_v22_loader;v22.MODEL_VERSION=MODEL_VERSION;v22.main();output=output_path_from_argv()
     if output and output.exists():
         report=json.loads(output.read_text(encoding='utf-8'));report['model_version']=MODEL_VERSION;inherited_action=report.get('recommended_next_action');report['recommended_next_action']=recompute_action_without_acceptance_band_gate(report)
-        report.setdefault('policy',{}).update({'competitive_state_treated_as_time_varying':True,'normal_recommendations_require_positive_continuous_focal_objective':True,'descriptive_state_labels_create_focal_utility_cliffs':False,'owner_behavior_conditioned_on_current_competitive_state':True,'historical_behavior_can_override_current_state_utility':False,'acceptance_band_is_authoritative_candidate_gate':False,'acceptance_band_is_authoritative_action_gate':False,'acceptance_band_is_ranking_signal_not_eligibility_gate':True,'acceptance_fit_used_as_negotiation_ranking_signal':True,'accepted_rejected_opportunity_denominator_available':False,'historical_state_at_trade_reconstruction_complete':False})
+        report.setdefault('policy',{}).update({'competitive_state_treated_as_time_varying':True,'normal_recommendations_require_positive_continuous_focal_objective':True,'descriptive_state_labels_create_focal_utility_cliffs':False,'owner_behavior_conditioned_on_current_competitive_state':True,'historical_behavior_can_override_current_state_utility':False,'acceptance_band_is_authoritative_candidate_gate':False,'acceptance_band_is_authoritative_action_gate':False,'acceptance_band_is_ranking_signal_not_eligibility_gate':True,'acceptance_fit_used_as_negotiation_ranking_signal':True,'accepted_rejected_opportunity_denominator_available':False,'historical_state_at_trade_reconstruction_complete':False,'unsupported_post_sim_score_distance_action_cliff_active':False,'upstream_action_is_provisional_pending_v31_outcome_comparison':True})
         report['acceptance_gate_action_audit']={'inherited_pre_override_action':inherited_action,'final_action_without_acceptance_band_gate':report.get('recommended_next_action')}
         report.setdefault('simulation',{})['execution_path']='GM3_state_aware_plus_dynamic_continuous_focal_gate_plus_state_conditioned_owner_behavior_plus_bilateral_market_intelligence_plus_family_dedup_plus_multi_asset_search'
         output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding='utf-8')

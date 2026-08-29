@@ -63,18 +63,41 @@ jobs:
           s=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression-summary.json'))
           assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18'
-          assert r['policy']['competitively_dominated_option_can_be_called_better'] is False
-          assert r['policy']['low_or_very_low_acceptance_alternative_can_force_shop'] is False
-          assert r['policy']['descriptive_state_labels_create_focal_utility_cliffs'] is False
-          assert r['policy']['descriptive_state_labels_create_action_cliffs'] is False
-          assert r['recommended_next_action']=='ACCEPT_NOW',r['recommended_next_action']
+          p=r['policy']
+          g=r['governance']['option_outcome_consistency']
+          assert p['unsupported_numeric_score_cutoff_used_for_better_worse'] is False
+          assert p['acceptance_likelihood_is_separate_from_trade_valuation'] is True
+          assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
+          assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False
+          assert p['descriptive_state_labels_create_action_cliffs'] is False
+          assert g['categorical_score_threshold_removed'] is True
+          assert g['post_sim_score_is_diagnostic_not_categorical_decision_rule'] is True
+          assert g['acceptance_fit_affects_trade_valuation'] is False
+          assert g['acceptance_fit_hard_gate_on_trade_quality'] is False
+
+          better=[]
           for row in (r.get('suggested_counteroffers') or [])+(r.get('market_sweep_alternatives') or []):
               c=row.get('comparison_to_current_offer') or {}
-              if c.get('competitive_relation_vs_current_offer')=='DOMINATED_BY_CURRENT_OFFER':
-                  assert c.get('verdict_vs_current_offer')!='BETTER',c
-              if str(row.get('acceptance_likelihood')) in {'LOW','VERY_LOW'}:
-                  assert row.get('actionable_better_than_current_offer') is not True,row
-          print({'recommended_next_action':r.get('recommended_next_action'),'action_basis':(r.get('governance',{}).get('option_outcome_consistency') or {}).get('action_basis'),'objective_state':((r.get('current_offer_evaluation') or {}).get('simulation') or {}).get('strategic',{}).get('objective_state'),'market_alternatives':[(x.get('return_asset_names'),x.get('acceptance_likelihood'),(x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer'),x.get('actionable_better_than_current_offer')) for x in (r.get('market_sweep_alternatives') or [])[:5]]})
+              assert c.get('unsupported_numeric_score_cutoff_used') is False,c
+              assert c.get('post_sim_score_role')=='DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE',c
+              if c.get('decision_relation_vs_current_offer')=='DOMINATED_BY_CURRENT_OFFER':
+                  assert c.get('verdict_vs_current_offer')=='WORSE',c
+              if c.get('decision_relation_vs_current_offer')=='DOMINATES_CURRENT_OFFER':
+                  assert c.get('verdict_vs_current_offer')=='BETTER',c
+              if c.get('decision_relation_vs_current_offer')=='TRADEOFF_VS_CURRENT_OFFER':
+                  assert c.get('verdict_vs_current_offer')=='MIXED',c
+              fit=(row.get('counterparty_feasibility') or {})
+              assert fit.get('affects_trade_valuation') is False,fit
+              if c.get('verdict_vs_current_offer')=='BETTER':better.append(row)
+
+          expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else ('COUNTER_CURRENT_OFFEROR' if better else 'ACCEPT_NOW')
+          assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
+          print({
+            'recommended_next_action':r.get('recommended_next_action'),
+            'action_basis':g.get('action_basis'),
+            'objective_state':((r.get('current_offer_evaluation') or {}).get('simulation') or {}).get('strategic',{}).get('objective_state'),
+            'market_alternatives':[(x.get('return_asset_names'),x.get('acceptance_likelihood'),(x.get('comparison_to_current_offer') or {}).get('verdict_vs_current_offer'),(x.get('comparison_to_current_offer') or {}).get('decision_relation_vs_current_offer')) for x in (r.get('market_sweep_alternatives') or [])[:5]],
+          })
           assert Path('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.pdf').exists()
           PY
       - uses: actions/upload-artifact@v4
