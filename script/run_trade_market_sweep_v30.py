@@ -10,9 +10,9 @@ gates. No player-specific exceptions are permitted.
 
 Governance note: because this wrapper modifies post-simulation score and buyer
 acceptance fit after the v1.23 candidate selectors have run, every exposed
-negotiation ranking is refreshed from the canonical v1.17 ranking helper.  If
-the post-ranking overlay changes ordering or crosses an acceptance band used by
-upstream selectors, the inherited recommended action is explicitly qualified
+negotiation ranking is refreshed from the canonical shared ranking component.
+If the post-ranking overlay changes ordering or crosses an acceptance band used
+by upstream selectors, the inherited recommended action is explicitly qualified
 rather than silently presented as authoritative.
 """
 from __future__ import annotations
@@ -24,7 +24,7 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 V29 = SCRIPT / "run_trade_market_sweep_v29.py"
-V23 = SCRIPT / "run_trade_market_sweep_v23.py"
+NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
 INTERACTION = SCRIPT / "roster_interaction.py"
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.24"
 
@@ -139,7 +139,7 @@ def refresh_negotiation_ranking(row, ranker):
     """Reuse the canonical state-aware negotiation transform after overlay."""
     if row and row.get("buyer_rationality"):
         row["negotiation_ranking_pre_roster_interaction"] = row.get("negotiation_ranking")
-        row["negotiation_ranking"] = ranker.recompute_negotiation_ranking(row)
+        row["negotiation_ranking"] = ranker.recompute_from_row(row)
     return row
 
 
@@ -203,7 +203,7 @@ def compare(row, current):
 
 def main():
     v29 = load(V29, "market_v29_for_124")
-    ranker = load(V23, "market_v23_ranking_helper_for_124")
+    ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_shared_for_124")
     ri = load(INTERACTION, "roster_interaction_for_124")
     v29.main()
     out = out_path()
@@ -243,7 +243,7 @@ def main():
     governance = r.setdefault("governance", {})
     governance["post_ranking_roster_interaction"] = {
         "ranking_refreshed_after_overlay": True,
-        "canonical_negotiation_ranking_helper": "run_trade_market_sweep_v23.recompute_negotiation_ranking",
+        "canonical_negotiation_ranking_helper": "negotiation_ranking.recompute_from_row",
         "sections_with_order_change": changed_sections,
         "acceptance_band_crossing_count": band_crossings,
         "upstream_candidate_selection_may_be_sensitive": selection_sensitive,
