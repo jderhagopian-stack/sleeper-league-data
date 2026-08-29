@@ -257,6 +257,28 @@ def run(inventory_path: Path, start_season: int = 2016) -> dict:
         })
 
     result = compare(native, external, actual)
+    # Raw MAE values have different units/scales across statistics, so the generic
+    # weighted MAE is retained only as a diagnostic. Headline summaries use group
+    # wins and each group's percent improvement vs the external forecast.
+    summaries = {"by_position": {}, "by_season": {}}
+    for key, d in result["detail"].items():
+        season_s, pos, _stat = key.split("|")
+        for bucket, name in ((summaries["by_position"], pos), (summaries["by_season"], season_s)):
+            x = bucket.setdefault(name, {"native_wins":0,"external_wins":0,"ties":0,"relative_improvements_pct":[]})
+            if d["winner"] == "native": x["native_wins"] += 1
+            elif d["winner"] == "external": x["external_wins"] += 1
+            else: x["ties"] += 1
+            x["relative_improvements_pct"].append(float(d["native_improvement_vs_external_pct"]))
+    for bucket in summaries.values():
+        for x in bucket.values():
+            vals = sorted(x.pop("relative_improvements_pct"))
+            x["group_count"] = len(vals)
+            x["mean_native_improvement_vs_external_pct"] = sum(vals) / len(vals)
+            m = len(vals) // 2
+            x["median_native_improvement_vs_external_pct"] = vals[m] if len(vals) % 2 else (vals[m-1] + vals[m]) / 2.0
+    result["normalized_group_summary"] = summaries
+    result["weighted_common_cohort_mae_note"] = "Diagnostic only: raw MAE is not a valid cross-stat headline because yards, counts, and touchdowns have different scales. Use normalized_group_summary and group_wins for interpretation."
+
     result["experiment"] = "selected_fsffl_native_vs_fftoday_preseason_raw_stats"
     result["coverage"] = coverage
     result["native_model"] = {
