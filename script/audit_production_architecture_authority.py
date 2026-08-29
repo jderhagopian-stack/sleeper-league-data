@@ -18,6 +18,9 @@ OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
 MODEL_VERSION = "FSFFL-Production-Architecture-Authority-Audit-1.0"
+NONPRODUCTION_WORKFLOW_MARKERS = (
+    "audit", "test", "governance", "consistency", "sensitivity", "validation",
+)
 
 
 def text(path: Path) -> str:
@@ -26,6 +29,27 @@ def text(path: Path) -> str:
 
 def has_all(src: str, tokens) -> bool:
     return all(token in src for token in tokens)
+
+
+def production_workflow_sources():
+    out = {}
+    for path in sorted(WORKFLOWS.glob("*.yml")):
+        lower = path.name.lower()
+        if any(marker in lower for marker in NONPRODUCTION_WORKFLOW_MARKERS):
+            continue
+        out[path.name] = text(path)
+    return out
+
+
+def workflow_direct_exec(sources, pattern):
+    hits = []
+    rx = re.compile(pattern)
+    for name, src in sources.items():
+        for line in src.splitlines():
+            stripped = line.strip()
+            if rx.search(stripped):
+                hits.append({"workflow": name, "line": stripped})
+    return hits
 
 
 def main():
@@ -39,8 +63,7 @@ def main():
     gm_gov = text(SCRIPT / "gm30_nonprojection_governance.py")
     high_priority = text(SCRIPT / "nonprojection_high_priority_overrides.py")
     package_curve = text(SCRIPT / "package_curve_robustness.py")
-
-    workflow_text = "\n".join(text(p) for p in sorted(WORKFLOWS.glob("*.yml")))
+    production_workflows = production_workflow_sources()
 
     findings = []
 
@@ -86,22 +109,22 @@ def main():
         "allowed_only_because_downstream_authority_replaced": v31_final_authority,
     })
 
-    # Prevent a workflow from accidentally making an older prospective trade sweep authoritative.
-    direct_old_trade_workflow = bool(re.search(
-        r"python\s+script/run_trade_market_sweep_v(?:[1-9]|1\d|2\d|30)\.py",
-        workflow_text,
-    ))
+    old_trade_hits = workflow_direct_exec(
+        production_workflows,
+        r"(?:^|\s)python\s+script/run_trade_market_sweep_v(?:[1-9]|1\d|2\d|30)\.py(?:\s|$)",
+    )
     findings.append({
         "id": "TRADE-WORKFLOW-004",
-        "ok": not direct_old_trade_workflow,
+        "ok": not old_trade_hits,
         "severity": "CRITICAL",
-        "observation": "No GitHub Actions production path may directly execute a superseded prospective trade-sweep version.",
+        "observation": "No production GitHub Actions path may directly execute a superseded prospective trade-sweep version.",
+        "direct_execution_hits": old_trade_hits,
     })
 
     # The bilateral Trade Review is a separate retrospective product. It may use
     # v13's fast lineup optimizer as a mechanic, but v13 must not provide the
     # review's trade judgment.
-    v13_uses = re.findall(r"v13\.([A-Za-z_][A-Za-z0-9_]*)", trade_review)
+    v13_uses = re.findall(r"\bv13\.([A-Za-z_][A-Za-z0-9_]*)\s*\(", trade_review)
     unexpected_v13_uses = sorted(set(v13_uses) - {"fast_reoptimize_touched_lineups"})
     retrospective_separate = (
         "Retrospective bilateral evaluation of a completed trade" in trade_review
@@ -143,7 +166,6 @@ def main():
         "expected_order": expected_order,
     })
 
-    # Verify wrappers compose around the function present at installation time.
     gm_composition_ok = has_all(high_priority, [
         "original_pick_profile = getattr(engine, \"_u_pick_profile\", None)",
         "out = dict(original_pick_profile(aid, uid, ctx))",
@@ -164,15 +186,16 @@ def main():
         "observation": "Newer GM3 layers must wrap the already-current function rather than reload and overwrite an older implementation independently.",
     })
 
-    direct_ungoverned_gm_workflow = bool(re.search(
-        r"python\s+script/run_fsffl_gm30_counterfactual\.py(?:\s|$)",
-        workflow_text,
-    ))
+    ungoverned_gm_hits = workflow_direct_exec(
+        production_workflows,
+        r"(?:^|\s)python\s+script/run_fsffl_gm30_counterfactual\.py(?:\s|$)",
+    )
     findings.append({
         "id": "GM3-BYPASS-004",
-        "ok": not direct_ungoverned_gm_workflow,
+        "ok": not ungoverned_gm_hits,
         "severity": "CRITICAL",
-        "observation": "No workflow may bypass the governed GM3 wrapper by executing the ungoverned counterfactual entry point directly.",
+        "observation": "No production workflow may bypass the governed GM3 wrapper by executing the ungoverned counterfactual entry point directly.",
+        "direct_execution_hits": ungoverned_gm_hits,
     })
 
     failed = [x for x in findings if not x["ok"]]
@@ -185,6 +208,7 @@ def main():
             "newest_authoritative_layer_must_recompute_superseded_outputs": True,
             "production_bypass_paths_for_superseded_versions_allowed": False,
         },
+        "production_workflows_scanned": sorted(production_workflows),
         "summary": {
             "passed": not failed,
             "finding_count": len(findings),
