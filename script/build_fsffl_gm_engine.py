@@ -56,9 +56,9 @@ NFLVERSE_PLAYER_STATS_URL = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
     "player_stats/player_stats.csv.gz"
 )
-NFLVERSE_SNAP_COUNTS_URL = (
+NFLVERSE_SNAP_COUNTS_URL_TEMPLATE = (
     "https://github.com/nflverse/nflverse-data/releases/download/"
-    "snap_counts/snap_counts_2026.csv"
+    "snap_counts/snap_counts_{season}.csv"
 )
 
 # Optional file for qualitative/camp/news intelligence created by a human/agent.
@@ -443,8 +443,8 @@ def _perf_points(row):
 
 
 def load_recent_performance(active_season=None):
-    active_season = int(active_season or LEAGUE_RULES["season"])
     """Load current-season FSFFL weekly production when available."""
+    active_season = int(active_season or LEAGUE_RULES["season"])
     paths = [
         DATA / "stats" / "fsffl" / str(active_season) / "player_weekly_fsffl.json",
         DATA / "stats" / "fsffl" / str(active_season) / "player_weekly_raw.json",
@@ -584,7 +584,6 @@ def _read_csv_url(url: str, gzipped: bool = False) -> List[Dict[str, str]]:
 
 
 def fetch_nflverse_usage(active_season: int | None = None) -> Dict[str, Dict[str, Any]]:
-    active_season = int(active_season or LEAGUE_RULES["season"])
     """
     Fetch weekly player stats and derive role/usage signals:
       - carries
@@ -595,6 +594,7 @@ def fetch_nflverse_usage(active_season: int | None = None) -> Dict[str, Dict[str
 
     Uses player name + team as the bridge when Sleeper IDs are not present.
     """
+    active_season = int(active_season or LEAGUE_RULES["season"])
     cache = DATA / "nflverse_usage_2026.json"
     fetched_at = datetime.now(timezone.utc).isoformat()
     try:
@@ -664,12 +664,12 @@ def fetch_nflverse_usage(active_season: int | None = None) -> Dict[str, Dict[str
 
 
 def fetch_nflverse_snaps(active_season: int | None = None) -> Dict[str, Dict[str, Any]]:
-    active_season = int(active_season or LEAGUE_RULES["season"])
     """
     Fetch game-level offensive snap counts. nflverse snap counts are polled
     multiple times per day during the season.
     """
-    cache = DATA / "nflverse_snap_counts_2026.json"
+    active_season = int(active_season or LEAGUE_RULES["season"])
+    cache = DATA / f"nflverse_snap_counts_{active_season}.json"
     fetched_at = datetime.now(timezone.utc).isoformat()
     try:
         rows = _read_csv_url(NFLVERSE_SNAP_COUNTS_URL, gzipped=False)
