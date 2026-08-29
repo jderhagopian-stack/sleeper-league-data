@@ -1,0 +1,27 @@
+name: Projection Injury Shock Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'script/diagnose_external_benchmark_injury_shocks.py'
+      - 'script/run_projection_injury_shock_diagnostic.py'
+      - 'script/probe_fftoday_access_variants.py'
+      - '.github/workflows/projection-injury-shock-diagnostic.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe equivalent FFToday URL variants
+        run: python script/probe_fftoday_access_variants.py
+      - name: Run post-hoc injury shock diagnostic
+        run: python script/run_projection_injury_shock_diagnostic.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: projection-injury-shock-diagnostic
+          path: data/model_validation/native_v2_fftoday_injury_shock_diagnostic.json
