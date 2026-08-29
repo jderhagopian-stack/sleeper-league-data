@@ -1,0 +1,26 @@
+name: SportsDataverse Projection Bridge Benchmark
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "script/run_sportsdataverse_bridge_benchmark.py"
+      - ".github/workflows/sportsdataverse-projection-bridge-benchmark.yml"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install SportsDataverse
+        run: pip install "sportsdataverse==0.0.75"
+      - name: Run clean 2024 three-way benchmark
+        run: python script/run_sportsdataverse_bridge_benchmark.py --output artifacts/sportsdataverse_bridge_2024_benchmark.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sportsdataverse-bridge-benchmark
+          path: artifacts/sportsdataverse_bridge_2024_benchmark.json
