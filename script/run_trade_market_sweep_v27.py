@@ -4,10 +4,14 @@
 Runs the validated 1.20/BI3 engine unchanged, then organizes its computed
 candidate frontier into two explicit decision products:
 - suggested_counteroffers: up to 2 same-partner constructions that are distinct
-  from the incoming offer and beneficial to the focal team's current state;
+  from the incoming offer and beneficial to the focal team's continuous state
+  objective;
 - market_sweep_alternatives: up to 5 other-owner alternatives only.
 
-The split never manufactures candidates. Missing slots stay empty.
+The split never manufactures candidates. Missing slots stay empty. Descriptive
+state labels do not impose hard future-value cliffs; the continuous state-aware
+post-simulation score is the eligibility signal, with hard title-equity
+constraints preserved for contenders.
 """
 from __future__ import annotations
 import importlib.util,json,sys
@@ -32,9 +36,6 @@ def fam(r):return (str(r.get('buyer_user_id') or ''),tuple(sorted(map(str,r.get(
 def focal_ok(r):
     if sf(r.get('post_sim_score'))<=0:return False
     state=str((((r.get('simulation') or {}).get('strategic') or {}).get('objective_state')) or r.get('focal_current_state') or '')
-    comp=r.get('state_aware_score_components') or {}
-    if state=='rebuild' and sf(comp.get('future'))<=0:return False
-    if state=='retool' and sf(comp.get('future'))<=-250:return False
     if state in {'contender','elite_contender'} and r.get('championship_equity_constraint')=='FAIL':return False
     return True
 
@@ -77,7 +78,7 @@ def main():
     r['market_sweep_alternatives']=market
     r['counteroffer_count']=len(counters);r['market_sweep_alternative_count']=len(market)
     r.setdefault('candidate_counts',{}).update({'suggested_counteroffers':len(counters),'market_sweep_alternatives':len(market)})
-    r.setdefault('policy',{}).update({'suggested_counteroffers_max':2,'suggested_counteroffers_same_partner_only':True,'suggested_counteroffers_never_padded':True,'market_sweep_max':5,'market_sweep_excludes_current_partner':True,'market_sweep_never_padded':True,'counter_and_market_pools_separate':True})
+    r.setdefault('policy',{}).update({'suggested_counteroffers_max':2,'suggested_counteroffers_same_partner_only':True,'suggested_counteroffers_never_padded':True,'market_sweep_max':5,'market_sweep_excludes_current_partner':True,'market_sweep_never_padded':True,'counter_and_market_pools_separate':True,'descriptive_state_labels_create_candidate_eligibility_cliffs':False,'continuous_state_aware_score_controls_focal_option_eligibility':True})
     r.setdefault('simulation',{})['execution_path']=str((r.get('simulation') or {}).get('execution_path') or '')+'_plus_counter_market_pool_split'
     out.write_text(json.dumps(r,indent=2,sort_keys=True),encoding='utf-8')
 if __name__=='__main__':main()
