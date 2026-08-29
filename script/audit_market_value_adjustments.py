@@ -66,13 +66,16 @@ def main() -> None:
     findings = [
         {
             "id": "MARKET-ANCHOR-001",
-            "status": "EVIDENCE_BASED_EXTERNAL_ANCHOR_ACTIVE",
+            "status": "RESEARCH_EXTERNAL_ANCHOR_REPLACEABLE_FOR_COMMERCIAL_USE",
             "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
             "observation": (
-                "FantasyCalc current dynasty value, requested using the synced league format, is the runtime market anchor. "
-                "It is observable market evidence, not an FSFFL-specific learned coefficient."
+                "FantasyCalc current dynasty value, requested using the synced league format, is the current research/private-runtime "
+                "market anchor. It is observable external market evidence, not an FSFFL-specific learned coefficient. FantasyCalc's "
+                "current terms restrict commercial use without express written permission, so this source is not authorized as an "
+                "irreplaceable commercial production dependency."
             ),
             "authoritative_incremental_adjustment_claim_allowed": True,
+            "commercial_production_dependency_authorized_without_separate_permission": False,
         },
         {
             "id": "MARKET-RANK-CURVE-001",
@@ -110,15 +113,17 @@ def main() -> None:
     ]
 
     report = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "audit_family": "market/value adjustments",
-        # Legacy compatibility: this field describes whether this read-only
-        # audit script changes production behavior. It does not. The separate
-        # field below records that the governed runtime fix does change state.
         "production_behavior_changed": False,
         "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
+            "external_market_source_must_be_replaceable": True,
+            "fantasycalc_permitted_as_research_private_runtime_anchor_subject_to_terms": True,
+            "fantasycalc_required_commercial_dependency_authorized_without_separate_permission": False,
+            "commercial_market_source_requires_appropriate_usage_rights": True,
+            "commercial_source_swap_must_not_require_decision_architecture_change": True,
             "same_source_rank_repricing_is_removed": True,
             "same_source_market_trend_requires_incremental_validation": True,
             "same_source_market_trend_incremental_value_is_removed": True,
