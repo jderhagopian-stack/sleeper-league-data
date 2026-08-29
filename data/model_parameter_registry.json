@@ -26,28 +26,28 @@
         "script/build_fsffl_gm_engine.py",
         "script/roster_aware_trade.py",
         "script/build_fsffl_scoring_baseline.py",
-        "script/build_fsffl_season_simulator.py"
+        "script/build_fsffl_season_simulator.py",
+        "script/audit_league_configuration.py",
+        "script/audit_playoff_configuration.py"
       ],
-      "parameter_family": "team count, active-roster size, scoring/PPR, rookie-draft rounds, lineup slots, FLEX/Superflex eligibility, K/DST support and playoff settings",
+      "parameter_family": "team count, active roster size, scoring, draft rounds, lineup/FLEX/Superflex/K/DST eligibility, playoff team count/start, division seeding and standard 4/6/8 bracket structure",
       "evidence_tier": "RULE_DEFINED",
       "status": "GOVERNED",
-      "source": "Synced Sleeper data/league.json; league rules are resolved centrally by script/league_rules.py",
-      "validation": "Current-FSFFL rule regression plus synthetic cross-league portability checks",
+      "source": "Synced Sleeper league/roster configuration plus Sleeper-defined standard playoff/division rules",
+      "validation": "Configuration/rule consistency checks plus synthetic portability regressions for alternate team counts, lineups, draft rounds and 4/6/8-team playoff structures",
       "uncertainty": "none for correctly encoded rules",
-      "update_policy": "Update only when league/NFL rules change",
+      "update_policy": "Update automatically from synced league settings for encoded rules; verify external semantics before enabling undocumented/nonstandard playoff round codes.",
       "downstream": [
-        "market configuration",
-        "GM valuation",
-        "lineup optimization",
-        "positional needs",
-        "roster legality",
-        "future-pick generation",
+        "scoring",
         "simulator",
+        "roster legality",
         "draft logic",
-        "playoff logic"
+        "playoff probability",
+        "championship probability",
+        "trade simulation"
       ],
       "authoritative_use": true,
-      "notes": "Projection formulas remain outside this refactor. The future-pick planning horizon is explicitly provisional runtime scope, not a league rule."
+      "notes": "FSFFL remains the regression league. Division-aware playoff seeding and configured bracket length replace prior six-team/Weeks-15-17 hardcoding. Nonstandard playoff_round_type semantics remain qualified until verified."
     },
     {
       "id": "PROJECTION-MEAN-001",
