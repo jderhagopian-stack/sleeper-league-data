@@ -1,0 +1,24 @@
+name: Non-projection playoff configuration regression
+
+on:
+  pull_request:
+    paths:
+      - 'script/build_fsffl_season_simulator.py'
+      - 'script/league_rules.py'
+      - 'script/audit_playoff_configuration.py'
+      - 'data/league.json'
+      - '.github/workflows/test-playoff-configuration.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile simulator rule modules
+        run: python -m py_compile script/league_rules.py script/build_fsffl_season_simulator.py script/audit_playoff_configuration.py
+      - name: Validate playoff and division rules
+        run: python script/audit_playoff_configuration.py
