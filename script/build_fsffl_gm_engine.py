@@ -3946,9 +3946,15 @@ def _u_player_liquidity(aid, ctx):
     dyn = safe_float(m.get("market_dynasty"))
     age = safe_float(m.get("age"), 27.0)
     pos = m.get("position")
-    scarcity = _u_position_tier_features(aid, ctx)["scarcity_score"]
 
-    base = clamp(0.35 + 0.40 * scarcity + 0.25 * clamp(dyn / 8000.0, 0.0, 1.0), 0.0, 1.0)
+    # Market-tier scarcity is already derived from the same dynasty market
+    # value used as the asset anchor. Do not reuse that derived signal as a
+    # second positive liquidity input. Preserve the prior constant:value ratio
+    # among the remaining distinct components (0.35:0.25), without retuning.
+    base = clamp(
+        (0.35 / 0.60) + (0.25 / 0.60) * clamp(dyn / 8000.0, 0.0, 1.0),
+        0.0, 1.0
+    )
     if pos == "QB":
         base += 0.08
     if pos == "RB" and age >= 29:
@@ -4047,10 +4053,11 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             dependency = clamp(single_drop / base_lineup * 4.5, 0.0, 1.0)
             depth_insurance = clamp(depth_drop / base_lineup * 5.0, 0.0, 1.0)
             current_utility = clamp(red / max(base_lineup / 9.0, 1.0) / 4.0, 0.0, 1.0)
-            future_utility = clamp(
-                0.55 * scarcity["scarcity_score"] + 0.45 * dist["upside_optionality"],
-                0.0, 1.0
-            )
+            # Market-tier scarcity is retained as a diagnostic but is not
+            # counted again on top of the market-anchored franchise value.
+            # With that duplicated component removed, the remaining distinct
+            # future-utility component carries the full normalized weight.
+            future_utility = clamp(dist["upside_optionality"], 0.0, 1.0)
             resilience = clamp(0.62 * dependency + 0.38 * depth_insurance, 0.0, 1.0)
 
             strategic_score = clamp(
@@ -4063,7 +4070,10 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
 
             # Hold premium components are deliberately distinct and transparent.
             core_premium = 0.04 + 0.30 * (strategic_score ** 1.65)
-            scarcity_premium = 0.13 * (scarcity["scarcity_score"] ** 1.8)
+            # Structural de-duplication: market-tier scarcity comes from the
+            # same external dynasty market anchor and therefore receives no
+            # separate incremental hold premium without residual validation.
+            scarcity_premium = 0.0
             optionality_premium = 0.22 * dist["upside_optionality"]
             liquidity_premium = 0.07 * liquidity
             appreciation_premium = max(dist["hold_appreciation_pct"], 0.0) * 0.70
@@ -4075,11 +4085,13 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             premium_pct = clamp(raw_premium, 0.03, GM22["max_static_exit_premium_pct"])
             break_glass = base * (1.0 + premium_pct)
 
+            # Remove the market-derived scarcity channel and renormalize the
+            # remaining distinct variable components in their prior 0.40:0.15
+            # ratio. This is de-duplication, not empirical retuning.
             elasticity = clamp(
                 0.18
-                + 0.40 * (1.0 - dependency)
-                + 0.20 * (1.0 - scarcity["scarcity_score"])
-                + 0.15 * (1.0 - strategic_score),
+                + (0.40 / 0.55 * 0.75) * (1.0 - dependency)
+                + (0.15 / 0.55 * 0.75) * (1.0 - strategic_score),
                 0.12, 0.80
             )
 
@@ -4110,7 +4122,12 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "strategic_score": round(strategic_score, 4),
                 "core_status": status,
                 "liquidity_score": round(liquidity, 4),
-                "scarcity": scarcity,
+                "scarcity": {
+                    **scarcity,
+                    "source": "external_market_tier_diagnostic",
+                    "incremental_premium_authorized": False,
+                    "replacement_value_source": "team_specific_lineup_reoptimization",
+                },
                 "future_distribution": dist,
                 "objective_state": state,
                 "objective_weights": objective,
@@ -4201,8 +4218,9 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
         "objective_weights": objective,
         "methodology_note": (
             "Strategic profiles cover players and picks. Break-glass values explicitly "
-            "price current utility, tier scarcity, upside optionality, liquidity, "
-            "depth resilience, expected hold value and pick-specific quality. Values "
+            "price current utility, upside optionality, liquidity, roster-specific "
+            "replacement resilience, expected hold value and pick-specific quality. "
+            "Market-tier scarcity remains diagnostic and receives no separate premium. Values "
             "are heuristics for decision support, not guaranteed trade prices."
         ),
         "assets": rows,
