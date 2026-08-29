@@ -111,11 +111,19 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
     for row in rows:
         base = float(row.get("base_franchise_value") or row.get("market_dynasty") or 0.0)
         if feature == "liquidity":
-            f = float(row.get("liquidity_score") or 0.0)
+            pp = row.get("pick_profile") or {}
+            if row.get("asset_type") == "pick" and pp.get("liquidity_incremental_value_authorized") is False:
+                f = 0.0
+            else:
+                f = float(row.get("liquidity_score") or 0.0)
         elif feature == "strategic":
             f = float(row.get("strategic_score") or 0.0)
         elif feature == "optionality":
-            f = _optionality(row)
+            pp = row.get("pick_profile") or {}
+            if row.get("asset_type") == "pick" and pp.get("quality_optionality_incremental_value_authorized") is False:
+                f = 0.0
+            else:
+                f = _optionality(row)
         elif feature == "resilience":
             f = float(row.get("replacement_resilience_score") or 0.0)
         else:
