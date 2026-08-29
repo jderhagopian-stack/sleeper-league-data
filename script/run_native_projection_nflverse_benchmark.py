@@ -39,10 +39,22 @@ SOURCE_STATS = {
 }
 STATS = list(SOURCE_STATS)
 FEATURES = {
-    "QB": ["lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds", "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds"],
-    "RB": ["lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds"],
-    "WR": ["lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds"],
-    "TE": ["lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds"],
+    "QB": [
+        "lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds", "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
+        "lag2_available", "lag2_games", "lag2_attempts", "lag2_passing_yards", "lag2_passing_tds", "lag2_interceptions", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds",
+    ],
+    "RB": [
+        "lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
+        "lag2_available", "lag2_games", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
+    ],
+    "WR": [
+        "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
+        "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds", "lag2_carries", "lag2_rushing_yards", "lag2_rushing_tds",
+    ],
+    "TE": [
+        "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
+        "lag2_available", "lag2_games", "lag2_targets", "lag2_receptions", "lag2_receiving_yards", "lag2_receiving_tds",
+    ],
 }
 TARGETS = {
     "QB": ["next_attempts", "next_passing_yards", "next_passing_tds", "next_interceptions", "next_rushing_yards", "next_rushing_tds"],
@@ -89,7 +101,7 @@ def normalize_season(rows: List[dict], season: int) -> List[dict]:
 
 
 def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
-    """Create forecast rows without conditioning on future NFL participation."""
+    """Create forecast rows using only seasons available before the target year."""
     index = {(int(r["season"]), str(r["player_id"])): r for r in season_rows}
     max_season = max(season for season, _ in index)
     out = []
@@ -97,7 +109,9 @@ def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
         if season >= max_season:
             continue
         nxt = index.get((season + 1, pid))
+        prev = index.get((season - 1, pid))
         next_present = nxt is not None
+        lag2_available = prev is not None
         row = {
             "season": season + 1,
             "feature_season": season,
@@ -107,10 +121,13 @@ def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
             "next_season_present": int(next_present),
             "team_change": int(bool(nxt and cur.get("team") and nxt.get("team") and cur["team"] != nxt["team"])),
             "lag1_games": fval(cur.get("games")),
+            "lag2_available": int(lag2_available),
+            "lag2_games": fval(prev.get("games")) if prev else 0.0,
             "next_games": fval(nxt.get("games")) if nxt else 0.0,
         }
         for stat in STATS:
             row[f"lag1_{stat}"] = fval(cur.get(stat))
+            row[f"lag2_{stat}"] = fval(prev.get(stat)) if prev else 0.0
             row[f"next_{stat}"] = fval(nxt.get(stat)) if nxt else 0.0
         out.append(row)
     return out
@@ -152,7 +169,7 @@ def run(start_season: int, end_season: int) -> dict:
         }
 
     return {
-        "schema_version": "1.3",
+        "schema_version": "1.4",
         "status": "PASS",
         "source": {"provider": "nflverse/nflverse-data", "release_tag": "stats_player", "asset_family": "stats_player_reg_{season}.csv", "url_template": URL, "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution"},
         "seasons_requested": [start_season, end_season],
@@ -168,6 +185,7 @@ def run(start_season: int, end_season: int) -> dict:
             "holdout_policy": "latest completed season in downloaded range",
             "hyperparameter_selection": "training-period temporal inner validation only",
             "primary_simple_baseline": "prior-year same-stat persistence where available",
+            "multi_year_history": "lag1 plus lag2 player production, with explicit lag2 availability indicator",
             "population_mean_baseline_role": "sanity check only",
             "production_promoted": False,
         },
@@ -186,7 +204,7 @@ def main() -> None:
         args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
-        failure = {"schema_version": "1.3", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
+        failure = {"schema_version": "1.4", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [start_season, end_season], "source_url_template": URL}
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
         raise
