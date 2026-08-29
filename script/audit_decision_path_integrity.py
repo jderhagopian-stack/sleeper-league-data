@@ -24,6 +24,7 @@ def text(name: str) -> str:
 
 def main():
     report = text("run_trade_report.py")
+    trade_engine = text("trade_engine.py")
     v31 = text("run_trade_market_sweep_v31.py")
     option_governance = text("trade_option_governance.py")
     v30 = text("run_trade_market_sweep_v30.py")
@@ -36,7 +37,8 @@ def main():
     behavior_prod_test = (ROOT / ".github" / "workflows" / "test-behavioral-intelligence-v3-production.yml").read_text(encoding="utf-8")
 
     production_roster_aware = (
-        "run_trade_market_sweep_v31.py" in report
+        "trade_engine.py" in report
+        and "run_trade_market_sweep_v31.py" in trade_engine
         and "run_trade_market_sweep_v30.py" in v31
         and "run_trade_market_sweep_v29.py" in v30
         and "legalize_trade_rosters" in v13
