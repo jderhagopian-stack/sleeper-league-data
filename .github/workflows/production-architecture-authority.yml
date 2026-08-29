@@ -21,11 +21,12 @@ jobs:
       - name: Audit version dependency freshness
         run: python script/audit_version_dependency_freshness.py
       - name: Upload architecture audits
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: production-architecture-authority-audits
           path: |
             data/audit/production_architecture_authority_audit.json
             data/audit/version_dependency_freshness_audit.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
