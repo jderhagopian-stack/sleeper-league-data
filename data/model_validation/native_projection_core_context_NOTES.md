@@ -1,0 +1,1 @@
+This is a challenger/validation path only. It does not change production projection outputs. The purpose is to finish the agreed core V1 feature-family tests efficiently before shifting effort toward apples-to-apples external preseason benchmarking and productionization.

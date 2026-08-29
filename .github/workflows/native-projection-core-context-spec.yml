@@ -1,0 +1,15 @@
+name: Native Projection Core Context Spec
+
+on:
+  pull_request:
+    paths:
+      - 'data/model_validation/native_projection_core_context_spec.json'
+      - '.github/workflows/native-projection-core-context-spec.yml'
+
+jobs:
+  validate-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate governed experiment spec
+        run: python -m json.tool data/model_validation/native_projection_core_context_spec.json > /dev/null
