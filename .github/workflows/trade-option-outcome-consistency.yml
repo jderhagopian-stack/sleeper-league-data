@@ -1,0 +1,42 @@
+name: Trade Option Outcome Consistency
+
+on:
+  push:
+    paths:
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/run_trade_market_sweep_v27.py'
+      - 'script/run_trade_market_sweep_v31.py'
+      - 'script/run_trade_report.py'
+      - 'script/audit_trade_option_outcome_consistency.py'
+      - '.github/workflows/trade-option-outcome-consistency.yml'
+  pull_request:
+    paths:
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/run_trade_market_sweep_v27.py'
+      - 'script/run_trade_market_sweep_v31.py'
+      - 'script/run_trade_report.py'
+      - 'script/audit_trade_option_outcome_consistency.py'
+      - '.github/workflows/trade-option-outcome-consistency.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile changed production modules
+        run: |
+          python -m py_compile \
+            script/run_trade_market_sweep_v23.py \
+            script/run_trade_market_sweep_v27.py \
+            script/run_trade_market_sweep_v31.py \
+            script/run_trade_report.py \
+            script/audit_trade_option_outcome_consistency.py
+      - name: Run option outcome consistency regression
+        run: python script/audit_trade_option_outcome_consistency.py
+      - name: Run final ranking governance audit
+        run: python script/audit_final_trade_ranking_governance.py
