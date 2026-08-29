@@ -63,7 +63,10 @@ def score(row, scoring):
       f(row.get("fumbles_lost"))*f(scoring.get("fum_lost"))
     )
 
+_WEEKLY_CACHE={}
 def weekly_rows(season:int, scoring):
+    if season in _WEEKLY_CACHE:
+        return _WEEKLY_CACHE[season]
     sm=schedule_map(season); rows=[]
     for r in fetch_csv(WEEKLY_URL.format(season=season)):
         if str(r.get("season_type") or "REG").upper()!="REG": continue
@@ -78,9 +81,13 @@ def weekly_rows(season:int, scoring):
         if not pid or not t or not opp: continue
         rows.append({"season":season,"week":w,"player_id":pid,"position":pos,"team":t,
                      "opponent":opp,"points":score(r,scoring)})
+    _WEEKLY_CACHE[season]=rows
     return rows
 
+_FACTOR_CACHE={}
 def defense_factors(source_season:int, scoring):
+    if source_season in _FACTOR_CACHE:
+        return _FACTOR_CACHE[source_season]
     rows=weekly_rows(source_season,scoring)
     # Sum all player fantasy points by opposing defense/position/game, then
     # average those game totals across the season.
@@ -96,9 +103,11 @@ def defense_factors(source_season:int, scoring):
     factors={}
     for (d,pos),arr in vals.items():
         factors[(d,pos)]=statistics.fmean(arr)/league[pos] if league[pos] else 1.0
-    return factors,{"source_season":source_season,
+    result=(factors,{"source_season":source_season,
       "defense_position_cells":len(factors),
-      "league_mean_points_allowed_per_game_by_position":league}
+      "league_mean_points_allowed_per_game_by_position":league})
+    _FACTOR_CACHE[source_season]=result
+    return result
 
 def stable_player_records(target_season:int, scoring, lam:float):
     prior,_=defense_factors(target_season-1,scoring)
