@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 """Run the first real-data benchmark for the FSFFL-native projection challenger.
 
-The benchmark downloads nflverse regular-season player summary CSVs, constructs
-strictly lagged next-season examples, and evaluates position-specific ridge
-models on the latest completed season. It predicts football statistics rather
-than fantasy points, and it remains a challenger only.
-
-The raw nflverse files are not committed. Source attribution is retained here;
-dataset-specific licensing/redistribution terms must still be verified before
-any production redistribution.
+Downloads nflverse regular-season player summaries, constructs strictly lagged
+next-season examples, and evaluates position-specific ridge models on the latest
+completed season. Players who disappear from the following season are retained
+with zero next-season production, avoiding survivorship-biased evaluation.
 """
 from __future__ import annotations
 
@@ -32,26 +28,12 @@ STATS = [
     "carries", "rushing_yards", "rushing_tds", "targets", "receptions",
     "receiving_yards", "receiving_tds",
 ]
-
 FEATURES = {
-    "QB": [
-        "lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds",
-        "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
-    ],
-    "RB": [
-        "lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
-        "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds",
-    ],
-    "WR": [
-        "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards",
-        "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds",
-    ],
-    "TE": [
-        "lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards",
-        "lag1_receiving_tds",
-    ],
+    "QB": ["lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds", "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds"],
+    "RB": ["lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds"],
+    "WR": ["lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds"],
+    "TE": ["lag1_games", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds"],
 }
-
 TARGETS = {
     "QB": ["next_attempts", "next_passing_yards", "next_passing_tds", "next_interceptions", "next_rushing_yards", "next_rushing_tds"],
     "RB": ["next_carries", "next_rushing_yards", "next_rushing_tds", "next_targets", "next_receptions", "next_receiving_yards", "next_receiving_tds"],
@@ -68,17 +50,12 @@ def fval(value) -> float:
 
 
 def fetch_csv(season: int) -> List[dict]:
-    req = urllib.request.Request(
-        URL.format(season=season),
-        headers={"User-Agent": "FSFFL-native-projection-benchmark/1.0"},
-    )
+    req = urllib.request.Request(URL.format(season=season), headers={"User-Agent": "FSFFL-native-projection-benchmark/1.0"})
     with urllib.request.urlopen(req, timeout=60) as response:
-        text = response.read().decode("utf-8-sig")
-    return list(csv.DictReader(io.StringIO(text)))
+        return list(csv.DictReader(io.StringIO(response.read().decode("utf-8-sig"))))
 
 
 def normalize_season(rows: List[dict], season: int) -> List[dict]:
-    """Normalize one nflverse regular-season player summary file."""
     out = []
     for raw in rows:
         if raw.get("season_type") and str(raw.get("season_type")).upper() != "REG":
@@ -102,25 +79,35 @@ def normalize_season(rows: List[dict], season: int) -> List[dict]:
 
 
 def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
+    """Create forecast rows without conditioning on future NFL participation.
+
+    Every eligible player in season t is a prediction case for t+1 as long as
+    t+1 is inside the downloaded window. If no next-season row exists, realized
+    t+1 games and stats are zero. This is important: dropping those players would
+    reveal future survival and make the benchmark artificially easy.
+    """
     index = {(int(r["season"]), str(r["player_id"])): r for r in season_rows}
+    max_season = max(season for season, _ in index)
     out = []
     for (season, pid), cur in sorted(index.items()):
-        nxt = index.get((season + 1, pid))
-        if not nxt or cur["position"] != nxt["position"]:
+        if season >= max_season:
             continue
+        nxt = index.get((season + 1, pid))
+        next_present = nxt is not None
         row = {
             "season": season + 1,
             "feature_season": season,
             "player_id": pid,
             "player_name": cur["player_name"],
             "position": cur["position"],
-            "team_change": int(bool(cur.get("team") and nxt.get("team") and cur["team"] != nxt["team"])),
+            "next_season_present": int(next_present),
+            "team_change": int(bool(nxt and cur.get("team") and nxt.get("team") and cur["team"] != nxt["team"])),
             "lag1_games": fval(cur.get("games")),
-            "next_games": fval(nxt.get("games")),
+            "next_games": fval(nxt.get("games")) if nxt else 0.0,
         }
         for stat in STATS:
             row[f"lag1_{stat}"] = fval(cur.get(stat))
-            row[f"next_{stat}"] = fval(nxt.get(stat))
+            row[f"next_{stat}"] = fval(nxt.get(stat)) if nxt else 0.0
         out.append(row)
     return out
 
@@ -134,54 +121,43 @@ def run(start_season: int, end_season: int) -> dict:
         if not normalized:
             raise ValueError(f"{season}: no QB/RB/WR/TE player rows after normalization; source schema may have changed")
         all_seasons.extend(normalized)
-        source_counts[str(season)] = {
-            "raw_rows": len(raw),
-            "eligible_player_seasons": len(normalized),
-            "columns": sorted(raw[0].keys()) if raw else [],
-        }
+        source_counts[str(season)] = {"raw_rows": len(raw), "eligible_player_seasons": len(normalized), "columns": sorted(raw[0].keys()) if raw else []}
 
     lagged = make_lagged_rows(all_seasons)
-    reports = {}
-    for position in ("QB", "RB", "WR", "TE"):
-        reports[position] = temporal_holdout(lagged, position, FEATURES[position], TARGETS[position])
-
+    reports = {p: temporal_holdout(lagged, p, FEATURES[p], TARGETS[p]) for p in ("QB", "RB", "WR", "TE")}
     summary = {}
     for position, report in reports.items():
         target_results = list(report["targets"].values())
         with_persistence = [r for r in target_results if "persistence_baseline_mae" in r]
+        pos_holdout = [r for r in lagged if r["position"] == position and int(r["season"]) == report["holdout_season"]]
         summary[position] = {
             "holdout_season": report["holdout_season"],
             "train_n": report["train_n"],
             "holdout_n": report["holdout_n"],
+            "holdout_next_season_present_n": sum(r["next_season_present"] for r in pos_holdout),
+            "holdout_attrition_n": sum(1 - r["next_season_present"] for r in pos_holdout),
             "target_count": len(target_results),
             "targets_beating_mean_baseline": sum(r["model_mae"] < r["mean_train_baseline_mae"] for r in target_results),
             "targets_beating_persistence": sum(bool(r.get("beats_persistence")) for r in with_persistence),
             "targets_with_persistence_baseline": len(with_persistence),
             "mean_improvement_vs_mean_baseline_pct": sum(r["improvement_vs_mean_baseline_pct"] for r in target_results) / len(target_results),
-            "mean_improvement_vs_persistence_pct": (
-                sum(r["improvement_vs_persistence_pct"] for r in with_persistence) / len(with_persistence)
-                if with_persistence else None
-            ),
+            "mean_improvement_vs_persistence_pct": sum(r["improvement_vs_persistence_pct"] for r in with_persistence) / len(with_persistence) if with_persistence else None,
         }
 
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "status": "PASS",
-        "source": {
-            "provider": "nflverse/nflverse-data",
-            "release_tag": "stats_player",
-            "asset_family": "stats_player_reg_{season}.csv",
-            "url_template": URL,
-            "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution",
-        },
+        "source": {"provider": "nflverse/nflverse-data", "release_tag": "stats_player", "asset_family": "stats_player_reg_{season}.csv", "url_template": URL, "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution"},
         "seasons_requested": [start_season, end_season],
         "source_counts": source_counts,
         "lagged_example_rows": len(lagged),
-        "coverage_note": "V1 evaluates returning NFL players with a prior-season row. Rookies require a separate projection path before production use.",
+        "coverage_note": "Returning players plus prior-season players with zero next-season NFL production are evaluated. Rookies still require a separate projection path before production use.",
         "benchmark_summary": summary,
         "position_reports": reports,
         "governance": {
             "fantasy_points_used_as_target": False,
+            "future_participation_used_as_feature": False,
+            "survivorship_bias_policy": "players absent in target season retained with zero realized production",
             "holdout_policy": "latest completed season in downloaded range",
             "hyperparameter_selection": "training-period temporal inner validation only",
             "primary_simple_baseline": "prior-year same-stat persistence where available",
@@ -203,15 +179,7 @@ def main() -> None:
         args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
-        failure = {
-            "schema_version": "1.1",
-            "status": "FAIL",
-            "error_type": type(exc).__name__,
-            "error": str(exc),
-            "traceback": traceback.format_exc(),
-            "seasons_requested": [args.start_season, args.end_season],
-            "source_url_template": URL,
-        }
+        failure = {"schema_version": "1.2", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
         raise
