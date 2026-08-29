@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "status": "EXPERIMENTAL",
+  "purpose": "Test the remaining first-order projection context families without expanding V1 beyond evidence-supported complexity.",
+  "families": {
+    "age_career_stage": {
+      "position_specific": true,
+      "notes": "RB includes age-by-recent-touch interaction; WR age-by-target-volume; QB age-by-rushing-dependence; TE retains nonlinear age/career stage."
+    },
+    "availability_durability": {
+      "position_specific_interpretation": true,
+      "inputs": ["lag1 games", "lag2 games", "recent games average", "repeated low-availability indicator"],
+      "exclusions": ["medical diagnosis", "injury type inference", "target-season injury information"]
+    },
+    "team_context": {
+      "position_specific": true,
+      "lagged_only": true,
+      "notes": "Uses only prior-season team opportunity/environment totals selected by position; no target-season realized team statistics."
+    }
+  },
+  "validation": {
+    "holdouts": [2021, 2022, 2023, 2024, 2025],
+    "comparison": "accepted lag1+lag2 native model",
+    "retain_rule": "Keep only position/family combinations that add material and reasonably stable held-out improvement; reject blanket additions.",
+    "complexity_rule": "After these first-order families, stop core feature expansion unless residual-error analysis identifies a material gap."
+  },
+  "production_promoted": false
+}
