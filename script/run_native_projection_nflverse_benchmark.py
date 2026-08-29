@@ -23,11 +23,21 @@ from native_projection_challenger import temporal_holdout  # noqa: E402
 
 URL = "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_{season}.csv"
 POSITIONS = {"QB", "RB", "WR", "TE"}
-STATS = [
-    "completions", "attempts", "passing_yards", "passing_tds", "interceptions",
-    "carries", "rushing_yards", "rushing_tds", "targets", "receptions",
-    "receiving_yards", "receiving_tds",
-]
+SOURCE_STATS = {
+    "completions": "completions",
+    "attempts": "attempts",
+    "passing_yards": "passing_yards",
+    "passing_tds": "passing_tds",
+    "interceptions": "passing_interceptions",
+    "carries": "carries",
+    "rushing_yards": "rushing_yards",
+    "rushing_tds": "rushing_tds",
+    "targets": "targets",
+    "receptions": "receptions",
+    "receiving_yards": "receiving_yards",
+    "receiving_tds": "receiving_tds",
+}
+STATS = list(SOURCE_STATS)
 FEATURES = {
     "QB": ["lag1_games", "lag1_attempts", "lag1_passing_yards", "lag1_passing_tds", "lag1_interceptions", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds"],
     "RB": ["lag1_games", "lag1_carries", "lag1_rushing_yards", "lag1_rushing_tds", "lag1_targets", "lag1_receptions", "lag1_receiving_yards", "lag1_receiving_tds"],
@@ -72,20 +82,14 @@ def normalize_season(rows: List[dict], season: int) -> List[dict]:
             "team": str(raw.get("recent_team") or raw.get("team") or "").strip(),
             "games": fval(raw.get("games")),
         }
-        for stat in STATS:
-            row[stat] = fval(raw.get(stat))
+        for canonical, source_column in SOURCE_STATS.items():
+            row[canonical] = fval(raw.get(source_column))
         out.append(row)
     return out
 
 
 def make_lagged_rows(season_rows: List[dict]) -> List[dict]:
-    """Create forecast rows without conditioning on future NFL participation.
-
-    Every eligible player in season t is a prediction case for t+1 as long as
-    t+1 is inside the downloaded window. If no next-season row exists, realized
-    t+1 games and stats are zero. This is important: dropping those players would
-    reveal future survival and make the benchmark artificially easy.
-    """
+    """Create forecast rows without conditioning on future NFL participation."""
     index = {(int(r["season"]), str(r["player_id"])): r for r in season_rows}
     max_season = max(season for season, _ in index)
     out = []
@@ -120,6 +124,9 @@ def run(start_season: int, end_season: int) -> dict:
         normalized = normalize_season(raw, season)
         if not normalized:
             raise ValueError(f"{season}: no QB/RB/WR/TE player rows after normalization; source schema may have changed")
+        missing_source_stats = [c for c in SOURCE_STATS.values() if c not in raw[0]] if raw else list(SOURCE_STATS.values())
+        if missing_source_stats:
+            raise ValueError(f"{season}: missing required nflverse columns: {missing_source_stats}")
         all_seasons.extend(normalized)
         source_counts[str(season)] = {"raw_rows": len(raw), "eligible_player_seasons": len(normalized), "columns": sorted(raw[0].keys()) if raw else []}
 
@@ -145,7 +152,7 @@ def run(start_season: int, end_season: int) -> dict:
         }
 
     return {
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "status": "PASS",
         "source": {"provider": "nflverse/nflverse-data", "release_tag": "stats_player", "asset_family": "stats_player_reg_{season}.csv", "url_template": URL, "attribution": "nflverse community data; verify dataset-specific license and attribution requirements before production redistribution"},
         "seasons_requested": [start_season, end_season],
@@ -179,7 +186,7 @@ def main() -> None:
         args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
     except Exception as exc:
-        failure = {"schema_version": "1.2", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
+        failure = {"schema_version": "1.3", "status": "FAIL", "error_type": type(exc).__name__, "error": str(exc), "traceback": traceback.format_exc(), "seasons_requested": [args.start_season, args.end_season], "source_url_template": URL}
         args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(failure, indent=2), file=sys.stderr)
         raise
