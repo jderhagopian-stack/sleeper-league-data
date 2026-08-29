@@ -55,6 +55,7 @@ def workflow_direct_exec(sources, pattern):
 def main():
     trade_report = text(SCRIPT / "run_trade_report.py")
     v31 = text(SCRIPT / "run_trade_market_sweep_v31.py")
+    option_governance = text(SCRIPT / "trade_option_governance.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -79,13 +80,21 @@ def main():
         "observation": "Prospective trade reports must enter through v31, not a superseded market-sweep version.",
     })
 
-    v31_final_authority = has_all(v31, [
-        "v30.main()",
-        "row['comparison_to_current_offer']=comp",
-        "final_action,action_basis=recompute_action(report,inherited)",
-        "report['recommended_next_action']=final_action",
-        "post_sim_score_is_diagnostic_not_categorical_decision_rule",
-    ])
+    v31_final_authority = (
+        has_all(v31, [
+            "v30.main()",
+            "trade_option_governance.py",
+            "gov.apply_to_report(report)",
+            "post_sim_score_is_diagnostic_not_categorical_decision_rule",
+        ])
+        and has_all(option_governance, [
+            "def compare(row, current):",
+            "def recompute_action(report, inherited):",
+            'row["comparison_to_current_offer"] = comp',
+            'report["recommended_next_action"] = final_action',
+            "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE",
+        ])
+    )
     findings.append({
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,

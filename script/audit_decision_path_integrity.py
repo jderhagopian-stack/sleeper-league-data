@@ -25,6 +25,7 @@ def text(name: str) -> str:
 def main():
     report = text("run_trade_report.py")
     v31 = text("run_trade_market_sweep_v31.py")
+    option_governance = text("trade_option_governance.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -51,12 +52,17 @@ def main():
         or "not a calibrated\nprobability" in v16.lower()
         or "heuristic_acceptance_fit_not_probability" in v16
     )
-    acceptance_separate_from_trade_value = all(x in v31 for x in (
-        "acceptance_fit_affects_trade_valuation",
-        "acceptance_fit_reported_as_separate_behavioral_intelligence",
-        "acceptance_fit_hard_gate_on_trade_quality",
-        "behavioral_intelligence_informs_counterparty_feasibility_not_trade_value",
-    ))
+    acceptance_separate_from_trade_value = (
+        "trade_option_governance.py" in v31
+        and all(x in v31 for x in (
+            "acceptance_fit_affects_trade_valuation",
+            "acceptance_fit_reported_as_separate_behavioral_intelligence",
+            "acceptance_fit_hard_gate_on_trade_quality",
+            "behavioral_intelligence_informs_counterparty_feasibility_not_trade_value",
+        ))
+        and '"affects_trade_valuation": False' in option_governance
+        and '"source": "BEHAVIORAL_INTELLIGENCE"' in option_governance
+    )
     acceptance_band_ranking_only = all(x in v23 for x in (
         '"acceptance_band_is_authoritative_candidate_gate": False',
         '"acceptance_fit_used_as_negotiation_ranking_signal": True',
@@ -108,10 +114,12 @@ def main():
     )
 
     threshold_free_option_governance = (
-        "unsupported_numeric_score_cutoff_used_for_better_worse" in v31
-        and "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE" in v31
-        and "score_delta>750" not in v31.replace(" ", "")
-        and "score_delta<-750" not in v31.replace(" ", "")
+        "trade_option_governance.py" in v31
+        and "unsupported_numeric_score_cutoff_used_for_better_worse" in v31
+        and "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE" in option_governance
+        and "relation_from_deltas" in option_governance
+        and "score_delta>750" not in option_governance.replace(" ", "")
+        and "score_delta<-750" not in option_governance.replace(" ", "")
         and "abs(deltas[0]-750)" not in report.replace(" ", "")
     )
 
