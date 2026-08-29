@@ -462,7 +462,10 @@ def run_simulation(league, rosters, users, players, raw_schedule, projections, n
         for div, members in division_members.items():
             if div is None or not members:
                 continue
-            winner = max(members, key=lambda rid: (wins[rid], pf[rid], -rid))
+            winner = max(
+                members,
+                key=lambda rid: (wins[rid], pf[rid], pa[rid], -rid),
+            )
             division_win_counts[winner] += 1
 
         for i, rid in enumerate(order, start=1):
