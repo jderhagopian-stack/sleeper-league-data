@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0",
-  "purpose": "Time-frozen preseason projection sources eligible for FSFFL historical calibration. This inventory stores provenance only; it does not assert predictive superiority.",
-  "eligibility_rule": "A snapshot must be demonstrably published no later than the opening date of the NFL regular season for that season. Same-day snapshots are flagged for manual time-of-day review before authoritative use.",
+  "schema_version": "1.1",
+  "purpose": "Time-frozen preseason projection sources eligible or under review for FSFFL historical calibration. This inventory stores provenance only; it does not assert predictive superiority.",
+  "eligibility_rule": "A snapshot must be demonstrably published no later than the opening date of the NFL regular season for that season. Same-day snapshots are flagged for manual time-of-day review before authoritative use. A retrieval mechanism that returns historical season projections is not sufficient by itself: the historical values must also be shown to represent a contemporaneous preseason snapshot rather than a mutable or reconstructed response.",
   "sources": [
     {
       "source": "FFToday",
@@ -46,6 +46,17 @@
       "raw_stat_projection_available": true,
       "url": "https://www.fftoday.com/rankings/playerproj.php?LeagueID=1&PosID=10&Season=2024",
       "evidence_note": "Archive page labels the projection set 'Regular Season, Updated: 9/2/2024'."
+    },
+    {
+      "source": "ESPN",
+      "season": 2022,
+      "position": "QB",
+      "snapshot_date": null,
+      "regular_season_open_date": "2022-09-08",
+      "status": "RESEARCH_CANDIDATE_TIMESTAMP_UNVERIFIED",
+      "raw_stat_projection_available": true,
+      "url": "https://github.com/dfs-with-r/ffespn",
+      "evidence_note": "The open-source ffespn package demonstrates ESPN projection retrieval for season 2022, week 0 (preseason), including detailed player fields. This establishes a reproducible retrieval lead, not a time-frozen snapshot. Do not admit these rows to calibration until independent provenance establishes that returned historical values are the contemporaneous pre-Week-1 projections."
     }
   ],
   "position_expansion": {
@@ -58,5 +69,5 @@
     "rule": "Before using another position-season snapshot, verify that its displayed update date matches the eligible time-frozen season snapshot rather than assuming the QB date applies to all positions."
   },
   "authoritative_calibration_ready": false,
-  "remaining_requirement": "Add at least one independent source with comparable time-frozen preseason snapshots and normalize projections and realized FSFFL-scored outcomes before source/blend promotion."
+  "remaining_requirement": "Add at least one independent source with comparable, demonstrably time-frozen preseason snapshots and normalize projections and realized FSFFL-scored outcomes before source/blend promotion. ESPN is currently a retrieval lead only, not yet calibration-eligible."
 }
