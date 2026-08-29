@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "purpose": "Durable aggregate scorecard for the first FSFFL-native projection challenger. Values were extracted from the successful 2016-2025 nflverse rolling benchmark artifact produced by Native Projection Challenger run 12.",
+  "benchmark_provenance": {
+    "workflow_run_id": 33239532875,
+    "workflow_run_number": 12,
+    "artifact_id": 9710927621,
+    "artifact_digest": "sha256:42dcb19e6198e5e66f8f8355899ebb6a339bf43844ef1ffea75421c89f41b7a7",
+    "source_head_sha": "50ad53567cfd06dd296b5692afcdbb7d1d54cd55",
+    "holdout_seasons": [2021, 2022, 2023, 2024, 2025],
+    "baseline": "prior-year same-stat persistence",
+    "future_seasons_used_for_training": false,
+    "fantasy_points_used_as_target": false,
+    "production_promoted": false
+  },
+  "aggregate": {
+    "QB": {
+      "mean_improvement_vs_persistence_pct": 4.13866197853037,
+      "mean_targets_beating_persistence": 4.0,
+      "target_count": 6,
+      "target_stability": {
+        "next_attempts": {"mean_improvement_vs_persistence_pct": 0.56804160358373, "seasons_beating_persistence": 2, "seasons_tested": 5},
+        "next_interceptions": {"mean_improvement_vs_persistence_pct": 15.9136767066017, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_passing_tds": {"mean_improvement_vs_persistence_pct": 2.0352645733216117, "seasons_beating_persistence": 3, "seasons_tested": 5},
+        "next_passing_yards": {"mean_improvement_vs_persistence_pct": 0.813198555960182, "seasons_beating_persistence": 2, "seasons_tested": 5},
+        "next_rushing_tds": {"mean_improvement_vs_persistence_pct": 3.2441547230299306, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_rushing_yards": {"mean_improvement_vs_persistence_pct": 2.2576357086850676, "seasons_beating_persistence": 4, "seasons_tested": 5}
+      }
+    },
+    "RB": {
+      "mean_improvement_vs_persistence_pct": 5.646261090814939,
+      "mean_targets_beating_persistence": 5.8,
+      "target_count": 7,
+      "target_stability": {
+        "next_carries": {"mean_improvement_vs_persistence_pct": 1.667599901479548, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_receiving_tds": {"mean_improvement_vs_persistence_pct": 8.720671577658731, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_receiving_yards": {"mean_improvement_vs_persistence_pct": 6.118162085477278, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_receptions": {"mean_improvement_vs_persistence_pct": 5.711038763844908, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_rushing_tds": {"mean_improvement_vs_persistence_pct": 9.220498050748137, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_rushing_yards": {"mean_improvement_vs_persistence_pct": 1.715667928929951, "seasons_beating_persistence": 2, "seasons_tested": 5},
+        "next_targets": {"mean_improvement_vs_persistence_pct": 6.37018932756602, "seasons_beating_persistence": 5, "seasons_tested": 5}
+      }
+    },
+    "TE": {
+      "mean_improvement_vs_persistence_pct": 3.1091269691665278,
+      "mean_targets_beating_persistence": 2.4,
+      "target_count": 4,
+      "target_stability": {
+        "next_receiving_tds": {"mean_improvement_vs_persistence_pct": 11.057288944781302, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_receiving_yards": {"mean_improvement_vs_persistence_pct": 1.511574396234811, "seasons_beating_persistence": 2, "seasons_tested": 5},
+        "next_receptions": {"mean_improvement_vs_persistence_pct": 0.057515736663034646, "seasons_beating_persistence": 3, "seasons_tested": 5},
+        "next_targets": {"mean_improvement_vs_persistence_pct": -0.189871201013035, "seasons_beating_persistence": 2, "seasons_tested": 5}
+      }
+    },
+    "WR": {
+      "mean_improvement_vs_persistence_pct": 8.058749896747496,
+      "mean_targets_beating_persistence": 5.2,
+      "target_count": 6,
+      "target_stability": {
+        "next_receiving_tds": {"mean_improvement_vs_persistence_pct": 11.209314490675066, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_receiving_yards": {"mean_improvement_vs_persistence_pct": 3.7096005289289247, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_receptions": {"mean_improvement_vs_persistence_pct": 5.27170281920843, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_rushing_tds": {"mean_improvement_vs_persistence_pct": 11.013493677788192, "seasons_beating_persistence": 4, "seasons_tested": 5},
+        "next_rushing_yards": {"mean_improvement_vs_persistence_pct": 12.912896822170989, "seasons_beating_persistence": 5, "seasons_tested": 5},
+        "next_targets": {"mean_improvement_vs_persistence_pct": 4.235491041713369, "seasons_beating_persistence": 4, "seasons_tested": 5}
+      }
+    }
+  },
+  "interpretation": {
+    "strongest_position": "WR",
+    "next_strongest_position": "RB",
+    "qb_summary": "Positive overall, but passing attempts and passing yards remain weak and unstable versus persistence.",
+    "te_summary": "Weakest position; receiving targets are slightly worse than persistence on average and yards/receptions are only marginally better.",
+    "next_priority": "Test simple high-coverage feature additions against this scorecard, prioritizing two-year player history and broad team/offensive environment before niche coaching-tree features."
+  }
+}
