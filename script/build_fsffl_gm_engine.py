@@ -4113,6 +4113,8 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "is_current_optimal_starter": bool(starter),
                 "single_absence_dependency_drop": round(single_drop, 1),
                 "depth_insurance_drop": round(depth_drop, 1),
+                "replacement_resilience_score": round(resilience, 4),
+                "replacement_resilience_basis": "team_specific_lineup_reoptimization",
                 "strategic_score": round(strategic_score, 4),
                 "core_status": status,
                 "liquidity_score": round(liquidity, 4),
