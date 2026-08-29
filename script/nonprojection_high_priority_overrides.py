@@ -23,13 +23,32 @@ def install(engine):
 
     Legacy market-sweep layers may load an older engine that does not expose
     the GM-2.2 strategic-profile helpers. In that case there is nothing to
-    patch here, so return cleanly rather than breaking the sweep runtime.
+    patch for those helpers, so return cleanly rather than breaking runtime.
     """
 
     applied = {
         "gm22_hold_premium_dedup": False,
         "own_pick_control_bonus_removed": False,
+        "market_momentum_incremental_value_removed": False,
     }
+
+    # FantasyCalc's current dynasty value is already the market anchor. Its
+    # 30-day trend comes from that same market source and has not been shown in
+    # a time-ordered holdout to predict future value after conditioning on the
+    # current price. Preserve the trend and the old proposed adjustment as
+    # diagnostics, but do not let it reprice the current market anchor.
+    original_market_momentum = getattr(engine, "market_momentum_adjustment", None)
+    if original_market_momentum is not None:
+        def diagnostic_only_market_momentum(asset):
+            proposed_adj, meta = original_market_momentum(asset)
+            meta = dict(meta or {})
+            meta["proposed_incremental_adjustment_diagnostic"] = round(_sf(proposed_adj), 4)
+            meta["incremental_adjustment_authorized"] = False
+            meta["adjustment"] = 0.0
+            return 0.0, meta
+
+        engine.market_momentum_adjustment = diagnostic_only_market_momentum
+        applied["market_momentum_incremental_value_removed"] = True
 
     # A pick's quality model already keys off the original franchise and its
     # projected finish. Merely being the original owner is not independent
@@ -120,6 +139,7 @@ def install(engine):
             "duplicate_optionality_liquidity_resilience_appreciation_adders_removed": True,
             "own_pick_control_bonus_incremental_value_authorized": False,
             "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
+            "market_momentum_incremental_value_authorized": False,
             "new_coefficients_introduced": False,
         }
         return payload
