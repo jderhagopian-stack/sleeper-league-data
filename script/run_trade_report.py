@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse,json,subprocess,sys
 from pathlib import Path
 
-MARKET_SWEEP=Path('script/run_trade_market_sweep_v31.py')
+MARKET_SWEEP=Path('script/trade_engine.py')
 PDF_RENDERER=Path('script/render_trade_decision_report_v19.py')
 MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.18'
 EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'

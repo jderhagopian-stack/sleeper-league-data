@@ -68,7 +68,7 @@ jobs:
               rr=((x.get('simulation') or {}).get('roster_resolution') or {});assert rr;assert all(v.get('roster_legal') is True for v in rr.values())
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('run_trade_market_sweep_v31.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('trade_engine.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
