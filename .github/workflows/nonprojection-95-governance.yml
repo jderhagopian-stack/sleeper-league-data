@@ -1,0 +1,107 @@
+name: Non-Projection 95% Governance Gate
+
+on:
+  pull_request:
+    paths:
+      - 'script/league_rules.py'
+      - 'script/build_fsffl_gm_engine.py'
+      - 'script/build_fsffl_season_simulator.py'
+      - 'script/decision_lab_state_aware.py'
+      - 'script/run_trade_market_sweep_v20.py'
+      - 'script/audit_league_configuration.py'
+      - 'script/audit_market_value_adjustments.py'
+      - 'script/audit_scarcity_replacement_dedup.py'
+      - 'script/audit_future_pick_economics.py'
+      - 'script/audit_package_economics.py'
+      - 'script/audit_decision_path_integrity.py'
+      - 'script/audit_final_trade_ranking_governance.py'
+      - 'script/audit_playoff_rules.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/nonprojection-95-governance.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile audited non-projection modules
+        run: |
+          python -m py_compile             script/league_rules.py             script/build_fsffl_gm_engine.py             script/build_fsffl_season_simulator.py             script/decision_lab_state_aware.py             script/run_trade_market_sweep_v20.py             script/audit_league_configuration.py             script/audit_market_value_adjustments.py             script/audit_scarcity_replacement_dedup.py             script/audit_future_pick_economics.py             script/audit_package_economics.py             script/audit_decision_path_integrity.py             script/audit_final_trade_ranking_governance.py             script/audit_playoff_rules.py
+      - name: Validate parameter registry
+        run: python script/validate_model_parameter_registry.py
+      - name: Build prerequisite evidence-readiness audits
+        run: |
+          python script/audit_pick_outcome_readiness.py
+          python script/audit_transaction_evidence_readiness.py
+      - name: Run non-projection governance audits
+        run: |
+          python script/audit_league_configuration.py
+          python script/audit_market_value_adjustments.py
+          python script/audit_scarcity_replacement_dedup.py
+          python script/audit_future_pick_economics.py
+          python script/audit_package_economics.py
+          python script/audit_decision_path_integrity.py
+          python script/audit_final_trade_ranking_governance.py
+          python script/audit_playoff_rules.py
+      - name: Verify structural fixes and qualifications
+        run: |
+          python - <<'PY'
+          import json
+
+          m=json.load(open('data/audit/market_value_adjustments_audit.json'))
+          mids={x['id']:x for x in m['findings']}
+          assert m['production_state_changed_by_governed_fix'] is True
+          assert m['policy']['same_source_rank_repricing_is_removed'] is True
+          assert mids['MARKET-RANK-CURVE-001']['status']=='STRUCTURALLY_DEDUPLICATED'
+          assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
+
+          sr=json.load(open('data/audit/scarcity_replacement_dedup_audit.json'))
+          assert sr['production_gm_behavior_changed'] is True
+          assert sr['production_projection_behavior_changed'] is False
+          assert sr['runtime_markers']['market_tier_incremental_premium_zero'] is True
+          assert sr['runtime_markers']['replacement_uses_lineup_reoptimization'] is True
+          assert sr['runtime_markers']['market_tier_removed_from_trade_elasticity'] is True
+          assert sr['registry_consistent'] is True
+
+          f=json.load(open('data/audit/future_pick_economics_audit.json'))
+          fids={x['id']:x for x in f['findings']}
+          assert f['production_state_changed_by_governed_fix'] is True
+          assert f['policy']['forecast_uncertainty_value_bonus_removed'] is True
+          assert fids['PICK-OPTIONALITY-001']['status']=='FORECAST_UNCERTAINTY_VALUE_BONUS_REMOVED'
+          assert fids['PICK-QUALITY-SCENARIO-001']['authoritative_probability_claim_allowed'] is False
+
+          k=json.load(open('data/audit/package_economics_audit.json'))
+          kids={x['id']:x for x in k['findings']}
+          assert k['production_state_changed_by_governed_fix'] is True
+          assert k['summary']['generic_slot_cost_removed'] is True
+          assert k['summary']['exact_downstream_cut_cost_active'] is True
+          assert kids['PACKAGE-SLOT-COST-001']['status']=='GENERIC_SLOT_PENALTY_REMOVED_EXACT_CUT_ACTIVE'
+          assert k['summary']['transaction_evidence_ready_for_authoritative_package_fit'] is False
+
+          d=json.load(open('data/audit/decision_path_integrity_audit.json'))
+          assert d['summary']['final_score_overlap_currently_detected'] is False
+          assert d['summary']['primitive_final_score_active'] is True
+          assert d['summary']['provisional_high_leverage_acceptance_gate'] is True
+
+          fr=json.load(open('data/audit/final_trade_ranking_governance_audit.json'))
+          ffind={x['id']:x for x in fr['findings']}
+          assert fr['production_behavior_changed'] is True
+          assert fr['summary']['primitive_post_sim_formula_detected'] is True
+          assert fr['summary']['nested_strategic_channel_overlap_detected'] is False
+          assert fr['summary']['direct_roster_replacement_resilience_detected'] is True
+          assert ffind['FINAL-RANK-WEIGHTS-001']['authoritative_empirical_claim_allowed'] is False
+
+          p=json.load(open('data/audit/playoff_rule_audit.json'))
+          assert p['division_winners_seeded_first'] is True
+          assert p['round_count_by_supported_bracket']=={'4':2,'6':3,'8':3}
+          assert p['configured_playoff_weeks_derive_from_rules'] is True
+          assert p['canonical_flex_k_dst_eligibility'] is True
+          assert p['projection_behavior_changed'] is False
+
+          print('Non-projection structural governance passed')
+          PY
