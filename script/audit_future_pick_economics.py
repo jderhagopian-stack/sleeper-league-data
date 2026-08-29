@@ -331,7 +331,10 @@ def main():
     payload = {
         "model_version": MODEL_VERSION,
         "purpose": "Investigate, calibrate where supported, and de-duplicate future-pick economics.",
-        "production_behavior_changed": True,
+        # The audit itself is read-only; production state differs because of the
+        # governed structural fixes recorded separately below. Keep the legacy
+        # field for shared-workflow compatibility without obscuring that fact.
+        "production_behavior_changed": False,
         "production_state_changed_by_governed_fix": True,
         "projection_behavior_changed": False,
         "policy": {
@@ -340,6 +343,7 @@ def main():
             "last_resort_fallbacks_remain_explicitly_provisional": True,
             "scenario_weights_are_not_probabilities_without_temporal_validation": True,
             "forecast_uncertainty_value_bonus_removed": True,
+            "forecast_uncertainty_is_not_automatically_positive_option_value": True,
             "market_liquidity_and_outcome_optionality_must_be_separated": True,
             "pick_market_anchor_not_repriced_by_duplicate_round_quality_optionality_liquidity_premiums": True,
             "promotion_requires_out_of_sample_improvement": True,
