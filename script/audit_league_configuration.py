@@ -78,6 +78,9 @@ def main():
         'FUTURE_PICK_YEARS = [2027, 2028, 2029]',
         'ROUNDS = [1, 2, 3]',
         'POSITIONS = ("QB", "RB", "WR", "TE")',
+        'active_season=2026',
+        'nflverse_usage_2026.json',
+        'nflverse_snap_counts_2026.json',
     ]
     for marker in forbidden:
         assert marker not in src, marker
@@ -86,6 +89,7 @@ def main():
     assert 'LEAGUE_RULES["roster_size"]' in src
     assert 'LEAGUE_RULES["rounds"]' in src
     assert 'LEAGUE_RULES["positions"]' in src
+    assert 'LEAGUE_RULES["season"]' in src
 
     payload = {
         "status": "PASS",
