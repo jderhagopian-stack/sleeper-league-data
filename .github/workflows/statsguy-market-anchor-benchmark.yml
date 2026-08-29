@@ -1,0 +1,44 @@
+name: Stats Guy Market Anchor Benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'script/benchmark_statsguy_market_anchor.py'
+      - 'data/market_values_fantasycalc.json'
+      - '.github/workflows/statsguy-market-anchor-benchmark.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile benchmark
+        run: python -m py_compile script/benchmark_statsguy_market_anchor.py
+      - name: Compare Stats Guy with frozen FantasyCalc market snapshot
+        run: python script/benchmark_statsguy_market_anchor.py
+      - name: Assert challenger-only governance
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('data/audit/statsguy_market_anchor_benchmark.json'))
+          assert p['projection_behavior_changed'] is False
+          assert p['production_model_behavior_changed'] is False
+          assert p['source_replacement_authorized'] is False
+          assert p['governance']['momentum_remains_zero_weight_until_incremental_temporal_value_is_demonstrated'] is True
+          assert p['current_board']['matched_players'] > 100
+          print(json.dumps(p['current_board'], indent=2))
+          print(json.dumps(p['historical_momentum_test'], indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: statsguy-market-anchor-benchmark
+          path: data/audit/statsguy_market_anchor_benchmark.json
+          if-no-files-found: error
