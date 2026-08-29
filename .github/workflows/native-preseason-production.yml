@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/build_native_preseason_projections.py'
+      - 'script/run_native_preseason_production.py'
       - '.github/workflows/native-preseason-production.yml'
       - 'script/native_projection_challenger.py'
       - 'script/run_native_projection_nflverse_benchmark.py'
@@ -19,7 +20,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Build 2026 native baseline
-        run: python script/build_native_preseason_projections.py --season 2026
+        run: python script/run_native_preseason_production.py --season 2026
       - uses: actions/upload-artifact@v4
         with:
           name: native-preseason-production
