@@ -3981,9 +3981,11 @@ def _u_pick_profile(aid, uid, ctx):
         upside = clamp(0.12 + 0.20 * qsignal, 0.12, 0.45)
         uncertainty = 0.28 + 0.16 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
 
-    # A pick's value distribution is positively skewed; uncertainty is useful
-    # optionality rather than pure downside because the pick can improve.
-    option = clamp(upside + 0.18 * clamp(uncertainty, 0.0, 1.0), 0.0, 1.0)
+    # Forecast uncertainty is not itself positive expected value. Preserve it
+    # as a diagnostic, but do not reward lack of knowledge as option value.
+    # Upside remains the qualified optionality proxy until outcome/market data
+    # can separately identify skew, liquidity and uncertainty pricing.
+    option = clamp(upside, 0.0, 1.0)
     original_uid = str(quality.get("original_owner_user_id") or "")
     control_bonus = 0.10 if original_uid and original_uid == str(uid) else 0.0
 
@@ -3995,6 +3997,8 @@ def _u_pick_profile(aid, uid, ctx):
         "late_scenario_weight": round(late, 4),
         "liquidity": round(liquidity, 4),
         "upside_optionality": round(option, 4),
+        "forecast_uncertainty": round(clamp(uncertainty, 0.0, 1.0), 4),
+        "uncertainty_adds_optionality": False,
         "own_pick_control_bonus": round(control_bonus, 4),
         "most_likely_tier": quality.get("most_likely_tier"),
         "confidence": quality.get("confidence"),
