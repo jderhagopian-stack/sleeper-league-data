@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "status": "VALIDATED_SINGLE_EXTERNAL_SOURCE",
+  "experiment": "selected_fsffl_native_vs_fftoday_preseason_raw_stats",
+  "source_run": {
+    "workflow_run_id": 33252674156,
+    "head_sha": "8fd09cd2856f23dd404feaf24cd04c273f36c1e9",
+    "artifact_id": 9714849815,
+    "artifact_digest": "sha256:320b830f3ee002360ffe09647b1bade947e5762050c2baf942e71a10d440e2d5"
+  },
+  "comparison": {
+    "common_stat_rows": 4166,
+    "group_count": 54,
+    "group_wins": {"native": 11, "external": 43, "ties": 0},
+    "by_position": {
+      "QB": {"native_wins": 2, "external_wins": 16, "groups": 18, "mean_native_improvement_vs_external_pct": -23.232358932225917, "median_native_improvement_vs_external_pct": -23.134644203754725},
+      "RB": {"native_wins": 3, "external_wins": 15, "groups": 18, "mean_native_improvement_vs_external_pct": -10.91000978847945, "median_native_improvement_vs_external_pct": -13.04418613562574},
+      "WR": {"native_wins": 3, "external_wins": 12, "groups": 15, "mean_native_improvement_vs_external_pct": -11.264220171564265, "median_native_improvement_vs_external_pct": -4.759998427490261},
+      "TE": {"native_wins": 3, "external_wins": 0, "groups": 3, "mean_native_improvement_vs_external_pct": 3.2077305923988777, "median_native_improvement_vs_external_pct": 4.411866419344034}
+    },
+    "by_season": {
+      "2021": {"native_wins": 3, "external_wins": 14, "groups": 17, "mean_native_improvement_vs_external_pct": -13.269248200355026, "median_native_improvement_vs_external_pct": -13.400008699682527},
+      "2022": {"native_wins": 5, "external_wins": 12, "groups": 17, "mean_native_improvement_vs_external_pct": -12.035196920864365, "median_native_improvement_vs_external_pct": -11.885814626209587},
+      "2024": {"native_wins": 3, "external_wins": 17, "groups": 20, "mean_native_improvement_vs_external_pct": -17.186359035411712, "median_native_improvement_vs_external_pct": -12.081077101638957}
+    }
+  },
+  "coverage": {
+    "seasons": [2021, 2022, 2024],
+    "QB": [2021, 2022, 2024],
+    "RB": [2021, 2022, 2024],
+    "WR": [2021, 2022, 2024],
+    "TE": [2024],
+    "common_cohort_note": "Only player-season-position-stat rows forecastable by both systems are compared. Rookies absent from the native veteran-history path are excluded."
+  },
+  "interpretation": {
+    "headline": "FFToday materially outperformed the current native V1 candidate on the verified common historical cohort, especially at QB. Native TE was better on all three available 2024 receiving-stat groups, but TE has only one eligible season.",
+    "raw_cross_stat_mae_headline_valid": false,
+    "reason": "Raw MAE is not comparable across yards, counts, and touchdowns; group wins and within-group percent error differences are the primary summaries.",
+    "production_promoted": false,
+    "blend_promoted": false,
+    "next_gate": "Use residual/error analysis to determine what information the external system captures that the native model misses, test restrained fixes on temporal holdouts, and obtain a second independent frozen external source before any source-weight or blend promotion."
+  }
+}
