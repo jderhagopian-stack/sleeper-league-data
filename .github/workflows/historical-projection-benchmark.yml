@@ -11,6 +11,7 @@ on:
       - 'script/audit_projection_source_sustainability.py'
       - 'data/model_validation/historical_projection_source_inventory.json'
       - 'data/model_validation/projection_source_candidate_registry.json'
+      - 'data/model_validation/native_vs_fftoday_external_scorecard.json'
       - '.github/workflows/historical-projection-benchmark.yml'
   workflow_dispatch:
 
@@ -42,8 +43,10 @@ jobs:
         run: |
           python -m json.tool data/model_validation/historical_projection_source_inventory.json > /dev/null
           python -m json.tool data/model_validation/projection_source_candidate_registry.json > /dev/null
+          python -m json.tool data/model_validation/native_vs_fftoday_external_scorecard.json > /dev/null
 
   real-native-vs-fftoday:
+    if: github.event_name == 'workflow_dispatch'
     needs: benchmark-self-test
     runs-on: ubuntu-latest
     timeout-minutes: 20
