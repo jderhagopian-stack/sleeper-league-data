@@ -595,7 +595,7 @@ def fetch_nflverse_usage(active_season: int | None = None) -> Dict[str, Dict[str
     Uses player name + team as the bridge when Sleeper IDs are not present.
     """
     active_season = int(active_season or LEAGUE_RULES["season"])
-    cache = DATA / "nflverse_usage_2026.json"
+    cache = DATA / f"nflverse_usage_{active_season}.json"
     fetched_at = datetime.now(timezone.utc).isoformat()
     try:
         rows = _read_csv_url(NFLVERSE_PLAYER_STATS_URL, gzipped=True)
@@ -672,7 +672,7 @@ def fetch_nflverse_snaps(active_season: int | None = None) -> Dict[str, Dict[str
     cache = DATA / f"nflverse_snap_counts_{active_season}.json"
     fetched_at = datetime.now(timezone.utc).isoformat()
     try:
-        rows = _read_csv_url(NFLVERSE_SNAP_COUNTS_URL, gzipped=False)
+        rows = _read_csv_url(NFLVERSE_SNAP_COUNTS_URL_TEMPLATE.format(season=active_season), gzipped=False)
         payload = {"fetched_at_utc": fetched_at, "rows": rows}
         write_json(cache, payload)
     except Exception as exc:
