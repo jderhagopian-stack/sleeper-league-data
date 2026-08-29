@@ -13,6 +13,7 @@ import importlib.util
 import json
 import math
 import sys
+from collections import Counter
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
@@ -47,6 +48,8 @@ def clamp(x, lo, hi):
 
 
 def band(score):
+    # Descriptive only until accepted/rejected opportunity data can calibrate
+    # these labels. They must not silently determine recommendation eligibility.
     return "HIGH" if score >= .68 else "MEDIUM" if score >= .48 else "LOW" if score >= .28 else "VERY_LOW"
 
 
@@ -102,8 +105,6 @@ def state_condition_behavior(row, br):
         compat = .50
 
     conditioned = static_adj * compat
-    # Historical preferences may support a current-state action, but they may
-    # not rescue an action that directly conflicts with today's state objective.
     if state in {"rebuild", "retool"} and net_pick_in < 0 and conditioned > 0:
         conditioned = min(conditioned, .01)
     if state in {"contender", "elite_contender"} and net_pick_in > 0 and conditioned > 0:
@@ -123,6 +124,7 @@ def state_condition_behavior(row, br):
     br["heuristic_acceptance_fit_score"] = score
     br["heuristic_acceptance_fit"] = band(score)
     br["acceptance_fit_basis"] = "current_state_utility_plus_state_conditioned_historical_behavior"
+    br["acceptance_band_is_descriptive_not_probability"] = True
     return br
 
 
@@ -161,8 +163,8 @@ def patch_v16(mod):
 
 
 def patch_v21_selectors(mod):
-    original_normal = mod.select_normal_four_strict
     original_swing = mod.select_swing_distinct
+
     def prepare(rows):
         for r in rows:
             br = r.get("buyer_rationality") or {}
@@ -171,11 +173,35 @@ def patch_v21_selectors(mod):
                 r["acceptance_likelihood"] = br.get("heuristic_acceptance_fit")
                 r["negotiation_ranking"] = recompute_negotiation_ranking(r)
         return sorted(rows, key=lambda r: (sf((r.get("negotiation_ranking") or {}).get("score")), sf(r.get("post_sim_score"))), reverse=True)
+
     def normal(viable, swing):
+        # Preserve hard buyer-rationality/roster legality gates upstream and the
+        # focal-state benefit requirement here. Do not use uncalibrated
+        # HIGH/MEDIUM acceptance labels as a second eligibility veto.
         prepared = [r for r in prepare(list(viable)) if focal_state_beneficial(r)]
-        return original_normal(prepared, swing)
+        selected = []
+        counts = Counter()
+        used_families = set()
+        swing_family = mod.negotiation_family_key(swing) if swing else None
+        for row in prepared:
+            fam = mod.negotiation_family_key(row)
+            if swing_family and fam == swing_family:
+                continue
+            if fam in used_families:
+                continue
+            uid = str(row.get("buyer_user_id") or "")
+            if counts[uid] >= mod.MAX_NORMAL_OPTIONS_PER_BUYER:
+                continue
+            selected.append(row)
+            used_families.add(fam)
+            counts[uid] += 1
+            if len(selected) == 4:
+                break
+        return selected
+
     def swing(viable):
         return original_swing(prepare(list(viable)))
+
     mod.select_normal_four_strict = normal
     mod.select_swing_distinct = swing
     return mod
@@ -233,6 +259,9 @@ def main():
             "rebuild_normal_recommendations_require_positive_future_component": True,
             "owner_behavior_conditioned_on_current_competitive_state": True,
             "historical_behavior_can_override_current_state_utility": False,
+            "acceptance_band_is_authoritative_candidate_gate": False,
+            "acceptance_fit_used_as_negotiation_ranking_signal": True,
+            "accepted_rejected_opportunity_denominator_available": False,
             "historical_state_at_trade_reconstruction_complete": False,
         })
         report.setdefault("simulation", {})["execution_path"] = (
