@@ -36,7 +36,19 @@ def main():
     audit.setdefault("important_limitations",[])
     audit["important_limitations"].append("Interim external projection source is not approved for commercial reuse.")
     write(root/"outputs"/"weekly_projection_audit.json",audit)
+
+    # Once a validated opponent scorecard is versioned, every normal interim
+    # production run automatically redistributes weekly means by matchup.
+    scorecard_path=weekly.DATA/"model_validation"/"weekly_opponent_adjustment_scorecard.json"
+    opponent_applied=False
+    if scorecard_path.exists():
+        import validate_apply_weekly_opponent_adjustment as opp
+        card=ORIGINAL(scorecard_path)
+        opp.apply_current(int(season),league.get("scoring_settings") or {},card)
+        opponent_applied=True
+
     print(json.dumps({"status":"PASS","season":season,"weekly_players":len(out.get("players") or {}),
                       "external_projection_values_used":True,
+                      "opponent_adjustment_applied":opponent_applied,
                       "weekly_quality_gate_passed":(audit.get("quality_gate") or {}).get("passed")},indent=2))
 if __name__=="__main__": main()
