@@ -1,0 +1,48 @@
+name: Trade Prescreen Recall
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_trade_prescreen_recall.py'
+      - 'script/run_trade_market_sweep.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/trade-prescreen-recall.yml'
+  workflow_dispatch:
+
+jobs:
+  prescreen-recall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile
+        run: python -m py_compile script/audit_trade_prescreen_recall.py
+      - name: Compare capped and expanded candidate pools
+        run: |
+          python script/audit_trade_prescreen_recall.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --top-k 40 \
+            --output /tmp/trade-prescreen-recall.json
+      - name: Validate interpretation
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/trade-prescreen-recall.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['interpretation']['projection_behavior_changed'] is False
+          assert d['summary']['legacy_pool_caps_empirically_authoritative'] is False
+          assert d['summary']['production_uses_full_asset_pool'] is True
+          assert d['summary']['production_top_k_recall_vs_expanded'] == 1.0
+          assert d['counts']['expanded_candidates'] >= d['counts']['legacy_capped_candidates']
+          assert d['runtime_seconds']['production_expanded_enumeration'] < 30.0
+          print(json.dumps(d,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trade-prescreen-recall
+          path: /tmp/trade-prescreen-recall.json
+          retention-days: 30

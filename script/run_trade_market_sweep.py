@@ -17,6 +17,7 @@ Canonical Sleeper, GM, and Simulator state is read-only.
 from __future__ import annotations
 
 import argparse
+import functools
 import importlib.util
 import itertools
 import json
@@ -53,21 +54,25 @@ def import_decision_lab():
     return mod
 
 
+@functools.lru_cache(maxsize=None)
 def franchise_index() -> Dict[str, Dict[str, Any]]:
     idx = load_json(DATA / "gm" / "franchise_index.json", {}) or {}
     return {str(x.get("user_id")): x for x in idx.get("teams") or []}
 
 
+@functools.lru_cache(maxsize=None)
 def team_doc(uid: str, key: str) -> Dict[str, Any]:
     row = franchise_index().get(str(uid)) or {}
     path = ((row.get("paths") or {}).get(key))
     return load_json(Path(path), {}) if path else {}
 
 
+@functools.lru_cache(maxsize=None)
 def command_center(uid: str) -> Dict[str, Any]:
     return team_doc(uid, "command_center")
 
 
+@functools.lru_cache(maxsize=None)
 def strategic_assets(uid: str) -> Dict[str, Dict[str, Any]]:
     doc = team_doc(uid, "strategic_asset_profiles")
     return {str(a.get("asset_id")): a for a in doc.get("assets") or []}
@@ -173,11 +178,13 @@ def asset_value(asset: Dict[str, Any], owner_uid: str | None = None) -> Dict[str
     return {"market": market, "redraft": redraft, "base": base, "break_glass": bg}
 
 
+@functools.lru_cache(maxsize=None)
 def need_map(uid: str) -> Dict[str, float]:
     cc = command_center(uid)
     return {str(x.get("position")): float(x.get("need_score") or 0.0) for x in cc.get("biggest_position_needs") or []}
 
 
+@functools.lru_cache(maxsize=None)
 def team_state(uid: str) -> str:
     return str(command_center(uid).get("team_state") or (franchise_index().get(uid) or {}).get("team_state") or "unknown")
 
@@ -469,8 +476,20 @@ def main():
             if buyer_uid == focus_uid:
                 continue
             assets = owner_assets.get(buyer_uid) or []
-            player_pool = sorted([a for a in assets if a.get("asset_type") == "player"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:10]
-            pick_pool = sorted([a for a in assets if a.get("asset_type") == "pick"], key=lambda a: a.get("market_dynasty", 0), reverse=True)[:8]
+            # Enumerate every owned tradeable asset. The former top-10-player /
+            # top-8-pick gate had only 35% recall for the expanded Top 40 in the
+            # governed regression case. Read-only team context is memoized above,
+            # so full-pool enumeration is practical without changing scoring.
+            player_pool = sorted(
+                [a for a in assets if a.get("asset_type") == "player"],
+                key=lambda a: a.get("market_dynasty", 0),
+                reverse=True,
+            )
+            pick_pool = sorted(
+                [a for a in assets if a.get("asset_type") == "pick"],
+                key=lambda a: a.get("market_dynasty", 0),
+                reverse=True,
+            )
             for pkg in candidate_packages(player_pool + pick_pool):
                 row = score_candidate(focus_uid, buyer_uid, outgoing, pkg)
                 if row["plausibility"] == "THEORETICAL_ONLY":
@@ -537,6 +556,8 @@ def main():
             "simulator_model_version": simmod.MODEL_VERSION,
             "canonical_state_mutated": False,
             "execution_path": "gm_prescreen_then_diversified_decision_lab_shortlist",
+            "candidate_asset_pool": "all_owned_tradeable_assets",
+            "candidate_asset_pool_legacy_caps_removed": True,
         },
         "candidate_counts": {
             "enumerated_plausible": len(raw_candidates),
