@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.25 — outcome-consistent option governance.
+"""FSFFL Counter & Market Sweep 1.25 - outcome-consistent option governance.
 
 Extends validated 1.24 without changing candidate generation or simulation.
 The prior option-vs-offer layer could call an alternative BETTER solely because
 its state-aware post-simulation score was >750 points higher, even when every
 simulated competitive outcome was worse than the current offer. The inherited
 action logic used the same score-only shortcut and could therefore force a
-SHOP_BEFORE_ACCEPTING recommendation for an objectively dominated alternative,
-including VERY_LOW-acceptance longshots.
+SHOP_BEFORE_ACCEPTING recommendation for an objectively dominated or implausible
+alternative.
 
 1.25 separates search/ranking utility from categorical decision semantics:
 - state-aware score remains available for discovery and tradeoff ranking;
@@ -16,8 +16,8 @@ including VERY_LOW-acceptance longshots.
   composite score, regardless of competitive-state label;
 - for contenders, BETTER additionally requires competitive Pareto dominance;
 - mixed/future-value tradeoffs remain visible as MIXED;
-- when the current offer is mutually viable, only a non-VERY_LOW option that is
-  actually BETTER may change ACCEPT_NOW into COUNTER/SHOP.
+- only HIGH/MEDIUM counterparty-fit options may alter the headline action;
+- descriptive competitive-state labels never create focal-utility cliffs.
 
 No player-specific exceptions are permitted.
 """
@@ -29,9 +29,14 @@ SCRIPT=Path(__file__).resolve().parent
 V30=SCRIPT/'run_trade_market_sweep_v30.py'
 MODEL_VERSION='FSFFL-Counter-Market-Sweep-1.25'
 EPS=1e-9
+ACTIONABLE_ACCEPTANCE={'HIGH','MEDIUM'}
 
 def load(path,name):
-    spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);assert spec.loader;m and spec.loader.exec_module(m);return m
+    spec=importlib.util.spec_from_file_location(name,path)
+    mod=importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
 
 def sf(v,d=0.0):
     try:return float(v)
@@ -68,20 +73,12 @@ def compare(row,current):
     state=objective_state(current) or objective_state(row);relation,_=competitive_relation(row,current)
     score_verdict='BETTER' if score_delta>750 else 'WORSE' if score_delta<-750 else 'MIXED'
     verdict=score_verdict;guard=False;guard_reason=None
-
-    # Universal semantic guard: an alternative that loses on every core
-    # simulated competitive outcome is not categorically BETTER. A rebuild may
-    # rationally prefer it for future value, but that is a MIXED tradeoff.
     if score_verdict=='BETTER' and relation=='DOMINATED_BY_CURRENT_OFFER':
         verdict='MIXED';guard=True;guard_reason='COMPETITIVELY_DOMINATED_DESPITE_HIGHER_COMPOSITE_SCORE'
     elif score_verdict=='WORSE' and relation=='DOMINATES_CURRENT_OFFER':
         verdict='MIXED';guard=True;guard_reason='COMPETITIVELY_DOMINANT_DESPITE_LOWER_COMPOSITE_SCORE'
-
-    # For active contenders, categorical BETTER is intentionally stricter:
-    # conflicting competitive outcomes are a tradeoff, not clear dominance.
     if state in {'contender','elite_contender'} and score_verdict=='BETTER' and relation!='DOMINATES_CURRENT_OFFER':
         verdict='MIXED';guard=True;guard_reason='CONTENDER_REQUIRES_COMPETITIVE_PARETO_DOMINANCE'
-
     drivers=[]
     if abs(deltas['expected_points_for'])>=10:drivers.append(f"{deltas['expected_points_for']:+.1f} expected points")
     if abs(deltas['expected_wins'])>=.05:drivers.append(f"{deltas['expected_wins']:+.2f} expected wins")
@@ -100,16 +97,15 @@ def acceptance(row):
 
 def actionable_better(row):
     comp=row.get('comparison_to_current_offer') or {}
-    return comp.get('verdict_vs_current_offer')=='BETTER' and acceptance(row)!='VERY_LOW'
+    return comp.get('verdict_vs_current_offer')=='BETTER' and acceptance(row) in ACTIONABLE_ACCEPTANCE
 
 def current_mutually_viable(current):
-    focal=bool(current.get('focal_current_state_beneficial'))
-    if not focal:
-        state=objective_state(current);comps=current.get('state_aware_score_components') or {};post=sf(current.get('post_sim_score'))
-        if state in {'contender','elite_contender'}:focal=post>0 and current.get('championship_equity_constraint')=='PASS' and sf(comps.get('current'))>-500
-        elif state=='rebuild':focal=post>0 and sf(comps.get('future'))>0
-        elif state=='retool':focal=post>0 and sf(comps.get('future'))>-250
-        else:focal=post>0
+    # The continuous post-simulation objective is authoritative. State labels
+    # are descriptive and cannot reintroduce rebuild/retool cliffs here.
+    state=objective_state(current);post=sf(current.get('post_sim_score'))
+    focal=post>0
+    if state in {'contender','elite_contender'} and current.get('championship_equity_constraint')=='FAIL':
+        focal=False
     buyer=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
     return focal and buyer
 
@@ -120,7 +116,7 @@ def recompute_action(report,inherited):
     markets=[x for x in (report.get('market_sweep_alternatives') or []) if actionable_better(x)]
     if counters:return 'COUNTER_CURRENT_OFFEROR','ACTIONABLE_BETTER_SAME_PARTNER_COUNTER'
     if markets:return 'SHOP_BEFORE_ACCEPTING','ACTIONABLE_BETTER_MARKET_ALTERNATIVE'
-    return 'ACCEPT_NOW','NO_ACTIONABLE_BETTER_OPTION_THAN_MUTUALLY_VIABLE_CURRENT_OFFER'
+    return 'ACCEPT_NOW','NO_REALISTIC_ACTIONABLE_BETTER_OPTION_THAN_MUTUALLY_VIABLE_CURRENT_OFFER'
 
 def main():
     v30=load(V30,'market_v30_for_125');v30.main();out=out_path()
@@ -131,9 +127,9 @@ def main():
             comp=compare(row,current);row['comparison_to_current_offer']=comp;row['why_prefer_over_current_offer']=comp['reason'];row['why_advantageous_for_focus']=comp['reason'];row['actionable_better_than_current_offer']=actionable_better(row)
     inherited=str(report.get('recommended_next_action') or 'REVIEW');final_action,action_basis=recompute_action(report,inherited)
     report['recommended_next_action_pre_outcome_consistency']=inherited;report['recommended_next_action']=final_action
-    report.setdefault('governance',{})['option_outcome_consistency']={'search_score_separated_from_better_verdict':True,'competitively_dominated_option_cannot_be_categorical_better':True,'contender_better_requires_competitive_pareto_dominance':True,'very_low_acceptance_can_trigger_shop_or_counter':False,'current_offer_action_recomputed_after_final_option_comparisons':True,'action_basis':action_basis,'player_specific_exceptions':False}
+    report.setdefault('governance',{})['option_outcome_consistency']={'search_score_separated_from_better_verdict':True,'competitively_dominated_option_cannot_be_categorical_better':True,'contender_better_requires_competitive_pareto_dominance':True,'headline_action_requires_high_or_medium_counterparty_fit':True,'descriptive_state_labels_create_action_cliffs':False,'current_offer_action_recomputed_after_final_option_comparisons':True,'action_basis':action_basis,'player_specific_exceptions':False}
     report['model_version']=MODEL_VERSION
-    report.setdefault('policy',{}).update({'option_comparison_model_version':'FSFFL-Option-Outcome-Consistency-1.0','state_aware_score_is_search_and_tradeoff_signal_not_categorical_better_proof':True,'competitively_dominated_option_can_be_called_better':False,'contender_better_requires_no_competitive_outcome_regression':True,'contender_better_requires_at_least_one_competitive_outcome_improvement':True,'very_low_acceptance_alternative_can_force_shop':False,'mixed_tradeoffs_remain_visible':True,'candidate_generation_unchanged':True,'simulation_unchanged':True})
+    report.setdefault('policy',{}).update({'option_comparison_model_version':'FSFFL-Option-Outcome-Consistency-1.1','state_aware_score_is_search_and_tradeoff_signal_not_categorical_better_proof':True,'competitively_dominated_option_can_be_called_better':False,'contender_better_requires_no_competitive_outcome_regression':True,'contender_better_requires_at_least_one_competitive_outcome_improvement':True,'low_or_very_low_acceptance_alternative_can_force_shop':False,'headline_action_acceptance_fit_required':['HIGH','MEDIUM'],'descriptive_state_labels_create_action_cliffs':False,'mixed_tradeoffs_remain_visible':True,'candidate_generation_unchanged':True,'simulation_unchanged':True})
     report.setdefault('simulation',{})['execution_path']=str((report.get('simulation') or {}).get('execution_path') or '')+'_plus_outcome_consistent_option_governance'
     out.write_text(json.dumps(report,indent=2,sort_keys=True),encoding='utf-8')
 
