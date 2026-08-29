@@ -65,6 +65,12 @@ def main():
     assert slot_eligible_positions("DST") == ("DEF",)
 
     src = ENGINE.read_text(encoding="utf-8")
+    market = json.loads((DATA / "market_values_fantasycalc.json").read_text(encoding="utf-8"))
+    market_positions = {str(x.get("position") or "").upper() for x in (market.get("dynasty") or [])}
+    missing_portable_market_positions = sorted({"K", "DEF"} - market_positions)
+    assert missing_portable_market_positions == ["DEF", "K"]
+    assert "market_position_coverage" in src
+
     forbidden = [
         '"numQbs": 2',
         '"numTeams": 12',
@@ -97,6 +103,12 @@ def main():
             )
         },
         "evidence_class": "RULE_DEFINED",
+        "market_coverage": {
+            "k_dst_lineup_legality_supported": True,
+            "k_dst_external_market_valuation_supported": False,
+            "missing_from_current_dynasty_market": missing_portable_market_positions,
+            "policy": "Do not silently interpret unsupported market positions as zero-value evidence.",
+        },
         "remaining_provisional_scope": actual["provisional_runtime_defaults"],
     }
     out = DATA / "audit" / "nonprojection_league_configuration_audit.json"
