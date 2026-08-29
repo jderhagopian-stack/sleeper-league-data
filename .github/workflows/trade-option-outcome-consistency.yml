@@ -6,6 +6,7 @@ on:
       - 'script/run_trade_market_sweep_v23.py'
       - 'script/run_trade_market_sweep_v27.py'
       - 'script/run_trade_market_sweep_v31.py'
+      - 'script/trade_option_governance.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -15,6 +16,7 @@ on:
       - 'script/run_trade_market_sweep_v23.py'
       - 'script/run_trade_market_sweep_v27.py'
       - 'script/run_trade_market_sweep_v31.py'
+      - 'script/trade_option_governance.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -38,6 +40,7 @@ jobs:
             script/run_trade_market_sweep_v23.py \
             script/run_trade_market_sweep_v27.py \
             script/run_trade_market_sweep_v31.py \
+            script/trade_option_governance.py \
             script/run_trade_report.py \
             script/audit_trade_option_outcome_consistency.py
       - name: Run option outcome consistency regression
