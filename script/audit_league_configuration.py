@@ -72,6 +72,7 @@ def main():
         'FUTURE_PICK_YEARS = [2027, 2028, 2029]',
         'ROUNDS = [1, 2, 3]',
         'POSITIONS = ("QB", "RB", "WR", "TE")',
+        'base_lineup / 9.0',
     ]
     for marker in forbidden:
         assert marker not in src, marker
@@ -80,6 +81,7 @@ def main():
     assert 'LEAGUE_RULES["roster_size"]' in src
     assert 'LEAGUE_RULES["rounds"]' in src
     assert 'LEAGUE_RULES["positions"]' in src
+    assert 'len(LINEUP_SLOTS)' in src
 
     payload = {
         "status": "PASS",
