@@ -42,6 +42,11 @@ def main():
     assert sim.playoff_bye_count(4) == 0
     assert sim.playoff_bye_count(6) == 2
     assert sim.playoff_bye_count(8) == 0
+    assert sim.standard_playoff_round_count(4) == 2
+    assert sim.standard_playoff_round_count(6) == 3
+    assert sim.standard_playoff_round_count(8) == 3
+    assert sim.configured_playoff_weeks({"settings": {"playoff_teams": 4, "playoff_week_start": 15}}) == [15, 16]
+    assert sim.configured_playoff_weeks({"settings": {"playoff_teams": 6, "playoff_week_start": 15}}) == [15, 16, 17]
 
     # Sleeper default standings tiebreak: record, PF, then higher PA.
     tied_wins = {1: 8, 2: 8}
@@ -57,6 +62,7 @@ def main():
         "division_winners_seeded_first": True,
         "standings_tiebreak": ["record", "points_for", "higher_points_against"],
         "bye_count_by_supported_bracket": {"4": 0, "6": 2, "8": 0},
+        "round_count_by_supported_bracket": {"4": 2, "6": 3, "8": 3},
         "projection_behavior_changed": False,
         "remaining_provisional_item": (
             "Raw Sleeper playoff reseeding-setting encoding is not authoritatively mapped here; "
