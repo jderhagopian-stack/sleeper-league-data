@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Govern final trade-ranking composition after structural de-duplication.
 
-The active final score must use primitive evidence channels. Composite GM
+The active strategic score must use primitive evidence channels. Composite GM
 summaries may remain available for explanation, but they must not receive a
-second positive weight on top of their underlying value families.
+second positive weight on top of their underlying value families. Negotiation
+plausibility is also kept outside the focal strategic-value score.
 """
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
 OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.0"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.1"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -36,8 +37,14 @@ def main():
       'liquidity_block = 0.25 * liquidity',
       'resilience_block = 0.15 * resilience',
       'resilience = sf(s.get("resilience_value_delta"))',
-      '- current_mult * 12000.0 * externality + 1200.0 * plausibility',
+      '- current_mult * 12000.0 * externality',
+      '"negotiation_plausibility_incremental_weight": 0.0',
     ])
+    plausibility_contaminates_strategic=(
+      '+ 1200.0 * plausibility' in v20
+      or 'score -= 3000.0' in v20
+      or 'score -= 6000.0' in v20
+    )
     old_nested_formula=any(x in v20 for x in [
       'future_block = dynasty + 0.30 * break_glass + 0.18 * optionality',
       'resilience_block = 0.15 * strategic + 0.08 * break_glass',
@@ -86,8 +93,8 @@ def main():
     findings=[
       {
         "id":"FINAL-SCORE-OVERLAP-001","severity":"HIGH",
-        "status":"STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS" if primitive_formula and not composites_active_in_final else "UNRESOLVED",
-        "observation":"The final post-simulation score now uses simulated current-season impact, dynasty market delta, optionality, liquidity and direct roster-replacement resilience. strategic_value_delta and break_glass_delta remain reportable diagnostics but receive zero incremental final-score weight.",
+        "status":"STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS" if primitive_formula and not composites_active_in_final and not plausibility_contaminates_strategic else "UNRESOLVED",
+        "observation":"The final focal strategic score uses simulated current-season impact, dynasty market delta, optionality, liquidity and direct roster-replacement resilience. strategic_value_delta and break_glass_delta remain reportable diagnostics but receive zero incremental final-score weight. Negotiation plausibility is applied later in negotiation ranking rather than changing focal strategic value.",
         "authoritative_incremental_claim_allowed":False,
       },
       {
@@ -115,6 +122,7 @@ def main():
       "production_behavior_changed":True,
       "policy":{
         "primitive_channels_only_in_final_score":True,
+        "negotiation_plausibility_separate_from_focal_strategic_value":True,
         "composite_gm_channels_are_diagnostic_only":True,
         "do_not_retune_to_preserve_visual_rankings":True,
         "structural_deduplication_is_not_empirical_calibration":True,
@@ -123,6 +131,7 @@ def main():
       },
       "summary":{
         "primitive_post_sim_formula_detected":primitive_formula,
+        "negotiation_plausibility_contaminates_strategic_value":plausibility_contaminates_strategic,
         "old_nested_formula_detected":old_nested_formula,
         "nested_strategic_channel_overlap_detected":composites_active_in_final,
         "direct_roster_replacement_resilience_detected":direct_resilience,
@@ -135,8 +144,8 @@ def main():
     }
     (OUT/"final_trade_ranking_governance_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
-    if not primitive_formula or old_nested_formula or composites_active_in_final:
-        raise SystemExit("Final score is not cleanly composed from primitive channels")
+    if not primitive_formula or old_nested_formula or composites_active_in_final or plausibility_contaminates_strategic:
+        raise SystemExit("Final score is not cleanly composed from primitive strategic channels")
     if not direct_resilience:
         raise SystemExit("Direct roster-replacement resilience is missing")
     if not prior_ablation_evidence:
