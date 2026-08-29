@@ -418,20 +418,21 @@
         "script/run_trade_market_sweep_v30.py",
         "script/decision_lab_state_aware.py"
       ],
-      "parameter_family": "current utility, dynasty, break-glass, liquidity, strategic composite, optionality, plausibility and competitive-externality multipliers",
+      "parameter_family": "simulated current utility, dynasty market delta, optionality, liquidity, direct roster-replacement resilience, plausibility and competitive-externality multipliers",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE_ABLATION_REQUIRED",
-      "source": "Current hard-coded state-aware post-simulation utility function",
-      "validation": "Required: canonical utility calibration, historical ranking backtest, coefficient sensitivity, and explicit ablation of strategic/dynasty/break-glass/liquidity overlap",
-      "uncertainty": "high leverage; strategic_value_delta is a GM composite that reuses value families also represented separately in the final score",
-      "update_policy": "Replace with versioned canonical utility only after validation; expose raw tradeoffs and sensitivity in the meantime",
+      "status": "PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL",
+      "source": "State-aware post-simulation utility using direct/primitive channels; strategic and break-glass composites retained for diagnostics only",
+      "validation": "Required: historical ranking/choice backtest and coefficient sensitivity on temporally valid evidence. Structural overlap has been removed, but surviving scale/weight constants remain uncalibrated.",
+      "uncertainty": "High leverage remains because current/future/liquidity/resilience scaling constants are provisional, although nested strategic/break-glass double counting has been structurally removed.",
+      "update_policy": "Keep composite channels diagnostic-only; calibrate surviving primitive-channel coefficients only with defensible time-ordered out-of-sample evidence.",
       "downstream": [
         "trade ranking",
         "negotiation ranking",
         "recommended targets"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Grouped ablation showed the prior overlapping channels could change the top candidate when removed together. Production now uses primitive channels instead of adding strategic_value_delta and break_glass_delta again."
     },
     {
       "id": "WHAT-IF-001",
