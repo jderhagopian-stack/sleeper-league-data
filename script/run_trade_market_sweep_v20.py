@@ -26,6 +26,7 @@ V13_PATH = Path("script/run_trade_market_sweep_v13.py")
 V18_PATH = Path("script/run_trade_market_sweep_v18.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.14"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
+HIGH_PRIORITY_OVERRIDES = SCRIPT / "nonprojection_high_priority_overrides.py"
 
 
 def load_module(path: Path, name: str):
@@ -67,20 +68,22 @@ def state_aware_post_sim_score(engine, row, state: str):
     liquidity_mult = sf(weights.get("liquidity"), .15) / .10
     resilience_mult = sf(weights.get("resilience"), .15) / .15
     title = sf(d.get("championship_probability")); playoff = sf(d.get("playoff_probability")); wins = sf(d.get("expected_wins")); points = sf(d.get("expected_points_for"))
-    dynasty = sf(s.get("market_dynasty_delta")); break_glass = sf(s.get("break_glass_delta")); liquidity = sf(s.get("liquidity_value_delta")); strategic = sf(s.get("strategic_value_delta")); optionality = sf(s.get("optionality_value_delta")); externality = sf(sim.get("net_title_equity_swing_against_focus")); plausibility = sf(row.get("plausibility_score"))
+    dynasty = sf(s.get("market_dynasty_delta")); liquidity = sf(s.get("liquidity_value_delta")); optionality = sf(s.get("optionality_value_delta")); resilience = sf(s.get("resilience_value_delta")); externality = sf(sim.get("net_title_equity_swing_against_focus"))
     current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points
-    future_block = dynasty + 0.30 * break_glass + 0.18 * optionality
+    # Final strategic ranking uses primitive value channels only. Negotiation
+    # plausibility/acceptance is intentionally excluded here and is applied
+    # separately by state_aware_blended_negotiation_score. This keeps
+    # "how good is the trade for us?" distinct from "how likely is it to get done?".
+    future_block = dynasty + 0.18 * optionality
     liquidity_block = 0.25 * liquidity
-    resilience_block = 0.15 * strategic + 0.08 * break_glass
-    score = current_mult * current_block + future_mult * future_block + liquidity_mult * liquidity_block + resilience_mult * resilience_block - current_mult * 12000.0 * externality + 1200.0 * plausibility
-    if row.get("plausibility") == "LOW": score -= 3000.0
-    elif row.get("plausibility") == "THEORETICAL_ONLY": score -= 6000.0
+    resilience_block = 0.15 * resilience
+    score = current_mult * current_block + future_mult * future_block + liquidity_mult * liquidity_block + resilience_mult * resilience_block - current_mult * 12000.0 * externality
     cap = engine.contender_title_cap(state)
     if cap is not None and title < -cap:
         score -= 12000.0 + 50000.0 * abs(title + cap); row["championship_equity_constraint"] = "FAIL"
     else: row["championship_equity_constraint"] = "PASS"
     row["state_aware_objective_weights"] = weights
-    row["state_aware_score_components"] = {"current": round(current_mult * current_block, 2), "future": round(future_mult * future_block, 2), "liquidity": round(liquidity_mult * liquidity_block, 2), "resilience": round(resilience_mult * resilience_block, 2), "opponent_externality": round(-current_mult * 12000.0 * externality, 2)}
+    row["state_aware_score_components"] = {"current": round(current_mult * current_block, 2), "future": round(future_mult * future_block, 2), "liquidity": round(liquidity_mult * liquidity_block, 2), "resilience": round(resilience_mult * resilience_block, 2), "opponent_externality": round(-current_mult * 12000.0 * externality, 2), "composite_strategic_and_break_glass_incremental_weight": 0.0, "negotiation_plausibility_incremental_weight": 0.0}
     return round(score, 2)
 
 
@@ -97,7 +100,17 @@ def state_aware_blended_negotiation_score(row):
     return out
 
 
-def install_engine_upgrade(engine, overlay):
+def install_engine_upgrade(engine, overlay, high_priority=None):
+    # Keep the installer callable by older audit/runtime helpers that predate
+    # the explicit high-priority override argument. Production callers may pass
+    # the already-loaded module; compatibility callers load the same canonical
+    # override here rather than silently skipping it.
+    if high_priority is None:
+        high_priority = load_module(
+            HIGH_PRIORITY_OVERRIDES,
+            "nonprojection_high_priority_overrides_for_v114_compat",
+        )
+    high_priority.install(engine)
     original_import = engine.import_decision_lab
     def upgraded_import_decision_lab(): return overlay.install(original_import())
     engine.import_decision_lab = upgraded_import_decision_lab
@@ -114,6 +127,7 @@ def output_path_from_argv():
 def main():
     v19 = load_module(V19_PATH, "market_sweep_v19_for_v114")
     overlay = load_module(SCRIPT / "decision_lab_state_aware.py", "decision_lab_state_aware_for_v114")
+    high_priority = load_module(HIGH_PRIORITY_OVERRIDES, "nonprojection_high_priority_overrides_for_v114")
     original_v19_loader = v19.load_module
     def patched_v19_loader(path: Path, name: str):
         mod = original_v19_loader(path, name)
@@ -121,7 +135,7 @@ def main():
             original_v13_loader = mod.load_module
             def patched_v13_loader(base_path: Path, base_name: str):
                 engine = original_v13_loader(base_path, base_name)
-                if Path(base_path) == mod.BASE_ENGINE: install_engine_upgrade(engine, overlay)
+                if Path(base_path) == mod.BASE_ENGINE: install_engine_upgrade(engine, overlay, high_priority)
                 return engine
             mod.load_module = patched_v13_loader
         elif Path(path) == V18_PATH:
@@ -134,7 +148,7 @@ def main():
     if output and output.exists():
         report = json.loads(output.read_text(encoding="utf-8")); report["model_version"] = MODEL_VERSION
         policy = report.setdefault("policy", {})
-        policy.update({"focal_post_trade_gm_profiles_recomputed": True, "all_competition_classifications_state_aware": True, "continuous_state_weighting": True, "state_aware_objective_weighted_ranking": True, "final_negotiation_ranking_uses_state_aware_post_sim_score": True, "incoming_assets_use_focal_post_trade_profile": True, "seller_profile_not_used_as_focal_strategic_value": True, "historical_calibration_runs_during_interactive_query": False, "runtime_weight_resolution_reads_precomputed_artifacts_only": True, "calibration_fallback_enabled": True})
+        policy.update({"focal_post_trade_gm_profiles_recomputed": True, "all_competition_classifications_state_aware": True, "continuous_state_weighting": True, "state_aware_objective_weighted_ranking": True, "final_negotiation_ranking_uses_state_aware_post_sim_score": True, "incoming_assets_use_focal_post_trade_profile": True, "seller_profile_not_used_as_focal_strategic_value": True, "historical_calibration_runs_during_interactive_query": False, "runtime_weight_resolution_reads_precomputed_artifacts_only": True, "calibration_fallback_enabled": True, "negotiation_plausibility_separate_from_focal_strategic_value": True, "player_hold_premium_single_incremental_path": True, "own_pick_control_bonus_incremental_value_authorized": False})
         current_strategic = (((report.get("current_offer_evaluation") or {}).get("simulation") or {}).get("strategic") or {}); wr = current_strategic.get("weight_resolution") or {}
         report["state_weighting"] = {"model_version": wr.get("calibration_model_version"), "calibration_status": wr.get("calibration_status"), "runtime_source": wr.get("runtime_source"), "objective_state": current_strategic.get("objective_state"), "objective_weights": current_strategic.get("objective_weights"), "inputs": wr.get("inputs"), "adjustments": wr.get("adjustments")}
         report.setdefault("simulation", {})["execution_path"] = "GM3_continuous_state_weights_plus_post_trade_profile_recompute_plus_state_aware_negotiation_ranking_plus_fast_decision_lab"

@@ -125,8 +125,10 @@ jobs:
           top=r.get('top_5_alternatives') or []
           normals=[x for x in top if x.get('report_role')!='SWING_FOR_FENCES']
           assert normals, 'Ordinary Breece Hall market should have at least one normal bilateral path'
-          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM'} for x in normals)
+          # Acceptance bands are descriptive/ranking signals, not eligibility gates.
+          assert all(x.get('acceptance_likelihood') in {'HIGH','MEDIUM','LOW','VERY_LOW'} for x in normals)
           assert all(float(x.get('post_sim_score') or 0)>0 for x in normals)
+          assert all((x.get('buyer_rationality') or {}).get('current_state_viable') is True for x in normals)
           bad=[x for x in normals if 'Davante Adams' in (x.get('return_asset_names') or []) and ('Mike Evans' in (x.get('return_asset_names') or []) or 'Josh Downs' in (x.get('return_asset_names') or []))]
           assert not bad, bad
           observed=False

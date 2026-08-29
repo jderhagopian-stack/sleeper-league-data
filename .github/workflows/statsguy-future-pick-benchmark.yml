@@ -1,0 +1,43 @@
+name: Stats Guy Future Pick Benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'script/benchmark_statsguy_future_pick_economics.py'
+      - 'data/market_values_fantasycalc.json'
+      - 'data/external_data_provenance.json'
+      - '.github/workflows/statsguy-future-pick-benchmark.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Benchmark commercially permissible future-pick anchor
+        run: python script/benchmark_statsguy_future_pick_economics.py
+      - name: Assert challenger-only governance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('data/audit/statsguy_future_pick_benchmark.json').read_text())
+          assert p['projection_behavior_changed'] is False
+          assert p['production_model_behavior_changed'] is False
+          assert p['evidence_assessment']['replacement_authorized'] is False
+          assert p['comparison_design']['automatic_replacement_threshold'] is None
+          print('challenger-only governance assertions passed')
+          PY
+      - name: Upload benchmark evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: statsguy-future-pick-benchmark
+          path: data/audit/statsguy_future_pick_benchmark.json
+          if-no-files-found: error

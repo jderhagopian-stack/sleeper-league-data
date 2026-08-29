@@ -1,0 +1,52 @@
+name: External Data Commercial Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'data/external_data_provenance.json'
+      - 'data/market_values_fantasycalc.json'
+      - 'data/league.json'
+      - 'data/players.json'
+      - 'data/transactions.json'
+      - 'data/trade_ledger.json'
+      - 'data/draft_ledger.json'
+      - 'script/audit_external_data_commercial_readiness.py'
+      - '.github/workflows/external-data-commercial-readiness.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile commercial-readiness audit
+        run: python -m py_compile script/audit_external_data_commercial_readiness.py
+      - name: Run provenance audit in current research mode
+        run: python script/audit_external_data_commercial_readiness.py
+      - name: Verify current commercial blockers are explicit
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('data/audit/external_data_commercial_readiness_audit.json'))
+          assert a['projection_behavior_changed'] is False
+          assert a['production_model_behavior_changed'] is False
+          assert a['registry_complete_for_known_nonprojection_sources'] is True
+          assert a['summary']['fantasycalc_commercial_license_required'] is True
+          assert a['summary']['sleeper_commercial_license_required'] is True
+          assert a['summary']['statsguy_commercially_permissive_with_conditions'] is True
+          assert a['summary']['derived_coefficients_require_input_provenance_review'] is True
+          assert a['summary']['commercial_deployment_currently_blocked'] is True
+          print('External-data commercial-readiness governance passed')
+          PY
+      - name: Confirm commercial mode fails closed while restricted dependencies remain
+        run: |
+          if FSFFL_COMMERCIAL_MODE=1 python script/audit_external_data_commercial_readiness.py; then
+            echo 'ERROR: commercial mode unexpectedly passed with restricted dependencies'
+            exit 1
+          else
+            echo 'Commercial mode correctly blocked pending licensing/replacement.'
+          fi

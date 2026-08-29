@@ -13,6 +13,7 @@ import importlib.util
 import json
 import math
 import sys
+from collections import Counter
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
@@ -56,7 +57,6 @@ def focal_current_state(row):
 
 
 def focal_state_beneficial(row):
-    """Normal/realistic candidates must help the focal team in its current state."""
     state = focal_current_state(row)
     post = sf(row.get("post_sim_score"))
     comps = row.get("state_aware_score_components") or {}
@@ -74,12 +74,6 @@ def focal_state_beneficial(row):
 
 
 def state_condition_behavior(row, br):
-    """Reweight static history by today's buyer objective.
-
-    This deliberately does not pretend historical manager behavior is timeless.
-    Until historical trades are labeled with reconstructed state-at-the-time,
-    current-state compatibility attenuates the aggregate historical adjustment.
-    """
     sig = dict(br.get("owner_behavior") or {})
     static_adj = sf(sig.get("adjustment"))
     base = sf(br.get("state_utility_acceptance_fit_score"), sf(br.get("heuristic_acceptance_fit_score"), .5) - static_adj)
@@ -102,8 +96,6 @@ def state_condition_behavior(row, br):
         compat = .50
 
     conditioned = static_adj * compat
-    # Historical preferences may support a current-state action, but they may
-    # not rescue an action that directly conflicts with today's state objective.
     if state in {"rebuild", "retool"} and net_pick_in < 0 and conditioned > 0:
         conditioned = min(conditioned, .01)
     if state in {"contender", "elite_contender"} and net_pick_in > 0 and conditioned > 0:
@@ -123,6 +115,7 @@ def state_condition_behavior(row, br):
     br["heuristic_acceptance_fit_score"] = score
     br["heuristic_acceptance_fit"] = band(score)
     br["acceptance_fit_basis"] = "current_state_utility_plus_state_conditioned_historical_behavior"
+    br["acceptance_band_is_descriptive_not_probability"] = True
     return br
 
 
@@ -161,8 +154,8 @@ def patch_v16(mod):
 
 
 def patch_v21_selectors(mod):
-    original_normal = mod.select_normal_four_strict
     original_swing = mod.select_swing_distinct
+
     def prepare(rows):
         for r in rows:
             br = r.get("buyer_rationality") or {}
@@ -171,14 +164,53 @@ def patch_v21_selectors(mod):
                 r["acceptance_likelihood"] = br.get("heuristic_acceptance_fit")
                 r["negotiation_ranking"] = recompute_negotiation_ranking(r)
         return sorted(rows, key=lambda r: (sf((r.get("negotiation_ranking") or {}).get("score")), sf(r.get("post_sim_score"))), reverse=True)
+
     def normal(viable, swing):
         prepared = [r for r in prepare(list(viable)) if focal_state_beneficial(r)]
-        return original_normal(prepared, swing)
+        selected = []
+        counts = Counter()
+        used_families = set()
+        swing_family = mod.negotiation_family_key(swing) if swing else None
+        for row in prepared:
+            fam = mod.negotiation_family_key(row)
+            if swing_family and fam == swing_family:
+                continue
+            if fam in used_families:
+                continue
+            uid = str(row.get("buyer_user_id") or "")
+            if counts[uid] >= mod.MAX_NORMAL_OPTIONS_PER_BUYER:
+                continue
+            selected.append(row)
+            used_families.add(fam)
+            counts[uid] += 1
+            if len(selected) == 4:
+                break
+        return selected
+
     def swing(viable):
         return original_swing(prepare(list(viable)))
+
     mod.select_normal_four_strict = normal
     mod.select_swing_distinct = swing
     return mod
+
+
+def recompute_action_without_acceptance_band_gate(report):
+    """Recompute action from strategic/bilateral viability, not HIGH/MEDIUM labels."""
+    top = list(report.get("top_5_alternatives") or report.get("ranked_finalists") or [])
+    if not top:
+        return "DECLINE"
+
+    current = report.get("current_offer_evaluation") or {}
+    current_buyer_ok = bool((current.get("buyer_rationality") or {}).get("current_state_viable"))
+    current_focal_ok = focal_state_beneficial(current)
+    best = top[0]
+
+    if current_focal_ok and current_buyer_ok:
+        return "SHOP_BEFORE_ACCEPTING" if sf(best.get("post_sim_score")) > sf(current.get("post_sim_score")) + 750 else "ACCEPT_NOW"
+    if any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in top[:5]):
+        return "COUNTER_CURRENT_OFFEROR"
+    return "SHOP_BEFORE_ACCEPTING"
 
 
 def output_path_from_argv():
@@ -227,14 +259,25 @@ def main():
     if output and output.exists():
         report = json.loads(output.read_text(encoding="utf-8"))
         report["model_version"] = MODEL_VERSION
+        inherited_action = report.get("recommended_next_action")
+        report["recommended_next_action"] = recompute_action_without_acceptance_band_gate(report)
         report.setdefault("policy", {}).update({
             "competitive_state_treated_as_time_varying": True,
             "normal_recommendations_require_positive_focal_current_state_utility": True,
             "rebuild_normal_recommendations_require_positive_future_component": True,
             "owner_behavior_conditioned_on_current_competitive_state": True,
             "historical_behavior_can_override_current_state_utility": False,
+            "acceptance_band_is_authoritative_candidate_gate": False,
+            "acceptance_band_is_authoritative_action_gate": False,
+            "acceptance_band_is_ranking_signal_not_eligibility_gate": True,
+            "acceptance_fit_used_as_negotiation_ranking_signal": True,
+            "accepted_rejected_opportunity_denominator_available": False,
             "historical_state_at_trade_reconstruction_complete": False,
         })
+        report["acceptance_gate_action_audit"] = {
+            "inherited_pre_override_action": inherited_action,
+            "final_action_without_acceptance_band_gate": report.get("recommended_next_action"),
+        }
         report.setdefault("simulation", {})["execution_path"] = (
             "GM3_state_aware_plus_dynamic_current_state_focal_gate_plus_state_conditioned_owner_behavior_plus_"
             "bilateral_market_intelligence_plus_family_dedup_plus_multi_asset_search"

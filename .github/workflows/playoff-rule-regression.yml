@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/build_fsffl_season_simulator.py'
+      - 'script/league_rules.py'
       - 'script/run_roster_decision_lab.py'
       - 'script/audit_playoff_rules.py'
       - '.github/workflows/playoff-rule-regression.yml'
@@ -18,6 +19,6 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile
-        run: python -m py_compile script/build_fsffl_season_simulator.py script/run_roster_decision_lab.py script/audit_playoff_rules.py
+        run: python -m py_compile script/league_rules.py script/build_fsffl_season_simulator.py script/run_roster_decision_lab.py script/audit_playoff_rules.py
       - name: Verify rule-defined playoff behavior
         run: python script/audit_playoff_rules.py

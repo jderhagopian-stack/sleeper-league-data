@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.15 — enforce bilateral realism and negotiation-family diversity.
+"""FSFFL Counter & Market Sweep 1.15 — bilateral realism and negotiation-family diversity.
 
-Builds on Market Sweep 1.14. Adds three production safeguards:
-1) normal recommendation slots require at least MEDIUM buyer acceptance fit;
+Builds on Market Sweep 1.14. Production safeguards:
+1) acceptance fit ranks negotiation realism but does not decide candidate eligibility;
 2) strong negative buyer utility at the current franchise state is a hard bilateral gate;
 3) near-duplicate negotiation families (same buyer, same focal outgoing assets,
    same primary incoming players with only marginal pick variation) occupy one slot.
@@ -60,8 +60,6 @@ def negotiation_family_key(row):
     outgoing = tuple(sorted(str(x) for x in (row.get("outgoing_assets") or [])))
     returns = [str(x) for x in (row.get("return_assets") or [])]
     primary_players = tuple(sorted(x for x in returns if not _is_pick(x)))
-    # If a package is pick-only, preserve pick identity; otherwise ignore marginal
-    # pick differences so the same core player package cannot consume two slots.
     pick_only = tuple(sorted(x for x in returns if _is_pick(x))) if not primary_players else ()
     return buyer, outgoing, primary_players, pick_only
 
@@ -84,7 +82,6 @@ def _buyer_hard_gate(br):
     elif state == "rebuild" and dynasty <= -900 and break_glass <= -900:
         fail = True; reason = "rebuild buyer gives up excessive long-term and break-glass value"
 
-    # Extreme across-the-board loss is never a normal current-state negotiation.
     if dynasty <= -1400 and redraft <= -1800 and break_glass <= -1200:
         fail = True; reason = "buyer loses heavily across dynasty, redraft, and break-glass value"
     return (not fail), reason
@@ -121,15 +118,18 @@ def select_swing_distinct(viable):
 
 
 def select_normal_four_strict(viable, swing):
-    """Normal slots must be credible and from distinct negotiation families."""
+    """Normal slots use rational candidates from distinct negotiation families.
+
+    Acceptance fit remains inside negotiation ranking, so more realistic deals
+    naturally sort higher. The uncalibrated HIGH/MEDIUM labels do not veto an
+    otherwise rational candidate.
+    """
     selected = []
     counts = Counter()
     used_families = set()
     swing_family = negotiation_family_key(swing) if swing else None
 
     for row in viable:
-        if row.get("acceptance_likelihood") not in {"HIGH", "MEDIUM"}:
-            continue
         fam = negotiation_family_key(row)
         if swing_family and fam == swing_family:
             continue
@@ -175,11 +175,11 @@ def main():
         top = report.get("top_5_alternatives") or []
         families = [negotiation_family_key(r) for r in top]
         report.setdefault("policy", {}).update({
-            "normal_recommendations_require_medium_or_high_acceptance_fit": True,
+            "acceptance_band_is_ranking_signal_not_eligibility_gate": True,
             "market_intelligence_can_veto_buyer_current_state_viability": True,
             "negotiation_family_deduplication": True,
             "swing_must_be_distinct_negotiation_family": True,
-            "low_and_very_low_acceptance_fit_reserved_for_swing_only": True,
+            "low_and_very_low_acceptance_fit_can_appear_in_normal_slots_if_bilaterally_rational": True,
         })
         report.setdefault("candidate_counts", {})["top_five_unique_negotiation_families"] = len(set(families))
         report.setdefault("simulation", {})["execution_path"] = (

@@ -31,21 +31,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from league_rules import load_league_rules, normalize_position, slot_eligible_positions
+
 DATA = Path("data")
 DATA.mkdir(parents=True, exist_ok=True)
+LEAGUE_RULES = load_league_rules(DATA / "league.json", DATA / "traded_picks.json")
 
 FANTASYCALC_URL = "https://api.fantasycalc.com/values/current"
 FC_PARAMS = {
     "isDynasty": "true",
-    "numQbs": 2,
-    "numTeams": 12,
-    "ppr": 0.5,
+    "numQbs": LEAGUE_RULES["market_num_qbs"],
+    "numTeams": LEAGUE_RULES["team_count"],
+    "ppr": LEAGUE_RULES["ppr"],
 }
 FC_REDRAFT_PARAMS = {
     "isDynasty": "false",
-    "numQbs": 2,
-    "numTeams": 12,
-    "ppr": 0.5,
+    "numQbs": LEAGUE_RULES["market_num_qbs"],
+    "numTeams": LEAGUE_RULES["team_count"],
+    "ppr": LEAGUE_RULES["ppr"],
 }
 
 
@@ -69,18 +72,18 @@ USER_TEAM = "Hurts So Good"
 # Legacy compatibility only. GM-2.2 does not hard-code untouchables.
 PROTECTED_HSG_PLAYERS = set()
 
-FUTURE_PICK_YEARS = [2027, 2028, 2029]
-ROUNDS = [1, 2, 3]
-POSITIONS = ("QB", "RB", "WR", "TE")
+FUTURE_PICK_YEARS = list(LEAGUE_RULES["future_pick_years"])
+ROUNDS = list(LEAGUE_RULES["rounds"])
+POSITIONS = tuple(LEAGUE_RULES["positions"])
 
 CONFIG = {
     "model_version": "GM-1.0",
     "market_source": "FantasyCalc current values",
     "market_settings": {
         "dynasty": True,
-        "num_qbs": 2,
-        "num_teams": 12,
-        "ppr": 0.5,
+        "num_qbs": LEAGUE_RULES["market_num_qbs"],
+        "num_teams": LEAGUE_RULES["team_count"],
+        "ppr": LEAGUE_RULES["ppr"],
         "te_premium": False,
     },
     "owner_value_weights": {
@@ -270,12 +273,13 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
     for row in market.get("dynasty", []):
         name = row.get("name") or ""
         n = name.lower()
-        m_year = re.search(r"(202[6-9]|2030)", n)
+        m_year = re.search(r"(20\\d{2})", n)
         if not m_year:
             continue
         if "pick" not in n and not any(x in n for x in ("1st", "2nd", "3rd", "first", "second", "third")):
             continue
         year = int(m_year.group(1))
+        explicit_tier = any(x in n for x in ("early", "mid", "late"))
         tier = "mid"
         if "early" in n:
             tier = "early"
@@ -290,32 +294,100 @@ def infer_fc_pick_values(market: Dict[str, Any]) -> Dict[Tuple[int, str, int], f
         elif "3rd" in n or "third" in n:
             rnd = 3
         if rnd:
-            found[(year, tier, rnd)] = safe_float(row.get("value"))
+            key = (year, tier, rnd)
+            # Prefer an explicitly labelled Early/Mid/Late row over a generic
+            # "2027 1st" row when both map to the same canonical market cell.
+            if key not in found or explicit_tier:
+                found[key] = safe_float(row.get("value"))
     return found
+
+
+def _pick_market_median(values):
+    vals = sorted(float(x) for x in values if x is not None and float(x) > 0)
+    if not vals:
+        return None
+    n = len(vals)
+    return vals[n // 2] if n % 2 else 0.5 * (vals[n // 2 - 1] + vals[n // 2])
+
+
+def _observed_pick_tier_multiplier(
+    detected: Dict[Tuple[int, str, int], float],
+    tier: str,
+    rnd: int,
+):
+    """Infer early/mid/late shape from directly observed same-round market rows."""
+    if tier == "mid":
+        return 1.0
+    ratios = []
+    for (y, t, r), value in detected.items():
+        if r != rnd or t != tier:
+            continue
+        mid = safe_float(detected.get((y, "mid", rnd)))
+        if mid > 0 and safe_float(value) > 0:
+            ratios.append(safe_float(value) / mid)
+    return _pick_market_median(ratios)
+
+
+def _observed_pick_year_factor(
+    detected: Dict[Tuple[int, str, int], float],
+    rnd: int,
+):
+    """Infer a round-specific annual factor from observed generic/mid future picks."""
+    mids = sorted(
+        (y, safe_float(v))
+        for (y, t, r), v in detected.items()
+        if r == rnd and t == "mid" and safe_float(v) > 0
+    )
+    factors = []
+    for (y0, v0), (y1, v1) in zip(mids, mids[1:]):
+        gap = y1 - y0
+        if gap > 0 and v0 > 0 and v1 > 0:
+            factors.append((v1 / v0) ** (1.0 / gap))
+    return _pick_market_median(factors)
 
 
 def fallback_pick_value(year: int, tier: str, rnd: int, detected: Dict[Tuple[int, str, int], float]) -> float:
     if (year, tier, rnd) in detected:
         return detected[(year, tier, rnd)]
 
-    # Try same-year mid then infer early/late.
+    # Prefer the observed same-year market anchor. When FantasyCalc exposes a
+    # generic/mid pick but not early/late for that year, infer the tier shape
+    # from observed same-round early/mid/late rows rather than a universal
+    # hand-set multiplier.
     if (year, "mid", rnd) in detected:
         base = detected[(year, "mid", rnd)]
+        tier_mult = _observed_pick_tier_multiplier(detected, tier, rnd)
+        if tier_mult is not None:
+            return base * tier_mult
+        # If the current external source has no observed tier shape, preserve
+        # the prior bounded assumption rather than pretending a new estimate is
+        # empirically supported.
         return base * {"early": 1.18, "mid": 1.0, "late": 0.84}[tier]
 
-    # Try nearest known year for same round/tier.
+    # If a whole year is missing, extrapolate only from the observed same-round
+    # market time curve. This is still an external-market extrapolation, but it
+    # avoids imposing one universal time discount across rounds.
     known = [(y, v) for (y, t, r), v in detected.items() if t == tier and r == rnd]
     if known:
         y0, v0 = min(known, key=lambda z: abs(z[0] - year))
+        year_factor = _observed_pick_year_factor(detected, rnd)
+        if year_factor is not None and year_factor > 0:
+            return v0 * (year_factor ** (year - y0))
+        # Same policy as tier shape: retain the old bounded fallback only when
+        # no empirical same-round time curve can be inferred.
         return v0 * (0.88 ** max(0, year - y0)) * (1.08 ** max(0, y0 - year))
 
-    # Conservative fallback scale, only used if FC did not surface future picks.
+    # Last-resort functionality fallback only when the external source provides
+    # too little pick structure to infer either tier shape or time curve.
+    # These constants remain explicitly provisional and non-authoritative.
     mids = {
         1: 5200.0,
         2: 2350.0,
         3: 1050.0,
     }
-    year_discount = {2027: 1.0, 2028: 0.88, 2029: 0.77}.get(year, 0.70)
+    first_future_season = int(LEAGUE_RULES["season"]) + 1
+    years_out = max(0, year - first_future_season)
+    year_discount = 0.88 ** years_out
     tier_adj = {"early": 1.20, "mid": 1.0, "late": 0.82}[tier]
     return mids[rnd] * year_discount * tier_adj
 
@@ -1059,27 +1131,21 @@ def fsffl_league_value(
     manual=None,
 ):
     """
-    Full FSFFL league value:
-      market anchor
-      + league consolidation premium
+    Full league value:
+      external market anchor
       + independent recent performance
       + injuries / usage / snap trend / market momentum / qualitative intelligence
+
+    The prior rank-tier multiplier was removed because market rank is derived
+    from the same FantasyCalc market used as the base anchor. Repricing the
+    anchor from its own rank is duplicate evidence unless residual validation
+    demonstrates a stable league-specific effect.
     """
     base = safe_float(asset.get("market_dynasty"))
-    rank = asset.get("market_rank")
     if not base:
         return 0.0
 
-    if isinstance(rank, int) and rank <= 24:
-        mult = 1.04
-    elif isinstance(rank, int) and rank <= 60:
-        mult = 1.02
-    elif isinstance(rank, int) and rank > 180:
-        mult = 0.90
-    elif isinstance(rank, int) and rank > 120:
-        mult = 0.95
-    else:
-        mult = 1.0
+    mult = 1.0
 
     perf_adj = 0.0
     if performance is not None and baselines is not None:
@@ -1715,34 +1781,19 @@ CONFIG["notes"] = list(CONFIG.get("notes") or []) + [
     "GM-1.1.1 fixes runtime dispatch so optimized-lineup and trade-ranking functions are actually used by base_main.",
 ]
 
-FALLBACK_LINEUP_SLOTS = [
-    "QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "SUPER_FLEX"
-]
+FALLBACK_LINEUP_SLOTS = list(LEAGUE_RULES["lineup_slots"])
 
 
 def lineup_slots() -> List[str]:
-    league = load_json(DATA / "league.json", {}) or {}
-    raw = league.get("roster_positions") or FALLBACK_LINEUP_SLOTS
-    slots = [str(x).upper() for x in raw]
-    # Sleeper roster_positions contains bench/IR/taxi entries too.
-    legal = {"QB", "RB", "WR", "TE", "FLEX", "SUPER_FLEX", "SUPERFLEX"}
-    filtered = ["SUPER_FLEX" if x == "SUPERFLEX" else x for x in slots if x in legal]
-    return filtered or list(FALLBACK_LINEUP_SLOTS)
+    return list(LEAGUE_RULES["lineup_slots"]) or list(FALLBACK_LINEUP_SLOTS)
 
 
 LINEUP_SLOTS = lineup_slots()
 
 
 def eligible(position: str, slot: str) -> bool:
-    pos = (position or "").upper()
-    slot = slot.upper()
-    if slot in {"QB", "RB", "WR", "TE"}:
-        return pos == slot
-    if slot == "FLEX":
-        return pos in {"RB", "WR", "TE"}
-    if slot == "SUPER_FLEX":
-        return pos in {"QB", "RB", "WR", "TE"}
-    return False
+    pos = normalize_position(position)
+    return pos in slot_eligible_positions(slot)
 
 
 def optimize_lineup(
@@ -1764,7 +1815,7 @@ def optimize_lineup(
         if pid == "0":
             continue
         a = player_values.get(pid, {})
-        pos = a.get("position")
+        pos = normalize_position(a.get("position"))
         if pos not in POSITIONS:
             continue
         by_pos[pos].append(
@@ -1779,10 +1830,8 @@ def optimize_lineup(
     for slot in LINEUP_SLOTS:
         if slot in POSITIONS:
             fixed_counts[slot] += 1
-        elif slot == "FLEX":
-            flex_slots.append(("FLEX", ("RB", "WR", "TE")))
-        elif slot == "SUPER_FLEX":
-            flex_slots.append(("SUPER_FLEX", ("QB", "RB", "WR", "TE")))
+        elif slot_eligible_positions(slot):
+            flex_slots.append((slot, slot_eligible_positions(slot)))
 
     # Enumerate only the flexible slot position choices.
     flex_choices = [choices for _, choices in flex_slots]
@@ -1817,12 +1866,7 @@ def optimize_lineup(
         rows = []
         total = 0.0
         for slot in LINEUP_SLOTS:
-            eligible_positions = (
-                (slot,) if slot in POSITIONS
-                else ("RB", "WR", "TE") if slot == "FLEX"
-                else ("QB", "RB", "WR", "TE") if slot == "SUPER_FLEX"
-                else ()
-            )
+            eligible_positions = slot_eligible_positions(slot)
             options = []
             for pos in eligible_positions:
                 for val, pid, a in by_pos.get(pos, []):
@@ -1866,9 +1910,7 @@ def optimize_lineup(
     for slot in LINEUP_SLOTS:
         if slot in POSITIONS:
             pos = slot
-        elif slot == "FLEX":
-            pos = next(flex_iter)
-        elif slot == "SUPER_FLEX":
+        elif slot_eligible_positions(slot):
             pos = next(flex_iter)
         else:
             continue
@@ -3617,9 +3659,9 @@ GM_TEAMS_DIR = GM_ROOT / "teams"
 
 GM22 = {
     "model_version": "GM-2.2",
-    "roster_size": 18,
+    "roster_size": LEAGUE_RULES["roster_size"],
     "package_weights": [1.0, 0.78, 0.62, 0.50, 0.42],
-    "extra_asset_slot_cost_pct": 0.035,
+    "extra_asset_slot_cost_pct": 0.0,
     "max_static_exit_premium_pct": 0.85,
     "max_replacement_relief_pct": 0.68,
     "rookie_optionality_bonus": 0.16,
@@ -3965,9 +4007,15 @@ def _u_player_liquidity(aid, ctx):
     dyn = safe_float(m.get("market_dynasty"))
     age = safe_float(m.get("age"), 27.0)
     pos = m.get("position")
-    scarcity = _u_position_tier_features(aid, ctx)["scarcity_score"]
 
-    base = clamp(0.35 + 0.40 * scarcity + 0.25 * clamp(dyn / 8000.0, 0.0, 1.0), 0.0, 1.0)
+    # Market-tier scarcity is already derived from the same dynasty market
+    # value used as the asset anchor. Do not reuse that derived signal as a
+    # second positive liquidity input. Preserve the prior constant:value ratio
+    # among the remaining distinct components (0.35:0.25), without retuning.
+    base = clamp(
+        (0.35 / 0.60) + (0.25 / 0.60) * clamp(dyn / 8000.0, 0.0, 1.0),
+        0.0, 1.0
+    )
     if pos == "QB":
         base += 0.08
     if pos == "RB" and age >= 29:
@@ -3982,7 +4030,7 @@ def _u_pick_profile(aid, uid, ctx):
     parsed = _u_parse_pick(aid, meta) or {}
     quality = ctx["pick_quality"].get(aid, {})
     rnd = int(parsed.get("round") or quality.get("round") or 3)
-    season = int(parsed.get("season") or quality.get("season") or 2029)
+    season = int(parsed.get("season") or quality.get("season") or max(FUTURE_PICK_YEARS))
     qsignal = safe_float(quality.get("quality_signal"), 0.5)
     early = safe_float(quality.get("early_scenario_weight"), 0.33)
     late = safe_float(quality.get("late_scenario_weight"), 0.33)
@@ -3990,19 +4038,21 @@ def _u_pick_profile(aid, uid, ctx):
     if rnd == 1:
         liquidity = GM22["first_round_pick_liquidity"]
         upside = clamp(0.48 + 0.42 * qsignal, 0.48, 0.95)
-        uncertainty = 0.45 + 0.25 * max(season - 2027, 0)
+        uncertainty = 0.45 + 0.25 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
     elif rnd == 2:
         liquidity = GM22["second_round_pick_liquidity"]
         upside = clamp(0.28 + 0.32 * qsignal, 0.28, 0.72)
-        uncertainty = 0.38 + 0.20 * max(season - 2027, 0)
+        uncertainty = 0.38 + 0.20 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
     else:
         liquidity = GM22["third_round_pick_liquidity"]
         upside = clamp(0.12 + 0.20 * qsignal, 0.12, 0.45)
-        uncertainty = 0.28 + 0.16 * max(season - 2027, 0)
+        uncertainty = 0.28 + 0.16 * max(season - (int(LEAGUE_RULES["season"]) + 1), 0)
 
-    # A pick's value distribution is positively skewed; uncertainty is useful
-    # optionality rather than pure downside because the pick can improve.
-    option = clamp(upside + 0.18 * clamp(uncertainty, 0.0, 1.0), 0.0, 1.0)
+    # Forecast uncertainty is not itself positive expected value. Preserve it
+    # as a diagnostic, but do not reward lack of knowledge as option value.
+    # Upside remains the qualified optionality proxy until outcome/market data
+    # can separately identify skew, liquidity and uncertainty pricing.
+    option = clamp(upside, 0.0, 1.0)
     original_uid = str(quality.get("original_owner_user_id") or "")
     control_bonus = 0.10 if original_uid and original_uid == str(uid) else 0.0
 
@@ -4014,6 +4064,8 @@ def _u_pick_profile(aid, uid, ctx):
         "late_scenario_weight": round(late, 4),
         "liquidity": round(liquidity, 4),
         "upside_optionality": round(option, 4),
+        "forecast_uncertainty": round(clamp(uncertainty, 0.0, 1.0), 4),
+        "uncertainty_adds_optionality": False,
         "own_pick_control_bonus": round(control_bonus, 4),
         "most_likely_tier": quality.get("most_likely_tier"),
         "confidence": quality.get("confidence"),
@@ -4065,11 +4117,12 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             depth_drop = _u_depth_insurance_drop(uid, pid, ctx)
             dependency = clamp(single_drop / base_lineup * 4.5, 0.0, 1.0)
             depth_insurance = clamp(depth_drop / base_lineup * 5.0, 0.0, 1.0)
-            current_utility = clamp(red / max(base_lineup / 9.0, 1.0) / 4.0, 0.0, 1.0)
-            future_utility = clamp(
-                0.55 * scarcity["scarcity_score"] + 0.45 * dist["upside_optionality"],
-                0.0, 1.0
-            )
+            current_utility = clamp(red / max(base_lineup / max(len(LINEUP_SLOTS), 1), 1.0) / 4.0, 0.0, 1.0)
+            # Market-tier scarcity is retained as a diagnostic but is not
+            # counted again on top of the market-anchored franchise value.
+            # With that duplicated component removed, the remaining distinct
+            # future-utility component carries the full normalized weight.
+            future_utility = clamp(dist["upside_optionality"], 0.0, 1.0)
             resilience = clamp(0.62 * dependency + 0.38 * depth_insurance, 0.0, 1.0)
 
             strategic_score = clamp(
@@ -4082,7 +4135,10 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
 
             # Hold premium components are deliberately distinct and transparent.
             core_premium = 0.04 + 0.30 * (strategic_score ** 1.65)
-            scarcity_premium = 0.13 * (scarcity["scarcity_score"] ** 1.8)
+            # Structural de-duplication: market-tier scarcity comes from the
+            # same external dynasty market anchor and therefore receives no
+            # separate incremental hold premium without residual validation.
+            scarcity_premium = 0.0
             optionality_premium = 0.22 * dist["upside_optionality"]
             liquidity_premium = 0.07 * liquidity
             appreciation_premium = max(dist["hold_appreciation_pct"], 0.0) * 0.70
@@ -4094,11 +4150,13 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             premium_pct = clamp(raw_premium, 0.03, GM22["max_static_exit_premium_pct"])
             break_glass = base * (1.0 + premium_pct)
 
+            # Remove the market-derived scarcity channel and renormalize the
+            # remaining distinct variable components in their prior 0.40:0.15
+            # ratio. This is de-duplication, not empirical retuning.
             elasticity = clamp(
                 0.18
-                + 0.40 * (1.0 - dependency)
-                + 0.20 * (1.0 - scarcity["scarcity_score"])
-                + 0.15 * (1.0 - strategic_score),
+                + (0.40 / 0.55 * 0.75) * (1.0 - dependency)
+                + (0.15 / 0.55 * 0.75) * (1.0 - strategic_score),
                 0.12, 0.80
             )
 
@@ -4126,10 +4184,17 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "is_current_optimal_starter": bool(starter),
                 "single_absence_dependency_drop": round(single_drop, 1),
                 "depth_insurance_drop": round(depth_drop, 1),
+                "replacement_resilience_score": round(resilience, 4),
+                "replacement_resilience_basis": "team_specific_lineup_reoptimization",
                 "strategic_score": round(strategic_score, 4),
                 "core_status": status,
                 "liquidity_score": round(liquidity, 4),
-                "scarcity": scarcity,
+                "scarcity": {
+                    **scarcity,
+                    "source": "external_market_tier_diagnostic",
+                    "incremental_premium_authorized": False,
+                    "replacement_value_source": "team_specific_lineup_reoptimization",
+                },
                 "future_distribution": dist,
                 "objective_state": state,
                 "objective_weights": objective,
@@ -4220,8 +4285,9 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
         "objective_weights": objective,
         "methodology_note": (
             "Strategic profiles cover players and picks. Break-glass values explicitly "
-            "price current utility, tier scarcity, upside optionality, liquidity, "
-            "depth resilience, expected hold value and pick-specific quality. Values "
+            "price current utility, upside optionality, liquidity, roster-specific "
+            "replacement resilience, expected hold value and pick-specific quality. "
+            "Market-tier scarcity remains diagnostic and receives no separate premium. Values "
             "are heuristics for decision support, not guaranteed trade prices."
         ),
         "assets": rows,
@@ -4256,7 +4322,7 @@ def _u_static_exit_cost(uid, asset_ids, ctx, profile_by_uid):
 def _u_package_effective_value(asset_ids, perspective_uid, ctx, profile_by_uid):
     """
     Nonlinear package value. Quantity cannot freely substitute for quality in
-    an 18-man league. The first asset receives full value; subsequent pieces
+    a finite-roster league. The first asset receives full value; subsequent pieces
     are discounted and incur roster-slot opportunity cost.
     """
     vals = ctx["owner_vals"].get(str(perspective_uid), {})
@@ -4283,14 +4349,16 @@ def _u_package_effective_value(asset_ids, perspective_uid, ctx, profile_by_uid):
         total += eff
         details.append({"asset_id": aid, "raw_value": round(v,1), "weight": round(w,3), "effective_value": round(eff,1)})
 
-    if len(parts) > 1:
-        slot_cost = sum(v for v,_,_,_ in parts[1:]) * GM22["extra_asset_slot_cost_pct"]
-        total -= slot_cost
-    else:
-        slot_cost = 0.0
+    # Do not impose a generic percentage roster-slot penalty here. The
+    # canonical trade path legalizes the actual post-trade roster, forces any
+    # required incumbent cuts, and carries those cuts into simulation and
+    # strategic valuation. A second generic slot charge would count roster
+    # burden twice. The nonlinear package curve remains provisional.
+    slot_cost = 0.0
     return max(total, 0.0), {
         "parts": details,
-        "roster_slot_cost": round(slot_cost, 1),
+        "roster_slot_cost": 0.0,
+        "roster_slot_cost_source": "exact_downstream_roster_legalization",
         "effective_value": round(max(total,0.0), 1),
     }
 
@@ -5085,7 +5153,7 @@ def main():
     write_json(DATA / "market_regime.json", build_market_regime())
     write_json(DATA / "owner_calibration_report.json", build_owner_calibration_report())
 
-    # GM-2.2: all 12 franchises receive full perspective-specific outputs.
+    # GM-2.2: every franchise receives full perspective-specific outputs.
     universal_result = run_universal_franchise_mode()
 
     print("FSFFL GM Engine v2.2 complete — Strategic Valuation.")

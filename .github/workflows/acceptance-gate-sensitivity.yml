@@ -39,8 +39,9 @@ jobs:
           assert d['interpretation']['coefficient_tuning'] is False
           assert d['interpretation']['acceptance_fit_is_probability'] is False
           assert d['interpretation']['buyer_current_state_rationality_preserved'] is True
-          assert set(d['comparisons'])=={'production_high_medium','high_only','no_acceptance_band_gate'}
+          assert set(d['comparisons'])=={'production_no_band_gate','reintroduced_high_medium_gate','reintroduced_high_only_gate'}
           assert d['summary']['production_recommendation_empirically_authoritative'] is False
+          assert d['comparisons']['production_no_band_gate']['action_changed_vs_production'] is False
           print(json.dumps(d['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4

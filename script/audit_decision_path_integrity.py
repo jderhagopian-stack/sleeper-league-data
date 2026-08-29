@@ -15,7 +15,7 @@ SCRIPT = ROOT / "script"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.1"
+MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.2"
 
 
 def text(name: str) -> str:
@@ -26,6 +26,7 @@ def main():
     report = text("run_trade_report.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
+    v23 = text("run_trade_market_sweep_v23.py")
     v20 = text("run_trade_market_sweep_v20.py")
     v13 = text("run_trade_market_sweep_v13.py")
     v16 = text("run_trade_market_sweep_v16.py")
@@ -48,23 +49,40 @@ def main():
         or "not a calibrated\nprobability" in v16.lower()
         or "heuristic_acceptance_fit_not_probability" in v16
     )
+    acceptance_band_ranking_only = all(x in v23 for x in (
+        '"acceptance_band_is_authoritative_candidate_gate": False',
+        '"acceptance_fit_used_as_negotiation_ranking_signal": True',
+    ))
     acceptance_has_authoritative_gate = (
-        'in {"HIGH", "MEDIUM"}' in v16
+        not acceptance_band_ranking_only
+        and 'in {"HIGH", "MEDIUM"}' in v16
         and "recommended_next_action" in v16
         and "realistic" in v16
     )
 
-    # The final score formula lives in v20; the strategic composite is built by
-    # the state-aware profile overlay.  Detect the lineage across both sources
-    # rather than requiring the block names to coexist in one file.
+    # The final score must use primitive channels only. Composite strategic
+    # and break-glass summaries remain available upstream for explanation but
+    # receive no incremental final-score weight.
     final_overlap_tokens = {
-        "dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
-        "break_glass_delta_in_final_score": "break_glass_delta" in v20 and "resilience_block" in v20,
-        "liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
-        "strategic_value_delta_in_final_score": "strategic_value_delta" in v20 and "resilience_block" in v20,
-        "strategic_composite_built_upstream": "strategic_value_delta" in state and "strategic_score" in state,
+        "primitive_dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
+        "primitive_liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
+        "primitive_optionality_delta_in_final_score": "optionality_value_delta" in v20 and "future_block" in v20,
+        "primitive_resilience_delta_in_final_score": "resilience_value_delta" in v20 and "resilience_block" in v20,
+        "strategic_composite_built_upstream_for_diagnostics": "strategic_value_delta" in state and "strategic_score" in state,
+        "break_glass_built_upstream_for_diagnostics": "break_glass_delta" in state,
     }
-    final_composite_overlap = all(final_overlap_tokens.values())
+    final_composite_overlap = (
+        'strategic = sf(s.get("strategic_value_delta"))' in v20
+        or 'break_glass = sf(s.get("break_glass_delta"))' in v20
+        or '0.30 * break_glass' in v20
+        or '0.15 * strategic' in v20
+    )
+    primitive_final_score = all(final_overlap_tokens[k] for k in (
+        "primitive_dynasty_delta_in_final_score",
+        "primitive_liquidity_delta_in_final_score",
+        "primitive_optionality_delta_in_final_score",
+        "primitive_resilience_delta_in_final_score",
+    )) and not final_composite_overlap
 
     behavior_oos_predictive_test = any(
         token in behavior_prod_test.lower()
@@ -109,22 +127,24 @@ def main():
         {
             "id": "ACCEPTANCE-GATE-001",
             "severity": "HIGH",
-            "status": "PROVISIONAL_HIGH_LEVERAGE_HEURISTIC" if acceptance_has_authoritative_gate else "NO_AUTHORITATIVE_HEURISTIC_GATE_DETECTED",
+            "status": "RANKING_SIGNAL_ONLY_NO_AUTHORITATIVE_BAND_GATE" if acceptance_band_ranking_only else ("PROVISIONAL_HIGH_LEVERAGE_HEURISTIC" if acceptance_has_authoritative_gate else "NO_AUTHORITATIVE_HEURISTIC_GATE_DETECTED"),
             "observation": (
-                "Human acceptance is explicitly described as heuristic rather than probabilistic, but MEDIUM/HIGH hand-set fit bands still gate realistic Top-5 inclusion and can drive the recommended negotiation action. "
-                "Until held-out choice/acceptance prediction is available, these thresholds must remain provisional and sensitivity-qualified."
+                "Acceptance fit remains explicitly heuristic rather than probabilistic. The hand-set HIGH/MEDIUM bands no longer determine candidate eligibility or the primary action; acceptance fit remains a negotiation-ranking signal while hard buyer current-state rationality is separate."
+                if acceptance_band_ranking_only else
+                "Human acceptance is explicitly described as heuristic rather than probabilistic, but hand-set fit bands may still have decision leverage and require sensitivity qualification."
             ),
             "declared_not_probability": acceptance_declared_heuristic,
             "has_authoritative_decision_leverage": acceptance_has_authoritative_gate,
+            "acceptance_band_ranking_only": acceptance_band_ranking_only,
             "authoritative_empirical_claim_allowed": False,
         },
         {
             "id": "FINAL-SCORE-OVERLAP-001",
             "severity": "HIGH",
-            "status": "ABLATION_REQUIRED" if final_composite_overlap else "NOT_DETECTED",
+            "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
             "observation": (
-                "The state-aware final score separately uses dynasty, break-glass and liquidity families while also using strategic_value_delta, a downstream GM composite built from current/future/liquidity/resilience value. "
-                "This may encode intentional portfolio utility, but incremental value must be established by ablation before the composite can be treated as independent evidence."
+                "The state-aware final score now uses primitive dynasty, optionality, liquidity and direct roster-replacement resilience channels. "
+                "Strategic and break-glass composites remain available for explanation but no longer receive separate final-score weight."
             ),
             "detected_components": final_overlap_tokens,
             "authoritative_empirical_claim_allowed": False,
@@ -149,8 +169,15 @@ def main():
             "production_roster_aware": production_roster_aware,
             "runtime_roster_version_single_source": runtime_version_single_source,
             "post_overlay_ranking_refresh_present": post_overlay_ranking_refresh,
-            "provisional_high_leverage_acceptance_gate": acceptance_has_authoritative_gate,
-            "final_score_overlap_ablation_required": final_composite_overlap,
+            # Backward-compatible family-level flag: the acceptance heuristic is
+            # demonstrably high leverage under sensitivity, even though the old
+            # HIGH/MEDIUM band is no longer an authoritative production gate.
+            "provisional_high_leverage_acceptance_gate": True,
+            "acceptance_band_authoritative_gate_active": acceptance_has_authoritative_gate,
+            "acceptance_band_ranking_only_policy_present": acceptance_band_ranking_only,
+            "final_score_overlap_ablation_required": True,
+            "final_score_overlap_currently_detected": final_composite_overlap,
+            "primitive_final_score_active": primitive_final_score,
             "behavioral_predictive_holdout_detected": behavior_oos_predictive_test,
         },
         "findings": findings,
