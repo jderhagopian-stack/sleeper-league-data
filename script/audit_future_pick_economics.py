@@ -50,7 +50,10 @@ def main():
         "fallback_same_year_tier_multipliers": marker(src, r'\{"early":\s*1\.18,\s*"mid":\s*1\.0,\s*"late":\s*0\.84\}'),
         "fallback_nearest_year_discount": "0.88 ** max(0, year - y0)" in src,
         "fallback_round_mid_anchors": all(x in src for x in ("1: 5200.0", "2: 2350.0", "3: 1050.0")),
-        "fallback_calendar_discount_table": all(x in src for x in ("2027: 1.0", "2028: 0.88", "2029: 0.77")),
+        "fallback_horizon_discount": (
+            'first_future_season = int(LEAGUE_RULES["season"]) + 1' in src
+            and "year_discount = 0.88 ** years_out" in src
+        ),
         "fallback_tier_adjustment": marker(src, r'\{"early":\s*1\.20,\s*"mid":\s*1\.0,\s*"late":\s*0\.82\}'),
         "quality_strength_horizon_weights": "dynasty_weight = clamp(0.48 + 0.08 * (years_out - 1), 0.48, 0.68)" in src,
         "quality_collapse_mix": "(1.0 - strength) * 0.72 + fragility * 0.28" in src,
@@ -99,8 +102,8 @@ def main():
             "observation": (
                 "The engine correctly prefers directly observed FantasyCalc pick values when available, "
                 "but missing cells fall through to hand-set tier multipliers, nearest-year discounting, "
-                "round anchors and calendar discounts. These preserve functionality but are not empirical "
-                "FSFFL pick economics."
+                "round anchors and a centralized horizon discount. These preserve functionality but are not empirical "
+                "FSFFL pick economics. The discount is no longer tied to FSFFL-specific calendar years."
             ),
             "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR for detected market cells; ASSUMPTION_SENSITIVE_PROVISIONAL for fallback cells",
             "authoritative_incremental_adjustment_claim_allowed": False,
