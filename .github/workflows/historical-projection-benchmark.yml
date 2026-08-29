@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/benchmark_historical_projections.py'
+      - 'script/benchmark_historical_projections_common_cohort.py'
       - 'data/model_validation/historical_projection_source_inventory.json'
       - '.github/workflows/historical-projection-benchmark.yml'
   workflow_dispatch:
@@ -16,9 +17,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile benchmark harness
-        run: python -m py_compile script/benchmark_historical_projections.py
-      - name: Run deterministic benchmark regression test
-        run: python script/benchmark_historical_projections.py --self-test
+      - name: Compile benchmark harnesses
+        run: |
+          python -m py_compile script/benchmark_historical_projections.py
+          python -m py_compile script/benchmark_historical_projections_common_cohort.py
+      - name: Run deterministic benchmark regression tests
+        run: |
+          python script/benchmark_historical_projections.py --self-test
+          python script/benchmark_historical_projections_common_cohort.py --self-test
       - name: Validate source inventory JSON
         run: python -m json.tool data/model_validation/historical_projection_source_inventory.json > /dev/null
