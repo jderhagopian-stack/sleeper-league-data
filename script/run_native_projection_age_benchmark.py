@@ -22,7 +22,7 @@ from run_native_projection_nflverse_benchmark import (
 
 PLAYERS_URL = "https://github.com/nflverse/nflverse-data/releases/download/players/players.csv"
 AGE_FEATURES = ["age_available", "target_season_age", "target_season_age_sq", "career_year"]
-FEATURES = {p: list(BASE_FEATURES[p]) + AGE_FEATURES for p in POSITIONS}
+FEATURES = {p: list(BASE_FEATURES[p]) + (AGE_FEATURES if p == "TE" else []) for p in POSITIONS}
 
 
 def fval(value) -> float:
@@ -116,9 +116,9 @@ def evaluate(start_season: int, end_season: int, first_holdout: int) -> dict:
         }
     coverage = sum(int(r["age_available"]) for r in lagged) / len(lagged) if lagged else 0.0
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "status": "PASS",
-        "experiment": "position_specific_age_and_career_stage",
+        "experiment": "tight_end_age_and_career_stage_after_all_position_ablation",
         "aggregate": aggregate,
         "age_metadata_coverage": coverage,
         "governance": {
@@ -126,8 +126,9 @@ def evaluate(start_season: int, end_season: int, first_holdout: int) -> dict:
             "fantasy_points_used_as_target": False,
             "age_reference_date": "September 1 of target season",
             "metadata_fields": ["birth_date", "entry_year"],
-            "production_promoted": False,
-        },
+            "all_position_ablation_result": "QB gain trivial; RB and WR regressed; TE materially improved, so age features are retained only for TE in this challenger",
+            "production_promoted": False
+        }
     }
 
 
