@@ -127,11 +127,11 @@
       ],
       "parameter_family": "rank-tier elite premium/depth discount",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current hard-coded rank curve layered on external market values",
-      "validation": "Required: FSFFL completed-trade residuals versus frozen contemporaneous market values, tested out of sample",
-      "uncertainty": "risk of double counting scarcity/consolidation already embedded in the external market anchor",
-      "update_policy": "Estimate residual league-specific curve only if stable predictive improvement is demonstrated",
+      "status": "STRUCTURALLY_REMOVED_SAME_SOURCE_REPRICING",
+      "source": "FantasyCalc overall rank derived from the same external dynasty market anchor",
+      "validation": "No incremental use active. Reintroduction requires residual FSFFL transaction evidence with frozen contemporaneous market values and held-out improvement beyond the market anchor.",
+      "uncertainty": "Prior implementation risked double counting elite/depth pricing already embedded in the external market; the incremental rank curve is now inactive.",
+      "update_policy": "Keep inactive unless a versioned residual model demonstrates stable out-of-sample incremental value.",
       "downstream": [
         "asset values",
         "hold values",
@@ -139,7 +139,8 @@
         "recommendations"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Removed structurally; market rank may remain descriptive but does not reprice the anchor."
     },
     {
       "id": "MARKET-TIER-SCARCITY-001",
