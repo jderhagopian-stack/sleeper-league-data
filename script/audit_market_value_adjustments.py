@@ -104,7 +104,8 @@ def main() -> None:
     report = {
         "schema_version": "1.0",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": True,
+        "production_behavior_changed": False,
+        "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
             "same_source_rank_repricing_is_removed": True,
