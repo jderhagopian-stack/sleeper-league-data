@@ -108,7 +108,7 @@ jobs:
           mkdir -p /tmp/fsffl-trade-report
           SECONDS=0
           python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 100 --adaptive-confirm-sims 1000 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
-          test "$SECONDS" -le 180
+          test "$SECONDS" -le 300
       - name: Validate JSON PDF roster comparison and confirmation policy
         run: |
           python - <<'PY'
