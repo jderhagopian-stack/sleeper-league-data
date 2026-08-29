@@ -329,8 +329,8 @@ def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, t
     lineups = copy.deepcopy(baseline_lineups)
     by_uid, _ = roster_maps(hypothetical_rosters)
     reg_weeks = simmod.regular_season_weeks(league)
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
+    playoff_weeks = simmod.configured_playoff_weeks(league)
+    all_weeks = sorted(set(reg_weeks + playoff_weeks))
     reoptimized = []
     for uid in touched_uids:
         roster = by_uid.get(str(uid))
@@ -348,8 +348,7 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
     roster_dir = simmod.roster_directory(rosters, users)
     reg_weeks = simmod.regular_season_weeks(league)
     by_week, _ = simmod.build_schedule(raw_schedule, reg_weeks)
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
+    playoff_weeks = simmod.configured_playoff_weeks(league)
     playoff_teams = int((league.get("settings") or {}).get("playoff_teams") or 6)
 
     rng = random.Random(seed)
