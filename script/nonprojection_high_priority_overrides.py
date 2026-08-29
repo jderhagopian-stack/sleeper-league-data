@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""High-priority non-projection structural de-duplication.
+"""High-priority non-projection structural de-duplication and pick anchoring.
 
 This module intentionally changes only relationships that are structurally
-unsupported or duplicated. It does not calibrate new coefficients.
+unsupported or duplicated. It does not calibrate new hand-set coefficients.
 """
 from __future__ import annotations
+
+import json
+import statistics
+import urllib.request
+
+
+STATSGUY_API = "https://api.statsguyfantasy.com/api/v1"
+_STATS_GUY_CACHE = None
 
 
 def _sf(x, default=0.0):
@@ -18,6 +26,76 @@ def _clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
 
+def _statsguy_json(path):
+    req = urllib.request.Request(
+        STATSGUY_API + path,
+        headers={"User-Agent": "FSFFL-GM3-pick-anchor/1.0", "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=20) as response:
+        return json.load(response)
+
+
+def _statsguy_anchor(market, fallback):
+    """Return Stats Guy pick cells normalized onto the current player-value scale.
+
+    The normalization is inferred from the median FantasyCalc/Stats Guy value
+    ratio across overlapping Sleeper player IDs. This avoids inserting one
+    provider's raw pick points into another provider's player scale and does not
+    introduce a manually chosen conversion coefficient.
+    """
+    global _STATS_GUY_CACHE
+    if _STATS_GUY_CACHE is not None:
+        return _STATS_GUY_CACHE
+
+    try:
+        players_payload = _statsguy_json("/players")
+        picks_payload = _statsguy_json("/picks")
+        sg_players = {}
+        for row in players_payload.get("players") or []:
+            sid = str(row.get("id") or "")
+            value = _sf((row.get("value") or {}).get("sf_dynasty"))
+            if sid and value > 0:
+                sg_players[sid] = value
+
+        ratios = []
+        for row in market.get("dynasty") or []:
+            sid = str(row.get("sleeper_id") or "")
+            fc_value = _sf(row.get("value"))
+            sg_value = _sf(sg_players.get(sid))
+            if sid and fc_value > 0 and sg_value > 0:
+                ratios.append(fc_value / sg_value)
+
+        if not ratios:
+            raise RuntimeError("no overlapping player values for scale normalization")
+        scale = statistics.median(ratios)
+
+        detected = {}
+        for row in picks_payload.get("picks") or []:
+            try:
+                year = int(row.get("year"))
+                rnd = int(row.get("round"))
+            except (TypeError, ValueError):
+                continue
+            tier = str(row.get("variant") or "").lower()
+            if tier not in {"early", "mid", "late"}:
+                continue
+            value = _sf((row.get("value") or {}).get("sf_dynasty"))
+            if value > 0:
+                detected[(year, tier, rnd)] = value * scale
+
+        if not detected:
+            raise RuntimeError("Stats Guy returned no usable future-pick variants")
+
+        _STATS_GUY_CACHE = detected
+        return detected
+    except Exception as exc:
+        # Preserve current functionality if the external challenger is
+        # temporarily unavailable. The existing market-derived fallback remains
+        # the safe degradation path.
+        _STATS_GUY_CACHE = fallback
+        return fallback
+
+
 def install(engine):
     """Install de-duplication overrides on a loaded GM engine module.
 
@@ -29,7 +107,29 @@ def install(engine):
     applied = {
         "gm22_hold_premium_dedup": False,
         "own_pick_control_bonus_removed": False,
+        "statsguy_future_pick_anchor": False,
     }
+
+    # Replace only the future-pick market cells. Player values remain on the
+    # existing market source, while Stats Guy pick values are normalized to that
+    # scale using overlapping player IDs. This keeps player-vs-pick trade math
+    # coherent without changing projection logic or team-state logic.
+    original_infer_pick_values = getattr(engine, "infer_fc_pick_values", None)
+    if original_infer_pick_values is not None:
+        def infer_statsguy_pick_values(market):
+            fallback = original_infer_pick_values(market)
+            out = _statsguy_anchor(market, fallback)
+            engine.STATSGUY_PICK_ANCHOR_DIAGNOSTICS = {
+                "active": out is not fallback,
+                "source": "Stats Guy Fantasy /api/v1/picks",
+                "scale_normalization": "median overlapping player-value ratio",
+                "fallback_source": "existing FantasyCalc-derived pick map",
+                "manual_scale_coefficient": None,
+            }
+            return out
+
+        engine.infer_fc_pick_values = infer_statsguy_pick_values
+        applied["statsguy_future_pick_anchor"] = True
 
     # A pick's quality model already keys off the original franchise and its
     # projected finish. Merely being the original owner is not independent
@@ -120,7 +220,8 @@ def install(engine):
             "duplicate_optionality_liquidity_resilience_appreciation_adders_removed": True,
             "own_pick_control_bonus_incremental_value_authorized": False,
             "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
-            "new_coefficients_introduced": False,
+            "statsguy_future_pick_market_anchor": applied["statsguy_future_pick_anchor"],
+            "new_hand_set_coefficients_introduced": False,
         }
         return payload
 
