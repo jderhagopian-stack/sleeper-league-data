@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 SCRIPT=ROOT/"script"; DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.1"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.2"
 
 def read(name): return (SCRIPT/name).read_text(encoding="utf-8")
 def compact(s): return ''.join(str(s).split())
@@ -37,9 +37,10 @@ def main():
         'v23':uses_canonical_composer(v23),
     }
     shared_composer=all(composer_paths.values())
-    production_refresh_uses_v23=(
-        "run_trade_market_sweep_v23.py" in v30
-        and "recompute_negotiation_ranking" in v30
+    production_refresh_uses_shared=(
+        "negotiation_ranking.py" in v30
+        and "recompute_from_row" in v30
+        and "run_trade_market_sweep_v23.py" not in v30
     )
     diagnostic_retained=(
         '"owner_behavior_match_component"' in ranker
@@ -61,10 +62,11 @@ def main():
       },
       {
         "id":"FINAL-RANK-SOURCE-OF-TRUTH-001",
-        "severity":"INFO" if shared_composer and production_refresh_uses_v23 else "HIGH",
-        "status":"CANONICAL_COMPOSER" if shared_composer and production_refresh_uses_v23 else "MULTIPLE_FORMULAS_REMAIN",
-        "observation":"Legacy, state-aware and post-overlay ranking paths share the same negotiation_ranking.py composer for final strategic/acceptance weighting while retaining their path-specific strategic component construction. The audit normalizes source whitespace so formatting cannot create a false failure.",
+        "severity":"INFO" if shared_composer and production_refresh_uses_shared else "HIGH",
+        "status":"CANONICAL_COMPOSER" if shared_composer and production_refresh_uses_shared else "MULTIPLE_FORMULAS_REMAIN",
+        "observation":"Legacy and state-aware paths share the same negotiation_ranking.py composer, and the post-overlay production refresh now calls the version-neutral row-level helper directly rather than importing a superseded trade wrapper. Path-specific strategic construction is retained. The audit normalizes source whitespace so formatting cannot create a false failure.",
         "canonical_composer_by_path":composer_paths,
+        "production_post_overlay_refresh_uses_shared_helper":production_refresh_uses_shared,
       },
       {
         "id":"FINAL-RANK-EMPIRICAL-001",
@@ -84,13 +86,15 @@ def main():
         "deduplication_is_not_empirical_validation":True,
         "remaining_ranking_weights_remain_provisional":True,
         "source_formatting_cannot_determine_governance_pass_fail":True,
+        "production_refresh_should_use_version_neutral_shared_helper":True,
       },
       "summary":{
         "canonical_weights_detected":canonical_weights,
         "prior_strategic_acceptance_ratio_preserved":ratio_preserved,
         "shared_composer_used_by_v18_v20_v23":shared_composer,
         "canonical_composer_by_path":composer_paths,
-        "production_post_overlay_refresh_uses_v23":production_refresh_uses_v23,
+        "production_post_overlay_refresh_uses_v23":False,
+        "production_post_overlay_refresh_uses_shared_helper":production_refresh_uses_shared,
         "owner_behavior_diagnostic_retained":diagnostic_retained,
         "positive_duplicate_behavior_weight_detected":duplicate_positive_behavior_weight,
       },
@@ -99,6 +103,6 @@ def main():
     (OUT/"final_trade_ranking_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
     if not canonical_weights or not ratio_preserved: raise SystemExit("Canonical ranking weights do not implement exact structural de-duplication")
-    if not shared_composer or not production_refresh_uses_v23: raise SystemExit("Final negotiation ranking still has multiple weighting sources")
+    if not shared_composer or not production_refresh_uses_shared: raise SystemExit("Final negotiation ranking does not use the canonical shared source")
     if duplicate_positive_behavior_weight: raise SystemExit("Positive duplicate owner-behavior ranking weight remains")
 if __name__=="__main__": main()
