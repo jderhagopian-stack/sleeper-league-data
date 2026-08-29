@@ -25,6 +25,7 @@ import csv
 import io
 import json
 import sys
+import traceback
 import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -180,6 +181,7 @@ def run(start_season: int, end_season: int) -> dict:
 
     return {
         "schema_version": "1.0",
+        "status": "PASS",
         "source": {
             "provider": "nflverse/nflverse-data",
             "release": "player_stats",
@@ -206,10 +208,23 @@ def main() -> None:
     p.add_argument("--end-season", type=int, default=2025)
     p.add_argument("--output", type=Path, default=Path("data/model_validation/native_projection_nflverse_benchmark.json"))
     args = p.parse_args()
-    result = run(args.start_season, args.end_season)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
+    try:
+        result = run(args.start_season, args.end_season)
+        args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps({"status": "PASS", "summary": result["benchmark_summary"], "output": str(args.output)}, indent=2))
+    except Exception as exc:
+        failure = {
+            "schema_version": "1.0",
+            "status": "FAIL",
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+            "traceback": traceback.format_exc(),
+            "seasons_requested": [args.start_season, args.end_season],
+        }
+        args.output.write_text(json.dumps(failure, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(failure, indent=2), file=sys.stderr)
+        raise
 
 
 if __name__ == "__main__":
