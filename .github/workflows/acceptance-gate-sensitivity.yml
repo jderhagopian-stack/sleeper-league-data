@@ -1,0 +1,51 @@
+name: Acceptance Gate Sensitivity
+
+on:
+  pull_request:
+    paths:
+      - 'script/audit_acceptance_gate_sensitivity.py'
+      - 'script/run_trade_market_sweep_v16.py'
+      - 'script/run_trade_market_sweep_v18.py'
+      - 'script/run_trade_market_sweep_v21.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'data/model_parameter_registry.json'
+      - '.github/workflows/acceptance-gate-sensitivity.yml'
+  workflow_dispatch:
+
+jobs:
+  acceptance-ablation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile
+        run: python -m py_compile script/audit_acceptance_gate_sensitivity.py
+      - name: Run band-gate ablation
+        run: |
+          python script/audit_acceptance_gate_sensitivity.py \
+            --scenario data/decision_lab/full_validation_scenario.json \
+            --quick-sims 100 \
+            --search-depth 40 \
+            --output /tmp/acceptance-gate-sensitivity.json
+      - name: Validate interpretation
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/acceptance-gate-sensitivity.json'))
+          assert d['interpretation']['historical_validation'] is False
+          assert d['interpretation']['coefficient_tuning'] is False
+          assert d['interpretation']['acceptance_fit_is_probability'] is False
+          assert d['interpretation']['buyer_current_state_rationality_preserved'] is True
+          assert set(d['comparisons'])=={'production_high_medium','high_only','no_acceptance_band_gate'}
+          assert d['summary']['production_recommendation_empirically_authoritative'] is False
+          print(json.dumps(d['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-gate-sensitivity
+          path: /tmp/acceptance-gate-sensitivity.json
+          if-no-files-found: error
+          retention-days: 30
