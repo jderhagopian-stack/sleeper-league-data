@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Runner that attaches role features, fixes realized games, and throttles FFToday."""
+"""Runner that attaches role features, validates appearances, and throttles FFToday."""
 from __future__ import annotations
 
+import re
 import time
 import urllib.error
 from collections import defaultdict
@@ -14,6 +15,7 @@ _original_native_predictions = diagnostic.native_predictions
 _original_fetch_html = fftsrc.fetch_html
 _cache = {}
 _last_request_at = [0.0]
+PARTICIPATION_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_{season}.csv"
 
 
 def native_predictions_with_roles(rows, target_season, position):
@@ -24,19 +26,44 @@ def native_predictions_with_roles(rows, target_season, position):
     return _original_native_predictions(_cache[key], target_season, position)
 
 
-def corrected_classify_player_seasons(rows, seasons):
-    """Classify post-hoc shocks using actual weekly appearances for games played.
+def offensive_game_appearances(season: int):
+    """Count distinct games in which a player appeared on an offensive play.
 
-    The transformed annual benchmark rows do not expose target-season `games`
-    under that plain key. Counting regular-season weekly player-stat rows gives
-    the realized appearance count needed for the conservative >=3-missed-games
-    injury flag. This remains diagnostic-only and never enters model training.
+    nflverse participation explicitly lists offense_players by GSIS id on every
+    tracked play. This is a better post-hoc appearance measure than requiring a
+    box-score stat. It is never used as a preseason feature.
     """
+    rows = diagnostic.fetch_csv_url(PARTICIPATION_URL.format(season=season))
+    games = defaultdict(set)
+    for r in rows:
+        game_id = str(r.get("nflverse_game_id") or "").strip()
+        if not game_id:
+            continue
+        # nflverse game id is season_week_away_home. Regular-season weeks are
+        # represented numerically; participation files used here are regular +
+        # postseason, so restrict the diagnostic to weeks 1-18.
+        parts = game_id.split("_")
+        if len(parts) < 2:
+            continue
+        try:
+            week = int(parts[1])
+        except ValueError:
+            continue
+        if not (1 <= week <= 18):
+            continue
+        offense = str(r.get("offense_players") or "")
+        for pid in set(re.findall(r"00-\d+", offense)):
+            games[pid].add(game_id)
+    return {pid: len(gs) for pid, gs in games.items()}
+
+
+def corrected_classify_player_seasons(rows, seasons):
     result = {}
     for season in seasons:
         roles = diagnostic.opening_map(season)
         injuries = diagnostic.injury_map(season)
         weekly = diagnostic.weekly_opportunity(season)
+        participation_games = offensive_game_appearances(season)
         season_rows = [r for r in rows if int(r["season"]) == season]
         actual_by_pid = {str(r["player_id"]): r for r in season_rows}
 
@@ -49,7 +76,10 @@ def corrected_classify_player_seasons(rows, seasons):
             if pos not in diagnostic.POSITIONS:
                 continue
             role = roles.get((pid, pos))
-            games = float(len(weekly.get(pid, {})))
+            # Primary: actual offensive play participation. Conservative fallback
+            # to weekly stat appearances only when participation lacks the player.
+            games = float(participation_games.get(pid, len(weekly.get(pid, {}))))
+            game_count_source = "play_participation" if pid in participation_games else "weekly_stat_fallback"
             inj = injuries.get(pid, {"out_doubtful_weeks": set(), "injury_report_weeks": set()})
             out_weeks = set(inj["out_doubtful_weeks"])
             self_injury = bool(games <= 14.0 and len(out_weeks) >= 1)
@@ -80,6 +110,7 @@ def corrected_classify_player_seasons(rows, seasons):
             result[(season, pid)] = {
                 "position": pos,
                 "games": games,
+                "game_count_source": game_count_source,
                 "opening_team": role["team"] if role else "",
                 "opening_depth_rank": float(role["rank"]) if role else None,
                 "self_injury": self_injury,
