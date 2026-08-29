@@ -27,6 +27,7 @@ def main():
     trade_engine = text("trade_engine.py")
     v31 = text("run_trade_market_sweep_v31.py")
     option_governance = text("trade_option_governance.py")
+    roster_overlay = text("roster_interaction_overlay.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -39,8 +40,9 @@ def main():
     production_roster_aware = (
         "trade_engine.py" in report
         and "run_trade_market_sweep_v31.py" in trade_engine
-        and "run_trade_market_sweep_v30.py" in v31
-        and "run_trade_market_sweep_v29.py" in v30
+        and "run_trade_market_sweep_v29.py" in v31
+        and "roster_interaction_overlay.py" in v31
+        and "run_trade_market_sweep_v30.py" not in v31
         and "legalize_trade_rosters" in v13
         and "forced_cut" in v13
     )
@@ -110,9 +112,10 @@ def main():
     )
 
     post_overlay_ranking_refresh = (
-        "refresh_negotiation_ranking" in v30
-        and "recompute_negotiation_ranking" in v30
-        and "recommended_next_action_empirically_authoritative" in v30
+        "def refresh_negotiation_ranking" in roster_overlay
+        and "ranker.recompute_from_row" in roster_overlay
+        and "recommended_next_action_empirically_authoritative" in roster_overlay
+        and "overlay.apply_to_report(report, interaction, ranker)" in v31
     )
 
     threshold_free_option_governance = (
