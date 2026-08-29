@@ -48,8 +48,6 @@ def clamp(x, lo, hi):
 
 
 def band(score):
-    # Descriptive only until accepted/rejected opportunity data can calibrate
-    # these labels. They must not silently determine recommendation eligibility.
     return "HIGH" if score >= .68 else "MEDIUM" if score >= .48 else "LOW" if score >= .28 else "VERY_LOW"
 
 
@@ -59,7 +57,6 @@ def focal_current_state(row):
 
 
 def focal_state_beneficial(row):
-    """Normal/realistic candidates must help the focal team in its current state."""
     state = focal_current_state(row)
     post = sf(row.get("post_sim_score"))
     comps = row.get("state_aware_score_components") or {}
@@ -77,12 +74,6 @@ def focal_state_beneficial(row):
 
 
 def state_condition_behavior(row, br):
-    """Reweight static history by today's buyer objective.
-
-    This deliberately does not pretend historical manager behavior is timeless.
-    Until historical trades are labeled with reconstructed state-at-the-time,
-    current-state compatibility attenuates the aggregate historical adjustment.
-    """
     sig = dict(br.get("owner_behavior") or {})
     static_adj = sf(sig.get("adjustment"))
     base = sf(br.get("state_utility_acceptance_fit_score"), sf(br.get("heuristic_acceptance_fit_score"), .5) - static_adj)
@@ -175,9 +166,6 @@ def patch_v21_selectors(mod):
         return sorted(rows, key=lambda r: (sf((r.get("negotiation_ranking") or {}).get("score")), sf(r.get("post_sim_score"))), reverse=True)
 
     def normal(viable, swing):
-        # Preserve hard buyer-rationality/roster legality gates upstream and the
-        # focal-state benefit requirement here. Do not use uncalibrated
-        # HIGH/MEDIUM acceptance labels as a second eligibility veto.
         prepared = [r for r in prepare(list(viable)) if focal_state_beneficial(r)]
         selected = []
         counts = Counter()
@@ -205,6 +193,24 @@ def patch_v21_selectors(mod):
     mod.select_normal_four_strict = normal
     mod.select_swing_distinct = swing
     return mod
+
+
+def recompute_action_without_acceptance_band_gate(report):
+    """Recompute action from strategic/bilateral viability, not HIGH/MEDIUM labels."""
+    top = list(report.get("top_5_alternatives") or report.get("ranked_finalists") or [])
+    if not top:
+        return "DECLINE"
+
+    current = report.get("current_offer_evaluation") or {}
+    current_buyer_ok = bool((current.get("buyer_rationality") or {}).get("current_state_viable"))
+    current_focal_ok = focal_state_beneficial(current)
+    best = top[0]
+
+    if current_focal_ok and current_buyer_ok:
+        return "SHOP_BEFORE_ACCEPTING" if sf(best.get("post_sim_score")) > sf(current.get("post_sim_score")) + 750 else "ACCEPT_NOW"
+    if any(r.get("candidate_type") == "SAME_PARTNER_COUNTER" for r in top[:5]):
+        return "COUNTER_CURRENT_OFFEROR"
+    return "SHOP_BEFORE_ACCEPTING"
 
 
 def output_path_from_argv():
@@ -253,6 +259,8 @@ def main():
     if output and output.exists():
         report = json.loads(output.read_text(encoding="utf-8"))
         report["model_version"] = MODEL_VERSION
+        inherited_action = report.get("recommended_next_action")
+        report["recommended_next_action"] = recompute_action_without_acceptance_band_gate(report)
         report.setdefault("policy", {}).update({
             "competitive_state_treated_as_time_varying": True,
             "normal_recommendations_require_positive_focal_current_state_utility": True,
@@ -260,10 +268,16 @@ def main():
             "owner_behavior_conditioned_on_current_competitive_state": True,
             "historical_behavior_can_override_current_state_utility": False,
             "acceptance_band_is_authoritative_candidate_gate": False,
+            "acceptance_band_is_authoritative_action_gate": False,
+            "acceptance_band_is_ranking_signal_not_eligibility_gate": True,
             "acceptance_fit_used_as_negotiation_ranking_signal": True,
             "accepted_rejected_opportunity_denominator_available": False,
             "historical_state_at_trade_reconstruction_complete": False,
         })
+        report["acceptance_gate_action_audit"] = {
+            "inherited_pre_override_action": inherited_action,
+            "final_action_without_acceptance_band_gate": report.get("recommended_next_action"),
+        }
         report.setdefault("simulation", {})["execution_path"] = (
             "GM3_state_aware_plus_dynamic_current_state_focal_gate_plus_state_conditioned_owner_behavior_plus_"
             "bilateral_market_intelligence_plus_family_dedup_plus_multi_asset_search"
