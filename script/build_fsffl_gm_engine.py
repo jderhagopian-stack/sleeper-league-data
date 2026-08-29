@@ -1064,27 +1064,21 @@ def fsffl_league_value(
     manual=None,
 ):
     """
-    Full FSFFL league value:
-      market anchor
-      + league consolidation premium
+    Full league value:
+      external market anchor
       + independent recent performance
       + injuries / usage / snap trend / market momentum / qualitative intelligence
+
+    The prior rank-tier multiplier was removed because market rank is derived
+    from the same FantasyCalc market used as the base anchor. Repricing the
+    anchor from its own rank is duplicate evidence unless residual validation
+    demonstrates a stable league-specific effect.
     """
     base = safe_float(asset.get("market_dynasty"))
-    rank = asset.get("market_rank")
     if not base:
         return 0.0
 
-    if isinstance(rank, int) and rank <= 24:
-        mult = 1.04
-    elif isinstance(rank, int) and rank <= 60:
-        mult = 1.02
-    elif isinstance(rank, int) and rank > 180:
-        mult = 0.90
-    elif isinstance(rank, int) and rank > 120:
-        mult = 0.95
-    else:
-        mult = 1.0
+    mult = 1.0
 
     perf_adj = 0.0
     if performance is not None and baselines is not None:
