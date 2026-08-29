@@ -26,6 +26,7 @@ def main():
     roster_src=ROSTER_AWARE.read_text(encoding="utf-8")
     state_src=STATE_AWARE.read_text(encoding="utf-8")
     robust_src=ROBUST.read_text(encoding="utf-8")
+    robust_compact="".join(robust_src.split())
     cf_src=GM30_CF.read_text(encoding="utf-8")
     runner_src=GM30_RUNNER.read_text(encoding="utf-8")
     ready=load(READINESS,{}) or {}
@@ -48,7 +49,13 @@ def main():
     liquidity_secondary_adjustment='w = clamp(w + (liq - 0.5) * 0.08' in src
     dual_sources=legacy_runtime and strategic_runtime
 
-    robust_discovery=('"production_steep": [1.0, 0.78, 0.62, 0.50, 0.42]' in robust_src and '"shallow": [1.0, 0.92, 0.84, 0.78, 0.72]' in robust_src and '"neutral": [1.0, 1.0, 1.0, 1.0, 1.0]' in robust_src and '"single_package_curve_authoritative": False' in robust_src and '"robust_ranking_basis": "presence_then_minimax_rank_then_rank_sum"' in robust_src)
+    robust_discovery=(
+      '"production_steep":[1.0,0.78,0.62,0.50,0.42]' in robust_compact
+      and '"shallow":[1.0,0.92,0.84,0.78,0.72]' in robust_compact
+      and '"neutral":[1.0,1.0,1.0,1.0,1.0]' in robust_compact
+      and '"single_package_curve_authoritative":False' in robust_compact
+      and '"robust_ranking_basis":"presence_then_minimax_rank_then_rank_sum"' in robust_compact
+    )
     gm30_upstream_path=('original = gm30.core.build_universal_trade_opportunities' in cf_src and 'packages[:package_limit]' in cf_src and 'package_robustness.install(gm30.core)' in runner_src and 'counterfactual.install_counterfactual_trade_patch()' in runner_src)
 
     leverage=(baseline.get("summary") or {})
