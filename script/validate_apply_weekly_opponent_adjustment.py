@@ -201,7 +201,7 @@ def validate(scoring):
       "candidate_lambdas":list(LAMBDAS),"candidate_windows":list(WINDOWS),"grid":grid,"selection_by_position":test,
       "production_lambdas":selected_lambdas,"production_windows":selected_windows,
       "governance":{"target_season_results_used_as_features":False,
-                    "defense_signal_for_each_holdout":"prior completed season only",
+                    "defense_signal_for_each_holdout":"one-to-three completed seasons strictly before the target season",
                     "2026_defense_signal_source_season":"position-specific trailing window ending 2025",
                     "season_projection_total_preserved":True}}
 
@@ -240,7 +240,7 @@ def apply_current(season:int, scoring, scorecard=None):
         before=[]; after=[]
         for w,opp,m0 in active:
             wk=p["weeks"][str(w)]
-            old=float(wk.get("mean") or 0.0)
+            old=float(p.get("season_baseline_ppg") or wk.get("mean") or 0.0)
             mult=m0/norm
             mean=max(0.0,old*mult)
             cv=float(p.get("volatility_cv") or 0.0)
