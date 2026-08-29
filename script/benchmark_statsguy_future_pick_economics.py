@@ -33,13 +33,26 @@ HISTORICAL_PROBES = (
 )
 
 
-def _get_json(path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+def _request_json(method: str, path: str, *, params: dict[str, Any] | None = None, body: dict[str, Any] | None = None) -> dict[str, Any]:
     url = API + path
     if params:
         url += "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"User-Agent": "FSFFL-governance-audit/1.0"})
+    data = None
+    headers = {"User-Agent": "FSFFL-governance-audit/1.1"}
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.load(resp)
+
+
+def _get_json(path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    return _request_json("GET", path, params=params)
+
+
+def _post_json(path: str, body: dict[str, Any]) -> dict[str, Any]:
+    return _request_json("POST", path, body=body)
 
 
 def _num(x: Any) -> float | None:
@@ -66,7 +79,7 @@ def _fc_pick_map() -> dict[tuple[int, str, int], float]:
     for row in _extract_fc_rows():
         name = str(row.get("player") or row.get("name") or row.get("label") or "").strip()
         lower = name.lower()
-        if not name or "1st" not in lower and "2nd" not in lower and "3rd" not in lower:
+        if not name or ("1st" not in lower and "2nd" not in lower and "3rd" not in lower):
             continue
         year = next((y for y in YEARS if str(y) in name), None)
         if year is None:
@@ -87,24 +100,42 @@ def _fc_pick_map() -> dict[tuple[int, str, int], float]:
 
 
 def _statsguy_pick_map(payloads: dict[int, dict[str, Any]]) -> tuple[dict[tuple[int, str, int], float], dict[tuple[int, int], float]]:
+    """Parse documented Stats Guy pick cards.
+
+    Current /picks rows use structured IDs such as pick:2027:1:early and place
+    Superflex dynasty value under value.sf_dynasty. Variant is preferred when present,
+    with the ID used as a compatibility fallback.
+    """
     tiers: dict[tuple[int, str, int], float] = {}
     bases: dict[tuple[int, int], float] = {}
-    for year, payload in payloads.items():
+    for requested_year, payload in payloads.items():
         for row in payload.get("picks", []):
-            if int(row.get("year", 0) or 0) != year:
-                continue
+            rid = str(row.get("id") or "")
+            parts = rid.split(":") if rid.startswith("pick:") else []
+            year = int(row.get("year", 0) or 0)
             rnd = int(row.get("round", 0) or 0)
-            if rnd not in ROUNDS:
+            if (not year or not rnd) and len(parts) >= 3:
+                try:
+                    year = year or int(parts[1])
+                    rnd = rnd or int(float(parts[2]))
+                except (TypeError, ValueError):
+                    pass
+            if year != requested_year or rnd not in ROUNDS:
                 continue
             value_obj = row.get("value", {})
             value = _num(value_obj.get("sf_dynasty") if isinstance(value_obj, dict) else None)
             if value is None or value <= 0:
                 continue
-            variant = row.get("variant")
+            variant = str(row.get("variant") or "").lower()
+            if not variant and len(parts) >= 4 and parts[3] in {"early", "mid", "late"}:
+                variant = parts[3]
             if variant in {"early", "mid", "late"}:
-                tiers[(year, str(variant), rnd)] = value
-            elif row.get("slot") in (None, ""):
-                bases[(year, rnd)] = value
+                tiers[(year, variant, rnd)] = value
+            else:
+                # Round-only generic pick IDs are pick:YYYY:R; slot-specific IDs contain a decimal.
+                generic_id = len(parts) == 3 and "." not in parts[2]
+                if generic_id or row.get("slot") in (None, ""):
+                    bases[(year, rnd)] = value
     return tiers, bases
 
 
@@ -158,30 +189,73 @@ def _flatten_shape(shape: dict[str, dict[str, float]]) -> dict[str, float]:
     return {f"{k}:{metric}": value for k, row in shape.items() for metric, value in row.items()}
 
 
-def _historical_probe() -> dict[str, Any]:
-    """Probe whether dated pick history is actually exposed by the public API.
+def _historical_eval_snapshot(d: str) -> dict[str, Any]:
+    """Request historical pick values through the documented retro-trade endpoint."""
+    ids = []
+    for y in YEARS:
+        for r in ROUNDS:
+            ids.extend([f"pick:{y}:{r}:early", f"pick:{y}:{r}:mid", f"pick:{y}:{r}:late", f"pick:{y}:{r}"])
+    payload = _post_json("/trades/evaluate", {
+        "format": "sf_dynasty",
+        "date": d,
+        "sideA": ids[:18],
+        "sideB": ids[18:],
+    })
+    assets = list(payload.get("sideA", {}).get("assets", [])) + list(payload.get("sideB", {}).get("assets", []))
+    tiers: dict[tuple[int, str, int], float] = {}
+    bases: dict[tuple[int, int], float] = {}
+    as_of_dates: set[str] = set()
+    found = 0
+    for asset in assets:
+        if not asset.get("found"):
+            continue
+        found += 1
+        aid = str(asset.get("id") or "")
+        value = _num(asset.get("value"))
+        stamp = asset.get("asOf") or payload.get("asOf")
+        if stamp:
+            as_of_dates.add(str(stamp)[:10])
+        if value is None or value <= 0 or not aid.startswith("pick:"):
+            continue
+        parts = aid.split(":")
+        if len(parts) < 3:
+            continue
+        try:
+            y = int(parts[1])
+            r = int(float(parts[2]))
+        except (TypeError, ValueError):
+            continue
+        if y not in YEARS or r not in ROUNDS:
+            continue
+        if len(parts) >= 4 and parts[3] in {"early", "mid", "late"}:
+            tiers[(y, parts[3], r)] = value
+        elif "." not in parts[2]:
+            bases[(y, r)] = value
+    return {
+        "requested": d,
+        "found_assets": found,
+        "as_of_dates": sorted(as_of_dates),
+        "tier_shape": _tier_shape(tiers),
+        "time_curve": _time_curve_from_bases(bases, tiers),
+    }
 
-    The docs guarantee dated ranking snapshots, but the /picks endpoint documents only
-    a year filter. We do not assume undocumented date behavior: we test it and record
-    whether the returned as-of timestamp actually moves into the requested historical
-    window. If not, historical pick-shape calibration remains unavailable through this
-    endpoint and no authoritative temporal claim is made.
-    """
+
+def _historical_probe() -> dict[str, Any]:
     results = []
     for d in HISTORICAL_PROBES:
         try:
-            payload = _get_json("/picks", {"year": 2027, "date": d})
-            stamp = payload.get("asOf") or (payload.get("valuesAsOf") or {}).get("sf_dynasty")
-            historical_honored = bool(stamp and str(stamp)[:10] <= d)
-            results.append({"requested": d, "returned_as_of": stamp, "date_parameter_honored": historical_honored})
-        except Exception as exc:  # audit should report API capability, not crash on an undocumented parameter
+            snap = _historical_eval_snapshot(d)
+            honored = bool(snap["found_assets"] and snap["as_of_dates"] and max(snap["as_of_dates"]) <= d)
+            snap["date_parameter_honored"] = honored
+            results.append(snap)
+        except Exception as exc:
             results.append({"requested": d, "error": f"{type(exc).__name__}: {exc}", "date_parameter_honored": False})
-    honored = [r for r in results if r.get("date_parameter_honored")]
+    usable = [r for r in results if r.get("date_parameter_honored") and (r.get("tier_shape") or r.get("time_curve"))]
     return {
-        "endpoint": "/picks",
+        "endpoint": "/trades/evaluate",
         "probes": results,
-        "historical_pick_snapshots_confirmed": len(honored) >= 2,
-        "authoritative_temporal_stability_claim_allowed": len(honored) >= 2,
+        "historical_pick_snapshots_confirmed": len(usable) >= 2,
+        "authoritative_temporal_stability_claim_allowed": len(usable) >= 2,
     }
 
 
@@ -200,14 +274,14 @@ def main() -> int:
     history = _historical_probe()
 
     payload = {
-        "model_version": "FSFFL-StatsGuy-Future-Pick-Benchmark-1.0",
+        "model_version": "FSFFL-StatsGuy-Future-Pick-Benchmark-1.1",
         "generated_utc": date.today().isoformat(),
         "purpose": "Commercially permissible challenger benchmark; not a production replacement authorization.",
         "projection_behavior_changed": False,
         "production_model_behavior_changed": False,
         "source": {
             "name": "Stats Guy Fantasy",
-            "endpoint": "/api/v1/picks",
+            "endpoint": "/api/v1/picks plus /api/v1/trades/evaluate for dated history",
             "format": "sf_dynasty",
             "commercial_use": "allowed_with_conditions_per_provider_terms",
             "provider_method": "trade-derived values; future variants use market-informed pick shape",
