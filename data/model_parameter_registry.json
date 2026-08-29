@@ -21,21 +21,39 @@
     {
       "id": "LEAGUE-RULES-001",
       "component": "FSFFL league/scoring structure",
-      "paths": ["script/build_fsffl_scoring_baseline.py", "script/build_fsffl_season_simulator.py"],
-      "parameter_family": "team count, roster size, half-PPR scoring, rookie-draft rounds and lineup constraints",
+      "paths": [
+        "script/build_fsffl_scoring_baseline.py",
+        "script/build_fsffl_season_simulator.py",
+        "script/league_rules.py",
+        "script/audit_league_configuration.py",
+        "script/audit_playoff_rules.py"
+      ],
+      "parameter_family": "team count, active roster size, scoring, draft rounds, lineup/FLEX/Superflex/K/DST eligibility, playoff team count/start, division seeding and standard 4/6/8 bracket structure",
       "evidence_tier": "RULE_DEFINED",
       "status": "GOVERNED",
-      "source": "FSFFL league configuration and NFL rules",
-      "validation": "Configuration/rule consistency checks",
+      "source": "Synced Sleeper league and roster configuration plus Sleeper-defined standard playoff/division rules",
+      "validation": "Configuration consistency plus synthetic portability regressions for alternate team counts, lineups, draft rounds and 4/6/8-team playoff structures",
       "uncertainty": "none for correctly encoded rules",
-      "update_policy": "Update only when league/NFL rules change",
-      "downstream": ["projections", "simulator", "roster legality", "draft logic"],
-      "authoritative_use": true
+      "update_policy": "Update from synced league settings for encoded rules; verify external semantics before enabling undocumented or nonstandard playoff round codes.",
+      "downstream": [
+        "scoring",
+        "simulator",
+        "roster legality",
+        "draft logic",
+        "playoff probability",
+        "championship probability",
+        "trade simulation"
+      ],
+      "authoritative_use": true,
+      "notes": "FSFFL remains the regression league, not the architecture. The future-pick planning horizon is separately treated as provisional runtime scope."
     },
     {
       "id": "PROJECTION-MEAN-001",
       "component": "Season scoring projection mean",
-      "paths": ["script/build_fsffl_scoring_baseline.py", "script/build_fsffl_weekly_projections.py"],
+      "paths": [
+        "script/build_fsffl_scoring_baseline.py",
+        "script/build_fsffl_weekly_projections.py"
+      ],
       "parameter_family": "player scoring means and source weights",
       "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
       "status": "REQUIRES_CALIBRATION",
@@ -43,13 +61,22 @@
       "validation": "Required: rolling historical out-of-sample source/ensemble accuracy by position and horizon",
       "uncertainty": "Not yet demonstrated for projection mean layer",
       "update_policy": "Re-estimate source weights when new completed-season/week evidence is available; promote only on holdout improvement",
-      "downstream": ["expected points", "wins", "playoff odds", "championship odds", "trade decisions"],
+      "downstream": [
+        "expected points",
+        "wins",
+        "playoff odds",
+        "championship odds",
+        "trade decisions"
+      ],
       "authoritative_use": false
     },
     {
       "id": "PROJECTION-UNCERTAINTY-001",
       "component": "Weekly/season projection uncertainty",
-      "paths": ["script/build_fsffl_weekly_projections.py", "script/build_fsffl_season_simulator.py"],
+      "paths": [
+        "script/build_fsffl_weekly_projections.py",
+        "script/build_fsffl_season_simulator.py"
+      ],
       "parameter_family": "variance, availability and outcome-distribution assumptions",
       "evidence_tier": "RESEARCH_SUPPORTED_PROXY",
       "status": "MIXED_PROXY_HEURISTIC_REQUIRES_CALIBRATION",
@@ -57,14 +84,23 @@
       "validation": "Required: archived forecast residual calibration/coverage tests by position and forecast horizon; realized-score dispersion alone is not forecast-error validation",
       "uncertainty": "Material: cross-player/outcome dispersion is not equivalent to conditional forecast residual variance",
       "update_policy": "Replace proxy dispersion with versioned residual-based estimates when archived forecasts exist; challenger must improve held-out distributional calibration",
-      "downstream": ["simulation distributions", "win probability", "playoff probability", "title probability"],
+      "downstream": [
+        "simulation distributions",
+        "win probability",
+        "playoff probability",
+        "title probability"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "STATE-WEIGHTS-001",
       "component": "Franchise-state weighting",
-      "paths": ["script/gm_state_weighting.py", "script/calibrate_gm_state_weights.py", "data/gm/state_weight_calibration.json"],
+      "paths": [
+        "script/gm_state_weighting.py",
+        "script/calibrate_gm_state_weights.py",
+        "data/gm/state_weight_calibration.json"
+      ],
       "parameter_family": "current production, future value, liquidity and resilience weights",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "EXPLICIT_EXPERT_PRIOR_UNVALIDATED_ACTIVE",
@@ -72,29 +108,45 @@
       "validation": "Required: real versioned training artifact plus temporal/holdout validation and sensitivity analysis",
       "uncertainty": "high until a historical training artifact demonstrates out-of-sample improvement over the expert prior",
       "update_policy": "Replace or promote the expert prior only with versioned calibration that improves appropriate holdout performance",
-      "downstream": ["GM valuation", "trade ranking", "team improvement", "roster decisions"],
+      "downstream": [
+        "GM valuation",
+        "trade ranking",
+        "team improvement",
+        "roster decisions"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "CONSOLIDATION-PREMIUM-001",
       "component": "League-wide market curve adjustment",
-      "paths": ["script/build_fsffl_gm_engine.py"],
+      "paths": [
+        "script/build_fsffl_gm_engine.py"
+      ],
       "parameter_family": "rank-tier elite premium/depth discount",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current hard-coded rank curve layered on external market values",
-      "validation": "Required: FSFFL completed-trade residuals versus frozen contemporaneous market values, tested out of sample",
-      "uncertainty": "risk of double counting scarcity/consolidation already embedded in the external market anchor",
-      "update_policy": "Estimate residual league-specific curve only if stable predictive improvement is demonstrated",
-      "downstream": ["asset values", "hold values", "trade packages", "recommendations"],
+      "status": "STRUCTURALLY_REMOVED_SAME_SOURCE_REPRICING",
+      "source": "FantasyCalc overall rank derived from the same external dynasty market anchor",
+      "validation": "No incremental use active. Reintroduction requires frozen contemporaneous market values and held-out residual improvement beyond the market anchor.",
+      "uncertainty": "Prior implementation re-priced the external market from its own rank and risked double counting elite/depth pricing; the incremental rank curve is now inactive.",
+      "update_policy": "Keep inactive unless a versioned residual model demonstrates stable out-of-sample incremental value.",
+      "downstream": [
+        "asset values",
+        "hold values",
+        "trade packages",
+        "recommendations"
+      ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Market rank may remain descriptive but does not reprice the anchor."
     },
     {
       "id": "GM22-CONFIG-001",
       "component": "Strategic valuation adjustments inherited by GM 3.0",
-      "paths": ["script/build_fsffl_gm_engine.py", "script/build_fsffl_gm30.py"],
+      "paths": [
+        "script/build_fsffl_gm_engine.py",
+        "script/build_fsffl_gm30.py"
+      ],
       "parameter_family": "need, preference, window, endowment, starter/depth, performance, usage, injury and utility adjustments",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "HEURISTIC_ACTIVE",
@@ -102,14 +154,21 @@
       "validation": "Required: family-by-family ablation and held-out prediction/decision testing",
       "uncertainty": "unknown incremental value; correlated inputs may double count",
       "update_policy": "Shrink/remove families lacking incremental validation; recalibrate surviving families from versioned evidence",
-      "downstream": ["GM 3.0", "hold values", "seller utility", "trade recommendations"],
+      "downstream": [
+        "GM 3.0",
+        "hold values",
+        "seller utility",
+        "trade recommendations"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "MARKET-MOMENTUM-001",
       "component": "Market momentum adjustment",
-      "paths": ["script/build_fsffl_gm_engine.py"],
+      "paths": [
+        "script/build_fsffl_gm_engine.py"
+      ],
       "parameter_family": "30-day external market trend layered onto current external dynasty market value",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "POTENTIAL_MARKET_SIGNAL_REUSE",
@@ -117,44 +176,70 @@
       "validation": "Required: time-ordered residual test showing that the trend adjustment improves future FSFFL-relevant value or decision accuracy beyond the current market anchor alone",
       "uncertainty": "current market value may already incorporate the information that created the recent price move",
       "update_policy": "Retain only if incremental held-out value over the current market anchor is demonstrated; otherwise remove the second market-on-market adjustment",
-      "downstream": ["base franchise value", "GM profiles", "trade rankings"],
+      "downstream": [
+        "base franchise value",
+        "GM profiles",
+        "trade rankings"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "PICK-MODEL-001",
       "component": "Future-pick valuation and pick-quality model",
-      "paths": ["script/build_fsffl_gm_engine.py", "script/build_fsffl_gm30.py", "data/pick_quality_model.json"],
+      "paths": [
+        "script/build_fsffl_gm_engine.py",
+        "script/build_fsffl_gm30.py",
+        "data/pick_quality_model.json"
+      ],
       "parameter_family": "future discount, tier multipliers, pick-slot scenarios, uncertainty growth and own-pick control",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current external dynasty pick anchors plus hard-coded GM 3.0 pick economics and scenario formulas",
-      "validation": "Required: temporally comparable FSFFL rookie-draft outcomes and contemporaneous dynasty-market backtest; separate expected-player-value uncertainty from market/optionality pricing",
-      "uncertainty": "material for future-heavy trades; future horizon currently does not independently broaden tier uncertainty while uncertainty can raise optionality",
-      "update_policy": "Annual versioned recalibration after rookie-draft and season outcomes; promote only on holdout improvement",
-      "downstream": ["asset value", "trade value", "rebuild/contender state", "alternate history"],
+      "status": "HEURISTIC_ACTIVE_UNCERTAINTY_VALUE_BONUS_REMOVED",
+      "source": "Current external dynasty pick anchors plus provisional pick-quality/scenario/liquidity transforms; forecast uncertainty is diagnostic and no longer directly rewarded as option value",
+      "validation": "Required: temporally comparable rookie-draft outcomes and contemporaneous dynasty-market backtest; separately identify expected player value, positive skew, market liquidity and forecast uncertainty.",
+      "uncertainty": "Material for future-heavy trades. Forecast uncertainty no longer creates positive value by construction; quality, liquidity, own-pick control and fallback curves remain provisional.",
+      "update_policy": "Keep forecast uncertainty diagnostic-only unless time-ordered evidence separately identifies an uncertainty/skew premium; recalibrate remaining transforms only on valid historical evidence.",
+      "downstream": [
+        "asset value",
+        "trade value",
+        "rebuild/contender state",
+        "alternate history"
+      ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Removed the prior +0.18*uncertainty optionality bonus; this is structural correction, not calibration."
     },
     {
       "id": "PACKAGE-ECON-001",
       "component": "Multi-asset package economics",
-      "paths": ["script/build_fsffl_gm_engine.py", "script/roster_aware_trade.py"],
+      "paths": [
+        "script/build_fsffl_gm_engine.py",
+        "script/roster_aware_trade.py"
+      ],
       "parameter_family": "effective value weights for second/third assets, roster-slot drag, replacement relief and consolidation effects",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current hard-coded package weights and portfolio adjustments",
-      "validation": "Required: estimate residual package economics from FSFFL completed trades with frozen contemporaneous value snapshots; broader dynasty transaction evidence is fallback only and must validate mapping",
-      "uncertainty": "high leverage in 2-for-1 and 3-for-1 deals; completed trade geometry alone cannot identify the discount",
-      "update_policy": "Version and refit as transaction/value-snapshot sample grows; promotion requires held-out transaction fit improvement",
-      "downstream": ["trade valuation", "consolidation recommendations", "seller acceptance"],
+      "status": "HEURISTIC_CURVES_ACTIVE_GENERIC_SLOT_COST_REMOVED",
+      "source": "High-recall package prescreen plus GM2.2 nonlinear package curve; exact roster legalization supplies actual forced-cut cost",
+      "validation": "Required: package-economics residual validation from frozen contemporaneous value snapshots. Generic slot penalty remains inactive because actual cut burden is modeled directly.",
+      "uncertainty": "Consolidation/package weights and liquidity adjustment remain uncalibrated; generic roster-slot double counting has been structurally removed.",
+      "update_policy": "Keep exact roster-cut cost canonical; calibrate nonlinear package economics only on valid held-out transaction evidence.",
+      "downstream": [
+        "trade valuation",
+        "candidate discovery",
+        "consolidation recommendations",
+        "seller acceptance",
+        "post-trade roster"
+      ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "The former 3.5% extra-asset slot penalty is zero because forced cuts are explicitly legalized and valued downstream."
     },
     {
       "id": "ROSTER-CUT-001",
       "component": "Automatic roster-cut selection",
-      "paths": ["script/roster_aware_trade.py"],
+      "paths": [
+        "script/roster_aware_trade.py"
+      ],
       "parameter_family": "retention-cost weights and starter/core multipliers",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "HEURISTIC_ACTIVE_SEARCH_ACCELERATOR",
@@ -162,14 +247,21 @@
       "validation": "Required: compare heuristic cut choice to exhaustive/top-k post-cut roster optimization",
       "uncertainty": "can change simulated roster and verdict when a trade forces cuts",
       "update_policy": "Prefer exact/top-k resolution where computationally feasible; recalibrate only if heuristic remains necessary",
-      "downstream": ["post-trade roster", "lineup simulation", "franchise value", "trade verdict"],
+      "downstream": [
+        "post-trade roster",
+        "lineup simulation",
+        "franchise value",
+        "trade verdict"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "ROSTER-INTERACTION-001",
       "component": "Roster/backfield interaction value",
-      "paths": ["script/roster_interaction.py"],
+      "paths": [
+        "script/roster_interaction.py"
+      ],
       "parameter_family": "pair insurance, capture scale, portfolio adjustment and acceptance-fit shift",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "BOUNDED_HEURISTIC_ACTIVE",
@@ -177,14 +269,22 @@
       "validation": "Required: historical lineup-availability and/or simulated replacement-outcome estimation",
       "uncertainty": "bounded but uncalibrated",
       "update_policy": "Retain as qualified functionality while bounded; replace with versioned empirical estimates when validated",
-      "downstream": ["franchise value", "roster fit", "acceptance likelihood"],
+      "downstream": [
+        "franchise value",
+        "roster fit",
+        "acceptance likelihood"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "BEHAVIOR-001",
       "component": "Behavioral Intelligence 3.0",
-      "paths": ["script/behavioral_intelligence_v3.py", "script/build_behavioral_action_context.py", "script/run_trade_market_sweep_v26.py"],
+      "paths": [
+        "script/behavioral_intelligence_v3.py",
+        "script/build_behavioral_action_context.py",
+        "script/run_trade_market_sweep_v26.py"
+      ],
       "parameter_family": "source weights, smoothing, positional preference blend, residual scaling and confidence curve",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "BOUNDED_SECONDARY_HEURISTIC_ACTIVE",
@@ -192,14 +292,23 @@
       "validation": "Required: time-ordered held-out manager-action prediction versus simple baselines plus family ablations",
       "uncertainty": "manager samples are sparse/non-stationary; structural leakage tests do not establish predictive validity",
       "update_policy": "Re-estimate on new manager actions with recency-aware validation; only promote if held-out ranking/log-loss improves",
-      "downstream": ["owner preferences", "seller acceptance", "target realism"],
+      "downstream": [
+        "owner preferences",
+        "seller acceptance",
+        "target realism"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "ACCEPTANCE-GATE-001",
       "component": "Counterparty rationality and acceptance-fit gate",
-      "paths": ["script/run_trade_market_sweep_v15.py", "script/run_trade_market_sweep_v16.py", "script/run_trade_market_sweep_v26.py", "script/roster_interaction.py"],
+      "paths": [
+        "script/run_trade_market_sweep_v15.py",
+        "script/run_trade_market_sweep_v16.py",
+        "script/run_trade_market_sweep_v26.py",
+        "script/roster_interaction.py"
+      ],
       "parameter_family": "state-specific title/value floors, fit-score coefficients, HIGH/MEDIUM/LOW bands and behavioral/roster-fit shifts",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "HIGH_LEVERAGE_HEURISTIC_ACTIVE",
@@ -207,29 +316,41 @@
       "validation": "Required: sensitivity of Top-5/action decisions plus time-ordered prediction on a defensible accepted/rejected or choice-opportunity target",
       "uncertainty": "high leverage because heuristic bands gate realistic Top-5 inclusion and recommended negotiation action",
       "update_policy": "Preserve as qualified bilateral-plausibility functionality; calibrate only when a valid denominator/choice target exists and promote only on held-out improvement",
-      "downstream": ["candidate eligibility", "realistic Top 5", "recommended negotiation action"],
+      "downstream": [
+        "candidate eligibility",
+        "realistic Top 5",
+        "recommended negotiation action"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "TRADE-PRESCREEN-001",
       "component": "Trade discovery/plausibility prescreen",
-      "paths": ["script/run_trade_market_sweep.py", "script/run_trade_market_sweep_v30.py"],
+      "paths": [
+        "script/run_trade_market_sweep.py",
+        "script/run_trade_market_sweep_v30.py"
+      ],
       "parameter_family": "package limits, plausibility thresholds, value-ratio bands, protected-asset penalties, need bonuses and top-N pools",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE",
-      "source": "Current search heuristics",
-      "validation": "Required: recall against exhaustive search on tractable historical/test universes",
-      "uncertainty": "false negatives can be invisible downstream",
-      "update_policy": "Tune for high recall first; version thresholds and require recall non-regression",
-      "downstream": ["candidate trade universe", "deep simulation coverage"],
+      "status": "FULL_POOL_DISCOVERY_ACTIVE_HEURISTIC_SCORING_REMAINS",
+      "source": "Full owned tradeable asset pool; production pre-screen scoring and plausibility heuristics remain provisional",
+      "validation": "Full-pool discovery regression shows complete Top-K recall versus expanded enumeration in the governed case; scoring/plausibility thresholds still require historical/tractable-universe validation.",
+      "uncertainty": "Lossy top-10-player/top-8-pick caps have been removed; false negatives may still arise from package-generation or plausibility heuristics.",
+      "update_policy": "Preserve full-pool recall; optimize computation without reintroducing lossy asset-rank caps. Calibrate remaining thresholds only on held-out evidence.",
+      "downstream": [
+        "candidate trade universe",
+        "deep simulation coverage"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "DECISION-GATES-001",
       "component": "Roster Decision Lab recommendation bands",
-      "paths": ["script/run_roster_decision_lab.py"],
+      "paths": [
+        "script/run_roster_decision_lab.py"
+      ],
       "parameter_family": "championship-probability and value thresholds for accept/lean/reject",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "LEGACY_HEURISTIC_ACTIVE_NONCANONICAL_PATH",
@@ -237,14 +358,19 @@
       "validation": "Required: simulation-error-aware calibration and historical decision/outcome testing",
       "uncertainty": "threshold width may be smaller than simulation/model uncertainty; production trade report uses the newer market-sweep chain",
       "update_policy": "Do not promote legacy bands; prefer canonical confidence-aware utility shared across production decision modules",
-      "downstream": ["legacy accept/lean/reject recommendation"],
+      "downstream": [
+        "legacy accept/lean/reject recommendation"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "TEAM-IMPROVEMENT-001",
       "component": "Team Improvement Lab ranking",
-      "paths": ["script/run_team_improvement_lab.py", "script/run_team_improvement_lab_v13.py"],
+      "paths": [
+        "script/run_team_improvement_lab.py",
+        "script/run_team_improvement_lab_v13.py"
+      ],
       "parameter_family": "state weights, diminishing returns and guardrails",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "SAFER_PROVISIONAL_NOT_VALIDATED",
@@ -252,29 +378,43 @@
       "validation": "Required: historical recommendation ranking backtest and parameter-stability analysis",
       "uncertainty": "composite ordering may be sensitive despite correct raw simulations",
       "update_policy": "Move toward canonical calibrated utility shared across decision modules",
-      "downstream": ["ranked team-improvement opportunities"],
+      "downstream": [
+        "ranked team-improvement opportunities"
+      ],
       "authoritative_use": false,
       "bounds_required": true
     },
     {
       "id": "TRADE-SCORE-001",
       "component": "Trade Market Sweep post-simulation ranking",
-      "paths": ["script/run_trade_market_sweep_v20.py", "script/run_trade_market_sweep_v30.py", "script/decision_lab_state_aware.py"],
-      "parameter_family": "current utility, dynasty, break-glass, liquidity, strategic composite, optionality, plausibility and competitive-externality multipliers",
+      "paths": [
+        "script/run_trade_market_sweep_v20.py",
+        "script/run_trade_market_sweep_v30.py",
+        "script/decision_lab_state_aware.py"
+      ],
+      "parameter_family": "simulated current utility, dynasty market delta, optionality, liquidity, direct roster-replacement resilience, plausibility and competitive-externality multipliers",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE_ABLATION_REQUIRED",
-      "source": "Current hard-coded state-aware post-simulation utility function",
-      "validation": "Required: canonical utility calibration, historical ranking backtest, coefficient sensitivity, and explicit ablation of strategic/dynasty/break-glass/liquidity overlap",
-      "uncertainty": "high leverage; strategic_value_delta is a GM composite that reuses value families also represented separately in the final score",
-      "update_policy": "Replace with versioned canonical utility only after validation; expose raw tradeoffs and sensitivity in the meantime",
-      "downstream": ["trade ranking", "negotiation ranking", "recommended targets"],
+      "status": "PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL",
+      "source": "State-aware post-simulation utility using direct/primitive channels; strategic and break-glass composites retained for diagnostics only",
+      "validation": "Required: historical ranking/choice backtest and coefficient sensitivity on temporally valid evidence. Structural overlap is removed, but surviving scale/weight constants remain uncalibrated.",
+      "uncertainty": "High leverage remains because current/future/liquidity/resilience scaling constants are provisional, although nested strategic/break-glass double counting has been structurally removed.",
+      "update_policy": "Keep composite channels diagnostic-only; calibrate surviving primitive-channel coefficients only with defensible time-ordered out-of-sample evidence.",
+      "downstream": [
+        "trade ranking",
+        "negotiation ranking",
+        "recommended targets"
+      ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Grouped ablation showed the prior overlapping channels could change the top candidate when removed together."
     },
     {
       "id": "WHAT-IF-001",
       "component": "What If / Alternate History",
-      "paths": ["script/alternate_history.py", "script/alternate_history_publish.py"],
+      "paths": [
+        "script/alternate_history.py",
+        "script/alternate_history_publish.py"
+      ],
       "parameter_family": "counterfactual branch probabilities and decision policies",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "PRESERVE_WITH_QUALIFICATION",
@@ -282,9 +422,38 @@
       "validation": "Validate factual inputs, no-hindsight information firewall, deterministic mechanics, sensitivity and probability calibration where observable; unknowable branches remain explicitly modeled inference",
       "uncertainty": "structural/counterfactual uncertainty cannot be eliminated",
       "update_policy": "Preserve functionality; improve evidence and calibration as historical analogues/data expand; never relabel modeled branches as historical fact",
-      "downstream": ["alternate-history narratives", "counterfactual standings", "draft/trade branches"],
+      "downstream": [
+        "alternate-history narratives",
+        "counterfactual standings",
+        "draft/trade branches"
+      ],
       "authoritative_use": false,
       "bounds_required": true
+    },
+    {
+      "id": "MARKET-TIER-SCARCITY-001",
+      "component": "Market-tier scarcity versus roster replacement value",
+      "paths": [
+        "script/build_fsffl_gm_engine.py",
+        "script/audit_scarcity_replacement_dedup.py"
+      ],
+      "parameter_family": "market-value percentile/tier-gap signal, roster-specific lineup replacement drop, and any incremental scarcity premium",
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "MARKET_TIER_DIAGNOSTIC_ONLY_REPLACEMENT_EVIDENCE_ACTIVE",
+      "source": "FantasyCalc dynasty values for descriptive market tier; current roster and legal-lineup reoptimization for replacement sensitivity",
+      "validation": "Market-tier signal may remain descriptive, but incremental price/utility effect requires held-out residual evidence beyond the external market anchor. Roster replacement sensitivity is recomputed from the current legal roster.",
+      "uncertainty": "Market prices already embed positional scarcity, so market percentile/tier gaps can double count if rewarded again. Replacement sensitivity is current-roster evidence, not an injury probability or long-run WAR estimate.",
+      "update_policy": "Keep market-tier scarcity diagnostic-only unless incremental validation succeeds; preserve roster-specific replacement calculations.",
+      "downstream": [
+        "strategic asset profiles",
+        "hold premiums",
+        "trade elasticity",
+        "liquidity proxy",
+        "trade recommendations"
+      ],
+      "authoritative_use": false,
+      "bounds_required": true,
+      "notes": "Structural de-duplication removes market-tier scarcity from incremental GM premiums without changing projection means or uncertainty."
     }
   ]
 }
