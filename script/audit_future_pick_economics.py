@@ -340,7 +340,7 @@ def main():
         # The audit itself is read-only; production state differs because of the
         # governed structural fixes recorded separately below. Keep the legacy
         # field for shared-workflow compatibility without obscuring that fact.
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "production_state_changed_by_governed_fix": True,
         "projection_behavior_changed": False,
         "policy": {
