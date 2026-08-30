@@ -55,6 +55,22 @@ jobs:
       - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
         run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/trade_engine.py script/run_trade_market_sweep_v31.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/roster_interaction_overlay.py script/roster_resolution_governance.py script/trade_candidate_pools.py script/trade_decision/behavior_integration.py script/trade_decision/historical_behavior_policy.py script/trade_negotiation_family.py script/trade_bilateral_gate.py script/trade_bilateral_composition.py script/trade_multi_asset_packages.py script/trade_multi_asset_composition.py script/trade_state_policy.py script/trade_candidate_selector.py script/trade_state_selector_composition.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+      - name: Unit test GM3 roster-need parity
+        run: |
+          python - <<'PY'
+          import importlib.util,json
+          spec=importlib.util.spec_from_file_location('v13','script/run_trade_market_sweep_v13.py');v13=importlib.util.module_from_spec(spec);spec.loader.exec_module(v13)
+          engine=v13.load_module(v13.BASE_ENGINE,'need_parity_engine')
+          rosters=json.load(open('data/rosters.json'))
+          idx=json.load(open('data/gm/franchise_index.json'))
+          for team in idx.get('teams') or []:
+              uid=str(team['user_id'])
+              got=v13.position_need_snapshot(engine,rosters,uid)['position_need']
+              cc=json.load(open((team.get('paths') or {})['command_center']))
+              expected={str(x['position']):float(x['need_score']) for x in cc.get('biggest_position_needs') or []}
+              assert got==expected,(uid,got,expected)
+          print('Trade Decision roster diagnosis matches GM3 command-center needs for all teams')
+          PY
       - name: Unit test adaptive trigger logic
         run: |
           python - <<'PY'
