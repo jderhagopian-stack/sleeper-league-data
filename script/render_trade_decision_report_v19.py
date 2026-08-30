@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from report_language import label, acceptance_fit, action
+from report_language import label, acceptance_fit, action, probability_change, value_change, magnitude_word
 
 MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
@@ -96,7 +96,9 @@ def why(r,cur):
     if abs(champ)>=.5: parts.append(f"championship odds move {champ:+.1f} percentage points")
     if abs(dyn)>=50: parts.append(f"long-term trade value changes {dyn:+,.0f}")
     if abs(liq)>=50: parts.append(f"future trade flexibility changes {liq:+,.0f}")
-    text="The main trade-offs are: "+'; '.join(parts[:5])+'.'
+    text="The main trade-offs are: "+'; '.join(parts[:5])+'. '
+    text+=probability_change("Championship odds", (sim.get('focus_before') or {}).get('championship_probability'), (sim.get('focus_after') or {}).get('championship_probability'))+" "
+    text+=value_change("Long-term trade value", dyn)+" "
     if overall>=75:text+=f" Taken together, the model sees this as a meaningful net positive for this specific roster ({overall:+,.0f} overall franchise impact)."
     elif overall<=-75:text+=f" Taken together, the model sees this as a meaningful net negative for this specific roster ({overall:+,.0f} overall franchise impact)."
     else:text+=" Taken together, the overall roster impact is close to neutral."
@@ -104,6 +106,22 @@ def why(r,cur):
     if sn:text+=' '+sn
     text+=' '+roster_note(cur,r.get('focus_user_id'))
     return text
+
+def what_could_change_answer(r,cur):
+    action_code=str(r.get('recommended_next_action') or '')
+    cs=r.get('suggested_counteroffers') or []
+    ms=r.get('market_sweep_alternatives') or []
+    if action_code=='ACCEPT_NOW':
+        if cs or ms:
+            return "The answer would change if one of the stronger alternatives becomes genuinely available on comparable terms; otherwise the current offer is the best actionable choice the model found."
+        return "The answer would change if the price increases, a required roster cut becomes more expensive than modeled, or new player information materially changes the short- or long-term outlook."
+    if action_code=='SHOP_BEFORE_ACCEPTING':
+        return "If the better alternatives are not actually available, the current offer becomes much more attractive. The recommendation is to test the market, not to reject a reasonable deal automatically."
+    if action_code=='COUNTER_CURRENT_OFFEROR':
+        return "If the other manager will not improve the return, compare the original offer directly with the strongest outside option rather than countering indefinitely."
+    if action_code=='DECLINE':
+        return "The answer would change if the return improves enough to close the value or winning-impact gap, or if this team's competitive window changes materially."
+    return "A clearer edge in either current-season winning value or long-term roster value could change the recommendation."
 
 def comparison_sentence(row):
     c=row.get('comparison_to_current_offer') or {}; v=str(c.get('verdict_vs_current_offer') or 'MIXED')
@@ -165,7 +183,7 @@ def render(r,out):
       card(label('liquidity_value_delta').upper(),f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
     ]
     grid=Table([cards[:3],cards[3:]],colWidths=[2.47*inch]*3,rowHeights=[.56*inch,.56*inch]);grid.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)]))
-    story += [grid,Spacer(1,5),P('WHY','H19'),P(why(r,cur))]
+    story += [grid,Spacer(1,5),P('WHY THIS DOES OR DOES NOT MAKE SENSE','H19'),P(why(r,cur))]
     br=cur.get('buyer_rationality') or {}
     if br.get('heuristic_acceptance_fit'):
         story += [Spacer(1,2),P(f"<b>Other manager:</b> {acceptance_fit(br.get('heuristic_acceptance_fit'))}. This is a fit estimate, not a literal acceptance probability.",'S19')]
@@ -177,7 +195,9 @@ def render(r,out):
     if ms:
         for i,x in enumerate(ms,1):story += [P(option_text(x,i,True)),Spacer(1,2)]
     else:story += [P('No outside trade option clearly beat the current choice.')]
-    story += [P('WHAT TO DO NEXT','H19'),P(sequence(r)),Spacer(1,3),P("How to read the value numbers: long-term trade value is league-wide dynasty value; overall franchise impact is the model's bottom-line judgment for this specific roster after winning chances, future value, roster fit and flexibility are considered together.",'S19')]
+    story += [P('WHAT TO DO NEXT','H19'),P(sequence(r)),
+              P('WHAT COULD CHANGE THE ANSWER','H19'),P(what_could_change_answer(r,cur)),
+              Spacer(1,3),P("How to read the value numbers: long-term trade value is league-wide dynasty value; overall franchise impact is the model's bottom-line judgment for this specific roster after winning chances, future value, roster fit and flexibility are considered together.",'S19')]
     doc.build(story,onFirstPage=foot,onLaterPages=foot)
 
 def main():
