@@ -19,7 +19,7 @@ OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
 UTILITY=ROOT/"script"/"decision_utility.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.1"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-3.0"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -37,15 +37,18 @@ def main():
       'DECISION_UTILITY = SCRIPT / "decision_utility.py"' in v20
       and 'resolved = utility.score(sim)' in v20
       and all(x in utility for x in [
-        'CURRENT_TITLE_SCALE = 25000.0',
-        'CURRENT_PLAYOFF_SCALE = 5000.0',
-        'CURRENT_WINS_SCALE = 400.0',
-        'CURRENT_POINTS_SCALE = 1.25',
-        'FUTURE_OPTIONALITY_SCALE = 0.18',
-        'LIQUIDITY_SCALE = 0.25',
-        'RESILIENCE_SCALE = 0.15',
-        'OPPONENT_EXTERNALITY_SCALE = 12000.0',
+        'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"',
+        'statistics.median(values.values())',
+        'baseline_team_market_redraft_value',
+        'canonical_baseline_simulator_league_mean',
+        '"fixed_unit_conversion_coefficients_used": False',
+        '"optionality_incremental_value_authorized": False',
         '"negotiation_plausibility_incremental_weight": 0.0',
+      ])
+      and all(x not in utility for x in [
+        'CURRENT_TITLE_SCALE', 'CURRENT_PLAYOFF_SCALE', 'CURRENT_WINS_SCALE',
+        'CURRENT_POINTS_SCALE', 'FUTURE_OPTIONALITY_SCALE', 'LIQUIDITY_SCALE',
+        'RESILIENCE_SCALE', 'OPPONENT_EXTERNALITY_SCALE',
       ])
     )
     plausibility_contaminates_strategic=(
@@ -95,14 +98,14 @@ def main():
     trade_score=params.get("TRADE-SCORE-001",{})
     registry_ok=(
       trade_score.get("authoritative_use") is False
-      and trade_score.get("status")=="PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL"
+      and trade_score.get("status")=="DATA_DERIVED_LEAGUE_RELATIVE_SCALING_ACTIVE"
     )
 
     findings=[
       {
         "id":"FINAL-SCORE-OVERLAP-001","severity":"HIGH",
         "status":"STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS" if primitive_formula and not composites_active_in_final and not plausibility_contaminates_strategic else "UNRESOLVED",
-        "observation":"The final focal strategic score uses simulated current-season impact, dynasty market delta, optionality, liquidity and direct roster-replacement resilience. strategic_value_delta and break_glass_delta remain reportable diagnostics but receive zero incremental final-score weight. Negotiation plausibility is applied later in negotiation ranking rather than changing focal strategic value.",
+        "observation":"The shared focal utility now converts correlated Simulator outcomes with league-relative denominators and a median ensemble, then uses the roster's observed market-redraft scale. Future value stays on the market-dynasty scale; liquidity and direct replacement resilience stay value-denominated. No fixed unit-conversion coefficients remain, and optionality/composite GM summaries are diagnostic only.",
         "authoritative_incremental_claim_allowed":False,
       },
       {
@@ -112,9 +115,9 @@ def main():
         "authoritative_long_run_war_claim_allowed":False,
       },
       {
-        "id":"FINAL-RANK-WEIGHTS-001","severity":"HIGH",
-        "status":"PROVISIONAL_WEIGHTS_NOT_EMPIRICALLY_IDENTIFIED",
-        "observation":"Structural de-duplication does not validate the surviving scaling constants. Those remain provisional until a defensible historical ranking/choice target supports time-ordered out-of-sample calibration.",
+        "id":"FINAL-RANK-SCALING-001","severity":"INFO",
+        "status":"FIXED_UNIT_CONVERSION_COEFFICIENTS_REMOVED_DATA_DERIVED_SCALING_ACTIVE",
+        "observation":"The prior fixed title/playoff/wins/points/liquidity/resilience conversion constants are removed. Current utility uses canonical league-relative Simulator means and observed team market-redraft scale. Objective-state preference weights remain a governed provisional prior until outcome validation.",
         "authoritative_empirical_claim_allowed":False,
       },
       {
@@ -127,7 +130,7 @@ def main():
 
     payload={
       "model_version":MODEL_VERSION,
-      "shared_decision_utility_model":"FSFFL-Shared-Decision-Utility-1.0",
+      "shared_decision_utility_model":"FSFFL-Shared-Decision-Utility-2.0",
       "production_behavior_changed":True,
       "policy":{
         "primitive_channels_only_in_final_score":True,
@@ -135,7 +138,8 @@ def main():
         "composite_gm_channels_are_diagnostic_only":True,
         "do_not_retune_to_preserve_visual_rankings":True,
         "structural_deduplication_is_not_empirical_calibration":True,
-        "surviving_weights_remain_provisional":True,
+        "fixed_unit_conversion_coefficients_removed":True,
+        "objective_preference_weights_remain_provisional":True,
         "final_rank_coefficient_promotion_requires_out_of_sample_improvement":True,
       },
       "summary":{
