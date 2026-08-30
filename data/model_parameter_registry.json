@@ -378,12 +378,12 @@
         "script/run_team_improvement_lab_v13.py"
       ],
       "parameter_family": "state weights, diminishing returns and guardrails",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "SHARED_CANONICAL_UTILITY_ACTIVE",
-      "source": "GM3 Team Improvement now consumes the same shared primitive current/future/liquidity/resilience decision utility as Trade Decision, with Simulator-indexed continuous objective weights.",
-      "validation": "Structural convergence complete. Remaining shared utility scales are governed by TRADE-SCORE-001 and require evidence-based scaling/held-out validation; Team Improvement no longer owns a competing categorical weight system.",
-      "uncertainty": "No separate Team Improvement ranking coefficients remain authoritative; uncertainty is inherited from the shared provisional utility and model inputs.",
-      "update_policy": "Update through the shared decision utility only; do not reintroduce Team Improvement-specific ranking weights or categorical guardrails without independent incremental evidence.",
+      "evidence_tier": "SIMULATION_DERIVED_ESTIMATE",
+      "status": "SHARED_DATA_DERIVED_UTILITY_ACTIVE",
+      "source": "GM3 Team Improvement consumes Shared Decision Utility 2.0: canonical Simulator league-relative current impact plus market-anchored future value and direct value-denominated liquidity/resilience, with continuous Simulator-indexed objective weights.",
+      "validation": "Structural convergence and fixed-unit-scale removal complete. Empirical promotion still requires time-ordered outcome/choice validation of objective-state tradeoffs.",
+      "uncertainty": "No separate Team Improvement ranking coefficients or categorical guardrails remain; uncertainty is inherited from Simulator/market inputs and governed objective-state preferences.",
+      "update_policy": "Re-estimate data-derived scales automatically through the shared utility; refit only objective-state preference weights if stronger held-out evidence supports it.",
       "downstream": [
         "ranked team-improvement opportunities"
       ],
@@ -400,13 +400,13 @@
         "script/decision_utility.py",
         "script/run_team_improvement_lab.py"
       ],
-      "parameter_family": "simulated current utility, dynasty market delta, optionality, liquidity, direct roster-replacement resilience, plausibility and competitive-externality multipliers",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL",
-      "source": "Shared primitive decision utility consumed by Trade Decision and GM3 Team Improvement; surviving current/future/liquidity/resilience scales are centralized and explicitly provisional.",
-      "validation": "Required: historical ranking/choice backtest and coefficient sensitivity on temporally valid evidence. Structural overlap is removed, but surviving scale/weight constants remain uncalibrated.",
-      "uncertainty": "High leverage remains because current/future/liquidity/resilience scaling constants are provisional, although nested strategic/break-glass double counting has been structurally removed.",
-      "update_policy": "Replace centralized primitive scales with stronger evidence-based or simulation-derived scaling when available; both consuming applications update together. Empirical promotion still requires defensible time-ordered out-of-sample evidence.",
+      "parameter_family": "league-relative simulated current utility, market-dynasty future value, direct value-denominated liquidity and replacement resilience, governed continuous objective weights",
+      "evidence_tier": "SIMULATION_DERIVED_ESTIMATE",
+      "status": "DATA_DERIVED_LEAGUE_RELATIVE_SCALING_ACTIVE",
+      "source": "Current impact is the median of canonical Simulator outcome deltas normalized by baseline league means and converted to value units by the focal roster's observed market-redraft scale. Future value remains market-dynasty delta; liquidity/resilience remain value-denominated. Fixed title/playoff/wins/points/optionality/liquidity/resilience/externality conversion constants are removed.",
+      "validation": "Required for empirical promotion: time-ordered historical decision/outcome or choice validation against simpler baselines. Structural unit scaling is now data-derived rather than hand-set.",
+      "uncertainty": "Remaining uncertainty is primarily the normative continuous objective-state weights and model-input uncertainty, not arbitrary cross-unit conversion constants.",
+      "update_policy": "Re-estimate league-relative scales automatically from each canonical baseline simulation; update market value scales with refreshed market data; refit objective-state preference weights only with stronger evidence and holdout validation.",
       "downstream": [
         "trade ranking",
         "negotiation ranking",
@@ -414,7 +414,7 @@
       ],
       "authoritative_use": false,
       "bounds_required": true,
-      "notes": "Grouped ablation showed the prior overlapping channels could change the top candidate when removed together."
+      "notes": "Fixed unit-conversion coefficients removed; correlated current outcomes are combined by an unweighted median to avoid coefficient selection and reduce double counting."
     },
     {
       "id": "WHAT-IF-001",
