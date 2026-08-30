@@ -146,13 +146,18 @@ jobs:
           current=r.get('current_offer_evaluation') or {}
           buyer_viable=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
           focal_viable=float(current.get('post_sim_score') or 0)>0
-          current_viable=focal_viable and buyer_viable
           if better:
               expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else 'COUNTER_CURRENT_OFFEROR'
           else:
-              expected_action='ACCEPT_NOW' if current_viable else 'DECLINE'
+              expected_action='ACCEPT_NOW' if focal_viable else 'DECLINE'
+          # This fixture deliberately protects offer-in-hand semantics:
+          # Chef Niners' modeled utility is negative, but they have made the
+          # offer. Their modeled willingness therefore cannot veto our accept.
           assert buyer_viable is False, current.get('buyer_rationality')
           assert float((current.get('buyer_rationality') or {}).get('buyer_decision_utility_score') or 0)<0
+          assert focal_viable is True
+          assert p['current_offer_is_evaluated_on_focal_utility_not_counterparty_willingness'] is True
+          assert g['current_offer_counterparty_utility_can_veto_acceptance'] is False
           assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
           print({
             'recommended_next_action':r.get('recommended_next_action'),
