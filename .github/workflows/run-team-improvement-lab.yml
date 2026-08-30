@@ -51,7 +51,7 @@ jobs:
       - name: Run Team Improvement Lab
         run: |
           mkdir -p /tmp/team-improvement
-          python script/run_team_improvement_lab_v13.py \
+          python script/gm3/team_improvement.py \
             --focus-user-id '${{ inputs.focus_user_id }}' \
             --quick-sims '${{ inputs.quick_sims }}' \
             --confirm-sims '${{ inputs.confirm_sims }}' \
@@ -73,7 +73,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/gm-action-report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.3'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.4'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['roster_aware_trade_resolution'] is True
