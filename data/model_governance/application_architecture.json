@@ -100,5 +100,63 @@
       "current_main_status": "not a standalone production application on main",
       "shared_foundation_present": "script/fsffl_historical_state_provider.py"
     }
+  },
+  "analytics_derived_products": {
+    "record_book": {
+      "builder": "script/build_competition_record_book.py",
+      "audit_builder": "script/build_record_book_audit.py",
+      "source_role": "deterministic historical aggregation",
+      "predictive_model": false
+    },
+    "competitive_landscape": {
+      "source": "Simulator application outputs",
+      "renderer": "script/render_league_power_report.py",
+      "independent_power_model": false
+    },
+    "historical_trade_analysis": {
+      "entrypoint": "script/run_historical_trade_analysis.py",
+      "role": "historical reconstruction plus existing GM3/Decision Lab evaluation",
+      "independent_valuation_model": false
+    }
+  },
+  "reports_publications": {
+    "standardized_report_pack": {
+      "workflow": ".github/workflows/build-standardized-reports.yml",
+      "presentation_only": true
+    },
+    "record_book": {
+      "renderer": "script/render_record_book_report.py",
+      "consumes": "analytics_derived_products.record_book"
+    },
+    "competitive_landscape": {
+      "renderer": "script/render_league_power_report.py",
+      "consumes": "Simulator outputs"
+    },
+    "draft_recap": {
+      "renderer": "script/render_draft_recap_report.py",
+      "consumes": [
+        "Draft Intelligence",
+        "GM3/team state"
+      ]
+    },
+    "team_season_outlook": {
+      "renderer": "script/render_simulator_report.py",
+      "consumes": "Simulator outputs"
+    },
+    "gm_franchise_report": {
+      "renderer": "script/render_gm_franchise_report.py",
+      "consumes": "GM3 outputs"
+    },
+    "preseason_report": {
+      "status": "publication/orchestration product",
+      "consumes": [
+        "Simulator",
+        "GM3",
+        "Draft Intelligence",
+        "Breakout/Sleeper Intelligence",
+        "Shared Core valuation/team state"
+      ],
+      "owns_independent_model": false
+    }
   }
 }
