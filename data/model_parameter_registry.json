@@ -198,12 +198,12 @@
         "data/pick_quality_model.json"
       ],
       "parameter_family": "future discount, tier multipliers, pick-slot scenarios, uncertainty growth and own-pick control",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE_UNCERTAINTY_VALUE_BONUS_REMOVED",
-      "source": "Current external dynasty pick anchors plus provisional pick-quality/scenario/liquidity transforms; forecast uncertainty is diagnostic and no longer directly rewarded as option value",
-      "validation": "Required: temporally comparable rookie-draft outcomes and contemporaneous dynasty-market backtest; separately identify expected player value, positive skew, market liquidity and forecast uncertainty.",
-      "uncertainty": "Material for future-heavy trades. Forecast uncertainty no longer creates positive value by construction; quality, liquidity, own-pick control and fallback curves remain provisional.",
-      "update_policy": "Refine expected value, timing, liquidity, skew and uncertainty as separate bounded components using the strongest available evidence; reserve empirical promotion for valid historical holdout evidence.",
+      "evidence_tier": "SIMULATION_DERIVED_ESTIMATE",
+      "status": "CONTINUOUS_SIMULATOR_PICK_QUALITY_ANCHOR_ACTIVE",
+      "source": "Future-pick base values use observed/extrapolated external early/mid/late market cells. The original team's canonical Simulator competitive percentile continuously interpolates between those market anchors, replacing the legacy hard contender-score tier cliff. Pick uncertainty remains scenario bounds; uncertainty, liquidity, own-pick control and duplicate quality/optionality premiums do not add incremental value.",
+      "validation": "Near-term point estimate is grounded in canonical Simulator competitive ordering plus current external pick-market structure. Historical frozen forecast-to-realized-slot cohorts are still required to validate persistence across longer horizons and calibrate predictive intervals.",
+      "uncertainty": "Future team strength can change materially, especially for 2028-2029. Early/mid/late market cells are exposed as uncertainty bounds; the point estimate does not claim calibrated slot probability.",
+      "update_policy": "Re-estimate continuously from each canonical Simulator refresh and current external market cells. When enough frozen historical cohorts exist, validate/calibrate horizon persistence and interval coverage out of sample.",
       "downstream": [
         "asset value",
         "trade value",
@@ -212,7 +212,7 @@
       ],
       "authoritative_use": false,
       "bounds_required": true,
-      "notes": "Removed the prior +0.18*uncertainty optionality bonus; this is structural correction, not calibration."
+      "notes": "Legacy discrete early/mid/late valuation cliff replaced by continuous market interpolation over Simulator competitive percentile."
     },
     {
       "id": "PACKAGE-ECON-001",
