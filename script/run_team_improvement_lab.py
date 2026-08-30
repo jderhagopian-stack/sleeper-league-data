@@ -139,9 +139,22 @@ def simulate_actions(dl, lineupopt, rosteraware, model_inputs, baseline_lineups,
     bidx, hidx = team_index(baseline), team_index(hyp)
     b, h = bidx[str(focus_uid)], hidx[str(focus_uid)]
     st = dl.strategic_summary(str(focus_uid), effective_actions)
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
     return {
         "focus_before": b,
         "focus_after": h,
+        "league_reference": league_reference,
         "focus_delta": {
             "expected_wins": delta(b.get("expected_wins"), h.get("expected_wins")),
             "expected_points_for": delta(b.get("expected_points_for"), h.get("expected_points_for")),
