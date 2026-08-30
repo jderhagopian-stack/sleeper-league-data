@@ -58,5 +58,5 @@ def policy():
         "max_return_total_assets_with_players": MAX_TOTAL_ASSETS,
         "max_pick_only_return_assets": MAX_PICK_ONLY,
         "expanded_packages_pruned_before_simulation": True,
-        "canonical_multi_asset_package_generator_shared_component": True,
+        "trade_decision_multi_asset_package_generator_internal_component": True,
     }
