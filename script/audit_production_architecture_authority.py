@@ -152,7 +152,7 @@ def main():
             "def select_swing(",
         ])
         and has_all(state_selector_composition, [
-            "def install(v22, state_policy, selector, ranker):",
+            "def install(root, state_policy, selector, ranker):",
             "def apply_report_metadata(report, inherited_action, state_policy):",
             "historical_v23_wrapper_required",
         ])
