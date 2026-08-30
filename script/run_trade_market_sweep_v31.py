@@ -83,6 +83,11 @@ def main():
     report["model_version"] = MODEL_VERSION
     report.setdefault("policy", {}).update({
         "option_comparison_model_version": gov.MODEL_VERSION,
+        "every_recommended_option_compared_to_current_offer": True,
+        "option_comparison_includes_explicit_verdict": True,
+        "option_comparison_includes_reason": True,
+        "option_comparison_uses_state_aware_post_sim_score": False,
+        "option_comparison_uses_pareto_decision_outputs": True,
         "unsupported_numeric_score_cutoff_used_for_better_worse": False,
         "state_aware_score_is_search_and_diagnostic_signal_not_categorical_better_proof": True,
         "better_requires_no_regression_across_decision_outputs": True,
