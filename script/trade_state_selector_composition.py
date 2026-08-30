@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install shared v23-equivalent state/selector behavior onto v22.
+"""Install shared v23-equivalent state/selector behavior onto the retained engine.
 
 This composition layer replaces v23's historical monkey-patch wrapper with
 version-neutral shared components that have already passed direct equivalence
@@ -8,112 +8,114 @@ tests:
 - trade_candidate_selector.py
 - negotiation_ranking.py
 
-It preserves the same loader interception points used by v23 so the retained
-v22/v21/v20/v19/v18/v16 mechanics receive the same current state-conditioned
-eligibility, buyer-behavior conditioning, candidate preparation/ranking,
-normal-option selection, and swing-option selection.
+The only explicit historical production pin belongs to the caller (v31 -> v22).
+This module does not import or name deeper historical sweep versions. Instead it
+augments inherited modules by capability as v22's existing loader chain reaches
+them. That preserves the existing mechanics without creating new stale
+dependencies from the shared toolbox.
 
-This module does not own final option comparison or action authority.
+This module does not own final option comparison or final action authority.
 """
 from __future__ import annotations
 
-from pathlib import Path
-
-MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.0"
+MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.1"
 
 
 def install(v22, state_policy, selector, ranker):
-    """Patch v22's inherited loader chain with shared current state/selector logic."""
-    V21_PATH = Path(v22.V21_PATH)
-    # v22 itself does not expose the deeper paths, so derive them from its script dir.
-    script = Path(v22.__file__).resolve().parent
-    V20_PATH = script / "run_trade_market_sweep_v20.py"
-    V19_PATH = script / "run_trade_market_sweep_v19.py"
-    V18_PATH = script / "run_trade_market_sweep_v18.py"
-    V16_PATH = script / "run_trade_market_sweep_v16.py"
+    """Compose shared state and selector policies into v22's inherited engine."""
+
+    def patch_state_capabilities(mod):
+        # The historical buyer-rationality layer exposing this capability gets
+        # current state-conditioned Behavioral Intelligence.
+        if hasattr(mod, "adjusted_buyer_rationality") and not getattr(
+            mod, "_shared_state_behavior_installed", False
+        ):
+            original = mod.adjusted_buyer_rationality
+
+            def adjusted(base_mod, row, dl, beh, meta):
+                return state_policy.state_condition_behavior(
+                    row, original(base_mod, row, dl, beh, meta)
+                )
+
+            mod.adjusted_buyer_rationality = adjusted
+            mod._shared_state_behavior_installed = True
+
+        # The historical focal-viability layer exposing this capability gets
+        # continuous focal-state eligibility rather than descriptive label cliffs.
+        if hasattr(mod, "focal_viable") and not getattr(
+            mod, "_shared_focal_state_policy_installed", False
+        ):
+            original = mod.focal_viable
+
+            def focal_viable(row):
+                ok = original(row)
+                beneficial = state_policy.focal_state_beneficial(row)
+                row["focal_current_state_beneficial"] = bool(beneficial)
+                row["focal_current_state"] = state_policy.focal_current_state(row)
+                return bool(ok and beneficial)
+
+            mod.focal_viable = focal_viable
+            mod._shared_focal_state_policy_installed = True
+        return mod
+
+    def wrap_descendant_loader(mod):
+        if not hasattr(mod, "load_module") or getattr(
+            mod, "_shared_state_descendant_loader_wrapped", False
+        ):
+            return mod
+
+        original_loader = mod.load_module
+
+        def loader(path, name):
+            child = original_loader(path, name)
+            child = patch_state_capabilities(child)
+            child = wrap_descendant_loader(child)
+            return child
+
+        mod.load_module = loader
+        mod._shared_state_descendant_loader_wrapped = True
+        return mod
 
     original_v22_loader = v22.load_module
 
-    def patch_v18(mod):
-        original = mod.adjusted_buyer_rationality
-
-        def adjusted(base_mod, row, dl, beh, meta):
-            return state_policy.state_condition_behavior(
-                row, original(base_mod, row, dl, beh, meta)
-            )
-
-        mod.adjusted_buyer_rationality = adjusted
-        return mod
-
-    def patch_v16(mod):
-        original = mod.focal_viable
-
-        def focal_viable(row):
-            ok = original(row)
-            beneficial = state_policy.focal_state_beneficial(row)
-            row["focal_current_state_beneficial"] = bool(beneficial)
-            row["focal_current_state"] = state_policy.focal_current_state(row)
-            return bool(ok and beneficial)
-
-        mod.focal_viable = focal_viable
-        return mod
-
-    def patch_v21_selectors(mod):
-        inherited_swing = mod.select_swing_distinct
-
-        def normal(viable, swing):
-            return selector.select_normal_four(
-                viable,
-                swing,
-                mod.negotiation_family_key,
-                state_policy,
-                ranker,
-                mod.MAX_NORMAL_OPTIONS_PER_BUYER,
-            )
-
-        def swing(viable):
-            return selector.select_swing(
-                viable,
-                inherited_swing,
-                state_policy,
-                ranker,
-            )
-
-        mod.select_normal_four_strict = normal
-        mod.select_swing_distinct = swing
-        return mod
-
-    def patched_v22_loader(path: Path, name: str):
+    def patched_v22_loader(path, name):
         mod = original_v22_loader(path, name)
-        if Path(path) == V21_PATH:
-            mod = patch_v21_selectors(mod)
-            original_v21_loader = mod.load_module
 
-            def patched_v21_loader(p2: Path, n2: str):
-                m2 = original_v21_loader(p2, n2)
-                if Path(p2) == V20_PATH:
-                    original_v20_loader = m2.load_module
+        # v22's direct child is the selector-owning layer. Patch by capability,
+        # not by a historical filename/version.
+        if (
+            hasattr(mod, "select_normal_four_strict")
+            and hasattr(mod, "select_swing_distinct")
+            and hasattr(mod, "negotiation_family_key")
+            and hasattr(mod, "MAX_NORMAL_OPTIONS_PER_BUYER")
+            and not getattr(mod, "_shared_candidate_selector_installed", False)
+        ):
+            inherited_swing = mod.select_swing_distinct
 
-                    def patched_v20_loader(p3: Path, n3: str):
-                        m3 = original_v20_loader(p3, n3)
-                        if Path(p3) == V19_PATH:
-                            original_v19_loader = m3.load_module
+            def normal(viable, swing):
+                return selector.select_normal_four(
+                    viable,
+                    swing,
+                    mod.negotiation_family_key,
+                    state_policy,
+                    ranker,
+                    mod.MAX_NORMAL_OPTIONS_PER_BUYER,
+                )
 
-                            def patched_v19_loader(p4: Path, n4: str):
-                                m4 = original_v19_loader(p4, n4)
-                                if Path(p4) == V18_PATH:
-                                    m4 = patch_v18(m4)
-                                elif Path(p4) == V16_PATH:
-                                    m4 = patch_v16(m4)
-                                return m4
+            def swing(viable):
+                return selector.select_swing(
+                    viable,
+                    inherited_swing,
+                    state_policy,
+                    ranker,
+                )
 
-                            m3.load_module = patched_v19_loader
-                        return m3
+            mod.select_normal_four_strict = normal
+            mod.select_swing_distinct = swing
+            mod._shared_candidate_selector_installed = True
 
-                    m2.load_module = patched_v20_loader
-                return m2
-
-            mod.load_module = patched_v21_loader
+        mod = patch_state_capabilities(mod)
+        mod = wrap_descendant_loader(mod)
         return mod
 
     v22.load_module = patched_v22_loader
@@ -122,6 +124,7 @@ def install(v22, state_policy, selector, ranker):
         "v23_equivalent_state_policy": True,
         "v23_equivalent_candidate_selector": True,
         "historical_v23_wrapper_required": False,
+        "deeper_historical_versions_named_by_shared_component": False,
     }
 
 
