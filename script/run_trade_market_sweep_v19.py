@@ -124,7 +124,7 @@ def main():
         v13.run_base_engine_in_process(engine, [
             "--scenario", args.scenario,
             "--quick-sims", str(args.quick_sims),
-            "--confirm-sims", str(args.confirm_sims),
+            "--confirm-sims", "0",
             "--shortlist", str(depth),
             "--finalists", str(depth),
             "--seed", str(args.seed),
