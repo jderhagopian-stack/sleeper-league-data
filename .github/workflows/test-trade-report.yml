@@ -8,6 +8,7 @@ on:
       - 'script/render_trade_decision_report_v17.py'
       - 'script/render_trade_decision_report_v16.py'
       - 'script/run_trade_report.py'
+      - 'script/run_roster_decision_lab.py'
       - 'script/trade_engine.py'
       - 'script/report_language.py'
       - 'script/run_trade_market_sweep_v31.py'
@@ -166,6 +167,15 @@ jobs:
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
+          assert int((a.get('simulation') or {}).get('final_trade_impact_simulations') or 0)==50000
+          # A 50k confirmed trade run must exactly reproduce the authoritative
+          # current-season baseline before applying the hypothetical.
+          season=json.load(open('data/simulator/2026/outputs/season_simulation.json'))
+          uid=str(a.get('focus_user_id') or '')
+          canonical=next(x for x in season['teams'] if str(x.get('user_id'))==uid)
+          before=((a.get('current_offer_evaluation') or {}).get('simulation') or {}).get('focus_before') or {}
+          for k in ('expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability'):
+              assert before[k]==canonical[k], (k,before[k],canonical[k])
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
           text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
