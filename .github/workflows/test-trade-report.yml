@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
         run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/trade_engine.py script/run_trade_market_sweep_v31.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/roster_interaction_overlay.py script/roster_resolution_governance.py script/trade_candidate_pools.py script/trade_decision/behavior_integration.py script/trade_decision/historical_behavior_policy.py script/trade_negotiation_family.py script/trade_bilateral_gate.py script/trade_bilateral_composition.py script/trade_multi_asset_packages.py script/trade_multi_asset_composition.py script/trade_state_policy.py script/trade_candidate_selector.py script/trade_state_selector_composition.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test adaptive trigger logic
