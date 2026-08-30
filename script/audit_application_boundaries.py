@@ -77,6 +77,28 @@ def main():
         and 'TRADE_HISTORICAL_BEHAVIOR = SCRIPT / "trade_historical_behavior.py"' not in v31
     )
 
+
+    gm3_facade = (ROOT / "script" / "run_fsffl_gm30_counterfactual_governed.py").read_text(encoding="utf-8")
+    gm3_app = (ROOT / "script" / "gm3" / "application.py").read_text(encoding="utf-8")
+    gm3_boundary_ok = (
+        "from gm3 import application" in gm3_facade
+        and "application.run()" in gm3_facade
+        and "gm30.patch_gm22_runtime(season)" in gm3_app
+        and "legacy_provider_has_current_application_authority" in gm3_app
+    )
+
+    gm_runner = (ROOT / "script" / "run_gm300_production_pipeline.sh").read_text(encoding="utf-8")
+    draft_boundary_ok = (
+        "python script/draft_intelligence/application.py" in gm_runner
+        and "python script/build_gm30_prospect_inputs.py" not in gm_runner
+        and "python script/build_gm30_prospect_features.py" not in gm_runner
+        and "python script/build_gm30_prospect_engine.py" not in gm_runner
+    )
+    breakout_boundary_ok = (
+        "python script/breakout_intelligence/application.py" in gm_runner
+        and "python script/build_gm30_emerging_value.py" not in gm_runner
+    )
+
     behavior_internal = (
         ROOT / "script" / "trade_decision" / "behavior_integration.py"
     ).read_text(encoding="utf-8")
@@ -106,6 +128,9 @@ def main():
         "shared_to_application_dependency_violations": shared_to_app,
         "trade_bi_interpretation_owned_by_trade_decision": trade_boundary_ok,
         "trade_interpretation_files_marked_application_owned": interpretation_marked_app_owned,
+        "gm3_application_boundary_active": gm3_boundary_ok,
+        "draft_intelligence_application_boundary_active": draft_boundary_ok,
+        "breakout_intelligence_application_boundary_active": breakout_boundary_ok,
         "architecture_principles_present": principles_ok,
     }
     passed = all([
@@ -113,6 +138,9 @@ def main():
         findings["shared_core_has_no_application_internal_dependencies"],
         findings["trade_bi_interpretation_owned_by_trade_decision"],
         findings["trade_interpretation_files_marked_application_owned"],
+        findings["gm3_application_boundary_active"],
+        findings["draft_intelligence_application_boundary_active"],
+        findings["breakout_intelligence_application_boundary_active"],
         findings["architecture_principles_present"],
     ])
     payload = {
