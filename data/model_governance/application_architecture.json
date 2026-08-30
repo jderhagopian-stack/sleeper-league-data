@@ -81,12 +81,14 @@
       "ownership": "application using shared historical facts plus GM3/Decision Lab"
     },
     "draft_intelligence": {
-      "current_implementation": "GM3 prospect-engine family",
-      "entrypoint": "script/build_gm30_prospect_engine.py"
-    },
-    "what_if": {
-      "current_implementation": "GM3 counterfactual simulation path",
-      "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py"
+      "entrypoint": "script/draft_intelligence/application.py",
+      "internal_reasoning": [
+        "script/build_gm30_prospect_inputs.py",
+        "script/build_gm30_prospect_features.py",
+        "script/build_gm30_prospect_engine.py"
+      ],
+      "gm3_consumes_output": true,
+      "gm3_owns_model": false
     },
     "contender_analysis": {
       "current_implementation": "Simulator outputs plus league power presentation",
@@ -96,9 +98,36 @@
       "current_implementation": "GM3 emerging-value / franchise outputs",
       "entrypoint": "script/build_gm30_emerging_value.py"
     },
-    "alternate_history": {
-      "current_main_status": "not a standalone production application on main",
-      "shared_foundation_present": "script/fsffl_historical_state_provider.py"
+    "breakout_sleeper_intelligence": {
+      "entrypoint": "script/breakout_intelligence/application.py",
+      "internal_reasoning": [
+        "script/build_gm30_emerging_value.py"
+      ],
+      "gm3_consumes_output": true,
+      "gm3_owns_model": false,
+      "rookies_owned_by": "Draft Intelligence"
+    },
+    "what_if_alternate_history": {
+      "application_family": "Counterfactual",
+      "modes": {
+        "forward_what_if": {
+          "current_implementation": "script/run_fsffl_gm30_counterfactual.py",
+          "current_owner": "GM3 application integration",
+          "future_boundary": "Counterfactual application family"
+        },
+        "historical_alternate_history": {
+          "shared_foundation": "script/fsffl_historical_state_provider.py",
+          "current_main_status": "shared historical reconstruction present; full Alternate History application is not yet current production on main",
+          "historical_trade_consumer": "script/run_historical_trade_analysis.py"
+        }
+      },
+      "shared_primitives": [
+        "historical state reconstruction",
+        "state cloning and transaction application",
+        "roster legality",
+        "simulation",
+        "branch/state transition mechanics"
+      ]
     }
   },
   "analytics_derived_products": {
