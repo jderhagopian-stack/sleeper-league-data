@@ -10,7 +10,7 @@ from report_language import (
     action, magnitude_word, probability_change, value_change,
     league_rank_context, artificial_ellipsis_hits, BODY_JARGON,
 )
-from report_context import team_context, analyst_roster_context, canonical_simulator_team, canonical_baseline_with_trade_delta
+from report_context import team_context, analyst_roster_context, canonical_simulator_team
 from report_visuals import (
     position_need_chart,
     probability_change_chart,
@@ -21,6 +21,6 @@ __all__ = [
     "label","explanation","review_classification","team_state","acceptance_fit",
     "action","magnitude_word","probability_change","value_change",
     "league_rank_context","artificial_ellipsis_hits","BODY_JARGON",
-    "team_context","analyst_roster_context","canonical_simulator_team","canonical_baseline_with_trade_delta","position_need_chart",
+    "team_context","analyst_roster_context","canonical_simulator_team","position_need_chart",
     "probability_change_chart","league_title_odds_chart",
 ]
