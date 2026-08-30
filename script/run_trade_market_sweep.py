@@ -330,6 +330,14 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
     strategic = dl.strategic_summary(focus_uid, actions)
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
+    buyer_delta = {
+        "expected_wins": dl.delta(ob.get("expected_wins"), oh.get("expected_wins")) if ob and oh else 0.0,
+        "expected_points_for": dl.delta(ob.get("expected_points_for"), oh.get("expected_points_for")) if ob and oh else 0.0,
+        "playoff_probability": dl.delta(ob.get("playoff_probability"), oh.get("playoff_probability")) if ob and oh else 0.0,
+        "bye_probability": dl.delta(ob.get("bye_probability"), oh.get("bye_probability")) if ob and oh else 0.0,
+        "championship_probability": buyer_title_delta,
+    }
+    buyer_strategic = dl.strategic_summary(buyer_uid, actions) if ob and oh else {}
     return {
         "actions": actions,
         "teams_reoptimized": reoptimized,
@@ -342,6 +350,10 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
             "bye_probability": dl.delta(b.get("bye_probability"), h.get("bye_probability")),
             "championship_probability": title_delta,
         },
+        "buyer_before": ob,
+        "buyer_after": oh,
+        "buyer_delta": buyer_delta,
+        "buyer_strategic": buyer_strategic,
         "buyer_championship_probability_delta": buyer_title_delta,
         "net_title_equity_swing_against_focus": round(max(0.0, float(buyer_title_delta or 0.0)) - float(title_delta or 0.0), 5),
         "strategic": strategic,
@@ -492,8 +504,10 @@ def main():
             )
             for pkg in candidate_packages(player_pool + pick_pool):
                 row = score_candidate(focus_uid, buyer_uid, outgoing, pkg)
-                if row["plausibility"] == "THEORETICAL_ONLY":
-                    continue
+                # Plausibility is a search/ranking feature, not an eligibility
+                # gate. Low-scoring packages remain available to the diversified
+                # shortlist so an arbitrary prescreen band cannot create a false
+                # negative before canonical simulation.
                 row["outgoing_variant"] = variant
                 row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
                 raw_candidates.append((row, pkg, outgoing))
@@ -558,6 +572,7 @@ def main():
             "execution_path": "gm_prescreen_then_diversified_decision_lab_shortlist",
             "candidate_asset_pool": "all_owned_tradeable_assets",
             "candidate_asset_pool_legacy_caps_removed": True,
+            "plausibility_band_is_candidate_eligibility_gate": False,
         },
         "candidate_counts": {
             "enumerated_plausible": len(raw_candidates),
