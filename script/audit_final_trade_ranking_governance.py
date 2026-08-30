@@ -16,6 +16,7 @@ DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
 V20=ROOT/"script"/"run_trade_market_sweep_v20.py"
 V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
 OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
+UTILITY=ROOT/"script"/"decision_utility.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
 MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.1"
@@ -28,18 +29,25 @@ def main():
     v20=V20.read_text(encoding="utf-8")
     v23=V23.read_text(encoding="utf-8")
     overlay=OVERLAY.read_text(encoding="utf-8")
+    utility=UTILITY.read_text(encoding="utf-8")
     ablation=ABLATION.read_text(encoding="utf-8") if ABLATION.exists() else ""
     registry=load(REGISTRY,{}) or {}
 
-    primitive_formula=all(x in v20 for x in [
-      'current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points',
-      'future_block = dynasty + 0.18 * optionality',
-      'liquidity_block = 0.25 * liquidity',
-      'resilience_block = 0.15 * resilience',
-      'resilience = sf(s.get("resilience_value_delta"))',
-      '- current_mult * 12000.0 * externality',
-      '"negotiation_plausibility_incremental_weight": 0.0',
-    ])
+    primitive_formula=(
+      'DECISION_UTILITY = SCRIPT / "decision_utility.py"' in v20
+      and 'resolved = utility.score(sim)' in v20
+      and all(x in utility for x in [
+        'CURRENT_TITLE_SCALE = 25000.0',
+        'CURRENT_PLAYOFF_SCALE = 5000.0',
+        'CURRENT_WINS_SCALE = 400.0',
+        'CURRENT_POINTS_SCALE = 1.25',
+        'FUTURE_OPTIONALITY_SCALE = 0.18',
+        'LIQUIDITY_SCALE = 0.25',
+        'RESILIENCE_SCALE = 0.15',
+        'OPPONENT_EXTERNALITY_SCALE = 12000.0',
+        '"negotiation_plausibility_incremental_weight": 0.0',
+      ])
+    )
     plausibility_contaminates_strategic=(
       '+ 1200.0 * plausibility' in v20
       or 'score -= 3000.0' in v20
@@ -58,10 +66,10 @@ def main():
       '"strategic_value_delta"' in overlay and '"break_glass_delta"' in overlay
     )
     composites_active_in_final=(
-      'strategic = sf(s.get("strategic_value_delta"))' in v20
-      or 'break_glass = sf(s.get("break_glass_delta"))' in v20
-      or '0.30 * break_glass' in v20
-      or '0.15 * strategic' in v20
+      'strategic_value_delta' in utility
+      or 'break_glass_delta' in utility
+      or '0.30 * break_glass' in utility
+      or '0.15 * strategic' in utility
     )
 
     behavior_reuse=all(x in v23 for x in [
@@ -119,6 +127,7 @@ def main():
 
     payload={
       "model_version":MODEL_VERSION,
+      "shared_decision_utility_model":"FSFFL-Shared-Decision-Utility-1.0",
       "production_behavior_changed":True,
       "policy":{
         "primitive_channels_only_in_final_score":True,
