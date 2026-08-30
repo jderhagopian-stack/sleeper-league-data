@@ -113,6 +113,9 @@ def fast_reoptimize_touched_lineups(dl, simmod, baseline_lineups, hypothetical_r
     return lineups, reoptimized
 
 
+_GM_CORE_POSITION_NEED = None
+
+
 def position_need_snapshot(engine, rosters, focus_uid):
     """Recompute GM3 positional need for a hypothetical roster state.
 
@@ -120,7 +123,10 @@ def position_need_snapshot(engine, rosters, focus_uid):
     formula that produces GM3 command-center position needs. This is model
     output, not report-layer inference.
     """
-    gm = load_module(GM_CORE, "gm_core_position_need_for_trade")
+    global _GM_CORE_POSITION_NEED
+    if _GM_CORE_POSITION_NEED is None:
+        _GM_CORE_POSITION_NEED = load_module(GM_CORE, "gm_core_position_need_for_trade")
+    gm = _GM_CORE_POSITION_NEED
     pc, _ = engine.asset_catalog()
     player_values = {
         str(row.get("player_id")): {
@@ -167,8 +173,8 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
     strategic = dl.strategic_summary(focus_uid, effective_actions)
-    needs_before = position_need_snapshot(engine, canonical_rosters, focus_uid)
-    needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid)
+    needs_before = position_need_snapshot(engine, canonical_rosters, focus_uid) if sims >= 50000 else {}
+    needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid) if sims >= 50000 else {}
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
     return {
