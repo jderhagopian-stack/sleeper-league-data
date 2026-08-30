@@ -10,8 +10,8 @@ on:
       - 'script/roster_interaction_overlay.py'
       - 'script/roster_resolution_governance.py'
       - 'script/trade_candidate_pools.py'
-      - 'script/trade_behavioral_intelligence.py'
-      - 'script/trade_historical_behavior.py'
+      - 'script/trade_decision/behavior_integration.py'
+      - 'script/trade_decision/historical_behavior_policy.py'
       - 'script/trade_state_selector_composition.py'
       - 'script/trade_candidate_selector.py'
       - 'script/trade_negotiation_family.py'
@@ -33,8 +33,8 @@ on:
       - 'script/roster_interaction_overlay.py'
       - 'script/roster_resolution_governance.py'
       - 'script/trade_candidate_pools.py'
-      - 'script/trade_behavioral_intelligence.py'
-      - 'script/trade_historical_behavior.py'
+      - 'script/trade_decision/behavior_integration.py'
+      - 'script/trade_decision/historical_behavior_policy.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -62,8 +62,8 @@ jobs:
             script/roster_interaction_overlay.py \
             script/roster_resolution_governance.py \
             script/trade_candidate_pools.py \
-            script/trade_behavioral_intelligence.py \
-            script/trade_historical_behavior.py \
+            script/trade_decision/behavior_integration.py \
+            script/trade_decision/historical_behavior_policy.py \
             script/trade_negotiation_family.py \
             script/trade_bilateral_gate.py \
             script/trade_bilateral_composition.py \
@@ -113,9 +113,9 @@ jobs:
           assert p['canonical_trade_state_policy_shared_component'] is True
           assert p['canonical_trade_candidate_selector_shared_component'] is True
           assert p['historical_v24_executed_in_current_path'] is False
-          assert p['canonical_historical_state_trade_behavior_shared_component'] is True
+          assert p['trade_decision_historical_behavior_internal_component'] is True;assert p['historical_behavior_interpretation_owned_by_trade_decision'] is True
           assert p['historical_v26_executed_in_current_path'] is False
-          assert p['canonical_trade_behavioral_intelligence_shared_component'] is True
+          assert p['trade_decision_behavior_integration_internal_component'] is True;assert p['trade_behavior_interpretation_owned_by_trade_decision'] is True
           assert p['historical_v27_executed_in_current_path'] is False
           assert p['canonical_trade_candidate_pools_shared_component'] is True
           assert p['historical_v28_executed_in_current_path'] is False
