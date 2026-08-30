@@ -61,12 +61,16 @@
     "gm3": {
       "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py",
       "internal_reasoning": [
+        "script/gm3/application.py",
         "script/build_fsffl_gm30.py",
         "script/run_fsffl_gm30_counterfactual.py",
         "script/gm30_nonprojection_governance.py",
         "script/package_curve_robustness.py",
         "script/nonprojection_high_priority_overrides.py"
-      ]
+      ],
+      "application_boundary": "script/gm3/application.py",
+      "legacy_mechanics_provider": "script/build_fsffl_gm_engine.py",
+      "legacy_provider_current_application_authority": false
     },
     "team_improvement": {
       "entrypoint": "script/run_team_improvement_lab.py",
