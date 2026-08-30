@@ -62,9 +62,9 @@ def main():
     ])
     final_signal_reuse=not (
         'OWNER_BEHAVIOR_WEIGHT = 0.0' in ranker
-        and 'STRATEGIC_WEIGHT = 0.625' in ranker
-        and 'ACCEPTANCE_WEIGHT = 0.375' in ranker
-        and 'behavior_already_in_acceptance_fit": True' in ranker
+        and 'STRATEGIC_WEIGHT = 1.0' in ranker
+        and 'ACCEPTANCE_WEIGHT = 0.0' in ranker
+        and 'arbitrary_strategic_acceptance_exchange_rate_authorized": False' in ranker
     )
     acceptance_ready=False
     for x in readiness.get("findings",[]):
