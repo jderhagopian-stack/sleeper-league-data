@@ -21,6 +21,7 @@ import copy
 import importlib.util
 import json
 import random
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
@@ -44,6 +45,9 @@ def write_json(path: Path, obj: Any):
 
 def import_simulator():
     path = Path("script/run_fsffl_season_simulator_preproduction.py")
+    script_dir = str(path.resolve().parent)
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
     spec = importlib.util.spec_from_file_location("fsffl_simulator_current", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to import simulator from {path}")
