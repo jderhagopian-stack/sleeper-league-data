@@ -2,7 +2,9 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.21 supplies the retained candidate frontier and simulation chain;
+- v1.20 supplies the retained simulated candidate frontier;
+- trade_candidate_pools organizes same-partner counters and market alternatives
+  with the validated v1.21 eligibility/dedup semantics;
 - roster_resolution_governance verifies and publishes the roster-aware runtime
   resolver provenance already emitted by the simulation path;
 - roster_interaction_overlay applies the validated roster-specific interaction
@@ -10,9 +12,10 @@ Current production composition:
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.22-v1.24 wrappers remain available for reproducibility but are no
-longer executed by the current production path. Their superseded comparison and
-presentation-only layers therefore cannot regain decision authority.
+Historical v1.21-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. The v1.21 pool semantics now
+live in the shared candidate-pool component, while superseded presentation and
+comparison wrappers cannot regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -24,7 +27,8 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V27 = SCRIPT / "run_trade_market_sweep_v27.py"
+V26 = SCRIPT / "run_trade_market_sweep_v26.py"
+TRADE_CANDIDATE_POOLS = SCRIPT / "trade_candidate_pools.py"
 ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
 ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
@@ -49,19 +53,21 @@ def out_path():
 
 
 def main():
-    v27 = load(V27, "market_v27_for_125")
+    v26 = load(V26, "market_v26_for_125")
+    candidate_pools = load(TRADE_CANDIDATE_POOLS, "trade_candidate_pools_for_125")
     roster_resolution = load(ROSTER_RESOLUTION_GOVERNANCE, "roster_resolution_governance_for_125")
     overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
     interaction = load(ROSTER_INTERACTION, "roster_interaction_for_125")
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
-    v27.main()
+    v26.main()
     out = out_path()
     if not out or not out.exists():
         return
 
     report = json.loads(out.read_text(encoding="utf-8"))
+    candidate_pools.apply_to_report(report)
     roster_resolution.apply_to_report(report)
     overlay.apply_to_report(report, interaction, ranker)
     action_basis = gov.apply_to_report(report)
@@ -101,6 +107,8 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_trade_candidate_pools_shared_component": True,
+        "historical_v27_executed_in_current_path": False,
         "canonical_roster_interaction_overlay_shared_component": True,
         "canonical_roster_resolution_governance_shared_component": True,
         "historical_v29_executed_in_current_path": False,
