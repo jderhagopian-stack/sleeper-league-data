@@ -44,18 +44,7 @@
     ],
     "roster_resolution": [
       "script/roster_aware_trade.py"
-    ],
-    "competitive_state": {
-      "owner": "Shared FSFFL Core / GM state weighting",
-      "runtime": "script/gm_state_weighting.py",
-      "competitive_strength_source": "canonical Simulator league-relative outcome ordering",
-      "roster_strength_source": "GM3 optimized current-season roster percentile",
-      "dynasty_strength_source": "GM3 optimized dynasty roster percentile",
-      "categorical_labels": "provisional expert-prior metadata only",
-      "objective_weights": "continuous interpolation; no step change at categorical label boundaries",
-      "simulator_double_counting_prevented": true,
-      "legacy_stepwise_threshold_function_has_current_authority": false
-    }
+    ]
   },
   "applications": {
     "trade_decision": {
@@ -264,5 +253,16 @@
       "rescoring_authority": false,
       "workflow_specific_renderers_remain_thin_consumers": true
     }
+  },
+  "competitive_state_governance": {
+    "owner": "Shared FSFFL Core / GM state weighting",
+    "runtime": "script/gm_state_weighting.py",
+    "competitive_strength_source": "canonical Simulator league-relative outcome ordering",
+    "roster_strength_source": "GM3 optimized current-season roster percentile",
+    "dynasty_strength_source": "GM3 optimized dynasty roster percentile",
+    "categorical_labels": "provisional expert-prior metadata only",
+    "objective_weights": "continuous interpolation; no step change at categorical label boundaries",
+    "simulator_double_counting_prevented": true,
+    "legacy_stepwise_threshold_function_has_current_authority": false
   }
 }
