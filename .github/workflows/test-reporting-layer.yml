@@ -54,7 +54,7 @@ jobs:
           python script/render_record_book_report.py --output /tmp/fsffl-reports/record-book.pdf
           python script/render_multiverse_outliers_report.py --output /tmp/fsffl-reports/multiverse-outliers.pdf
 
-      - name: Validate reporting contract and one-page output
+      - name: Validate reporting contract and readable output
         run: |
           python - <<'PY'
           import json
@@ -69,6 +69,12 @@ jobs:
           assert arch['principles']['aesthetic_quality_is_required'] is True
           assert arch['principles']['user_facing_prose_must_not_be_truncated'] is True
           assert arch['principles']['multi_page_reports_preferred_over_cutoff_text'] is True
+          assert arch['principles']['context_required_for_user_facing_numbers'] is True
+          assert arch['principles']['narrative_reasoning_required'] is True
+          assert arch['principles']['decision_reports_explain_alternatives'] is True
+          assert arch['principles']['one_page_is_preference_not_constraint'] is True
+          assert arch['narrative_contract']['language_policy']['narrative_must_be_derived_from_existing_model_outputs'] is True
+          assert arch['narrative_contract']['language_policy']['renderer_must_not_create_new_model_scores'] is True
           assert 'avoid spreadsheet-dump layouts' in arch['design_system']['rules']
           names=('gm-franchise.pdf','simulator-outlook.pdf','league-power.pdf','roster-decision.pdf','player-dossier.pdf','market-movement.pdf','draft-recap.pdf','record-book.pdf','multiverse-outliers.pdf')
           for name in names:
@@ -76,7 +82,7 @@ jobs:
               assert p.exists() and p.stat().st_size > 2500
               assert p.read_bytes()[:4] == b'%PDF'
               reader=PdfReader(str(p))
-              assert len(reader.pages) == 1
+              assert 1 <= len(reader.pages) <= 3, f"{name}: unexpected page count {len(reader.pages)}"
               text='\\n'.join((pg.extract_text() or '') for pg in reader.pages).lower()
               banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
               assert not [x for x in banned if x in text], f"{name}: {text}"
