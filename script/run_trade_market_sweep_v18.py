@@ -171,6 +171,44 @@ def main():
     # Presentation diversity applies after quality ranking. A LOW/VERY_LOW deal
     # can fill the report, but never drives the primary action.
     top5=diversified_top_five(viable)
+
+    # Broad discovery is intentionally cheap, but the current offer and every
+    # option that survives into the actionable Top 5 are confirmed at the
+    # requested high-precision simulation count before final comparison/action.
+    final_sim_count=args.quick_sims
+    final_seed=args.seed
+    if args.confirm_sims and args.confirm_sims > args.quick_sims:
+        final_seed=simmod.deterministic_seed(league,season)
+        confirm_baseline=dl.simulate_from_lineups(
+            simmod,league,rosters,users,sched,bl,args.confirm_sims,final_seed
+        )
+        current["simulation"]=sim(
+            dl,mi,bl,confirm_baseline,focus,partner,outgoing,incoming,
+            args.confirm_sims,final_seed
+        )
+        current["post_sim_score"]=engine.post_sim_score(current,engine.team_state(focus))
+        current["buyer_rationality"]=adjusted_buyer_rationality(v16,current,dl,beh,meta)
+        for r in top5:
+            buyer_uid=str(r.get("buyer_user_id") or "")
+            out_ids=list(r.get("outgoing_assets") or [])
+            in_ids=list(r.get("return_assets") or r.get("incoming_assets") or [])
+            out_assets=[cat[x] for x in out_ids if x in cat]
+            in_assets=[cat[x] for x in in_ids if x in cat]
+            if not buyer_uid or len(out_assets)!=len(out_ids) or len(in_assets)!=len(in_ids):
+                continue
+            r["simulation"]=sim(
+                dl,mi,bl,confirm_baseline,focus,buyer_uid,out_assets,in_assets,
+                args.confirm_sims,final_seed
+            )
+            r["post_sim_score"]=engine.post_sim_score(r,engine.team_state(focus))
+            r["buyer_rationality"]=adjusted_buyer_rationality(v16,r,dl,beh,meta)
+            r["comparison_to_current_offer"]=v13.compare_candidate(r,current)
+            r["acceptance_likelihood"]=r["buyer_rationality"]["heuristic_acceptance_fit"]
+            r["acceptance_explanation"]=acceptance_note(r["buyer_rationality"])
+            r["why_advantageous_for_focus"]=advantage_note(r)
+            r["negotiation_ranking"]=blended_negotiation_score(r)
+        final_sim_count=args.confirm_sims
+
     for r in top5: r["report_role"]="REALISTIC_COUNTER" if r["acceptance_likelihood"] in {"HIGH","MEDIUM"} else "REASONABLE_LONGSHOT"
     very=[r for r in top5 if r["acceptance_likelihood"]=="VERY_LOW"]; swing=max(very,key=lambda r:sf((r.get("negotiation_ranking") or {}).get("score"))) if very else None
     if swing: swing["report_role"]="SWING_FOR_FENCES"; swing["report_note"]="Aggressive ask included because focal upside is unusually strong; very low heuristic acceptance fit."
@@ -187,7 +225,7 @@ def main():
     report["model_version"]=MODEL_VERSION; report["current_offer_evaluation"]=current; report["ranked_finalists"]=top5; report["top_5_alternatives"]=top5; report["realistic_counter_alternatives"]=realistic[:5]; report["reasonable_longshot_alternatives"]=[r for r in top5 if r.get("report_role")=="REASONABLE_LONGSHOT"]; report["swing_for_fences_alternative"]=swing; report["state_change_dependent_alternatives"]=pivot[:5]; report["recommended_next_action"]=action
     cc=report.setdefault("candidate_counts",{}); cc["acceptance_frontier_simulated"]=len(rows); cc["buyer_current_state_viable"]=len(viable); cc["realistic_acceptance_fit"]=len(realistic); cc["reasonable_longshot_pool"]=len([r for r in viable if r["acceptance_likelihood"] in {"LOW","VERY_LOW"}]); cc["top_five_unique_buyers"]=unique_buyers; cc["top_five_options_by_buyer"]=buyer_counts
     pol=report.setdefault("policy",{}); pol.update({"five_option_report_when_market_supports_it":True,"reasonable_longshots_can_fill_report":True,"acceptance_likelihood_is_heuristic_not_probability":True,"each_option_explains_acceptance_and_focus_advantage":True,"swing_for_fences_slots_max":1,"longshots_cannot_drive_recommended_action":True,"fast_exact_lineup_dp":True,"GM_owner_behavior_integrated":True,"owner_behavior_sources":["completed_trades","rookie_drafts","waivers"],"owner_behavior_is_evidence_not_veto":True,"acceptance_fit_is_calibrated_probability":False,"top_five_blended_ranking":True,"top_five_blended_ranking_weights":{"focal_strategic_gain":.625,"acceptance_fit":.375,"owner_behavior_match":0.0},"owner_behavior_already_in_acceptance_fit":True,"buyer_diversity_enabled":True,"normal_max_options_per_buyer":MAX_NORMAL_OPTIONS_PER_BUYER,"buyer_cap_backfills_only_when_needed_for_five":True})
-    report["owner_behavior_profiles_available"]=len(beh); report["simulation"]["lineup_reoptimization"]="exact_slot_mask_dynamic_programming"; report["simulation"]["execution_path"]="GM_owner_behavior_plus_blended_ranking_plus_buyer_diversity_then_fast_decision_lab"
+    report["owner_behavior_profiles_available"]=len(beh); report["simulation"]["lineup_reoptimization"]="exact_slot_mask_dynamic_programming"; report["simulation"]["execution_path"]="GM_owner_behavior_plus_blended_ranking_plus_buyer_diversity_then_canonical_vectorized_decision_lab"; report["simulation"]["final_trade_impact_simulations"]=final_sim_count; report["simulation"]["final_trade_impact_engine"]="current_vectorized_simulator"; report["simulation"]["final_trade_impact_seed"]=final_seed; report["simulation"]["finalists_confirmed_at_high_precision"]=final_sim_count>args.quick_sims
     Path(args.output).write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8"); print(json.dumps(report,indent=2))
 
 if __name__=="__main__": main()
