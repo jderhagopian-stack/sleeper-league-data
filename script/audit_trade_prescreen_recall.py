@@ -96,7 +96,7 @@ def enumerate_candidates(engine, focus_uid, current_partner, variants, owner_ass
                     else "ALTERNATE_BUYER"
                 )
                 rows.append(row)
-    rows.sort(key=lambda x: float(x.get("pre_screen_score") or 0), reverse=True)
+    rows.sort(key=engine.prescreen_sort_key, reverse=True)
     return rows
 
 
@@ -184,6 +184,7 @@ def main():
             "projection_behavior_changed": False,
             "tests_candidate_discovery_recall": True,
             "production_prescreen_score_used_unchanged": True,
+            "production_prescreen_ordering": "coefficient_free_market_distance_then_focal_market_and_redraft_surplus",
             "plausibility_band_used_as_candidate_eligibility_gate": False,
             "expanded_pool_is_all_owned_tradeable_assets": True,
         },
@@ -205,6 +206,7 @@ def main():
             "recall": round(top_recall, 6),
             "missed_count": len(missed_top),
             "legacy_kth_score": cutoff_score,
+            "legacy_kth_score_role": "display_only_market_distance_transform",
             "best_missed_candidate": best_missed,
             "missed_candidates": missed_top[:10],
         },
