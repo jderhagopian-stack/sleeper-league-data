@@ -1,6 +1,6 @@
 {
   "name": "FSFFL Reporting Layer",
-  "version": "1.3",
+  "version": "1.4",
   "principles": {
     "raw_model_output_is_source_of_truth": true,
     "chatgpt_reads_raw_output_not_pdf": true,
@@ -16,7 +16,9 @@
     "narrative_reasoning_required": true,
     "decision_reports_explain_alternatives": true,
     "one_page_is_preference_not_constraint": true,
-    "reporter_style_context_required": true
+    "reporter_style_context_required": true,
+    "shared_reporting_module_applies_across_workflows": true,
+    "visuals_are_evidence_triggered_not_decorative": true
   },
   "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach a standardized plain-English PDF. User-facing reports must lead with football meaning and decisions; technical field names and implementation details stay in the source JSON or footer unless a short explanation is necessary.",
   "design_system": {
@@ -151,6 +153,25 @@
       "explain shifts from surplus positions to weak positions",
       "use current competitive-window and simulator context when relevant",
       "never infer a player will start unless an authoritative lineup output supports it"
+    ],
+    "visual_policy": [
+      "prefer charts when relative magnitude, before/after change, ranking, trend, composition, or trade-off is easier to understand visually",
+      "do not add a chart when prose or a compact table communicates the point more clearly",
+      "charts must use authoritative existing outputs and must not introduce new scores",
+      "every chart must have an obvious analytical purpose in the surrounding narrative",
+      "chart selection belongs to the shared Reporting module rather than individual workflow business logic"
     ]
+  },
+  "module": {
+    "name": "FSFFL Reporting",
+    "layer": "Reports / Publications",
+    "stable_facade": "script/reporting/__init__.py",
+    "presentation_language": "script/report_language.py",
+    "contextual_narrative": "script/report_context.py",
+    "visual_primitives": "script/report_visuals.py",
+    "visual_style": "script/fsffl_report_style.py",
+    "decision_authority": false,
+    "rescore_authority": false,
+    "consumers": "all user-facing FSFFL report renderers"
   }
 }
