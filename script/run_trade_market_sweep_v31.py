@@ -2,7 +2,9 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.20 supplies the retained simulated candidate frontier;
+- v1.18 supplies the retained historical-state-conditioned candidate engine;
+- trade_behavioral_intelligence applies the current production BI3-over-BI2
+  acceptance/behavior composition that v1.20 previously carried;
 - trade_candidate_pools organizes same-partner counters and market alternatives
   with the validated v1.21 eligibility/dedup semantics;
 - roster_resolution_governance verifies and publishes the roster-aware runtime
@@ -12,10 +14,10 @@ Current production composition:
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.21-v1.24 wrappers remain available for reproducibility but are no
-longer executed by the current production path. The v1.21 pool semantics now
-live in the shared candidate-pool component, while superseded presentation and
-comparison wrappers cannot regain decision authority.
+Historical v1.20-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. Current BI3 composition and
+v1.21 pool semantics live in shared components, while superseded wrapper
+presentation/comparison logic cannot regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -27,7 +29,9 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V26 = SCRIPT / "run_trade_market_sweep_v26.py"
+V24 = SCRIPT / "run_trade_market_sweep_v24.py"
+BI2 = SCRIPT / "behavioral_intelligence.py"
+TRADE_BEHAVIOR = SCRIPT / "trade_behavioral_intelligence.py"
 TRADE_CANDIDATE_POOLS = SCRIPT / "trade_candidate_pools.py"
 ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
@@ -53,7 +57,9 @@ def out_path():
 
 
 def main():
-    v26 = load(V26, "market_v26_for_125")
+    v24 = load(V24, "market_v24_for_125")
+    bi2 = load(BI2, "behavioral_intelligence_for_125")
+    trade_behavior = load(TRADE_BEHAVIOR, "trade_behavioral_intelligence_for_125")
     candidate_pools = load(TRADE_CANDIDATE_POOLS, "trade_candidate_pools_for_125")
     roster_resolution = load(ROSTER_RESOLUTION_GOVERNANCE, "roster_resolution_governance_for_125")
     overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
@@ -61,12 +67,16 @@ def main():
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
-    v26.main()
+    bi3_cache, bi3_cache_status = trade_behavior.load_bi3_cache()
+    trade_behavior.install(v24, bi2, bi3_cache, bi3_cache_status)
+    v24.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
+    v24.main()
     out = out_path()
     if not out or not out.exists():
         return
 
     report = json.loads(out.read_text(encoding="utf-8"))
+    trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)
     candidate_pools.apply_to_report(report)
     roster_resolution.apply_to_report(report)
     overlay.apply_to_report(report, interaction, ranker)
@@ -107,6 +117,8 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_trade_behavioral_intelligence_shared_component": True,
+        "historical_v26_executed_in_current_path": False,
         "canonical_trade_candidate_pools_shared_component": True,
         "historical_v27_executed_in_current_path": False,
         "canonical_roster_interaction_overlay_shared_component": True,
