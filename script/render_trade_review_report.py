@@ -18,7 +18,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from report_context import analyst_roster_context
+from reporting import analyst_roster_context
 
 MODEL_VERSION = "FSFFL-GM-Trade-Review-Report-1.3"
 NAVY = colors.HexColor("#132238")
