@@ -20,11 +20,11 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 DATA = Path("data")
-MODEL_VERSION = "FSFFL-Roster-Interaction-1.0"
+MODEL_VERSION = "FSFFL-Roster-Interaction-1.1"
 MAX_PAIR_INSURANCE_PCT = 0.12
 PAIR_CAPTURE_SCALE = 0.30
 MAX_PORTFOLIO_ADJUSTMENT = 600.0
-MAX_ACCEPTANCE_FIT_SHIFT = 0.04
+MAX_ACCEPTANCE_FIT_SHIFT = 0.0  # uncalibrated conversion disabled; value signal remains in strategic/resilience utility
 
 
 def load_json(path: Path, default=None):
@@ -284,7 +284,8 @@ def trade_adjustments(focus_uid: str, buyer_uid: str, actions: List[Dict[str, An
             "before": b,
             "after": a,
             "roster_interaction_value_delta": delta,
-            "acceptance_fit_shift": round(clamp(math.tanh(delta / 1200.0) * MAX_ACCEPTANCE_FIT_SHIFT, -MAX_ACCEPTANCE_FIT_SHIFT, MAX_ACCEPTANCE_FIT_SHIFT), 4),
+            "acceptance_fit_shift": 0.0,
+            "acceptance_fit_shift_policy": "DISABLED_UNCALIBRATED_DUPLICATE_SIGNAL",
         }
     return {
         "model_version": MODEL_VERSION,
@@ -298,6 +299,8 @@ def trade_adjustments(focus_uid: str, buyer_uid: str, actions: List[Dict[str, An
             "interaction_value_is_roster_specific": True,
             "pair_insurance_bounded": True,
             "acceptance_shift_bounded": True,
+            "acceptance_shift_enabled": False,
+            "acceptance_shift_reason": "Roster-interaction value already enters strategic/resilience utility; no separately calibrated mapping to acceptance probability exists.",
             "competition_context_not_double_counted_into_value": True,
         },
     }

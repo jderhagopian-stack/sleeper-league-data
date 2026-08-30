@@ -1,10 +1,12 @@
 {
-  "model_version": "FSFFL-Heuristic-Refinement-Backlog-1.0",
+  "model_version": "FSFFL-Heuristic-Refinement-Backlog-1.1",
   "purpose": "Prioritize remaining active/provisional heuristics after the completed hard-code audit without reopening that audit.",
   "policy": {
     "structural_elimination_preferred_over_recalibration": true,
     "existing_repo_evidence_used_before_new_external_research": true,
-    "no_coefficient_replacement_without_incremental_evidence": true,
+    "no_arbitrary_coefficient_replacement_without_stronger_basis": true,
+    "provisional_estimates_may_replace_legacy_heuristics_when_basis_is_stronger": true,
+    "provisional_estimates_must_be_bounded_versioned_and_uncertainty_labeled": true,
     "provisional_functionality_preserved_when_no_better_supported_replacement_exists": true
   },
   "improve_now_with_existing_evidence": [
@@ -24,7 +26,7 @@
     {
       "id": "GM22-CONFIG-001",
       "priority": "HIGH",
-      "action": "Family-by-family ablation before any coefficient tuning.",
+      "action": "Family-by-family ablation, then replace surviving arbitrary constants with bounded evidence-supported or simulation-derived provisional estimates where available.",
       "status": "AUDIT_NEXT",
       "evidence": [
         "current GM3 profiles",
@@ -36,7 +38,7 @@
     {
       "id": "TRADE-SCORE-001",
       "priority": "VERY_HIGH",
-      "action": "Continue grouped/primitive channel ablation; shrink/remove only channels that prove redundant or non-incremental.",
+      "action": "Continue primitive-channel ablation and replace arbitrary scale dependence with empirically observed/common scaling where possible; retain uncertainty labels until temporal choice validation exists.",
       "status": "ABLATION_ACTIVE_NO_SAFE_REWEIGHT_YET",
       "evidence": [
         "final-score ablation",
@@ -48,7 +50,7 @@
     {
       "id": "TRADE-PRESCREEN-001",
       "priority": "MEDIUM_HIGH",
-      "action": "Keep full-pool recall regression and test plausibility thresholds against tractable expanded enumeration.",
+      "action": "Optimize discovery thresholds for recall against tractable expanded enumeration; keep acceptance calibration separate.",
       "status": "LOSSY_ASSET_CAPS_ALREADY_REMOVED",
       "evidence": [
         "full-pool recall audit",
@@ -59,7 +61,7 @@
     {
       "id": "TEAM-IMPROVEMENT-001",
       "priority": "MEDIUM",
-      "action": "Converge toward shared canonical decision utility instead of maintaining separate ranking weights.",
+      "action": "Converge toward shared canonical decision utility and remove categorical/duplicative guardrail authority where canonical utility already prices the same effect.",
       "status": "STRUCTURAL_CONVERGENCE_CANDIDATE",
       "evidence": [
         "Shared Core architecture",
@@ -67,6 +69,67 @@
         "Trade Decision utility primitives"
       ],
       "remaining_gap": "Must prove recommendation behavior remains sensible under shared utility."
+    },
+    {
+      "id": "ROSTER-INTERACTION-001",
+      "priority": "HIGH",
+      "action": "Remove uncalibrated roster-interaction acceptance-fit conversion; keep roster-interaction value as a bounded strategic/resilience signal until simulation-derived calibration is available.",
+      "status": "STRUCTURAL_DEDUPLICATION_NEXT",
+      "evidence": [
+        "canonical strategic utility",
+        "existing roster-interaction value delta",
+        "double-counting governance"
+      ],
+      "remaining_gap": "Pair-insurance magnitude remains bounded but uncalibrated; simulation-derived marginal insurance value is the next target."
+    },
+    {
+      "id": "BEHAVIOR-001",
+      "priority": "MEDIUM_HIGH",
+      "action": "Move toward shrinkage/regularized manager effects using observed action counts and context confidence; treat current hand-set transforms as priors rather than fixed truth.",
+      "status": "IMPROVE_WITH_EXISTING_ACTION_DATA",
+      "evidence": [
+        "time-ordered manager actions",
+        "leave-one-manager-out context",
+        "context confidence",
+        "league baseline behavior"
+      ],
+      "remaining_gap": "More observations are still needed for empirical promotion, but lack of promotion evidence does not justify indefinite arbitrary blend weights."
+    },
+    {
+      "id": "STATE-WEIGHTS-001",
+      "priority": "MEDIUM_HIGH",
+      "action": "Retain continuous Simulator-indexed objective curve as an explicit bounded prior, run sensitivity/ablation, and replace legacy anchor shapes when stronger simulation or outcome evidence exists.",
+      "status": "GOVERNED_PRIOR_ACTIVE_REFINABLE",
+      "evidence": [
+        "canonical Simulator competitive percentile",
+        "continuous state weighting",
+        "sensitivity framework"
+      ],
+      "remaining_gap": "Independent strategy-outcome target still required for empirical promotion."
+    },
+    {
+      "id": "PACKAGE-ECON-001",
+      "priority": "MEDIUM_HIGH",
+      "action": "Represent consolidation economics as an uncertainty set/distribution across supported curves rather than letting a single provisional curve carry hidden authority.",
+      "status": "ROBUST_MULTI_CURVE_ACTIVE_REFINABLE",
+      "evidence": [
+        "package-curve sensitivity audit",
+        "robust steep/neutral/shallow discovery",
+        "exact roster legalization"
+      ],
+      "remaining_gap": "Frozen contemporaneous market snapshots are still required to identify a final empirical curve."
+    },
+    {
+      "id": "PICK-MODEL-001",
+      "priority": "MEDIUM_HIGH",
+      "action": "Decompose expected rookie value, time-to-realization, liquidity, skew and forecast uncertainty; improve components separately using current anchors, rookie outcomes and bounded priors rather than one opaque transform.",
+      "status": "COMPONENT_REFINEMENT_WITH_EXISTING_EVIDENCE",
+      "evidence": [
+        "Stats Guy normalized pick anchors",
+        "rookie outcome history",
+        "current pick-quality governance"
+      ],
+      "remaining_gap": "Some time/liquidity transforms still require contemporaneous historical market evidence for final calibration."
     }
   ],
   "needs_genuinely_new_or_better_evidence": [
@@ -79,20 +142,20 @@
       "reason": "Needs a defensible denominator of rejected offers or opportunity/choice observations before probability calibration."
     },
     {
-      "id": "BEHAVIOR-001",
-      "reason": "Needs more time-ordered manager actions for robust coefficient promotion, although same-state analysis remains useful now."
+      "id": "BEHAVIOR-PROMOTION-001",
+      "reason": "Full empirical promotion to calibrated manager-choice probabilities needs more time-ordered actions; interim shrinkage refinement can proceed now."
     },
     {
-      "id": "PACKAGE-ECON-001",
-      "reason": "Needs frozen contemporaneous market snapshots and enough multi-asset trades for residual validation."
+      "id": "PACKAGE-ECON-CALIBRATION-001",
+      "reason": "Final empirical package curve requires frozen contemporaneous value snapshots and enough multi-asset trades; robust uncertainty treatment can proceed now."
     },
     {
-      "id": "PICK-MODEL-001",
-      "reason": "Several transforms require contemporaneous historical dynasty-market and rookie-outcome evidence; current-market backfill is not valid."
+      "id": "PICK-MODEL-CALIBRATION-001",
+      "reason": "Final time/liquidity calibration requires contemporaneous historical market evidence; component decomposition and bounded priors can proceed now."
     },
     {
-      "id": "STATE-WEIGHTS-001",
-      "reason": "The expert-prior objective-weight curve requires an independent strategy-outcome target with temporal holdout before empirical promotion."
+      "id": "STATE-WEIGHTS-PROMOTION-001",
+      "reason": "Empirical promotion requires an independent strategy-outcome target with temporal holdout; governed prior refinement can proceed now."
     }
   ],
   "already_structurally_neutralized": [
