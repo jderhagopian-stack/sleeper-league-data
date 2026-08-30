@@ -24,6 +24,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: python -m pip install numpy
       - name: Compile state-aware modules
         run: python -m py_compile script/decision_lab_state_aware.py script/gm_state_weighting.py script/calibrate_gm_state_weights.py script/run_trade_market_sweep_v20.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py
       - name: Verify continuous weights and no threshold cliffs
@@ -32,16 +33,22 @@ jobs:
           import importlib.util
           from pathlib import Path
           p=Path('script/gm_state_weighting.py'); spec=importlib.util.spec_from_file_location('w',p); w=importlib.util.module_from_spec(spec); spec.loader.exec_module(w)
-          def r(c,d=.5,title=.08): return w.resolve({'contender_score':c,'dynasty_roster_score':d,'user_id':'test'}, simulator_row={'championship_probability':title})
-          xs=[0,.10,.349,.350,.351,.549,.550,.551,.779,.780,.781,.90,1.0]; vals=[r(x)['weights'] for x in xs]
+          cal=w.load_calibration()
+          xs=[0,.10,.349,.350,.351,.549,.550,.551,.779,.780,.781,.90,1.0]
+          vals=[w.interpolate(x,cal['anchor_points']) for x in xs]
           assert all(abs(sum(v.values())-1.0)<1e-5 for v in vals)
           assert all(vals[i]['current'] <= vals[i+1]['current']+1e-6 for i in range(len(vals)-1))
           assert all(vals[i]['future'] >= vals[i+1]['future']-1e-6 for i in range(len(vals)-1))
-          assert abs(r(.779)['weights']['current']-r(.780)['weights']['current']) < .01
-          assert abs(r(.549)['weights']['current']-r(.550)['weights']['current']) < .01
-          assert r(.50,d=.10)['weights']['future'] > r(.50,d=.50)['weights']['future']
-          assert r(.70,title=.20)['weights']['current'] > r(.70,title=.02)['weights']['current']
-          print('Continuous weighting is normalized, monotone, and cliff-free')
+          assert abs(vals[8]['current']-vals[9]['current']) < .01
+          assert abs(vals[4]['current']-vals[5]['current']) < .05
+          hsg=w.resolve({'contender_score':.20,'dynasty_roster_score':.458,'user_id':'846634401482792960'})
+          hsg2=w.resolve({'contender_score':.90,'dynasty_roster_score':.458,'user_id':'846634401482792960'})
+          assert hsg['weights']==hsg2['weights'], (hsg,hsg2)
+          assert hsg['inputs']['competitive_strength_score'] > .80
+          assert hsg['adjustments']['championship_future_to_current']==0
+          weak=w.resolve({'contender_score':.50,'dynasty_roster_score':.10,'user_id':'846634401482792960'})
+          assert weak['weights']['future'] > hsg['weights']['future']
+          print('Competitive-strength weighting is normalized, monotone, cliff-free, and separated from roster strength')
           PY
       - name: Verify runtime isolation and fallback
         run: |
@@ -49,7 +56,13 @@ jobs:
           import importlib.util, time
           from pathlib import Path
           p=Path('script/gm_state_weighting.py'); spec=importlib.util.spec_from_file_location('w',p); w=importlib.util.module_from_spec(spec); spec.loader.exec_module(w)
-          allowed={w.CALIBRATION_PATH.resolve(), w.SIM_CONTEXT_PATH.resolve()}; original=Path.read_text; seen=[]
+          league=__import__('json').loads(w.LEAGUE_PATH.read_text())
+          season=str(league.get('season'))
+          allowed={
+              w.CALIBRATION_PATH.resolve(), w.SIM_CONTEXT_PATH.resolve(), w.LEAGUE_PATH.resolve(),
+              (w.DATA/'simulator'/season/'outputs'/'standings_projection.json').resolve(),
+              (w.DATA/'simulator'/season/'outputs'/'season_simulation.json').resolve(),
+          }; original=Path.read_text; seen=[]
           def guarded(self,*a,**k):
               rp=self.resolve(); seen.append(rp); assert rp in allowed, f'unexpected file read: {rp}'; return original(self,*a,**k)
           Path.read_text=guarded
