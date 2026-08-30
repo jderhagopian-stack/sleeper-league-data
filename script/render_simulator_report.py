@@ -7,6 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 from fsffl_report_style import *
+from report_language import league_rank_context
 
 MODEL_VERSION='FSFFL-Season-Simulator-Report-1.1'
 
@@ -23,6 +24,26 @@ def rank(teams,key,uid):
     for i,t in enumerate(rows,1):
         if str(t.get('user_id'))==str(uid): return i
     return None
+
+def outlook_narrative(t,teams,uid):
+    total=len(teams)
+    wr=rank(teams,'expected_wins',uid); pr=rank(teams,'playoff_probability',uid); tr=rank(teams,'championship_probability',uid)
+    parts=[
+        league_rank_context("Expected wins",wr,total),
+        league_rank_context("Playoff odds",pr,total),
+        league_rank_context("Championship odds",tr,total),
+    ]
+    title=safe_float(t.get('championship_probability'))*100
+    playoff=safe_float(t.get('playoff_probability'))*100
+    if title>=15:
+        lead="This team enters the season as a genuine championship favorite."
+    elif title>=8:
+        lead="This team has a credible championship path, but it is not clearly separated from the league."
+    elif playoff>=60:
+        lead="This team projects as a playoff contender, although its title path is less secure."
+    else:
+        lead="This team faces an uphill path to the playoffs and likely needs meaningful improvement."
+    return lead+" "+" ".join(x for x in parts if x)
 
 def render(input_path,uid,name,output):
     data=load(input_path); t=find_team(data,uid,name); teams=data.get('teams') or []; s=styles()
