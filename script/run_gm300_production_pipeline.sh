@@ -34,17 +34,8 @@ echo "[1/10] Clean GM production output"
 rm -rf data/gm
 mkdir -p data/gm
 
-echo "[2/10] Build automatic prospect inputs"
-python script/build_gm30_prospect_inputs.py
-
-echo "[3/10] Enrich prospect features"
-python script/build_gm30_prospect_features.py
-
-echo "[4/10] Build prospect intelligence"
-python script/build_gm30_prospect_engine.py
-if [[ -f data/gm/gm30_prospect_radar.json ]]; then
-  cp data/gm/gm30_prospect_radar.json data/gm/prospect_board.json
-fi
+echo "[2-4/10] Run Draft Intelligence application"
+python script/draft_intelligence/application.py
 
 echo "[5/10] Build calibration audit"
 python script/build_gm30_calibration.py
