@@ -1377,7 +1377,7 @@
         "daily_waivers": 1,
         "daily_waivers_days": 10858,
         "daily_waivers_hour": 0,
-        "daily_waivers_last_ran": 28,
+        "daily_waivers_last_ran": 30,
         "disable_adds": 0,
         "disable_trades": 0,
         "divisions": 4,
@@ -2230,7 +2230,7 @@
           "6770"
         ],
         "taxi": [
-          "13317",
+          "13320",
           "13405"
         ]
       },
@@ -7116,7 +7116,7 @@
       }
     ]
   },
-  "generated_at_utc": "2026-08-28T21:50:18Z",
+  "generated_at_utc": "2026-08-30T10:22:28Z",
   "league_history": [
     {
       "drafts": [
@@ -8496,7 +8496,7 @@
           "daily_waivers": 1,
           "daily_waivers_days": 10858,
           "daily_waivers_hour": 0,
-          "daily_waivers_last_ran": 28,
+          "daily_waivers_last_ran": 30,
           "disable_adds": 0,
           "disable_trades": 0,
           "divisions": 4,
@@ -9349,7 +9349,7 @@
             "6770"
           ],
           "taxi": [
-            "13317",
+            "13320",
             "13405"
           ]
         },
@@ -78056,16 +78056,16 @@
     }
   ],
   "nfl_state": {
-    "display_week": 3,
+    "display_week": 1,
     "league_create_season": "2026",
     "league_season": "2026",
-    "leg": 0,
+    "leg": 1,
     "previous_season": "2025",
     "season": "2026",
     "season_has_scores": true,
-    "season_start_date": "2026-08-06",
-    "season_type": "pre",
-    "week": 3
+    "season_start_date": "2026-09-09",
+    "season_type": "regular",
+    "week": 1
   },
   "players": {
     "0": {
@@ -78874,7 +78874,7 @@
     },
     "11564": {
       "active": true,
-      "age": 23,
+      "age": 24,
       "birth_date": "2002-08-30",
       "draft_pick": null,
       "draft_round": null,
@@ -79094,7 +79094,7 @@
     },
     "11577": {
       "active": true,
-      "age": 23,
+      "age": 24,
       "birth_date": "2002-08-29",
       "draft_pick": null,
       "draft_round": null,
@@ -79604,7 +79604,7 @@
       ],
       "first_name": "Xavier",
       "full_name": "Xavier Worthy",
-      "injury_status": "Questionable",
+      "injury_status": null,
       "last_name": "Worthy",
       "player_id": "11624",
       "position": "WR",
@@ -80044,7 +80044,7 @@
       ],
       "first_name": "Tyrone",
       "full_name": "Tyrone Tracy",
-      "injury_status": null,
+      "injury_status": "Questionable",
       "last_name": "Tracy",
       "player_id": "11655",
       "position": "RB",
@@ -80084,7 +80084,7 @@
       ],
       "first_name": "Sione",
       "full_name": "Sione Vaki",
-      "injury_status": "Questionable",
+      "injury_status": null,
       "last_name": "Vaki",
       "player_id": "11729",
       "position": "RB",
@@ -80484,7 +80484,7 @@
       ],
       "first_name": "Tez",
       "full_name": "Tez Johnson",
-      "injury_status": "Questionable",
+      "injury_status": null,
       "last_name": "Johnson",
       "player_id": "12485",
       "position": "WR",
@@ -80729,7 +80729,7 @@
       "player_id": "12500",
       "position": "QB",
       "status": "Active",
-      "team": "MIA",
+      "team": "JAX",
       "years_exp": 1
     },
     "12501": {
@@ -81245,7 +81245,7 @@
       ],
       "first_name": "Trevor",
       "full_name": "Trevor Etienne",
-      "injury_status": null,
+      "injury_status": "Questionable",
       "last_name": "Etienne",
       "player_id": "12531",
       "position": "RB",
@@ -81965,7 +81965,7 @@
       ],
       "first_name": "Adam",
       "full_name": "Adam Randall",
-      "injury_status": "Questionable",
+      "injury_status": null,
       "last_name": "Randall",
       "player_id": "13302",
       "position": "RB",
@@ -83805,7 +83805,7 @@
       ],
       "first_name": "Tyreek",
       "full_name": "Tyreek Hill",
-      "injury_status": "Questionable",
+      "injury_status": "Out",
       "last_name": "Hill",
       "player_id": "3321",
       "position": "WR",
@@ -86110,7 +86110,7 @@
       "player_id": "5917",
       "position": "WR",
       "status": "Active",
-      "team": "BUF",
+      "team": null,
       "years_exp": 7
     },
     "5927": {
@@ -87450,7 +87450,7 @@
       "player_id": "6963",
       "position": "RB",
       "status": "Inactive",
-      "team": "SF",
+      "team": null,
       "years_exp": 6
     },
     "6984": {
@@ -90175,7 +90175,7 @@
     },
     "9225": {
       "active": true,
-      "age": 23,
+      "age": 24,
       "birth_date": "2002-08-30",
       "draft_pick": null,
       "draft_round": null,
@@ -90565,7 +90565,7 @@
       ],
       "first_name": "Marvin",
       "full_name": "Marvin Mims",
-      "injury_status": null,
+      "injury_status": "Questionable",
       "last_name": "Mims",
       "player_id": "9494",
       "position": "WR",

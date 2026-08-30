@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-28T21:53:33.353172+00:00",
+  "generated_at_utc": "2026-08-30T10:28:48.677392+00:00",
   "model_version": "GM-2.2",
   "checks": [
     {
@@ -9,7 +9,7 @@
     },
     {
       "id": "V11-PICKS",
-      "status": "PASS",
+      "status": "FAIL",
       "detail": "Picks receive dynamic break-glass values."
     },
     {
@@ -23,6 +23,6 @@
       "detail": "Trade recommendations subtract an explicit hold/wait benchmark."
     }
   ],
-  "pass_count": 4,
-  "fail_count": 0
+  "pass_count": 3,
+  "fail_count": 1
 }

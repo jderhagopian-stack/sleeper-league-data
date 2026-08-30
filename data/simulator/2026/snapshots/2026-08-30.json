@@ -1,0 +1,453 @@
+{
+  "features": {
+    "deterministic_season_config_seed": true,
+    "fast_exact_fsffl_lineup_optimizer": true,
+    "opponent_adjustment_source": "file",
+    "same_nfl_team_correlation": true,
+    "simulation_time_bench_substitution": true
+  },
+  "generated_at_utc": "2026-08-30T10:23:01.107482+00:00",
+  "model_version": "FSFFL-Season-Simulator-1.0",
+  "rng_seed": 2617884895,
+  "runtime": {
+    "lineup_build_seconds": 0.603,
+    "score_generation_seconds": 4.084,
+    "total_seconds": 6.286
+  },
+  "season": "2026",
+  "simulations": 50000,
+  "snapshot_date_utc": "2026-08-30",
+  "teams": [
+    {
+      "bye_probability": 0.67472,
+      "championship_probability": 0.3103,
+      "division": 3,
+      "division_probability": 0.93392,
+      "expected_losses": 3.588,
+      "expected_points_for": 1755.68,
+      "expected_wins": 10.412,
+      "manager": "Anthonyder",
+      "playoff_probability": 0.97288,
+      "roster_id": 8,
+      "seed_probabilities": {
+        "1": 0.44064,
+        "10": 0.00094,
+        "11": 0.0,
+        "12": 0.0,
+        "2": 0.23408,
+        "3": 0.13628,
+        "4": 0.08224,
+        "5": 0.051,
+        "6": 0.02864,
+        "7": 0.01564,
+        "8": 0.00768,
+        "9": 0.00286
+      },
+      "team_name": "The Bodini Blitzers \ud83c\udfc6\ud83e\udd47",
+      "user_id": "845157822193872896"
+    },
+    {
+      "bye_probability": 0.35486,
+      "championship_probability": 0.14208,
+      "division": 4,
+      "division_probability": 0.90978,
+      "expected_losses": 4.639,
+      "expected_points_for": 1668.6,
+      "expected_wins": 9.361,
+      "manager": "jimmygoodjob",
+      "playoff_probability": 0.89994,
+      "roster_id": 9,
+      "seed_probabilities": {
+        "1": 0.15908,
+        "10": 0.00436,
+        "11": 0.00036,
+        "12": 2e-05,
+        "2": 0.19578,
+        "3": 0.1899,
+        "4": 0.1557,
+        "5": 0.11494,
+        "6": 0.08454,
+        "7": 0.0515,
+        "8": 0.02968,
+        "9": 0.01414
+      },
+      "team_name": "Hurts So Good",
+      "user_id": "846634401482792960"
+    },
+    {
+      "bye_probability": 0.40222,
+      "championship_probability": 0.26262,
+      "division": 2,
+      "division_probability": 0.56228,
+      "expected_losses": 4.719,
+      "expected_points_for": 1728.32,
+      "expected_wins": 9.281,
+      "manager": "Drigs24",
+      "playoff_probability": 0.89674,
+      "roster_id": 11,
+      "seed_probabilities": {
+        "1": 0.1961,
+        "10": 0.00426,
+        "11": 0.00024,
+        "12": 2e-05,
+        "2": 0.20612,
+        "3": 0.17536,
+        "4": 0.13636,
+        "5": 0.10612,
+        "6": 0.07668,
+        "7": 0.05204,
+        "8": 0.03104,
+        "9": 0.01566
+      },
+      "team_name": "BING BONG DRIGSY\ud83c\udf4e",
+      "user_id": "853063390963277824"
+    },
+    {
+      "bye_probability": 0.2388,
+      "championship_probability": 0.11646,
+      "division": 2,
+      "division_probability": 0.3392,
+      "expected_losses": 5.28,
+      "expected_points_for": 1663.25,
+      "expected_wins": 8.72,
+      "manager": "nuckyniners",
+      "playoff_probability": 0.8147,
+      "roster_id": 2,
+      "seed_probabilities": {
+        "1": 0.09686,
+        "10": 0.00936,
+        "11": 0.00064,
+        "12": 0.0,
+        "2": 0.14194,
+        "3": 0.15904,
+        "4": 0.16008,
+        "5": 0.14128,
+        "6": 0.1155,
+        "7": 0.0876,
+        "8": 0.05784,
+        "9": 0.02986
+      },
+      "team_name": "Chef Niners",
+      "user_id": "709546576091090944"
+    },
+    {
+      "bye_probability": 0.13294,
+      "championship_probability": 0.05398,
+      "division": 1,
+      "division_probability": 0.57898,
+      "expected_losses": 5.765,
+      "expected_points_for": 1599.63,
+      "expected_wins": 8.235,
+      "manager": "Ballard22",
+      "playoff_probability": 0.69802,
+      "roster_id": 12,
+      "seed_probabilities": {
+        "1": 0.04658,
+        "10": 0.02174,
+        "11": 0.00226,
+        "12": 0.00024,
+        "2": 0.08636,
+        "3": 0.12326,
+        "4": 0.147,
+        "5": 0.15166,
+        "6": 0.14316,
+        "7": 0.12358,
+        "8": 0.09474,
+        "9": 0.05942
+      },
+      "team_name": "King B",
+      "user_id": "858530218330144768"
+    },
+    {
+      "bye_probability": 0.09022,
+      "championship_probability": 0.04978,
+      "division": 1,
+      "division_probability": 0.4205,
+      "expected_losses": 6.152,
+      "expected_points_for": 1558.35,
+      "expected_wins": 7.848,
+      "manager": "MochaSmev",
+      "playoff_probability": 0.59424,
+      "roster_id": 7,
+      "seed_probabilities": {
+        "1": 0.02942,
+        "10": 0.03378,
+        "11": 0.00394,
+        "12": 0.00024,
+        "2": 0.0608,
+        "3": 0.0851,
+        "4": 0.11684,
+        "5": 0.14548,
+        "6": 0.1566,
+        "7": 0.1526,
+        "8": 0.1288,
+        "9": 0.0864
+      },
+      "team_name": "MochaSmevs",
+      "user_id": "844785316274483200"
+    },
+    {
+      "bye_probability": 0.05468,
+      "championship_probability": 0.03438,
+      "division": 2,
+      "division_probability": 0.09852,
+      "expected_losses": 6.735,
+      "expected_points_for": 1583.36,
+      "expected_wins": 7.265,
+      "manager": "jder52",
+      "playoff_probability": 0.48812,
+      "roster_id": 10,
+      "seed_probabilities": {
+        "1": 0.01644,
+        "10": 0.05528,
+        "11": 0.00712,
+        "12": 0.00096,
+        "2": 0.03824,
+        "3": 0.06446,
+        "4": 0.09434,
+        "5": 0.125,
+        "6": 0.14964,
+        "7": 0.1697,
+        "8": 0.156,
+        "9": 0.12282
+      },
+      "team_name": "The Shish Kebab Boys",
+      "user_id": "850548458887704576"
+    },
+    {
+      "bye_probability": 0.03564,
+      "championship_probability": 0.02234,
+      "division": 3,
+      "division_probability": 0.0602,
+      "expected_losses": 7.131,
+      "expected_points_for": 1520.72,
+      "expected_wins": 6.869,
+      "manager": "PVos",
+      "playoff_probability": 0.35866,
+      "roster_id": 3,
+      "seed_probabilities": {
+        "1": 0.01096,
+        "10": 0.1064,
+        "11": 0.01382,
+        "12": 0.0023,
+        "2": 0.02468,
+        "3": 0.04222,
+        "4": 0.06428,
+        "5": 0.09196,
+        "6": 0.12456,
+        "7": 0.1571,
+        "8": 0.18866,
+        "9": 0.17306
+      },
+      "team_name": "STINKS",
+      "user_id": "725401251478605824"
+    },
+    {
+      "bye_probability": 0.01476,
+      "championship_probability": 0.00762,
+      "division": 4,
+      "division_probability": 0.09016,
+      "expected_losses": 7.642,
+      "expected_points_for": 1474.17,
+      "expected_wins": 6.358,
+      "manager": "ddersimon",
+      "playoff_probability": 0.22816,
+      "roster_id": 5,
+      "seed_probabilities": {
+        "1": 0.00376,
+        "10": 0.15332,
+        "11": 0.0259,
+        "12": 0.00424,
+        "2": 0.011,
+        "3": 0.02188,
+        "4": 0.03738,
+        "5": 0.0602,
+        "6": 0.09394,
+        "7": 0.13836,
+        "8": 0.19484,
+        "9": 0.25518
+      },
+      "team_name": "Ball Knower",
+      "user_id": "840356119955251200"
+    },
+    {
+      "bye_probability": 0.00116,
+      "championship_probability": 0.00044,
+      "division": 3,
+      "division_probability": 0.00588,
+      "expected_losses": 8.959,
+      "expected_points_for": 1363.51,
+      "expected_wins": 5.041,
+      "manager": "CoachKoko",
+      "playoff_probability": 0.04778,
+      "roster_id": 6,
+      "seed_probabilities": {
+        "1": 0.00016,
+        "10": 0.47886,
+        "11": 0.08892,
+        "12": 0.0171,
+        "2": 0.001,
+        "3": 0.0025,
+        "4": 0.00574,
+        "5": 0.01214,
+        "6": 0.02624,
+        "7": 0.05022,
+        "8": 0.10368,
+        "9": 0.21344
+      },
+      "team_name": "Trash Incessant Talkers",
+      "user_id": "844772511156670464"
+    },
+    {
+      "bye_probability": 0.0,
+      "championship_probability": 0.0,
+      "division": 1,
+      "division_probability": 0.00052,
+      "expected_losses": 11.561,
+      "expected_points_for": 1139.57,
+      "expected_wins": 2.439,
+      "manager": "jaco057",
+      "playoff_probability": 0.00052,
+      "roster_id": 1,
+      "seed_probabilities": {
+        "1": 0.0,
+        "10": 0.0818,
+        "11": 0.46486,
+        "12": 0.4298,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 2e-05,
+        "5": 0.00016,
+        "6": 0.00034,
+        "7": 0.00118,
+        "8": 0.005,
+        "9": 0.01684
+      },
+      "team_name": "HUNGRY DAWGS",
+      "user_id": "833709164739014656"
+    },
+    {
+      "bye_probability": 0.0,
+      "championship_probability": 0.0,
+      "division": 4,
+      "division_probability": 6e-05,
+      "expected_losses": 11.83,
+      "expected_points_for": 1124.07,
+      "expected_wins": 2.17,
+      "manager": "chuckthegoat77",
+      "playoff_probability": 0.00024,
+      "roster_id": 4,
+      "seed_probabilities": {
+        "1": 0.0,
+        "10": 0.0499,
+        "11": 0.39194,
+        "12": 0.54508,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 2e-05,
+        "5": 6e-05,
+        "6": 0.00016,
+        "7": 0.00048,
+        "8": 0.00204,
+        "9": 0.01032
+      },
+      "team_name": "The Associate ",
+      "user_id": "676939933792964608"
+    }
+  ],
+  "validation": {
+    "dynamic_projection_summary": {
+      "availability_rows_changed": 49,
+      "current_week": 1,
+      "players_with_actual_samples": 0,
+      "players_with_future_mean_changes": 0,
+      "season_type": "regular"
+    },
+    "opponent_adjustments": {
+      "checks": [
+        {
+          "code": "NFL_REGULAR_SEASON_GAMES",
+          "minimum": 270,
+          "passed": true,
+          "value": 272
+        },
+        {
+          "code": "NFL_TEAMS",
+          "passed": true,
+          "target": 32,
+          "value": 32
+        },
+        {
+          "code": "MATCHUP_TEAM_WEEKS",
+          "minimum": 540,
+          "passed": true,
+          "value": 544
+        },
+        {
+          "code": "DEFENSE_POSITION_CALIBRATION",
+          "passed": true,
+          "positions": [
+            "QB",
+            "RB",
+            "WR",
+            "TE"
+          ]
+        }
+      ],
+      "current_season_completed_week_limit": 0,
+      "generated_at_utc": "2026-08-30T10:22:47.148531+00:00",
+      "history_files_used": [
+        "data/stats/nfl/2023/player_weekly_normalized.json",
+        "data/stats/nfl/2024/player_weekly_normalized.json",
+        "data/stats/nfl/2025/player_weekly_normalized.json"
+      ],
+      "league_position_team_week_means": {
+        "QB": 19.045,
+        "RB": 18.218,
+        "TE": 9.507,
+        "WR": 22.725
+      },
+      "passed": true,
+      "scored_player_rows": 11179,
+      "season": 2026,
+      "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
+    },
+    "preproduction": {
+      "checks": [
+        {
+          "code": "WIN_SUM",
+          "passed": true,
+          "target": 84.0,
+          "value": 83.999
+        },
+        {
+          "code": "PLAYOFF_PROB_SUM",
+          "passed": true,
+          "target": 6,
+          "value": 6.0
+        },
+        {
+          "code": "BYE_PROB_SUM",
+          "passed": true,
+          "target": 2,
+          "value": 2.0
+        },
+        {
+          "code": "TITLE_PROB_SUM",
+          "passed": true,
+          "target": 1,
+          "value": 1.0
+        },
+        {
+          "code": "RUNTIME_RECORDED",
+          "passed": true,
+          "value": 6.286
+        }
+      ],
+      "generated_at_utc": "2026-08-30T10:23:01.107482+00:00",
+      "model_version": "FSFFL-Season-Simulator-1.0-preproduction",
+      "passed": true,
+      "season": "2026"
+    }
+  }
+}

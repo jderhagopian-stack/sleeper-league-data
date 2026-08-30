@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-28T21:53:34.764286+00:00",
+  "generated_at_utc": "2026-08-30T10:28:50.236004+00:00",
   "model_version": "FSFFL-GM-3.0",
   "season": 2026,
   "passed": true,
@@ -43,8 +43,8 @@
     "usage_records": 0,
     "snap_records": 0,
     "prior_snap_records": 419,
-    "preseason_usage_records": 56,
-    "manual_intelligence_records": 98,
+    "preseason_usage_records": 64,
+    "manual_intelligence_records": 81,
     "prospect_count": 48
   },
   "simulator_validation": {
@@ -56,8 +56,8 @@
         "severity": "error"
       },
       {
-        "code": "ROSTERS_12",
-        "message": "Roster count: 12",
+        "code": "ROSTER_COUNT",
+        "message": "Roster count: 12; configured teams: 12",
         "passed": true,
         "severity": "error"
       },
@@ -81,7 +81,7 @@
       },
       {
         "code": "PLAYOFF_PROJECTION_COVERAGE",
-        "message": "Weeks 15-17 projection coverage: 95.1%.",
+        "message": "Playoff-week projection coverage ([15, 16, 17]): 95.1%.",
         "passed": true,
         "severity": "warning"
       },
@@ -92,7 +92,7 @@
         "severity": "warning"
       }
     ],
-    "generated_at_utc": "2026-08-28T21:50:45.132191+00:00",
+    "generated_at_utc": "2026-08-30T10:22:54.821026+00:00",
     "model_version": "FSFFL-Season-Simulator-1.0",
     "season": "2026",
     "validation_passed": true
