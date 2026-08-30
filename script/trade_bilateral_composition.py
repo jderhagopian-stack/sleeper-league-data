@@ -17,7 +17,7 @@ MODEL_VERSION = "FSFFL-Bilateral-Buyer-Gate-Composition-1.0"
 def install(root, bilateral_gate):
     def patch(mod):
         if hasattr(mod, "buyer_rationality") and not getattr(
-            mod, "_shared_bilateral_gate_installed", False
+            mod, "_trade_decision_bilateral_gate_installed", False
         ):
             original = mod.buyer_rationality
 
@@ -25,12 +25,12 @@ def install(root, bilateral_gate):
                 return bilateral_gate.apply(original(row, dl))
 
             mod.buyer_rationality = buyer_rationality
-            mod._shared_bilateral_gate_installed = True
+            mod._trade_decision_bilateral_gate_installed = True
         return mod
 
     def wrap_loader(mod):
         if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_bilateral_descendant_loader_wrapped", False
+            mod, "_trade_decision_bilateral_descendant_loader_wrapped", False
         ):
             return mod
 
@@ -43,7 +43,7 @@ def install(root, bilateral_gate):
             return child
 
         mod.load_module = loader
-        mod._shared_bilateral_descendant_loader_wrapped = True
+        mod._trade_decision_bilateral_descendant_loader_wrapped = True
         return mod
 
     patch(root)
