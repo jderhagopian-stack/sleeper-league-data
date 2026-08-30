@@ -9,7 +9,7 @@ Performance design:
 - Re-optimize only teams touched by the hypothetical decision.
 - Run paired Monte Carlo from prepared lineups for fast decision deltas.
 - Use the same simulation seed for baseline and hypothetical worlds.
-- Default to 5,000 paired simulations for decision support.
+- Default to 50,000 paired simulations for final decision support.
 
 Decision Lab uses the current vectorized Simulator implementation for paired hypothetical runs. Prepared lineups allow only touched teams to be re-optimized while scoring, correlation, bench substitution, playoff mechanics and RNG behavior remain aligned with the canonical Simulator.
 """
@@ -28,7 +28,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 DATA = Path("data")
 MODEL_VERSION = "FSFFL-Roster-Decision-Lab-1.1"
-DEFAULT_SIMS = 5000
+DEFAULT_SIMS = 50000
 DEFAULT_SEED = 20260821
 
 
