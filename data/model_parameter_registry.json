@@ -379,11 +379,11 @@
       ],
       "parameter_family": "state weights, diminishing returns and guardrails",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "SAFER_PROVISIONAL_NOT_VALIDATED",
-      "source": "Judgment-based v1.4 ranking configuration",
-      "validation": "Required: historical recommendation ranking backtest and parameter-stability analysis",
-      "uncertainty": "composite ordering may be sensitive despite correct raw simulations",
-      "update_policy": "Move toward canonical calibrated utility shared across decision modules",
+      "status": "SHARED_CANONICAL_UTILITY_ACTIVE",
+      "source": "GM3 Team Improvement now consumes the same shared primitive current/future/liquidity/resilience decision utility as Trade Decision, with Simulator-indexed continuous objective weights.",
+      "validation": "Structural convergence complete. Remaining shared utility scales are governed by TRADE-SCORE-001 and require evidence-based scaling/held-out validation; Team Improvement no longer owns a competing categorical weight system.",
+      "uncertainty": "No separate Team Improvement ranking coefficients remain authoritative; uncertainty is inherited from the shared provisional utility and model inputs.",
+      "update_policy": "Update through the shared decision utility only; do not reintroduce Team Improvement-specific ranking weights or categorical guardrails without independent incremental evidence.",
       "downstream": [
         "ranked team-improvement opportunities"
       ],
@@ -396,15 +396,17 @@
       "paths": [
         "script/run_trade_market_sweep_v20.py",
         "script/run_trade_market_sweep_v30.py",
-        "script/decision_lab_state_aware.py"
+        "script/decision_lab_state_aware.py",
+        "script/decision_utility.py",
+        "script/run_team_improvement_lab.py"
       ],
       "parameter_family": "simulated current utility, dynasty market delta, optionality, liquidity, direct roster-replacement resilience, plausibility and competitive-externality multipliers",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "PRIMITIVE_CHANNELS_ACTIVE_WEIGHTS_PROVISIONAL",
-      "source": "State-aware post-simulation utility using direct/primitive channels; strategic and break-glass composites retained for diagnostics only",
+      "source": "Shared primitive decision utility consumed by Trade Decision and GM3 Team Improvement; surviving current/future/liquidity/resilience scales are centralized and explicitly provisional.",
       "validation": "Required: historical ranking/choice backtest and coefficient sensitivity on temporally valid evidence. Structural overlap is removed, but surviving scale/weight constants remain uncalibrated.",
       "uncertainty": "High leverage remains because current/future/liquidity/resilience scaling constants are provisional, although nested strategic/break-glass double counting has been structurally removed.",
-      "update_policy": "Keep composite channels diagnostic-only; calibrate surviving primitive-channel coefficients only with defensible time-ordered out-of-sample evidence.",
+      "update_policy": "Replace centralized primitive scales with stronger evidence-based or simulation-derived scaling when available; both consuming applications update together. Empirical promotion still requires defensible time-ordered out-of-sample evidence.",
       "downstream": [
         "trade ranking",
         "negotiation ranking",
