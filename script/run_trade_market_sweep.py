@@ -21,6 +21,7 @@ import functools
 import importlib.util
 import itertools
 import json
+import math
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -226,6 +227,14 @@ def candidate_packages(assets: List[Dict[str, Any]], max_players=2, max_picks=2)
 
 
 def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any]], incoming: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Cheap discovery features with no hand-set cross-signal score.
+
+    The prescreen exists to decide which packages receive expensive simulation,
+    not to estimate trade quality. Market-distance is the primary search key;
+    roster need, protected/core status and redraft deltas are retained as
+    diagnostics for downstream interpretation rather than assigned arbitrary
+    percentage weights.
+    """
     focal_needs = need_map(focus_uid)
     buyer_needs = need_map(buyer_uid)
     buyer_gm = strategic_assets(buyer_uid)
@@ -233,7 +242,6 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
     outgoing_redraft = sum(asset_value(a, focus_uid)["redraft"] for a in outgoing)
     return_market = sum(asset_value(a, buyer_uid)["market"] for a in incoming)
     return_redraft = sum(asset_value(a, buyer_uid)["redraft"] for a in incoming)
-    return_break = sum(asset_value(a, buyer_uid)["break_glass"] for a in incoming)
     need_gain = sum(
         focal_needs.get(str(a.get("position")), 0.0) * asset_value(a, buyer_uid)["redraft"]
         for a in incoming if a.get("asset_type") == "player"
@@ -243,47 +251,30 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
         for a in outgoing if a.get("asset_type") == "player"
     )
 
-    protected_penalty = 0.0
     protected_assets = []
     for a in incoming:
         g = buyer_gm.get(str(a.get("asset_id"))) or {}
-        status = str(g.get("core_status") or "")
-        if status == "franchise_cornerstone":
-            protected_penalty += 0.78
+        if str(g.get("core_status") or "") in {"franchise_cornerstone", "core_high_hold", "core_pick"}:
             protected_assets.append(a.get("name"))
-        elif status == "core_high_hold":
-            protected_penalty += 0.48
-            protected_assets.append(a.get("name"))
-        elif status == "core_pick":
-            protected_penalty += 0.18
 
-    value_ratio = return_market / max(outgoing_market, 1.0)
-    buyer_cost_ratio = return_break / max(outgoing_market, 1.0)
-    plausibility_score = 1.0
-    plausibility_score -= min(0.68, abs(value_ratio - 1.0) * 0.75)
-    plausibility_score -= min(0.50, max(0.0, buyer_cost_ratio - 1.15) * 0.52)
-    plausibility_score -= protected_penalty
-    plausibility_score += min(0.18, buyer_need_solved / 45000.0)
-    plausibility_score = max(0.0, min(1.0, plausibility_score))
-
-    if plausibility_score >= 0.72:
+    out_base = max(outgoing_market, 1.0)
+    in_base = max(return_market, 1.0)
+    value_ratio = in_base / out_base
+    market_balance_distance = abs(math.log(value_ratio))
+    # A monotone, coefficient-free display transform. This is not acceptance
+    # probability and does not determine candidate eligibility.
+    plausibility_score = 1.0 / (1.0 + market_balance_distance)
+    if plausibility_score >= 0.80:
         plaus = "HIGH"
-    elif plausibility_score >= 0.52:
+    elif plausibility_score >= 0.65:
         plaus = "MEDIUM"
-    elif plausibility_score >= 0.35:
+    elif plausibility_score >= 0.50:
         plaus = "LOW"
     else:
         plaus = "THEORETICAL_ONLY"
 
     future_surplus = return_market - outgoing_market
     redraft_replacement = return_redraft - outgoing_redraft
-    raw_utility = future_surplus + 0.42 * redraft_replacement + 0.10 * need_gain
-    plausibility_multiplier = 0.35 + 0.65 * plausibility_score
-    strategic_score = raw_utility * plausibility_multiplier + 1500.0 * plausibility_score - 1800.0 * protected_penalty
-    if plaus == "LOW":
-        strategic_score -= 2200.0
-    elif plaus == "THEORETICAL_ONLY":
-        strategic_score -= 6000.0
 
     return {
         "buyer_user_id": buyer_uid,
@@ -295,13 +286,33 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
         "return_asset_names": [a.get("name") for a in incoming],
         "market_dynasty_delta_pre_screen": round(future_surplus, 2),
         "market_redraft_delta_pre_screen": round(redraft_replacement, 2),
+        "market_value_ratio_pre_screen": round(value_ratio, 6),
+        "market_balance_distance_pre_screen": round(market_balance_distance, 6),
         "focal_need_gain_score": round(need_gain, 2),
         "buyer_need_solved_score": round(buyer_need_solved, 2),
         "protected_buyer_assets": protected_assets,
         "plausibility_score": round(plausibility_score, 4),
         "plausibility": plaus,
-        "pre_screen_score": round(strategic_score, 2),
+        "pre_screen_score": round(plausibility_score, 6),
+        "prescreen_score_role": "MARKET_DISTANCE_SEARCH_PRIORITY_NOT_TRADE_QUALITY",
+        "protected_status_affects_prescreen_score": False,
+        "need_affects_prescreen_score": False,
+        "redraft_affects_prescreen_score": False,
     }
+
+
+def prescreen_sort_key(row: Dict[str, Any]):
+    """Coefficient-free search ordering.
+
+    Prefer market-near packages first; at identical distance prefer the package
+    with more focal market surplus, then redraft surplus. All final judgments
+    come from canonical simulation/utility.
+    """
+    return (
+        -float(row.get("market_balance_distance_pre_screen") or 0.0),
+        float(row.get("market_dynasty_delta_pre_screen") or 0.0),
+        float(row.get("market_redraft_delta_pre_screen") or 0.0),
+    )
 
 
 def scenario_actions(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any]], incoming: List[Dict[str, Any]]):
@@ -525,7 +536,7 @@ def main():
                 row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
                 raw_candidates.append((row, pkg, outgoing))
 
-    raw_candidates.sort(key=lambda x: x[0]["pre_screen_score"], reverse=True)
+    raw_candidates.sort(key=lambda x: prescreen_sort_key(x[0]), reverse=True)
     selected = diversified_select(raw_candidates, args.shortlist)
 
     state = team_state(focus_uid)
