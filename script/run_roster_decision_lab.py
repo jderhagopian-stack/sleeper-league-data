@@ -5,12 +5,18 @@ Fast ephemeral what-if engine for trades, adds, drops/cuts, and multi-step
 roster moves. Canonical Sleeper/GM state is read-only.
 
 Performance design:
-- Reuse the canonical Simulator 1.0 optimized-lineup cache.
+- Reuse the published Simulator optimized-lineup cache where compatible.
 - Re-optimize only teams touched by the hypothetical decision.
-- Run Monte Carlo from prepared lineups rather than rebuilding every lineup.
+- Run paired Monte Carlo from prepared lineups for fast decision deltas.
 - Use the same simulation seed for baseline and hypothetical worlds.
-- Default to 5,000 paired simulations for minute-scale decision support;
-  callers may request a larger confirmation run with --sims.
+- Default to 5,000 paired simulations for decision support.
+
+IMPORTANT: the paired Decision Lab simulator currently imports the retained
+build_fsffl_season_simulator.py mechanics rather than the current vectorized
+Simulator application implementation. It is therefore a legacy simulation
+adapter, not the authoritative published season-baseline engine. User-facing
+reports must anchor current season baselines to the canonical Simulator output
+until this adapter is migrated.
 """
 
 from __future__ import annotations
