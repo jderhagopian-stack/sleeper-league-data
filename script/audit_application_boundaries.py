@@ -119,7 +119,25 @@ def main():
         principles.get("canonical_within_application_does_not_imply_shared") is True,
         principles.get("promotion_to_shared_requires_domain_generic_behavior_or_real_second_application_consumer") is True,
         principles.get("migration_scaffolding_is_not_permanent_platform_api") is True,
+        principles.get("shared_core_ownership_is_conceptual_not_file_exclusivity") is True,
+        principles.get("legacy_mechanics_host_does_not_regain_application_authority") is True,
     ])
+
+    required_shared_concepts = {
+        "projection_and_uncertainty",
+        "valuation_and_future_pick_economics",
+        "team_state_evaluation",
+        "roster_resolution",
+        "lineup_optimization",
+        "simulation",
+        "behavioral_intelligence",
+        "historical_fact_reconstruction",
+        "roster_interaction_primitive",
+        "league_rules",
+    }
+    missing_shared_concepts = sorted(
+        required_shared_concepts - set((reg.get("shared_core") or {}).keys())
+    )
 
     findings = {
         "registry_files_present": not missing,
@@ -132,6 +150,8 @@ def main():
         "draft_intelligence_application_boundary_active": draft_boundary_ok,
         "breakout_intelligence_application_boundary_active": breakout_boundary_ok,
         "architecture_principles_present": principles_ok,
+        "required_shared_core_concepts_registered": not missing_shared_concepts,
+        "missing_shared_core_concepts": missing_shared_concepts,
     }
     passed = all([
         findings["registry_files_present"],
@@ -142,6 +162,7 @@ def main():
         findings["draft_intelligence_application_boundary_active"],
         findings["breakout_intelligence_application_boundary_active"],
         findings["architecture_principles_present"],
+        findings["required_shared_core_concepts_registered"],
     ])
     payload = {
         "model_version": MODEL_VERSION,
