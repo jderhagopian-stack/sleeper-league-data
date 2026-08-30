@@ -26,7 +26,7 @@ MARKET = DATA / "market_values_fantasycalc.json"
 TRADES = DATA / "trade_ledger.json"
 READINESS = OUT / "pick_outcome_readiness_audit.json"
 
-MODEL_VERSION = "FSFFL-Future-Pick-Governance-1.2"
+MODEL_VERSION = "FSFFL-Future-Pick-Governance-2.0"
 
 
 def load_json(path: Path, default=None):
@@ -195,6 +195,11 @@ def main():
         "pick_quality_optionality_excluded_from_final_primitive_channel": (
             'pp.get("quality_optionality_incremental_value_authorized") is False' in decision_lab
         ),
+        "continuous_simulator_pick_quality_anchor": (
+            "simulator_continuous_pick_assets" in overrides
+            and "canonical_simulator_percentile_continuous_external_market_interpolation" in overrides
+            and "pick_quality_categorical_cliff_authoritative" in overrides
+        ),
     }
 
     cells = observed_market_pick_cells(market)
@@ -250,15 +255,16 @@ def main():
         },
         {
             "id": "PICK-QUALITY-SCENARIO-001",
-            "severity": "HIGH",
-            "status": "HEURISTIC_SCENARIO_TRANSFORM_ACTIVE",
+            "severity": "MEDIUM",
+            "status": "CONTINUOUS_SIMULATOR_MARKET_INTERPOLATION_ACTIVE_LEGACY_SCENARIOS_DIAGNOSTIC",
             "observation": (
-                "The team-strength/fragility transforms that map a future pick to early/mid/late scenarios "
-                "still lack frozen at-time forecasts joined to realized draft slots across independent seasons. "
-                "They remain scenarios, not probabilities, and were not re-tuned from current outcomes."
+                "The valuation point estimate no longer jumps among hard early/mid/late tiers or uses the legacy "
+                "team-strength/fragility blend. It continuously interpolates the current external early/mid/late "
+                "market cells using the original team's canonical Simulator competitive percentile. Early/mid/late "
+                "cells remain uncertainty scenarios, not calibrated slot probabilities."
             ),
             "authoritative_probability_claim_allowed": False,
-            "replacement_made": False,
+            "replacement_made": True,
         },
         {
             "id": "PICK-HORIZON-UNCERTAINTY-001",
@@ -323,7 +329,7 @@ def main():
 
     required_markers = all(detected.values())
     registry_consistent = (
-        governed.get("evidence_tier") == "ASSUMPTION_SENSITIVE_PROVISIONAL"
+        governed.get("evidence_tier") == "SIMULATION_DERIVED_ESTIMATE"
         and governed.get("authoritative_use") is False
         and bool(governed.get("bounds_required"))
     )
@@ -365,7 +371,8 @@ def main():
             "pick_quality_rows": len(picks),
             "comparable_multi_horizon_groups": comparable_groups,
             "exactly_invariant_multi_horizon_groups": invariant_groups,
-            "scenario_formula_replaced": False,
+            "scenario_formula_replaced": True,
+            "continuous_simulator_market_interpolation_active": detected.get("continuous_simulator_pick_quality_anchor", False),
             "market_tier_time_fallback_improved": True,
             "duplicate_pick_premiums_removed": True,
             "downstream_pick_liquidity_optionality_overlap_removed": True,
