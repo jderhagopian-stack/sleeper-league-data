@@ -387,26 +387,41 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
     )
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
+    """Threshold-free legacy Decision Lab classification.
+
+    This path is not the production Trade Decision authority, but it should not
+    preserve obsolete categorical contender/rebuild cliffs. Use Pareto
+    direction across directly interpretable competitive outcomes plus market
+    dynasty value. Mixed tradeoffs are explicitly left for the canonical
+    downstream utility/context rather than forced through arbitrary cutoffs.
+    """
     d = focus_cmp.get("delta") or {}
     s = focus_cmp.get("strategic") or {}
-    title = float(d.get("championship_probability") or 0.0)
-    playoff = float(d.get("playoff_probability") or 0.0)
-    dynasty = float(s.get("market_dynasty_delta") or 0.0)
-    break_glass = float(s.get("break_glass_delta") or 0.0)
-    contender = team_state in {"contender", "elite_contender"}
-    if contender and title <= -0.03:
-        band = "reject_competitive_damage"
-    elif contender and title < -0.01 and break_glass < 0:
-        band = "lean_reject"
-    elif title >= 0.01 and dynasty >= 0:
-        band = "accept"
-    elif playoff >= 0 and dynasty > 0 and break_glass >= 0:
-        band = "lean_accept"
-    elif not contender and dynasty > 0:
-        band = "accept_retool_value"
+    metrics = {
+        "expected_points_for": float(d.get("expected_points_for") or 0.0),
+        "expected_wins": float(d.get("expected_wins") or 0.0),
+        "playoff_probability": float(d.get("playoff_probability") or 0.0),
+        "championship_probability": float(d.get("championship_probability") or 0.0),
+        "market_dynasty_delta": float(s.get("market_dynasty_delta") or 0.0),
+    }
+    any_positive = any(v > 0 for v in metrics.values())
+    any_negative = any(v < 0 for v in metrics.values())
+    if any_positive and not any_negative:
+        band = "accept_pareto_improvement"
+    elif any_negative and not any_positive:
+        band = "reject_pareto_deterioration"
+    elif not any_positive and not any_negative:
+        band = "equivalent"
     else:
         band = "needs_context"
-    return {"band": band, "team_state": team_state, "rule_based": True}
+    return {
+        "band": band,
+        "team_state": team_state,
+        "team_state_is_descriptive_only": True,
+        "rule_based": False,
+        "comparison_basis": "threshold_free_pareto_direction",
+        "metrics": metrics,
+    }
 
 
 def main():
