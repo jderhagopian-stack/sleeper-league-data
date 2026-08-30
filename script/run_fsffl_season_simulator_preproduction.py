@@ -50,6 +50,23 @@ SLOT_SCARCITY = {
     "FLEX": 4,
 }
 
+# Compatibility facade for Shared Core consumers such as Decision Lab.
+# These aliases expose canonical helper contracts without restoring legacy
+# simulation authority to build_fsffl_season_simulator.py.
+player_meta = core.player_meta
+projection_for = core.projection_for
+lineup_slots = core.lineup_slots
+eligible = core.eligible
+regular_season_weeks = core.regular_season_weeks
+roster_directory = core.roster_directory
+build_schedule = core.build_schedule
+validate_inputs = core.validate_inputs
+
+
+def optimize_weekly_lineup(roster, week, league, players, projections):
+    return optimize_fsffl_fast(roster, week, league, players, projections)
+
+
 
 def as_float(value: Any, default: float = 0.0) -> float:
     try:
