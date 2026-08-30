@@ -59,6 +59,7 @@ def main():
     option_governance = text(SCRIPT / "trade_option_governance.py")
     roster_overlay = text(SCRIPT / "roster_interaction_overlay.py")
     roster_resolution = text(SCRIPT / "roster_resolution_governance.py")
+    candidate_pools = text(SCRIPT / "trade_candidate_pools.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -92,7 +93,9 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v27.main()",
+            "v26.main()",
+            "trade_candidate_pools.py",
+            "candidate_pools.apply_to_report(report)",
             "roster_resolution_governance.py",
             "roster_resolution.apply_to_report(report)",
             "roster_interaction_overlay.py",
@@ -104,6 +107,13 @@ def main():
         and "run_trade_market_sweep_v30.py" not in v31
         and "run_trade_market_sweep_v29.py" not in v31
         and "run_trade_market_sweep_v28.py" not in v31
+        and "run_trade_market_sweep_v27.py" not in v31
+        and has_all(candidate_pools, [
+            "def apply_to_report(report):",
+            "suggested_counteroffers",
+            "market_sweep_alternatives",
+            "continuous_state_aware_score_controls_focal_option_eligibility",
+        ])
         and has_all(roster_resolution, [
             "def runtime_roster_model(report):",
             "def apply_to_report(report):",
@@ -126,7 +136,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must bypass historical v28-v30, consume the retained v27 candidate/simulation layer, apply shared roster-resolution provenance and roster-interaction components, and delegate final comparison/action authority to shared option governance.",
+        "observation": "Current v31 must bypass historical v27-v30, consume the retained v26 simulated frontier, apply shared candidate-pool, roster-resolution, and roster-interaction components, and delegate final comparison/action authority to shared option governance.",
     })
 
     v30_contains_superseded_decision_logic = (
