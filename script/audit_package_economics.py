@@ -12,6 +12,7 @@ STATE_AWARE=ROOT/"script"/"decision_lab_state_aware.py"
 ROBUST=ROOT/"script"/"package_curve_robustness.py"
 GM30_CF=ROOT/"script"/"run_fsffl_gm30_counterfactual.py"
 GM30_RUNNER=ROOT/"script"/"run_fsffl_gm30_counterfactual_governed.py"
+GM3_APP=ROOT/"script"/"gm3"/"application.py"
 READINESS=OUT/"transaction_evidence_readiness_audit.json"
 BASELINE=OUT/"package_curve_leverage_baseline.json"
 REGISTRY=DATA/"model_parameter_registry.json"
@@ -29,6 +30,7 @@ def main():
     robust_compact="".join(robust_src.split())
     cf_src=GM30_CF.read_text(encoding="utf-8")
     runner_src=GM30_RUNNER.read_text(encoding="utf-8")
+    gm3_app_src=GM3_APP.read_text(encoding="utf-8")
     ready=load(READINESS,{}) or {}
     baseline=load(BASELINE,{}) or {}
     registry=load(REGISTRY,{}) or {}
@@ -56,7 +58,20 @@ def main():
       and '"single_package_curve_authoritative":False' in robust_compact
       and '"robust_ranking_basis":"presence_then_minimax_rank_then_rank_sum"' in robust_compact
     )
-    gm30_upstream_path=('original = gm30.core.build_universal_trade_opportunities' in cf_src and 'packages[:package_limit]' in cf_src and 'package_robustness.install(gm30.core)' in runner_src and 'counterfactual.install_counterfactual_trade_patch()' in runner_src)
+    # Architecture migration moved governed composition out of the thin runner
+    # and into the GM3 application boundary. Validate the production behavior,
+    # not the obsolete file location: robust multi-curve discovery must install
+    # before the counterfactual patch that screens a bounded candidate subset.
+    robust_install='package_robustness.install(gm30.core)'
+    counterfactual_install='counterfactual.install_counterfactual_trade_patch()'
+    composition_in_app=(robust_install in gm3_app_src and counterfactual_install in gm3_app_src)
+    composition_order_ok=(
+        composition_in_app
+        and gm3_app_src.index(robust_install) < gm3_app_src.index(counterfactual_install)
+    )
+    thin_runner_delegates_to_app=('from gm3 import application' in runner_src and 'application.run()' in runner_src)
+    bounded_screening=('original = gm30.core.build_universal_trade_opportunities' in cf_src and 'packages[:package_limit]' in cf_src)
+    gm30_upstream_path=(bounded_screening and composition_order_ok and thin_runner_delegates_to_app)
 
     leverage=(baseline.get("summary") or {})
     exhaustive_leverage=(int(baseline.get("teams_audited") or 0)==12 and leverage.get("material_downstream_leverage_detected") is True and int(leverage.get("teams_with_top_target_flip_under_any_counterfactual") or 0)>=1 and int(leverage.get("teams_with_top_package_flip_under_any_counterfactual") or 0)>=1)
