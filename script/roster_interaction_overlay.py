@@ -223,7 +223,9 @@ def apply_to_report(report, interaction, ranker):
     report.setdefault("policy", {}).update({
         "roster_interaction_model_version": interaction.MODEL_VERSION,
         "roster_interaction_overlay_model_version": MODEL_VERSION,
-        "roster_specific_correlated_asset_value_enabled": True,\n        "roster_interaction_incremental_final_score_value_authorized": False,\n        "roster_interaction_reason": "team-specific replacement resilience is already modeled; pair-insurance remains diagnostic pending incremental validation",
+        "roster_specific_correlated_asset_value_enabled": True,
+        "roster_interaction_incremental_final_score_value_authorized": False,
+        "roster_interaction_reason": "team-specific replacement resilience is already modeled; pair-insurance remains diagnostic pending incremental validation",
         "same_team_position_insurance_enabled": True,
         "interaction_rules_generic_and_symmetric": True,
         "player_specific_interaction_exceptions": False,
