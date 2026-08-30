@@ -328,6 +328,18 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
     strategic = dl.strategic_summary(focus_uid, actions)
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
     buyer_delta = {
@@ -341,6 +353,7 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
     return {
         "actions": actions,
         "teams_reoptimized": reoptimized,
+        "league_reference": league_reference,
         "focus_before": b,
         "focus_after": h,
         "focus_delta": {
