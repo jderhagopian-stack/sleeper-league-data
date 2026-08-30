@@ -165,8 +165,21 @@ jobs:
           assert d['interpretation']['coefficient_tuning'] is False
           assert d['interpretation']['uses_exact_lineup_reoptimization'] is True
           assert d['interpretation']['roster_interaction_v1_24_reapplied'] is True
-          assert d['summary']['audited_candidate_count'] >= 1
-          print(json.dumps(d['summary'],indent=2))
+          eligible=0
+          report=json.load(open('/tmp/fsffl-trade-report/validation-trade.json'))
+          seen=set()
+          for section in ('current_offer_evaluation','suggested_counteroffers','market_sweep_alternatives','top_5_alternatives','ranked_finalists','realistic_counter_alternatives'):
+              vals=[report.get(section) or {}] if section=='current_offer_evaluation' else (report.get(section) or [])
+              for row in vals:
+                  if not row: continue
+                  key=(str(row.get('buyer_user_id') or ''),tuple(sorted(map(str,row.get('outgoing_assets') or []))),tuple(sorted(map(str,row.get('return_assets') or row.get('incoming_assets') or []))))
+                  if key in seen: continue
+                  seen.add(key)
+                  rr=((row.get('simulation') or {}).get('roster_resolution') or {}).get(str(report.get('focus_user_id') or '')) or {}
+                  required=int(rr.get('required_cuts') or 0);shortlist=list(rr.get('cut_candidate_shortlist') or [])
+                  if required>0 and len(shortlist)>required: eligible+=1
+          assert d['summary']['audited_candidate_count']+d['summary']['skipped_candidate_count'] == eligible
+          print(json.dumps({'summary':d['summary'],'eligible_for_cut_plan_audit':eligible},indent=2))
           PY
       - name: Upload trade report artifacts
         if: always()
