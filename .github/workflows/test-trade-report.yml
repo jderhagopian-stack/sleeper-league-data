@@ -288,6 +288,39 @@ jobs:
           assert d['summary']['audited_candidate_count']+d['summary']['skipped_candidate_count'] == eligible
           print(json.dumps({'summary':d['summary'],'eligible_for_cut_plan_audit':eligible},indent=2))
           PY
+      - name: Run requested Skattebo Ball Knower 2027 2nd model report
+        run: |
+          cat > /tmp/skattebo-ballknower.json <<'JSON'
+          {
+            "scenario_id":"2026-08-30-skattebo-ballknower-2027-2nd",
+            "description":"Hurts So Good sends Rhamondre Stevenson and 2027 Early 2nd original Ball Knower to Chef Niners for Cam Skattebo.",
+            "transaction_status":"proposed",
+            "focus_user_id":"846634401482792960",
+            "participant_user_ids":["846634401482792960","709546576091090944"],
+            "actions":[
+              {"type":"trade","from_user_id":"846634401482792960","to_user_id":"709546576091090944","players":["7611"],"picks":["pick:2027:R2:orig5"]},
+              {"type":"trade","from_user_id":"709546576091090944","to_user_id":"846634401482792960","players":["12481"],"picks":[]}
+            ]
+          }
+          JSON
+          rm -rf /tmp/skattebo-ballknower-report
+          python script/run_trade_report.py \
+            --scenario /tmp/skattebo-ballknower.json \
+            --out-dir /tmp/skattebo-ballknower-report \
+            --basename Hurts_So_Good_Skattebo_Ball_Knower_2027_2nd \
+            --quick-sims 200 \
+            --adaptive-confirm-sims 1000 \
+            --search-depth 60
+
+      - name: Upload requested Skattebo model report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skattebo-ballknower-2027-2nd-model-report
+          path: /tmp/skattebo-ballknower-report/*
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload trade report artifacts
         if: always()
         uses: actions/upload-artifact@v4
