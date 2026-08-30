@@ -297,7 +297,7 @@
       "source": "Observed manager actions and leave-one-manager-out action-type context; manager-specific positional residuals are shrunk toward the league-neutral prior using an adaptive prior strength equal to the current league median effective manager sample. Action context confidence supplies evidence weight without a second hand-set source multiplier.",
       "validation": "Required for empirical promotion: time-ordered held-out manager-action prediction versus simple league/need baselines plus family ablations. Current shrinkage is a stronger sparse-data estimator, not a calibrated acceptance probability.",
       "uncertainty": "Manager samples remain sparse/non-stationary; shrinkage automatically reduces manager-specific authority when evidence is thin.",
-      "update_policy": "Recompute adaptive shrinkage on every refreshed action history; empirical promotion still requires recency-aware held-out ranking/log-loss improvement.",
+      "update_policy": "Re-estimate adaptive shrinkage on every refreshed action history using the current league effective-sample distribution; empirical promotion still requires recency-aware held-out ranking/log-loss improvement.",
       "downstream": [
         "owner preferences",
         "seller acceptance",
