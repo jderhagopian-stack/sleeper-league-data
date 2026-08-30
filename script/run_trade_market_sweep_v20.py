@@ -66,16 +66,8 @@ def state_aware_post_sim_score(engine, row, state: str):
     return resolved["score"]
 
 def state_aware_blended_negotiation_score(row):
-    br = row.get("buyer_rationality") or {}
-    post = sf(row.get("post_sim_score"))
-    strategic = clamp(0.50 + 0.50 * math.tanh(post / 5000.0), 0.0, 1.0)
-    acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0.0, 1.0)
-    behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0.0, 1.0)
     nr = load_module(NEGOTIATION_RANKING, "negotiation_ranking_for_v114")
-    out = nr.compose(strategic, acceptance, behavior)
-    out["focal_strategic_gain_source"] = "state_aware_post_sim_score"
-    out["state_aware_post_sim_score"] = round(post, 2)
-    return out
+    return nr.recompute_from_row(row)
 
 
 def install_engine_upgrade(engine, overlay, high_priority=None):
