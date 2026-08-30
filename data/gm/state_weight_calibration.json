@@ -1,10 +1,13 @@
 {
-  "model_version": "FSFFL-GM-State-Weights-Expert-Prior-1.0",
+  "model_version": "FSFFL-GM-Competitive-State-Expert-Prior-2.0",
   "status": "EXPERT_PRIOR_UNVALIDATED",
   "provenance": {
     "empirically_validated": false,
-    "source": "legacy GM state-weight anchors preserved as an explicit governed prior",
-    "promotion_policy": "Do not relabel or replace as calibrated until an independent strategy_outcome_score target passes the temporal holdout and minimum-improvement gates."
+    "source": "legacy GM objective-weight anchors preserved as an explicit governed prior, now indexed by Simulator-derived competitive-strength percentile rather than roster-strength percentile",
+    "promotion_policy": "Do not relabel the objective-weight mapping or categorical labels as empirically calibrated until an independent strategy_outcome_score target passes temporal holdout and minimum-improvement gates.",
+    "input_semantics": "competitive_strength_score = league percentile of canonical Simulator outcomes ordered by championship probability, then bye probability, playoff probability, and expected wins",
+    "classification_labels": "provisional expert-prior labels only; continuous objective weights do not step at label boundaries",
+    "double_counting_policy": "championship-probability adjustment is suppressed when competitive strength already comes from Simulator outcomes"
   },
   "classification_thresholds": {
     "elite_contender": 0.78,
@@ -13,7 +16,7 @@
   },
   "anchor_points": [
     {
-      "contender_score": 0.0,
+      "competitive_strength_score": 0,
       "weights": {
         "current": 0.08,
         "future": 0.62,
@@ -22,7 +25,7 @@
       }
     },
     {
-      "contender_score": 0.35,
+      "competitive_strength_score": 0.35,
       "weights": {
         "current": 0.23,
         "future": 0.47,
@@ -31,7 +34,7 @@
       }
     },
     {
-      "contender_score": 0.55,
+      "competitive_strength_score": 0.55,
       "weights": {
         "current": 0.4,
         "future": 0.35,
@@ -40,7 +43,7 @@
       }
     },
     {
-      "contender_score": 0.78,
+      "competitive_strength_score": 0.78,
       "weights": {
         "current": 0.5,
         "future": 0.25,
@@ -49,7 +52,7 @@
       }
     },
     {
-      "contender_score": 1.0,
+      "competitive_strength_score": 1,
       "weights": {
         "current": 0.56,
         "future": 0.21,
@@ -71,9 +74,21 @@
     }
   },
   "bounds": {
-    "current": [0.05, 0.6],
-    "future": [0.18, 0.68],
-    "liquidity": [0.07, 0.24],
-    "resilience": [0.08, 0.18]
+    "current": [
+      0.05,
+      0.6
+    ],
+    "future": [
+      0.18,
+      0.68
+    ],
+    "liquidity": [
+      0.07,
+      0.24
+    ],
+    "resilience": [
+      0.08,
+      0.18
+    ]
   }
 }

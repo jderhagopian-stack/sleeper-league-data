@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 CALIBRATION_PATH = DATA / "gm" / "state_weight_calibration.json"
 SIM_CONTEXT_PATH = DATA / "gm" / "league" / "simulator_context.json"
+LEAGUE_PATH = DATA / "league.json"
 WEIGHT_KEYS = ("current", "future", "liquidity", "resilience")
 
 LEGACY_ANCHORS = [
@@ -69,7 +70,7 @@ def load_calibration() -> Dict[str, Any]:
             "runtime_source": "embedded_fallback",
             "classification_thresholds": LEGACY_THRESHOLDS,
             "anchor_points": [
-                {"contender_score": score, "weights": weights}
+                {"competitive_strength_score": score, "weights": weights}
                 for score, weights in LEGACY_ANCHORS
             ],
             "adjustments": {
@@ -90,12 +91,62 @@ def load_calibration() -> Dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def simulator_index() -> Dict[str, Dict[str, Any]]:
-    """Read the already-produced Simulator 1.0 context once; never simulate."""
+    """Read the canonical active-season Simulator output; GM copy is fallback."""
+    candidates = []
     try:
-        raw = json.loads(SIM_CONTEXT_PATH.read_text(encoding="utf-8"))
-        return {str(x.get("user_id")): x for x in (raw.get("teams") or [])}
+        league = json.loads(LEAGUE_PATH.read_text(encoding="utf-8"))
+        season = str(league.get("season") or "")
+        if season:
+            candidates.append(DATA / "simulator" / season / "outputs" / "standings_projection.json")
+            candidates.append(DATA / "simulator" / season / "outputs" / "season_simulation.json")
     except Exception:
-        return {}
+        pass
+    candidates.append(SIM_CONTEXT_PATH)
+
+    for path in candidates:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            rows = raw.get("teams") or []
+            if rows:
+                return {str(x.get("user_id")): x for x in rows}
+        except Exception:
+            continue
+    return {}
+
+
+def simulator_competitive_score(uid: str, simulator_row: Dict[str, Any] | None = None) -> Tuple[float | None, str]:
+    """League-relative competitive strength from canonical Simulator outcomes.
+
+    Primary ordering is championship probability. Bye probability, playoff
+    probability and expected wins break exact ties. No hand-set blend weights
+    are introduced.
+    """
+    idx = simulator_index()
+    row = simulator_row if simulator_row is not None else idx.get(str(uid))
+    if not row:
+        return None, "roster_strength_fallback"
+
+    rows = list(idx.values())
+    if simulator_row is not None and not any(str(x.get("user_id")) == str(uid) for x in rows):
+        rows.append(dict(simulator_row, user_id=str(uid)))
+    if len(rows) < 2:
+        return None, "roster_strength_fallback"
+
+    def key(x):
+        return (
+            sf(x.get("championship_probability")),
+            sf(x.get("bye_probability")),
+            sf(x.get("playoff_probability")),
+            sf(x.get("expected_wins")),
+        )
+
+    target = key(row)
+    ordered = sorted(key(x) for x in rows)
+    positions = [i for i, value in enumerate(ordered) if value == target]
+    if not positions:
+        return None, "roster_strength_fallback"
+    mid = sum(positions) / len(positions)
+    return clamp(mid / max(len(ordered) - 1, 1), 0.0, 1.0), "canonical_simulator_league_percentile"
 
 
 def classify(contender_score: float, thresholds: Dict[str, float] | None = None) -> str:
@@ -113,7 +164,7 @@ def classify(contender_score: float, thresholds: Dict[str, float] | None = None)
 def interpolate(contender_score: float, anchor_points: Iterable[Dict[str, Any]]) -> Dict[str, float]:
     c = clamp(sf(contender_score, 0.5), 0.0, 1.0)
     pts = sorted(
-        [(sf(x.get("contender_score")), normalize(x.get("weights") or {})) for x in anchor_points],
+        [(sf(x.get("competitive_strength_score", x.get("contender_score"))), normalize(x.get("weights") or {})) for x in anchor_points],
         key=lambda x: x[0],
     )
     if not pts:
@@ -146,11 +197,16 @@ def resolve(
 ) -> Dict[str, Any]:
     """Resolve continuous objective weights in O(1) time from precomputed inputs."""
     cal = calibration or load_calibration()
-    c = clamp(sf(team.get("contender_score"), 0.5), 0.0, 1.0)
+    roster_strength = clamp(sf(team.get("contender_score"), 0.5), 0.0, 1.0)
     d = clamp(sf(team.get("dynasty_roster_score"), 0.5), 0.0, 1.0)
     uid = str(team.get("user_id") or team.get("owner_id") or "")
     sim = simulator_row if simulator_row is not None else simulator_index().get(uid, {})
     title = clamp(sf((sim or {}).get("championship_probability"), 0.08), 0.0, 1.0)
+    competitive, competitive_source = simulator_competitive_score(uid, simulator_row=sim if sim else None)
+    if competitive is None:
+        competitive = roster_strength
+        competitive_source = "roster_strength_fallback"
+    c = clamp(competitive, 0.0, 1.0)
 
     w = interpolate(c, cal.get("anchor_points") or [])
     adj = cal.get("adjustments") or {}
@@ -166,15 +222,23 @@ def resolve(
         w["future"] += dynasty_shift
 
     cp = adj.get("championship_probability") or {}
-    ref = sf(cp.get("reference_probability"), 0.08)
-    slope = sf(cp.get("slope"), 0.25)
-    raw_title_shift = (title - ref) * slope
-    if raw_title_shift >= 0:
-        title_shift = min(raw_title_shift, sf(cp.get("max_shift_future_to_current"), 0.04), max(w["future"] - 0.18, 0.0))
-    else:
-        title_shift = max(raw_title_shift, -sf(cp.get("max_shift_current_to_future"), 0.03), -max(w["current"] - 0.05, 0.0))
-    w["current"] += title_shift
-    w["future"] -= title_shift
+    # When competitive strength already comes from Simulator championship
+    # ordering, applying a second championship-probability shift would count
+    # the same signal twice. Retain the historical adjustment only for fallback
+    # runs where Simulator context is unavailable.
+    title_shift = 0.0
+    title_adjustment_policy = "suppressed_to_avoid_simulator_double_counting"
+    if competitive_source == "roster_strength_fallback":
+        ref = sf(cp.get("reference_probability"), 0.08)
+        slope = sf(cp.get("slope"), 0.25)
+        raw_title_shift = (title - ref) * slope
+        if raw_title_shift >= 0:
+            title_shift = min(raw_title_shift, sf(cp.get("max_shift_future_to_current"), 0.04), max(w["future"] - 0.18, 0.0))
+        else:
+            title_shift = max(raw_title_shift, -sf(cp.get("max_shift_current_to_future"), 0.03), -max(w["current"] - 0.05, 0.0))
+        w["current"] += title_shift
+        w["future"] -= title_shift
+        title_adjustment_policy = "legacy_fallback_only"
 
     w = _bounded_normalize(w, cal.get("bounds") or {})
     state = classify(c, cal.get("classification_thresholds") or LEGACY_THRESHOLDS)
@@ -182,14 +246,18 @@ def resolve(
         "state": state,
         "weights": {k: round(w[k], 6) for k in WEIGHT_KEYS},
         "inputs": {
-            "contender_score": round(c, 6),
+            "competitive_strength_score": round(c, 6),
+            "competitive_strength_source": competitive_source,
+            "roster_strength_score": round(roster_strength, 6),
             "dynasty_roster_score": round(d, 6),
             "championship_probability": round(title, 6),
         },
         "adjustments": {
             "weak_dynasty_current_to_future": round(dynasty_shift, 6),
             "championship_future_to_current": round(title_shift, 6),
+            "championship_adjustment_policy": title_adjustment_policy,
         },
+        "classification_status": "PROVISIONAL_EXPERT_PRIOR_LABEL_ONLY",
         "calibration_model_version": cal.get("model_version"),
         "calibration_status": cal.get("status"),
         "runtime_source": cal.get("runtime_source", "calibration_artifact"),

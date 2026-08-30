@@ -69,33 +69,43 @@ def team_context(uid):
 
 
 def competitive_context(uid):
-    """Describe team strength continuously; categorical state thresholds are provisional."""
+    """Describe competition outlook from Simulator evidence, keeping roster strength separate."""
     ctx=team_context(uid)
     if not ctx:
         return ""
     command=ctx.get("command") or {}
-    score=_sf(command.get("contender_score"),0.5)
+    roster_strength=_sf(
+        command.get("roster_strength_score", command.get("contender_score")),
+        0.5,
+    )
+    competitive=command.get("competitive_strength_score")
+    competitive=_sf(competitive) if competitive is not None else None
     dynasty=_sf(command.get("dynasty_roster_score"),0.5)
     sim=ctx.get("sim") or {}
     title=_sf(sim.get("championship_probability"))*100
+    playoff=_sf(sim.get("playoff_probability"))*100
     rank=ctx.get("title_rank"); total=ctx.get("league_size")
-    cal=_load(STATE_CALIBRATION,{}) or {}
-    thresholds=cal.get("classification_thresholds") or {}
-    contender=_sf(thresholds.get("contender"),0.55)
-    delta=score-contender
-    parts=[f"GM3's contender score is {score:.3f} and long-term roster-strength score is {dynasty:.3f}."]
-    if abs(delta)<=.05:
-        side="above" if delta>=0 else "below"
+
+    parts=[]
+    if competitive is not None:
         parts.append(
-            f"The contender score is only {abs(delta):.3f} {side} the model's provisional contender boundary, so the categorical state label should be treated as borderline rather than definitive."
+            f"Competitive Strength is {competitive:.3f}, based on this team's league-relative position in the canonical Simulator rather than a roster-value cutoff."
         )
-    else:
-        parts.append("GM3's categorical state thresholds remain a governed expert prior rather than an empirically validated classification.")
-    if title>0:
-        if rank and total:
-            parts.append(f"The current Simulator gives this team {title:.1f}% championship odds, ranking #{rank} of {total}.")
-        else:
-            parts.append(f"The current Simulator gives this team {title:.1f}% championship odds.")
+    if rank and total and title>0:
+        parts.append(
+            f"The Simulator gives this team {title:.1f}% championship odds and {playoff:.1f}% playoff odds, ranking #{rank} of {total} in championship equity."
+        )
+    elif title>0:
+        parts.append(
+            f"The Simulator gives this team {title:.1f}% championship odds and {playoff:.1f}% playoff odds."
+        )
+    parts.append(
+        f"Separately, GM3's optimized-roster strength percentile is {roster_strength:.3f}, with long-term roster strength at {dynasty:.3f}."
+    )
+    if str(command.get("team_state_classification_status") or "").startswith("PROVISIONAL"):
+        parts.append(
+            "Any categorical state label is retained only as provisional internal policy metadata; it is not the primary description of how competitive the team is."
+        )
     return " ".join(parts)
 
 

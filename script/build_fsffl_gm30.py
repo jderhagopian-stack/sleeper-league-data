@@ -27,6 +27,7 @@ GM = DATA / "gm"
 
 sys.path.insert(0, str(SCRIPT_DIR))
 import build_fsffl_gm_engine as core  # proven GM 2.2 engine
+import gm_state_weighting as state_weighting
 
 MODEL_VERSION = "FSFFL-GM-3.0"
 
@@ -288,6 +289,24 @@ def promote_universal_outputs(season):
             payload["model_version"] = MODEL_VERSION
             payload["inherited_core"] = "GM-2.2"
             payload["season"] = season
+            state_resolution = state_weighting.resolve(
+                {
+                    "user_id": uid,
+                    "contender_score": payload.get("contender_score"),
+                    "dynasty_roster_score": payload.get("dynasty_roster_score"),
+                },
+                simulator_row=sim,
+            )
+            payload["roster_strength_score"] = payload.get("contender_score")
+            payload["competitive_strength_score"] = (
+                state_resolution.get("inputs") or {}
+            ).get("competitive_strength_score")
+            payload["competitive_strength_source"] = (
+                state_resolution.get("inputs") or {}
+            ).get("competitive_strength_source")
+            payload["team_state"] = state_resolution.get("state")
+            payload["objective_weights"] = state_resolution.get("weights")
+            payload["team_state_classification_status"] = state_resolution.get("classification_status")
             payload["gm30"] = {
                 "simulator_1_0": {
                     "expected_wins": sim.get("expected_wins"),
@@ -295,6 +314,12 @@ def promote_universal_outputs(season):
                     "playoff_probability": sim.get("playoff_probability"),
                     "bye_probability": sim.get("bye_probability"),
                     "championship_probability": sim.get("championship_probability"),
+                },
+                "competitive_strength": {
+                    "score": (state_resolution.get("inputs") or {}).get("competitive_strength_score"),
+                    "source": (state_resolution.get("inputs") or {}).get("competitive_strength_source"),
+                    "roster_strength_score": (state_resolution.get("inputs") or {}).get("roster_strength_score"),
+                    "classification_status": state_resolution.get("classification_status"),
                 },
                 "evidence_coverage": coverage,
             }
@@ -343,6 +368,8 @@ def promote_universal_outputs(season):
             "dynamic_operating_season",
             "dynamic_future_pick_horizon",
             "simulator_1_0_team_context",
+            "simulator_authoritative_competitive_strength",
+            "roster_strength_separated_from_competitive_strength",
             "prospect_intelligence_interface",
             "football_intelligence_coverage",
             "explicit_2_2_provenance_and_regression_baseline",
