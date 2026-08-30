@@ -41,12 +41,15 @@ def package_curve():
 
 def trade_score_elasticity():
     return {
-      "per_1_percentage_point_title_probability":250.0,
-      "per_1_percentage_point_playoff_probability":50.0,
-      "per_1_percentage_point_opponent_title_externality":-120.0,
-      "per_1000_dynasty_value_points":1000.0,
-      "per_1000_break_glass_points":350.0,
-      "source_formula":"dynasty + .35*break_glass + 25000*title + 5000*playoff - 12000*externality",
+      "fixed_unit_conversion_coefficients_active": False,
+      "current_outcome_normalization": "median of league-relative Simulator deltas",
+      "current_value_scale": "baseline team market-redraft value",
+      "future_value_scale": "market dynasty delta",
+      "liquidity_scale": "direct value-denominated delta",
+      "resilience_scale": "direct value-denominated replacement-resilience delta",
+      "optionality_incremental_value_authorized": False,
+      "opponent_title_externality_separate_coefficient": False,
+      "shared_decision_utility_model": "FSFFL-Shared-Decision-Utility-2.0",
     }
 
 def gm_config_envelopes():
@@ -111,8 +114,9 @@ def behavioral_leverage():
       "trade_vs_acquisition_weight_ratio":round(sf(sw["trade"])/sf(sw["acquisition"]),3),
       "need_floor":bi.NEED_FLOOR,
       "opportunity_smoothing":bi.OPPORTUNITY_SMOOTHING,
-      "residual_scale_multiplier":3.0,
-      "confidence_sample_scale":7.0,
+      "residual_scale_multiplier":None,
+      "confidence_sample_scale":None,
+      "adaptive_shrinkage":True,
     }
 
 def pick_model_leverage():
