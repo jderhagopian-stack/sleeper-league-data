@@ -46,8 +46,8 @@ python script/build_gm30_football_intelligence.py
 echo "[7/10] Build current catalysts"
 python script/build_gm30_current_catalysts.py
 
-echo "[8/10] Build emerging-value intelligence"
-python script/build_gm30_emerging_value.py
+echo "[8/10] Run Breakout / Sleeper Intelligence application"
+python script/breakout_intelligence/application.py
 
 echo "[9/10] Run governed simulator-integrated counterfactual GM"
 python script/run_fsffl_gm30_counterfactual_governed.py
