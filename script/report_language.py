@@ -130,3 +130,61 @@ def artificial_ellipsis_hits(text: str):
     if "\u2026" in s:
         hits.append("\u2026")
     return hits
+
+
+def magnitude_word(delta: float, baseline: float | None = None) -> str:
+    """Plain-language size label for a change without creating a new score."""
+    d = abs(float(delta or 0.0))
+    if baseline not in (None, 0):
+        ratio = d / max(abs(float(baseline)), 1e-9)
+        if ratio >= 0.25:
+            return "large"
+        if ratio >= 0.10:
+            return "meaningful"
+        if ratio >= 0.03:
+            return "modest"
+        return "small"
+    if d >= 750:
+        return "large"
+    if d >= 250:
+        return "meaningful"
+    if d >= 75:
+        return "modest"
+    return "small"
+
+
+def probability_change(label_text: str, before, after) -> str:
+    """Explain a probability with baseline, destination and percentage-point change."""
+    b = float(before or 0.0)
+    a = float(after or 0.0)
+    pp = (a - b) * 100.0
+    direction = "rises" if pp > 0 else "falls" if pp < 0 else "stays unchanged"
+    if pp == 0:
+        return f"{label_text} {direction} at {a*100:.1f}%."
+    return f"{label_text} {direction} from {b*100:.1f}% to {a*100:.1f}% ({pp:+.1f} percentage points)."
+
+
+def value_change(label_text: str, delta, baseline=None) -> str:
+    """Explain a model-value delta with relative context when a baseline is available."""
+    d = float(delta or 0.0)
+    direction = "gain" if d > 0 else "loss" if d < 0 else "change"
+    mag = magnitude_word(d, baseline)
+    if baseline not in (None, 0):
+        pct = abs(d) / max(abs(float(baseline)), 1e-9) * 100.0
+        return f"{label_text}: {d:+,.0f}, a {mag} {direction} equal to about {pct:.1f}% of the relevant baseline."
+    return f"{label_text}: {d:+,.0f}, which the report treats as a {mag} {direction}."
+
+
+def league_rank_context(label_text: str, rank, total) -> str:
+    if rank in (None, "") or not total:
+        return ""
+    rank = int(rank); total = int(total)
+    if rank == 1:
+        tier = "best in the league"
+    elif rank <= max(3, round(total * 0.25)):
+        tier = "near the top of the league"
+    elif rank >= total - max(2, round(total * 0.25)) + 1:
+        tier = "near the bottom of the league"
+    else:
+        tier = "in the middle of the league"
+    return f"{label_text} ranks #{rank} of {total}, {tier}."

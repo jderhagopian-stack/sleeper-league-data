@@ -7,6 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 from fsffl_report_style import *
+from reporting import league_rank_context, league_title_odds_chart
 
 MODEL_VERSION='FSFFL-Season-Simulator-Report-1.1'
 
@@ -23,6 +24,26 @@ def rank(teams,key,uid):
     for i,t in enumerate(rows,1):
         if str(t.get('user_id'))==str(uid): return i
     return None
+
+def outlook_narrative(t,teams,uid):
+    total=len(teams)
+    wr=rank(teams,'expected_wins',uid); pr=rank(teams,'playoff_probability',uid); tr=rank(teams,'championship_probability',uid)
+    parts=[
+        league_rank_context("Expected wins",wr,total),
+        league_rank_context("Playoff odds",pr,total),
+        league_rank_context("Championship odds",tr,total),
+    ]
+    title=safe_float(t.get('championship_probability'))*100
+    playoff=safe_float(t.get('playoff_probability'))*100
+    if title>=15:
+        lead="This team enters the season as a genuine championship favorite."
+    elif title>=8:
+        lead="This team has a credible championship path, but it is not clearly separated from the league."
+    elif playoff>=60:
+        lead="This team projects as a playoff contender, although its title path is less secure."
+    else:
+        lead="This team faces an uphill path to the playoffs and likely needs meaningful improvement."
+    return lead+" "+" ".join(x for x in parts if x)
 
 def render(input_path,uid,name,output):
     data=load(input_path); t=find_team(data,uid,name); teams=data.get('teams') or []; s=styles()
@@ -51,7 +72,11 @@ def render(input_path,uid,name,output):
         lr.append([P(s,x.get('team_name'),'FS_Body'),P(s,f"{safe_float(x.get('expected_wins')):.2f}",'FS_Body'),P(s,f"{safe_float(x.get('playoff_probability'))*100:.0f}%",'FS_Body'),P(s,f"{safe_float(x.get('championship_probability'))*100:.1f}%",'FS_Body')])
     lt=Table(lr,colWidths=[2.1*inch,.62*inch,.72*inch,.68*inch]); lt.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),LIGHT_GRAY),('GRID',(0,0),(-1,-1),.35,MID_GRAY),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),4),('RIGHTPADDING',(0,0),(-1,-1),4)]))
     validation=data.get('validation') or {}; coverage='; '.join(str(x.get('message')) for x in validation.get('checks') or [] if x.get('code') in {'ROSTER_PROJECTION_COVERAGE','PLAYOFF_PROJECTION_COVERAGE'})
-    right=[P(s,'CHAMPIONSHIP RACE','FS_Section'),lt,Spacer(1,5),P(s,'HOW MUCH TO TRUST THIS','FS_Section'),P(s,f"Model checks passed: {validation.get('validation_passed')}. {coverage}",'FS_Small'),Spacer(1,3),P(s,'READING GUIDE','FS_Section'),P(s,"These are the simulator's direct results. The report simply puts them into readable football terms; it does not change the simulation or add new judgments.",'FS_Small')]
+    chart=league_title_odds_chart(teams)
+    right=[P(s,'CHAMPIONSHIP RACE','FS_Section'),lt]
+    if chart is not None:
+        right += [Spacer(1,4),chart]
+    right += [Spacer(1,5),P(s,'HOW MUCH TO TRUST THIS','FS_Section'),P(s,f"Model checks passed: {validation.get('validation_passed')}. {coverage}",'FS_Small'),Spacer(1,3),P(s,'READING GUIDE','FS_Section'),P(s,"These are the simulator's direct results. The report simply puts them into readable football terms; it does not change the simulation or add new judgments.",'FS_Small')]
     cols=Table([[left,right]],colWidths=[2.9*inch,4.54*inch]); cols.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(0,0),0),('RIGHTPADDING',(0,0),(0,0),9),('LEFTPADDING',(1,0),(1,0),9),('RIGHTPADDING',(1,0),(1,0),0),('LINEBEFORE',(1,0),(1,0),.7,MID_GRAY)])); story.append(cols)
     doc.build(story,onFirstPage=lambda c,d: footer(c,f'{MODEL_VERSION} | Simulator output | Plain-English presentation'))
 

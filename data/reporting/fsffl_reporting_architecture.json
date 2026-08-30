@@ -1,6 +1,6 @@
 {
   "name": "FSFFL Reporting Layer",
-  "version": "1.2",
+  "version": "1.4",
   "principles": {
     "raw_model_output_is_source_of_truth": true,
     "chatgpt_reads_raw_output_not_pdf": true,
@@ -11,7 +11,14 @@
     "plain_language_is_required": true,
     "technical_model_terms_stay_in_source_json": true,
     "user_facing_prose_must_not_be_truncated": true,
-    "multi_page_reports_preferred_over_cutoff_text": true
+    "multi_page_reports_preferred_over_cutoff_text": true,
+    "context_required_for_user_facing_numbers": true,
+    "narrative_reasoning_required": true,
+    "decision_reports_explain_alternatives": true,
+    "one_page_is_preference_not_constraint": true,
+    "reporter_style_context_required": true,
+    "shared_reporting_module_applies_across_workflows": true,
+    "visuals_are_evidence_triggered_not_decorative": true
   },
   "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach a standardized plain-English PDF. User-facing reports must lead with football meaning and decisions; technical field names and implementation details stay in the source JSON or footer unless a short explanation is necessary.",
   "design_system": {
@@ -28,62 +35,65 @@
       "meaningful whitespace",
       "charts only when they materially improve comprehension",
       "avoid spreadsheet-dump layouts",
-      "shareable without verbal explanation",
       "plain English before model terminology",
       "define any unavoidable technical term in one sentence",
-      "never truncate user-facing prose with ellipses"
+      "never truncate user-facing prose with ellipses",
+      "every material number must include a comparison, scale, rank, baseline, or plain-language interpretation",
+      "decision reports must explain why the recommendation follows from the evidence",
+      "when alternatives exist, explain why the preferred option is better",
+      "page count may grow when needed to preserve context and narrative"
     ]
   },
   "supported_reports": [
     {
       "id": "trade_decision",
       "status": "live",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "gm_franchise",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "season_simulator",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "roster_decision",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "league_power_rankings",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "player_prospect_dossier",
       "status": "implemented_on_demand",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "market_movement_breakout",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "draft_board_recap",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "historical_record_book",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     },
     {
       "id": "multiverse_outliers",
       "status": "implemented",
-      "target_pages": 1
+      "page_guidance": "use the fewest pages that preserve context; typically 1-2"
     }
   ],
   "automatic_report_pack": {
@@ -106,5 +116,62 @@
     ],
     "player_dossier": "generated on demand for the queried player",
     "roster_decision": "generated on demand from the queried Decision Lab scenario"
+  },
+  "narrative_contract": {
+    "applies_to": "all user-facing analytical reports",
+    "required_sections": [
+      "bottom_line_or_takeaway",
+      "why_this_result",
+      "number_context",
+      "implications_or_next_step"
+    ],
+    "decision_report_additions": [
+      "why_the_recommendation_makes_sense",
+      "why_not_the_other_choice",
+      "better_alternative_when_available",
+      "what_could_change_the_answer"
+    ],
+    "numeric_context_policy": [
+      "show before-and-after values when available",
+      "show percentage-point change for probabilities",
+      "show league rank or percentile when available",
+      "show relative size versus assets surrendered or relevant baseline for value deltas",
+      "translate score magnitude into plain-language significance",
+      "never present an internal score without explaining what a higher or lower value means"
+    ],
+    "language_policy": {
+      "football_terms_before_model_terms": true,
+      "technical_field_names_body_allowed": false,
+      "model_details_location": "footer_or_methodology",
+      "narrative_must_be_derived_from_existing_model_outputs": true,
+      "renderer_must_not_create_new_model_scores": true
+    },
+    "roster_context_policy": [
+      "connect recommendations to current optimized lineup access",
+      "connect incoming players to position need and roster weakness when supported",
+      "identify when outgoing players are blocked from the starting lineup or are depth-only assets",
+      "explain shifts from surplus positions to weak positions",
+      "use current competitive-window and simulator context when relevant",
+      "never infer a player will start unless an authoritative lineup output supports it"
+    ],
+    "visual_policy": [
+      "prefer charts when relative magnitude, before/after change, ranking, trend, composition, or trade-off is easier to understand visually",
+      "do not add a chart when prose or a compact table communicates the point more clearly",
+      "charts must use authoritative existing outputs and must not introduce new scores",
+      "every chart must have an obvious analytical purpose in the surrounding narrative",
+      "chart selection belongs to the shared Reporting module rather than individual workflow business logic"
+    ]
+  },
+  "module": {
+    "name": "FSFFL Reporting",
+    "layer": "Reports / Publications",
+    "stable_facade": "script/reporting/__init__.py",
+    "presentation_language": "script/report_language.py",
+    "contextual_narrative": "script/report_context.py",
+    "visual_primitives": "script/report_visuals.py",
+    "visual_style": "script/fsffl_report_style.py",
+    "decision_authority": false,
+    "rescore_authority": false,
+    "consumers": "all user-facing FSFFL report renderers"
   }
 }

@@ -20,6 +20,21 @@ def find_team(index, uid=None, slug=None):
         if slug and str(t.get('slug'))==str(slug): return t
     raise ValueError('Team not found in franchise_index.json')
 
+def franchise_story(cc,state):
+    contender=safe_float(cc.get("contender_score"))
+    dynasty=safe_float(cc.get("dynasty_roster_score"))
+    needs=cc.get("biggest_position_needs") or []
+    need=", ".join(str(x.get("position")) for x in needs[:2] if x.get("position")) or "no clearly dominant position"
+    if "Contender" in state and dynasty>=.6:
+        lead="The roster is built to compete now without sacrificing much long-term strength."
+    elif "Contender" in state:
+        lead="The roster is positioned to compete now, but some of that strength comes at the expense of long-term depth or flexibility."
+    elif dynasty>=.6:
+        lead="The roster has a strong long-term base, but its current-season profile is not yet that of a top contender."
+    else:
+        lead="The roster needs improvement in both current-season strength and long-term asset quality."
+    return f"{lead} Win-now readiness is {contender:.3f} and long-term roster strength is {dynasty:.3f}; the most visible roster pressure is at {need}."
+
 def render(index_path, uid, slug, output):
     index=load(index_path); team=find_team(index,uid,slug)
     cc=load(team['paths']['command_center'])
@@ -29,7 +44,7 @@ def render(index_path, uid, slug, output):
     state_bg=LIGHT_GREEN if 'Contender' in state else LIGHT_BLUE
     banner=Table([[P(s,'TEAM OUTLOOK','FS_WhiteLabel'),P(s,f'<b>{state}</b> &nbsp;&nbsp; Win-Now Readiness {safe_float(cc.get("contender_score")):.3f} | Long-Term Roster Strength {safe_float(cc.get("dynasty_roster_score")):.3f}','FS_Body')]],colWidths=[1.5*inch,5.94*inch])
     banner.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),NAVY),('BACKGROUND',(1,0),(1,0),state_bg),('BOX',(0,0),(-1,-1),.7,MID_GRAY),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
-    story += [banner,Spacer(1,6)]
+    story += [banner,Spacer(1,6),P(s,'TEAM STORY','FS_Section'),P(s,franchise_story(cc,state),'FS_Body'),Spacer(1,5)]
     cards=[
         kpi_card(s,'2026 Starter Strength',f"{safe_float(cc.get('starter_redraft_value')):,.0f}",'blue'),
         kpi_card(s,'Long-Term Starter Strength',f"{safe_float(cc.get('starter_dynasty_value')):,.0f}",'blue'),

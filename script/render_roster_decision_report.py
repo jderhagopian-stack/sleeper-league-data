@@ -7,6 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 from fsffl_report_style import *
+from report_language import probability_change, value_change
 
 MODEL_VERSION='FSFFL-Roster-Decision-Report-1.2'
 ASSET_VALUES=Path('data/fsffl_asset_values.json')
@@ -40,6 +41,20 @@ def action_summary(actions,names):
             direction=f" ({a.get('from_user_id','?')} -> {a.get('to_user_id','?')})"
         parts.append(f'{typ}{direction}: {detail}')
     return ' | '.join(parts)[:420]
+
+def roster_narrative(before,after,delta,strat,rec,unresolved):
+    if unresolved:
+        return "The model can measure the roster and season effects, but it cannot make a confident final recommendation until the team's competitive direction is resolved."
+    pieces=[
+        probability_change("Playoff odds",before.get("playoff_probability"),after.get("playoff_probability")),
+        probability_change("Championship odds",before.get("championship_probability"),after.get("championship_probability")),
+        value_change("Long-term trade value",strat.get("market_dynasty_delta")),
+        value_change("Value to this team",strat.get("base_franchise_delta")),
+    ]
+    wins=safe_float(delta.get("expected_wins"))
+    direction="adds" if wins>0 else "costs" if wins<0 else "does not change"
+    pieces.insert(0,f"The move {direction} {abs(wins):.2f} expected wins.")
+    return " ".join(pieces)
 
 def render(input_path,output):
     d=load(input_path); uid=str(d.get('focus_user_id')); cmp=(d.get('team_comparisons') or {}).get(uid) or {}

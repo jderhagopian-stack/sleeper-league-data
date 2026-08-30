@@ -67,6 +67,19 @@ These consume authoritative facts or application outputs and do not create compe
 
 ## Reports / Publications
 
+The Reports / Publications layer includes a shared **FSFFL Reporting module** used across workflows. It owns presentation intelligence, not model intelligence:
+
+- standard user-facing terminology
+- contextual narrative built only from authoritative outputs
+- number context and comparison language
+- reporter-style explanations of roster construction, competitive window, lineup access, strengths/weaknesses, alternatives and implications
+- shared visual primitives and evidence-based chart selection
+- layout and presentation standards
+
+The stable facade is `script/reporting/__init__.py`. Individual report renderers should consume this shared module rather than independently inventing language, context rules or chart logic.
+
+The Reporting module has no authority to rescore, re-rank, change a recommendation, or create hidden analytical coefficients. It explains and visualizes conclusions owned by Core, Applications, or Analytics.
+
 Reports compose outputs from Core, Applications, and Analytics. They should not invent a separate model merely to produce a document.
 
 Examples:
