@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_PATH = ROOT / "script" / "run_trade_market_sweep.py"
-MODEL_VERSION = "FSFFL-Trade-Prescreen-Recall-1.0"
+MODEL_VERSION = "FSFFL-Trade-Prescreen-Recall-2.0"
 
 
 def load_module(path: Path, name: str):
@@ -87,8 +87,8 @@ def enumerate_candidates(engine, focus_uid, current_partner, variants, owner_ass
                 picks = picks[:8]
             for pkg in engine.candidate_packages(players + picks):
                 row = engine.score_candidate(focus_uid, buyer_uid, outgoing, pkg)
-                if row["plausibility"] == "THEORETICAL_ONLY":
-                    continue
+                # Audit the full generated universe. Plausibility bands may
+                # prioritize simulation work but may not erase candidates.
                 row["outgoing_variant"] = variant
                 row["candidate_type"] = (
                     "SAME_PARTNER_COUNTER"
@@ -184,6 +184,7 @@ def main():
             "projection_behavior_changed": False,
             "tests_candidate_discovery_recall": True,
             "production_prescreen_score_used_unchanged": True,
+            "plausibility_band_used_as_candidate_eligibility_gate": False,
             "expanded_pool_is_all_owned_tradeable_assets": True,
         },
         "legacy_pool_caps": {"players_per_buyer": 10, "picks_per_buyer": 8},
@@ -213,12 +214,14 @@ def main():
             "legacy_pool_caps_empirically_authoritative": False,
             "production_top_k_recall_vs_expanded": 1.0,
             "production_uses_full_asset_pool": True,
-            "next_step": "Keep a full-pool recall regression; optimize computation without reintroducing lossy asset-rank caps.",
+            "next_step": "Keep full-pool/full-band recall regression; optimize computation without reintroducing lossy asset-rank or plausibility-band eligibility caps.",
         },
     }
 
     production_src = ENGINE_PATH.read_text(encoding="utf-8")
     assert "candidate_asset_pool_legacy_caps_removed" in production_src
+    assert '"plausibility_band_is_candidate_eligibility_gate": False' in production_src
+    assert 'if row["plausibility"] == "THEORETICAL_ONLY":' not in production_src
     assert "reverse=True)[:10]" not in production_src
     assert "reverse=True)[:8]" not in production_src
 
