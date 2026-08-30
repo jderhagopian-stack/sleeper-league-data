@@ -21,6 +21,9 @@ MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.3"
 def text(name: str) -> str:
     return (SCRIPT / name).read_text(encoding="utf-8")
 
+def text_path(*parts: str) -> str:
+    return SCRIPT.joinpath(*parts).read_text(encoding="utf-8")
+
 
 def main():
     report = text("run_trade_report.py")
@@ -30,8 +33,8 @@ def main():
     roster_overlay = text("roster_interaction_overlay.py")
     roster_resolution = text("roster_resolution_governance.py")
     candidate_pools = text("trade_candidate_pools.py")
-    trade_behavior = text("trade_behavioral_intelligence.py")
-    historical_behavior = text("trade_historical_behavior.py")
+    trade_behavior = text_path("trade_decision", "behavior_integration.py")
+    historical_behavior = text_path("trade_decision", "historical_behavior_policy.py")
     state_policy = text("trade_state_policy.py")
     candidate_selector = text("trade_candidate_selector.py")
     state_selector_composition = text("trade_state_selector_composition.py")
@@ -64,9 +67,9 @@ def main():
         and "trade_candidate_selector.py" in v31
         and "trade_state_selector_composition.py" in v31
         and "state_selector_composition.install(" in v31
-        and "trade_historical_behavior.py" in v31
+        and 'SCRIPT / "trade_decision" / "historical_behavior_policy.py"' in v31
         and "historical_behavior.install_historical_state_conditioning(" in v31
-        and "trade_behavioral_intelligence.py" in v31
+        and 'SCRIPT / "trade_decision" / "behavior_integration.py"' in v31
         and "trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)" in v31
         and "trade_candidate_pools.py" in v31
         and "candidate_pools.apply_to_report(report)" in v31

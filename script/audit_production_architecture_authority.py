@@ -60,8 +60,8 @@ def main():
     roster_overlay = text(SCRIPT / "roster_interaction_overlay.py")
     roster_resolution = text(SCRIPT / "roster_resolution_governance.py")
     candidate_pools = text(SCRIPT / "trade_candidate_pools.py")
-    trade_behavior = text(SCRIPT / "trade_behavioral_intelligence.py")
-    historical_behavior = text(SCRIPT / "trade_historical_behavior.py")
+    trade_behavior = text(SCRIPT / "trade_decision" / "behavior_integration.py")
+    historical_behavior = text(SCRIPT / "trade_decision" / "historical_behavior_policy.py")
     state_policy = text(SCRIPT / "trade_state_policy.py")
     candidate_selector = text(SCRIPT / "trade_candidate_selector.py")
     state_selector_composition = text(SCRIPT / "trade_state_selector_composition.py")
@@ -115,10 +115,10 @@ def main():
             "trade_candidate_selector.py",
             "trade_state_selector_composition.py",
             "state_selector_composition.install(",
-            "trade_historical_behavior.py",
+            'SCRIPT / "trade_decision" / "historical_behavior_policy.py"',
             "historical_behavior.install_historical_state_conditioning(",
             "historical_behavior.apply_report_metadata(report, historical_index)",
-            "trade_behavioral_intelligence.py",
+            'SCRIPT / "trade_decision" / "behavior_integration.py"',
             "trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)",
             "trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)",
             "trade_candidate_pools.py",
@@ -180,7 +180,7 @@ def main():
             "def install_historical_state_conditioning(v23, hist):",
             "def apply_report_metadata(report, index):",
             "historical_state_at_trade_uses_future_same_season_results",
-            "canonical_historical_state_trade_behavior_shared_component",
+            "historical_behavior_interpretation_owned_by_trade_decision",
         ])
         and has_all(trade_behavior, [
             'BI3_VERSION = "FSFFL-Behavioral-Intelligence-3.0"',
@@ -188,6 +188,7 @@ def main():
             "def install(historical_behavior, bi2, bi3_cache, cache_status):",
             "def apply_report_metadata(report, bi2, bi3_cache, cache_status):",
             "bi3_context_normalized_position_signal_enabled",
+            "trade_behavior_interpretation_owned_by_trade_decision",
         ])
         and has_all(candidate_pools, [
             "def apply_to_report(report):",
@@ -217,7 +218,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must bypass historical v21-v30, consume v20, install shared v21-equivalent bilateral buyer gating, negotiation-family identity and selector semantics plus the proven shared v22/v23 components, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
+        "observation": "Current v31 must bypass historical v21-v30, consume v20, install the proven trade-search mechanics, keep trade-specific BI and historical interpretation inside Trade Decision, consume shared BI/historical evidence, then apply current candidate-pool, roster-resolution, roster-interaction, and option-governance policy.",
     })
 
     v30_contains_superseded_decision_logic = (
