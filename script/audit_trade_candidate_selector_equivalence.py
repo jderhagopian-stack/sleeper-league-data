@@ -82,7 +82,10 @@ def main():
     selector = load(SCRIPT / "trade_candidate_selector.py", "shared_trade_candidate_selector")
     ranker = load(SCRIPT / "negotiation_ranking.py", "shared_negotiation_ranker")
 
-    # Build a local v21 module patched exactly the way v23 does.
+    # Preserve the original v21 swing selector before v23 patches the module
+    # in place. The shared selector must receive the inherited unpatched swing
+    # rule; otherwise state preparation would be applied twice in the test.
+    inherited_swing_selector = v21.select_swing_distinct
     patched = old.patch_v21_selectors(v21)
 
     rows_old = fixture_rows()
@@ -91,7 +94,7 @@ def main():
     old_swing = patched.select_swing_distinct(copy.deepcopy(rows_old))
     new_swing = selector.select_swing(
         copy.deepcopy(rows_new),
-        v21.select_swing_distinct,
+        inherited_swing_selector,
         state,
         ranker,
     )
