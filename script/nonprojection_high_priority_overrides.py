@@ -87,6 +87,7 @@ def install(engine):
         "statsguy_future_pick_anchor": False,
         "market_momentum_incremental_value_removed": False,
         "owner_specific_valuation_multipliers_diagnostic_only": False,
+        "football_market_repricing_overlays_diagnostic_only": False,
     }
 
     # The current market price already embeds the information that produced its
@@ -135,6 +136,37 @@ def install(engine):
         engine._u_pick_profile = pick_profile_without_control_bonus
         applied["own_pick_control_bonus_removed"] = True
 
+
+    # Recent performance, usage, snap, injury, and manual-news signals can be
+    # highly useful football context, but multiplying the current dynasty market
+    # anchor by hand-set percentages double counts information already reflected
+    # in the market and/or the canonical Simulator projections. Preserve the
+    # proposed adjustments as diagnostics, but authorize zero incremental
+    # dynasty-market repricing until residual held-out evidence supports it.
+    original_performance_adjustment = getattr(engine, "performance_adjustment", None)
+    if original_performance_adjustment is not None:
+        def diagnostic_only_performance_adjustment(asset, performance, baselines):
+            proposed, meta = original_performance_adjustment(asset, performance, baselines)
+            meta = dict(meta or {})
+            meta["proposed_incremental_adjustment_diagnostic"] = round(_sf(proposed), 4)
+            meta["incremental_market_repricing_authorized"] = False
+            meta["adjustment"] = 0.0
+            return 0.0, meta
+        engine.performance_adjustment = diagnostic_only_performance_adjustment
+
+    original_football_adjustment = getattr(engine, "football_intelligence_adjustment", None)
+    if original_football_adjustment is not None:
+        def diagnostic_only_football_adjustment(asset, usage, snaps, manual):
+            proposed, meta = original_football_adjustment(asset, usage, snaps, manual)
+            meta = dict(meta or {})
+            meta["proposed_incremental_adjustment_diagnostic"] = round(_sf(proposed), 4)
+            meta["incremental_market_repricing_authorized"] = False
+            meta["total_adjustment"] = 0.0
+            return 0.0, meta
+        engine.football_intelligence_adjustment = diagnostic_only_football_adjustment
+
+    if original_performance_adjustment is not None or original_football_adjustment is not None:
+        applied["football_market_repricing_overlays_diagnostic_only"] = True
 
     # Owner-specific buy/hold/pick multipliers (need, historical preference,
     # competitive-window, endowment, starter and thin-depth premiums) overlap
@@ -267,6 +299,8 @@ def install(engine):
             "statsguy_future_pick_market_anchor": applied["statsguy_future_pick_anchor"],
             "owner_specific_valuation_multipliers_incremental_value_authorized": False,
             "owner_specific_valuation_multipliers_diagnostic_only": applied["owner_specific_valuation_multipliers_diagnostic_only"],
+            "performance_usage_injury_news_market_repricing_authorized": False,
+            "football_market_repricing_overlays_diagnostic_only": applied["football_market_repricing_overlays_diagnostic_only"],
             "new_hand_set_coefficients_introduced": False,
         }
         return payload
