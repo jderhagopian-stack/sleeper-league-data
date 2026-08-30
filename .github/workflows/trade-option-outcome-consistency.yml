@@ -14,6 +14,8 @@ on:
       - 'script/trade_historical_behavior.py'
       - 'script/trade_state_selector_composition.py'
       - 'script/trade_candidate_selector.py'
+      - 'script/trade_multi_asset_packages.py'
+      - 'script/trade_multi_asset_composition.py'
       - 'script/trade_state_policy.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
@@ -59,6 +61,8 @@ jobs:
             script/trade_candidate_pools.py \
             script/trade_behavioral_intelligence.py \
             script/trade_historical_behavior.py \
+            script/trade_multi_asset_packages.py \
+            script/trade_multi_asset_composition.py \
             script/trade_state_policy.py \
             script/trade_candidate_selector.py \
             script/trade_state_selector_composition.py \
@@ -94,6 +98,8 @@ jobs:
           assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
           assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False
           assert p['descriptive_state_labels_create_action_cliffs'] is False
+          assert p['historical_v22_executed_in_current_path'] is False
+          assert p['canonical_multi_asset_package_generator_shared_component'] is True
           assert p['historical_v23_executed_in_current_path'] is False
           assert p['canonical_trade_state_policy_shared_component'] is True
           assert p['canonical_trade_candidate_selector_shared_component'] is True
