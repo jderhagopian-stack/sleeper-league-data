@@ -292,12 +292,12 @@
         "script/run_trade_market_sweep_v26.py"
       ],
       "parameter_family": "source weights, smoothing, positional preference blend, residual scaling and confidence curve",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "BOUNDED_SECONDARY_HEURISTIC_ACTIVE",
-      "source": "Observed manager actions and leave-one-manager-out context transformed by hand-set blend weights/caps",
-      "validation": "Required: time-ordered held-out manager-action prediction versus simple baselines plus family ablations",
-      "uncertainty": "manager samples are sparse/non-stationary; structural leakage tests do not establish predictive validity",
-      "update_policy": "Use observed action counts/context to introduce regularized or shrinkage manager effects now; empirical promotion to calibrated behavior probabilities still requires time-ordered held-out improvement.",
+      "evidence_tier": "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
+      "status": "BOUNDED_SECONDARY_SHRINKAGE_ACTIVE",
+      "source": "Observed manager actions and leave-one-manager-out action-type context; manager-specific positional residuals are shrunk toward the league-neutral prior using an adaptive prior strength equal to the current league median effective manager sample. Action context confidence supplies evidence weight without a second hand-set source multiplier.",
+      "validation": "Required for empirical promotion: time-ordered held-out manager-action prediction versus simple league/need baselines plus family ablations. Current shrinkage is a stronger sparse-data estimator, not a calibrated acceptance probability.",
+      "uncertainty": "Manager samples remain sparse/non-stationary; shrinkage automatically reduces manager-specific authority when evidence is thin.",
+      "update_policy": "Recompute adaptive shrinkage on every refreshed action history; empirical promotion still requires recency-aware held-out ranking/log-loss improvement.",
       "downstream": [
         "owner preferences",
         "seller acceptance",
