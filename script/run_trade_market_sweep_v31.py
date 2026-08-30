@@ -2,7 +2,9 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.15 supplies the retained bilateral market-intelligence/family-dedup engine;
+- v1.14 supplies the retained continuous state-aware simulation/ranking engine;
+- trade_bilateral_composition installs the validated shared v1.15-equivalent
+  bilateral gate, negotiation-family, and base selector behavior;
 - trade_multi_asset_composition installs the validated shared v1.16-equivalent
   expanded multi-asset package generator;
 - trade_state_selector_composition installs the v1.17-equivalent shared state
@@ -20,8 +22,9 @@ Current production composition:
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.16-v1.24 wrappers remain available for reproducibility but are no
-longer executed by the current production path. Multi-asset package generation,
+Historical v1.15-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. Bilateral buyer gating,
+negotiation-family identity, multi-asset package generation,
 dynamic state policy, candidate selection, historical same-state behavior,
 current BI3 composition, and candidate-pool semantics now live in shared
 components, while superseded wrapper presentation/comparison logic cannot
@@ -37,7 +40,10 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V21 = SCRIPT / "run_trade_market_sweep_v21.py"
+V20 = SCRIPT / "run_trade_market_sweep_v20.py"
+TRADE_BILATERAL_GATE = SCRIPT / "trade_bilateral_gate.py"
+TRADE_NEGOTIATION_FAMILY = SCRIPT / "trade_negotiation_family.py"
+TRADE_BILATERAL_COMPOSITION = SCRIPT / "trade_bilateral_composition.py"
 TRADE_MULTI_ASSET_PACKAGES = SCRIPT / "trade_multi_asset_packages.py"
 TRADE_MULTI_ASSET_COMPOSITION = SCRIPT / "trade_multi_asset_composition.py"
 TRADE_STATE_POLICY = SCRIPT / "trade_state_policy.py"
@@ -72,7 +78,10 @@ def out_path():
 
 
 def main():
-    v21 = load(V21, "market_v21_for_125")
+    v20 = load(V20, "market_v20_for_125")
+    bilateral_gate = load(TRADE_BILATERAL_GATE, "trade_bilateral_gate_for_125")
+    negotiation_family = load(TRADE_NEGOTIATION_FAMILY, "trade_negotiation_family_for_125")
+    bilateral_composition = load(TRADE_BILATERAL_COMPOSITION, "trade_bilateral_composition_for_125")
     multi_asset_packages = load(
         TRADE_MULTI_ASSET_PACKAGES, "trade_multi_asset_packages_for_125"
     )
@@ -96,16 +105,19 @@ def main():
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
     state_selector_composition.install(
-        v21, state_policy, candidate_selector, ranker
+        v20, state_policy, candidate_selector, ranker
     )
-    multi_asset_composition.install(v21, multi_asset_packages)
+    multi_asset_composition.install(v20, multi_asset_packages)
+    bilateral_composition.install(
+        v20, bilateral_gate, negotiation_family, candidate_selector
+    )
     bi3_cache, bi3_cache_status = trade_behavior.load_bi3_cache()
     trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)
     historical_index = historical_behavior.install_historical_state_conditioning(
         state_policy, historical_state
     )
-    v21.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
-    v21.main()
+    v20.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
+    v20.main()
     out = out_path()
     if not out or not out.exists():
         return
@@ -115,6 +127,7 @@ def main():
     state_selector_composition.apply_report_metadata(
         report, inherited_action, state_policy
     )
+    bilateral_composition.apply_report_metadata(report, negotiation_family)
     multi_asset_composition.apply_report_metadata(report, multi_asset_packages)
     historical_behavior.apply_report_metadata(report, historical_index)
     trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)
@@ -158,6 +171,9 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_bilateral_buyer_gate_shared_component": True,
+        "canonical_negotiation_family_shared_component": True,
+        "historical_v21_executed_in_current_path": False,
         "canonical_multi_asset_package_generator_shared_component": True,
         "historical_v22_executed_in_current_path": False,
         "canonical_trade_state_policy_shared_component": True,
