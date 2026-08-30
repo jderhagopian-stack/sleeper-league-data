@@ -337,13 +337,13 @@
         "script/run_trade_market_sweep.py",
         "script/run_trade_market_sweep_v30.py"
       ],
-      "parameter_family": "package limits, plausibility thresholds, value-ratio bands, protected-asset penalties, need bonuses and top-N pools",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "FULL_POOL_FULL_BAND_DISCOVERY_ACTIVE_HEURISTIC_PRIORITY_SCORING_REMAINS",
-      "source": "Full owned tradeable asset pool and full generated plausibility-band universe; heuristic prescreen scoring prioritizes simulation work but no longer deletes THEORETICAL_ONLY candidates solely by band.",
-      "validation": "Full-pool/full-band recall regression compares production discovery with expanded enumeration. Remaining score ordering can be challenged against downstream canonical utility on tractable universes.",
-      "uncertainty": "False negatives from asset-rank caps and plausibility-band eligibility gates are removed; runtime shortlist prioritization can still miss candidates if the prescreen ordering is weak.",
-      "update_policy": "Optimize prescreen for downstream canonical-utility recall under runtime constraints. Do not use uncalibrated plausibility bands as eligibility gates.",
+      "parameter_family": "full candidate universe, market-distance simulation priority, descriptive plausibility bands and diversified shortlist",
+      "evidence_tier": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "status": "COEFFICIENT_FREE_MARKET_DISTANCE_DISCOVERY_ACTIVE",
+      "source": "Full owned tradeable asset pool and all plausibility bands are retained. Expensive simulation is prioritized by absolute log distance between market-anchored package values, then focal market/redraft surplus; legacy protected-asset, need, redraft and value-ratio coefficient stacks no longer determine prescreen order.",
+      "validation": "Full-pool/full-band recall regression remains active. Downstream canonical simulation/utility determines trade quality; prescreen only allocates computation.",
+      "uncertainty": "Any finite simulation shortlist can miss a useful market-outlier package, but arbitrary cross-signal prescreen coefficients and band eligibility gates no longer create that risk.",
+      "update_policy": "Benchmark shortlist recall against expanded downstream simulation where tractable. Increase/optimize compute coverage rather than reintroducing unsupported weighted prescreen heuristics.",
       "downstream": [
         "candidate trade universe",
         "deep simulation coverage"
