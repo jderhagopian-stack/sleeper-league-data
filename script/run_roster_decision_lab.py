@@ -319,12 +319,33 @@ def load_model_inputs():
 
 
 def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
+    """Load cached canonical lineups and restore runtime-only player metadata.
+
+    The persisted lineup cache intentionally omits nfl_team, while the current
+    vectorized Simulator retains it internally for opponent adjustments and
+    same-team correlation. Decision Lab must restore that field or its baseline
+    will not exactly reproduce the canonical Simulator despite using the same
+    players, seed and engine.
+    """
     cache = load_json(DATA / "simulator" / season / "outputs" / "weekly_optimized_lineups.json", {}) or {}
     raw = cache.get("lineups") or {}
     if not raw:
         raise RuntimeError("Missing canonical weekly optimized-lineup cache; run Simulator 1.0 first")
+    players = load_json(DATA / "players.json", {}) or {}
+
+    def hydrate(row):
+        out = dict(row)
+        pid = str(out.get("player_id") or "")
+        meta = players.get(pid) or {}
+        team = meta.get("team") or meta.get("team_abbr")
+        out["nfl_team"] = str(team).upper() if team else None
+        return out
+
     return {
-        int(rid): {int(week): rows for week, rows in weeks.items()}
+        int(rid): {
+            int(week): [hydrate(row) for row in rows]
+            for week, rows in weeks.items()
+        }
         for rid, weeks in raw.items()
     }
 
