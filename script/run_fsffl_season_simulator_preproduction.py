@@ -252,6 +252,21 @@ def optimize_fsffl_fast(
     return lineup
 
 
+def hydrate_prepared_lineup(
+    lineup: List[Dict[str, Any]],
+    players: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """Restore simulator-only metadata omitted from persisted lineup caches."""
+    hydrated = []
+    for row in lineup or []:
+        x = dict(row)
+        pid = x.get("player_id")
+        if pid is not None and not x.get("nfl_team"):
+            x["nfl_team"] = player_team(players, str(pid))
+        hydrated.append(x)
+    return hydrated
+
+
 def build_backup_chains(
     roster: Dict[str, Any],
     week: int,
@@ -476,10 +491,14 @@ def run_preproduction_simulation(
     supplied = lineups_override or {}
     for rid, roster in roster_dir.items():
         for week in all_weeks:
-            lineup = (
+            supplied_lineup = (
                 (supplied.get(rid) or {}).get(week)
                 or (supplied.get(str(rid)) or {}).get(str(week))
-                or optimize_fsffl_fast(roster, week, league, players, projections)
+            )
+            lineup = (
+                hydrate_prepared_lineup(supplied_lineup, players)
+                if supplied_lineup
+                else optimize_fsffl_fast(roster, week, league, players, projections)
             )
             lineups[rid][week] = lineup
             backups[rid][week] = build_backup_chains(
