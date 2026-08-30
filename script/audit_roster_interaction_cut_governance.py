@@ -48,7 +48,7 @@ def main():
         '"core_high_hold": 1.70',
         '"core_pick": 1.35',
         '"liquid_asset": 1.12',
-        '"cut_selection_method": "retention_cost_prescreen"',
+        '"cut_selection_method": "retention_cost_prescreen_pending_final_plan_optimization"',
     ])
     downstream_cut_sensitivity = all(x in cut_sens for x in [
         'default_matches_best_downstream_plan',
@@ -89,8 +89,8 @@ def main():
         {
             "id": "ROSTER-CUT-PRESCREEN-001",
             "severity": "HIGH",
-            "status": "PROVISIONAL_SEARCH_ACCELERATOR" if cut_markers else "IMPLEMENTATION_DRIFT",
-            "observation": "The selected automatic cut is determined by a bounded retention-cost formula and top-3 shortlist, not by an empirically learned optimum. Exact downstream sensitivity tooling exists to measure whether the prescreen changes the verdict.",
+            "status": "FINAL_TRACTABLE_SEARCH_WITH_PROVISIONAL_FALLBACK" if cut_markers else "IMPLEMENTATION_DRIFT",
+            "observation": "Retention cost is a search accelerator/fallback. Final focal candidates enumerate tractable legal cut plans through downstream Trade Score; large plan spaces and non-focal choices remain provisional.",
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
         {
@@ -115,7 +115,7 @@ def main():
         "policy": {
             "roster_legality_is_rule_defined": True,
             "cut_selection_is_not_rule_defined": True,
-            "cut_prescreen_must_be_checked_downstream_when_decision_sensitive": True,
+            "cut_prescreen_must_not_have_final_authority_when_tractable": True,
             "roster_interaction_must_show_incremental_value_over_lineup_simulation": True,
             "acceptance_shift_requires_joint_behavioral_ablation": True,
             "boundedness_is_not_empirical_validation": True,
