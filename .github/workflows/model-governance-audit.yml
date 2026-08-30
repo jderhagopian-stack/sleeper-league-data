@@ -18,6 +18,7 @@ on:
       - 'script/audit_roster_interaction_cut_governance.py'
       - 'script/audit_behavioral_acceptance_governance.py'
       - 'script/audit_final_trade_ranking.py'
+      - 'script/audit_legacy_governance_bypass.py'
       - 'script/negotiation_ranking.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
@@ -57,6 +58,7 @@ jobs:
           python script/audit_roster_interaction_cut_governance.py
           python script/audit_behavioral_acceptance_governance.py
           python script/audit_final_trade_ranking.py
+          python script/audit_legacy_governance_bypass.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -185,6 +187,9 @@ jobs:
           assert bids['ACCEPTANCE-PROBABILITY-001']['authoritative_probability_claim_allowed'] is False
           assert bids['BEHAVIOR-ACCEPTANCE-OVERLAP-001']['authoritative_incremental_adjustment_claim_allowed'] is False
 
+          lg=json.load(open('data/audit/legacy_governance_bypass_audit.json'))
+          assert lg['passed'] is True
+          assert all(lg['findings'].values())
           fr=json.load(open('data/audit/final_trade_ranking_audit.json'))
           assert fr['production_behavior_changed'] is True
           assert fr['policy']['duplicate_evidence_must_not_receive_positive_incremental_weight'] is True
