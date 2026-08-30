@@ -9,12 +9,19 @@ authority.
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 MODEL_VERSION = "FSFFL-GM-Team-Improvement-Application-1.0"
 EXPECTED_IMPLEMENTATION_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.4"
 SCRIPT = Path(__file__).resolve().parent.parent
 IMPLEMENTATION = SCRIPT / "run_team_improvement_lab_v13.py"
+
+# The retained implementation imports sibling Shared Core/application-support modules
+# by their historical top-level names. Executing this stable facade from script/gm3
+# must preserve the same script/ import root without changing those implementations.
+if str(SCRIPT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT))
 
 
 def _load_current():
