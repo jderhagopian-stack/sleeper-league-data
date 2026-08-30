@@ -6,6 +6,8 @@ on:
       - 'script/fsffl_report_style.py'
       - 'script/report_language.py'
       - 'script/report_context.py'
+      - 'script/report_visuals.py'
+      - 'script/reporting/**'
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
       - 'script/render_roster_decision_report.py'
@@ -39,7 +41,7 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/report_language.py script/report_context.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
+        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
 
       - name: Render standardized reports
         run: |
@@ -74,6 +76,11 @@ jobs:
           assert arch['principles']['narrative_reasoning_required'] is True
           assert arch['principles']['decision_reports_explain_alternatives'] is True
           assert arch['principles']['one_page_is_preference_not_constraint'] is True
+          assert arch['principles']['shared_reporting_module_applies_across_workflows'] is True
+          assert arch['principles']['visuals_are_evidence_triggered_not_decorative'] is True
+          assert arch['module']['stable_facade']=='script/reporting/__init__.py'
+          assert arch['module']['decision_authority'] is False
+          assert arch['module']['rescore_authority'] is False
           assert arch['narrative_contract']['language_policy']['narrative_must_be_derived_from_existing_model_outputs'] is True
           assert arch['narrative_contract']['language_policy']['renderer_must_not_create_new_model_scores'] is True
           assert 'avoid spreadsheet-dump layouts' in arch['design_system']['rules']
