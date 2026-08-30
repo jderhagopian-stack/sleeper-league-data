@@ -160,28 +160,3 @@ def canonical_simulator_team(uid):
         (x for x in sim.get("teams") or [] if str(x.get("user_id"))==str(uid)),
         {}
     )
-
-
-def canonical_baseline_with_trade_delta(uid, trade_before, trade_after):
-    """Anchor presentation to canonical season baseline while preserving paired trade deltas.
-
-    This is presentation-only. It does not alter model scoring or recommendation
-    logic. The paired trade simulation remains the source of the hypothetical
-    delta until Decision Lab is migrated to the canonical Simulator engine.
-    """
-    canonical=canonical_simulator_team(uid)
-    if not canonical:
-        return trade_before or {}, trade_after or {}, False
-    before=dict(canonical)
-    after=dict(canonical)
-    for key in (
-        "expected_wins","expected_points_for","playoff_probability",
-        "bye_probability","division_probability","championship_probability"
-    ):
-        tb=_sf((trade_before or {}).get(key))
-        ta=_sf((trade_after or {}).get(key))
-        delta=ta-tb
-        base=_sf(canonical.get(key))
-        before[key]=base
-        after[key]=base+delta
-    return before,after,True
