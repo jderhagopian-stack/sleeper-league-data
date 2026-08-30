@@ -23,6 +23,8 @@ Reusable facts, estimates, and mechanics:
 
 Promotion to Shared Core requires either genuinely domain-generic behavior or a real second application consumer.
 
+Shared Core ownership is conceptual, not a requirement that every concept already live in a perfectly isolated file. During migration, a coarse retained mechanics host may physically contain reusable Core mechanics without becoming a current application authority. In particular, `build_fsffl_gm_engine.py` remains the audited physical host for valuation and future-pick economics while GM3 treats it only as a legacy mechanics provider. This is intentional transitional hosting, not a reason to split the file function-by-function.
+
 ## Applications
 
 ### Trade Decision
