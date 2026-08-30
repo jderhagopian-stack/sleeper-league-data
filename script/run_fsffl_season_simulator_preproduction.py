@@ -31,6 +31,7 @@ import build_fsffl_season_simulator as core
 
 DATA = Path("data")
 SIM_ROOT = DATA / "simulator"
+MODEL_VERSION = core.MODEL_VERSION + "-preproduction"
 
 # Mild shared offensive environment correlation. This is deliberately
 # conservative until we calibrate richer QB/receiver/opponent relationships.
