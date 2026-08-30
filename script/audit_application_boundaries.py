@@ -85,6 +85,9 @@ def main():
         and "application.run()" in gm3_facade
         and "gm30.patch_gm22_runtime(season)" in gm3_app
         and "legacy_provider_has_current_application_authority" in gm3_app
+        and "gm_state_weighting as state_weighting" in gm3_app
+        and "gm30.core._u_team_objective_weights = simulator_authoritative_objective_weights" in gm3_app
+        and "legacy_stepwise_state_weight_function_has_current_authority" in gm3_app
     )
 
     gm_runner = (ROOT / "script" / "run_gm300_production_pipeline.sh").read_text(encoding="utf-8")
