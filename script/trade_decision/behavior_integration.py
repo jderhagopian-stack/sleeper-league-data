@@ -178,7 +178,9 @@ def apply_report_metadata(report, bi2, bi3_cache, cache_status):
         "bi3_cache_status": cache_status,
         "bi3_interactive_historical_replay": False,
         "behavioral_history_can_override_current_state_utility": False,
-        "trade_decision_behavior_integration_internal_component": True,\n        "behavioral_intelligence_shared_source_consumed": True,\n        "trade_behavior_interpretation_owned_by_trade_decision": True,
+        "trade_decision_behavior_integration_internal_component": True,
+        "behavioral_intelligence_shared_source_consumed": True,
+        "trade_behavior_interpretation_owned_by_trade_decision": True,
     })
     report["behavioral_intelligence"] = {
         "model_version": BI3_VERSION,
