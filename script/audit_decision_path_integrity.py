@@ -30,6 +30,7 @@ def main():
     roster_overlay = text("roster_interaction_overlay.py")
     roster_resolution = text("roster_resolution_governance.py")
     candidate_pools = text("trade_candidate_pools.py")
+    trade_behavior = text("trade_behavioral_intelligence.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -42,11 +43,14 @@ def main():
     production_roster_aware = (
         "trade_engine.py" in report
         and "run_trade_market_sweep_v31.py" in trade_engine
-        and "run_trade_market_sweep_v26.py" in v31
+        and "run_trade_market_sweep_v24.py" in v31
+        and "trade_behavioral_intelligence.py" in v31
+        and "trade_behavior.install(v24, bi2, bi3_cache, bi3_cache_status)" in v31
         and "trade_candidate_pools.py" in v31
         and "candidate_pools.apply_to_report(report)" in v31
         and "roster_resolution_governance.py" in v31
         and "roster_interaction_overlay.py" in v31
+        and "run_trade_market_sweep_v26.py" not in v31
         and "run_trade_market_sweep_v27.py" not in v31
         and "run_trade_market_sweep_v28.py" not in v31
         and "run_trade_market_sweep_v29.py" not in v31
