@@ -1,0 +1,43 @@
+name: Trade Candidate Selector Equivalence
+
+on:
+  push:
+    paths:
+      - 'script/trade_candidate_selector.py'
+      - 'script/audit_trade_candidate_selector_equivalence.py'
+      - 'script/trade_state_policy.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/run_trade_market_sweep_v21.py'
+      - 'script/negotiation_ranking.py'
+      - '.github/workflows/trade-candidate-selector-equivalence.yml'
+  pull_request:
+    paths:
+      - 'script/trade_candidate_selector.py'
+      - 'script/audit_trade_candidate_selector_equivalence.py'
+      - 'script/trade_state_policy.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/run_trade_market_sweep_v21.py'
+      - 'script/negotiation_ranking.py'
+      - '.github/workflows/trade-candidate-selector-equivalence.yml'
+  workflow_dispatch:
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile selector modules
+        run: |
+          python -m py_compile \
+            script/trade_candidate_selector.py \
+            script/audit_trade_candidate_selector_equivalence.py \
+            script/trade_state_policy.py \
+            script/run_trade_market_sweep_v23.py \
+            script/run_trade_market_sweep_v21.py \
+            script/negotiation_ranking.py
+      - name: Prove shared selector equivalence
+        run: python script/audit_trade_candidate_selector_equivalence.py
