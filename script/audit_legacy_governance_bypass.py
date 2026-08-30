@@ -48,6 +48,8 @@ def main():
       "own_pick_control_bonus_removed":"own_pick_control_incremental_value_authorized" in high and "own_pick_control_incremental_value_authorized" in ggov,
       "forecast_uncertainty_incremental_pick_value_removed":"forecast_uncertainty_incremental_value_authorized" in ggov,
       "duplicate_pick_incremental_premiums_removed":"quality_optionality_incremental_value_authorized" in high and "liquidity_incremental_value_authorized" in high,
+      "fixed_trade_utility_conversion_constants_removed":"FSFFL-Shared-Decision-Utility-2.0" in utility and all(x not in utility for x in ("CURRENT_TITLE_SCALE","CURRENT_PLAYOFF_SCALE","CURRENT_WINS_SCALE","CURRENT_POINTS_SCALE","FUTURE_OPTIONALITY_SCALE","LIQUIDITY_SCALE","RESILIENCE_SCALE","OPPONENT_EXTERNALITY_SCALE")),
+      "legacy_owner_specific_value_multipliers_non_authoritative":"owner_specific_valuation_multipliers_incremental_value_authorized" in high and "owner_specific_valuation_multipliers_diagnostic_only" in high,
     }
     passed=all(findings.values())
     payload={
@@ -66,6 +68,8 @@ def main():
         "Trade Decision categorical championship-loss cap",
         "Trade Decision categorical state-weight fallback",
         "Trade Decision categorical state-conditioned behavior table",\n        "Trade Decision categorical buyer feasibility thresholds",
+        "Fixed Trade Decision unit-conversion constants",
+        "Legacy GM owner-specific need/preference/window/endowment value multipliers",
         "Historical same-state BI categorical compatibility multipliers",
       ],
     }
