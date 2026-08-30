@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Materialize ephemeral scenario
         env:
           SCENARIO_JSON: ${{ inputs.scenario_json }}

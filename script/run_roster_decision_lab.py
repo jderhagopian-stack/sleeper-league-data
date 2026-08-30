@@ -5,12 +5,13 @@ Fast ephemeral what-if engine for trades, adds, drops/cuts, and multi-step
 roster moves. Canonical Sleeper/GM state is read-only.
 
 Performance design:
-- Reuse the canonical Simulator 1.0 optimized-lineup cache.
+- Reuse the published Simulator optimized-lineup cache where compatible.
 - Re-optimize only teams touched by the hypothetical decision.
-- Run Monte Carlo from prepared lineups rather than rebuilding every lineup.
+- Run paired Monte Carlo from prepared lineups for fast decision deltas.
 - Use the same simulation seed for baseline and hypothetical worlds.
-- Default to 5,000 paired simulations for minute-scale decision support;
-  callers may request a larger confirmation run with --sims.
+- Default to 50,000 paired simulations for final decision support.
+
+Decision Lab uses the current vectorized Simulator implementation for paired hypothetical runs. Prepared lineups allow only touched teams to be re-optimized while scoring, correlation, bench substitution, playoff mechanics and RNG behavior remain aligned with the canonical Simulator.
 """
 
 from __future__ import annotations
@@ -20,13 +21,14 @@ import copy
 import importlib.util
 import json
 import random
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 DATA = Path("data")
 MODEL_VERSION = "FSFFL-Roster-Decision-Lab-1.1"
-DEFAULT_SIMS = 5000
+DEFAULT_SIMS = 50000
 DEFAULT_SEED = 20260821
 
 
@@ -42,8 +44,11 @@ def write_json(path: Path, obj: Any):
 
 
 def import_simulator():
-    path = Path("script/build_fsffl_season_simulator.py")
-    spec = importlib.util.spec_from_file_location("fsffl_simulator", path)
+    path = Path("script/run_fsffl_season_simulator_preproduction.py")
+    script_dir = str(path.resolve().parent)
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+    spec = importlib.util.spec_from_file_location("fsffl_simulator_current", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to import simulator from {path}")
     mod = importlib.util.module_from_spec(spec)
@@ -307,7 +312,7 @@ def load_model_inputs():
     season = str(league.get("season"))
     projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
     raw_schedule = load_json(resolve_schedule_path(season), {}) or {}
-    validation = simmod.validate_inputs(league, rosters, users, players, raw_schedule, projections)
+    validation = simmod.core.validate_inputs(league, rosters, users, players, raw_schedule, projections)
     if not validation.get("validation_passed"):
         raise RuntimeError(f"Decision Lab simulator validation failed: {validation}")
     return simmod, league, rosters, users, players, season, projections, raw_schedule
@@ -328,7 +333,7 @@ def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, t
                                league, users, players, projections):
     lineups = copy.deepcopy(baseline_lineups)
     by_uid, _ = roster_maps(hypothetical_rosters)
-    reg_weeks = simmod.regular_season_weeks(league)
+    reg_weeks = simmod.core.regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
     all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
     reoptimized = []
@@ -339,80 +344,27 @@ def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, t
         rid = int(roster.get("roster_id"))
         lineups[rid] = {}
         for week in all_weeks:
-            lineups[rid][week] = simmod.optimize_weekly_lineup(roster, week, league, players, projections)
+            lineups[rid][week] = simmod.optimize_fsffl_fast(roster, week, league, players, projections)
         reoptimized.append(rid)
     return lineups, reoptimized
 
 
 def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed):
-    roster_dir = simmod.roster_directory(rosters, users)
-    reg_weeks = simmod.regular_season_weeks(league)
-    by_week, _ = simmod.build_schedule(raw_schedule, reg_weeks)
-    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
-    playoff_weeks = [playoff_start, playoff_start + 1, playoff_start + 2]
-    playoff_teams = int((league.get("settings") or {}).get("playoff_teams") or 6)
-
-    rng = random.Random(seed)
-    counts = defaultdict(lambda: defaultdict(int))
-    win_totals = defaultdict(float)
-    pf_totals = defaultdict(float)
-    seed_counts = defaultdict(lambda: defaultdict(int))
-    division_win_counts = defaultdict(int)
-    title_counts = defaultdict(int)
-    division_members = defaultdict(list)
-    for rid, info in roster_dir.items():
-        division_members[info.get("division")].append(rid)
-
-    for _ in range(n_sims):
-        wins = defaultdict(int)
-        pf = defaultdict(float)
-        pa = defaultdict(float)
-        for week in reg_weeks:
-            scores = {}
-            for rid in roster_dir:
-                scores[rid] = simmod.team_week_score(lineups[rid][week], rng)
-                pf[rid] += scores[rid]
-            for a, b in by_week.get(week, []):
-                wins[a if scores[a] >= scores[b] else b] += 1
-
-        order = simmod.seed_teams(wins, pf)
-        for _, members in division_members.items():
-            if members:
-                winner = max(members, key=lambda rid: (wins[rid], pf[rid], -rid))
-                division_win_counts[winner] += 1
-        for i, rid in enumerate(order, start=1):
-            seed_counts[rid][i] += 1
-            win_totals[rid] += wins[rid]
-            pf_totals[rid] += pf[rid]
-            if i <= playoff_teams:
-                counts[rid]["playoff"] += 1
-            if i <= simmod.playoff_bye_count(playoff_teams):
-                counts[rid]["bye"] += 1
-
-        champ = simmod.simulate_playoffs(order[:playoff_teams], lineups, playoff_weeks, rng)
-        if champ is not None:
-            title_counts[champ] += 1
-
-    teams = []
-    for rid, info in roster_dir.items():
-        teams.append({
-            "roster_id": rid,
-            "user_id": info["user_id"],
-            "manager": info["manager"],
-            "team_name": info["team_name"],
-            "division": info.get("division"),
-            "expected_wins": round(win_totals[rid] / n_sims, 3),
-            "expected_losses": round(len(reg_weeks) - win_totals[rid] / n_sims, 3),
-            "expected_points_for": round(pf_totals[rid] / n_sims, 2),
-            "playoff_probability": round(counts[rid]["playoff"] / n_sims, 5),
-            "bye_probability": round(counts[rid]["bye"] / n_sims, 5),
-            "division_probability": round(division_win_counts[rid] / n_sims, 5) if info.get("division") is not None else None,
-            "championship_probability": round(title_counts[rid] / n_sims, 5),
-            "seed_probabilities": {str(s): round(seed_counts[rid][s] / n_sims, 5) for s in range(1, len(roster_dir) + 1)},
-        })
-    teams.sort(key=lambda x: (-x["expected_wins"], -x["expected_points_for"]))
-    return {"model_version": simmod.MODEL_VERSION, "teams": teams}
-
+    """Run current vectorized Simulator mechanics from prepared lineups."""
+    season = str(league.get("season"))
+    projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
+    players = load_json(DATA / "players.json", {}) or {}
+    return simmod.run_preproduction_simulation(
+        league,
+        rosters,
+        users,
+        players,
+        raw_schedule,
+        projections,
+        n_sims=n_sims,
+        seed=seed,
+        lineups_override=lineups,
+    )
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     d = focus_cmp.get("delta") or {}

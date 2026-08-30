@@ -31,6 +31,7 @@ import build_fsffl_season_simulator as core
 
 DATA = Path("data")
 SIM_ROOT = DATA / "simulator"
+MODEL_VERSION = core.MODEL_VERSION + "-preproduction"
 
 # Mild shared offensive environment correlation. This is deliberately
 # conservative until we calibrate richer QB/receiver/opponent relationships.
@@ -49,6 +50,23 @@ SLOT_SCARCITY = {
     "SUPER_FLEX": 3,
     "FLEX": 4,
 }
+
+# Compatibility facade for Shared Core consumers such as Decision Lab.
+# These aliases expose canonical helper contracts without restoring legacy
+# simulation authority to build_fsffl_season_simulator.py.
+player_meta = core.player_meta
+projection_for = core.projection_for
+lineup_slots = core.lineup_slots
+eligible = core.eligible
+regular_season_weeks = core.regular_season_weeks
+roster_directory = core.roster_directory
+build_schedule = core.build_schedule
+validate_inputs = core.validate_inputs
+
+
+def optimize_weekly_lineup(roster, week, league, players, projections):
+    return optimize_fsffl_fast(roster, week, league, players, projections)
+
 
 
 def as_float(value: Any, default: float = 0.0) -> float:
@@ -431,6 +449,7 @@ def run_preproduction_simulation(
     projections,
     n_sims=50000,
     seed=None,
+    lineups_override=None,
 ):
     started = time.perf_counter()
     season = str(league["season"])
@@ -454,10 +473,13 @@ def run_preproduction_simulation(
     t0 = time.perf_counter()
     lineups = defaultdict(dict)
     backups = defaultdict(dict)
+    supplied = lineups_override or {}
     for rid, roster in roster_dir.items():
         for week in all_weeks:
-            lineup = optimize_fsffl_fast(
-                roster, week, league, players, projections
+            lineup = (
+                (supplied.get(rid) or {}).get(week)
+                or (supplied.get(str(rid)) or {}).get(str(week))
+                or optimize_fsffl_fast(roster, week, league, players, projections)
             )
             lineups[rid][week] = lineup
             backups[rid][week] = build_backup_chains(
@@ -639,6 +661,8 @@ def run_preproduction_simulation(
             "same_nfl_team_correlation": True,
             "opponent_adjustment_source": adjustment_source,
             "deterministic_season_config_seed": True,
+            "external_lineup_override_supported": True,
+            "external_lineup_override_used": bool(lineups_override),
         },
         "runtime": {
             "lineup_build_seconds": round(lineup_seconds, 3),

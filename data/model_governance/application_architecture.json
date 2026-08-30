@@ -70,7 +70,18 @@
       ],
       "legacy_mechanics_provider": "script/run_trade_market_sweep_v20.py",
       "legacy_provider_current_decision_authority": false,
-      "legacy_provider_policy": "Retained mechanics only; current Trade Decision application owns final policy and recommendation authority."
+      "legacy_provider_policy": "Retained mechanics only; current Trade Decision application owns final policy and recommendation authority.",
+      "decision_lab_simulator_alignment": {
+        "status": "aligned_current_vectorized_simulator",
+        "decision_lab": "script/run_roster_decision_lab.py",
+        "canonical_simulator_application": "script/run_fsffl_season_simulator.py",
+        "canonical_current_engine": "script/run_fsffl_season_simulator_preproduction.py",
+        "prepared_lineup_override_supported": true,
+        "paired_hypothetical_runs_use_canonical_scoring_mechanics": true,
+        "final_trade_confirmation_simulations": 50000,
+        "broad_candidate_search_may_use_low_cost_screening": true,
+        "migration_required": false
+      }
     },
     "gm3": {
       "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py",

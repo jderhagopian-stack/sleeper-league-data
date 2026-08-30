@@ -143,9 +143,6 @@ def current_mutually_viable(current):
 
 def recompute_action(report, inherited):
     current = report.get("current_offer_evaluation") or {}
-    if not current_mutually_viable(current):
-        return inherited, "INHERITED_CURRENT_OFFER_NOT_MUTUALLY_VIABLE"
-
     counters = [
         x for x in (report.get("suggested_counteroffers") or [])
         if (x.get("comparison_to_current_offer") or {}).get("verdict_vs_current_offer") == "BETTER"
@@ -154,6 +151,17 @@ def recompute_action(report, inherited):
         x for x in (report.get("market_sweep_alternatives") or [])
         if (x.get("comparison_to_current_offer") or {}).get("verdict_vs_current_offer") == "BETTER"
     ]
+
+    if not current_mutually_viable(current):
+        # A non-viable current offer cannot inherit COUNTER merely because an
+        # earlier stage produced one. The final action must still be supported
+        # by a surviving option that is actually better than the current offer.
+        if counters:
+            return "COUNTER_CURRENT_OFFEROR", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_BUT_BETTER_SAME_PARTNER_COUNTER_EXISTS"
+        if markets:
+            return "SHOP_BEFORE_ACCEPTING", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_BUT_BETTER_MARKET_ALTERNATIVE_EXISTS"
+        return "DECLINE", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_AND_NO_BETTER_ACTIONABLE_OPTION"
+
     if counters:
         return "COUNTER_CURRENT_OFFEROR", "BETTER_SAME_PARTNER_COUNTER_EXISTS_FEASIBILITY_REPORTED_SEPARATELY"
     if markets:

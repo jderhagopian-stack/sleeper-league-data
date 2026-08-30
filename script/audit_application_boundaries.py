@@ -99,6 +99,18 @@ def main():
         and "python script/build_gm30_emerging_value.py" not in gm_runner
     )
 
+    decision_lab_src = (ROOT / "script" / "run_roster_decision_lab.py").read_text(encoding="utf-8")
+    trade_reg = (reg.get("applications") or {}).get("trade_decision") or {}
+    sim_alignment = trade_reg.get("decision_lab_simulator_alignment") or {}
+    decision_lab_alignment_explicit = (
+        'Path("script/run_fsffl_season_simulator_preproduction.py")' in decision_lab_src
+        and "current vectorized Simulator implementation" in decision_lab_src
+        and sim_alignment.get("status") == "aligned_current_vectorized_simulator"
+        and sim_alignment.get("paired_hypothetical_runs_use_canonical_scoring_mechanics") is True
+        and sim_alignment.get("final_trade_confirmation_simulations") == 50000
+        and sim_alignment.get("migration_required") is False
+    )
+
     behavior_internal = (
         ROOT / "script" / "trade_decision" / "behavior_integration.py"
     ).read_text(encoding="utf-8")
@@ -149,6 +161,7 @@ def main():
         "gm3_application_boundary_active": gm3_boundary_ok,
         "draft_intelligence_application_boundary_active": draft_boundary_ok,
         "breakout_intelligence_application_boundary_active": breakout_boundary_ok,
+        "decision_lab_simulator_alignment_explicit": decision_lab_alignment_explicit,
         "architecture_principles_present": principles_ok,
         "required_shared_core_concepts_registered": not missing_shared_concepts,
         "missing_shared_core_concepts": missing_shared_concepts,
@@ -161,6 +174,7 @@ def main():
         findings["gm3_application_boundary_active"],
         findings["draft_intelligence_application_boundary_active"],
         findings["breakout_intelligence_application_boundary_active"],
+        findings["decision_lab_simulator_alignment_explicit"],
         findings["architecture_principles_present"],
         findings["required_shared_core_concepts_registered"],
     ])

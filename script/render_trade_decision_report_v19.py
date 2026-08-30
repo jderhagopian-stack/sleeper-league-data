@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reporting import label, acceptance_fit, action, probability_change, value_change, magnitude_word, analyst_roster_context, position_need_chart, probability_change_chart
+from reporting import label, acceptance_fit, action, probability_change, value_change, magnitude_word, analyst_roster_context, position_need_chart, probability_change_chart, canonical_baseline_with_trade_delta
 
 MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
@@ -150,7 +150,7 @@ def sequence(r):
     return 'Hold rather than forcing a deal.'
 
 def render(r,out):
-    cur=r.get('current_offer_evaluation') or {}; sim=cur.get('simulation') or {}; before=sim.get('focus_before') or {}; after=sim.get('focus_after') or {}; st=sim.get('strategic') or {}
+    cur=r.get('current_offer_evaluation') or {}; sim=cur.get('simulation') or {}; raw_before=sim.get('focus_before') or {}; raw_after=sim.get('focus_after') or {}; before,after,canonical_anchored=canonical_baseline_with_trade_delta(r.get('focus_user_id'),raw_before,raw_after); st=sim.get('strategic') or {}
     v=verdict(r); cs=(r.get('suggested_counteroffers') or [])[:2]; ms=(r.get('market_sweep_alternatives') or [])[:5]
     ss=getSampleStyleSheet()
     ss.add(ParagraphStyle(name='T19',parent=ss['Title'],fontName='Helvetica-Bold',fontSize=18,leading=20,textColor=NAVY))
@@ -183,7 +183,10 @@ def render(r,out):
       card(label('liquidity_value_delta').upper(),f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
     ]
     grid=Table([cards[:3],cards[3:]],colWidths=[2.47*inch]*3,rowHeights=[.56*inch,.56*inch]);grid.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)]))
-    story += [grid,Spacer(1,5),P('WHY THIS DOES OR DOES NOT MAKE SENSE','H19'),P(why(r,cur))]
+    story += [grid]
+    if canonical_anchored:
+        story += [Spacer(1,2),P("Current season baselines come from the canonical 50,000-simulation Simulator. The hypothetical after-trade values add the paired trade-screen change to that baseline; they are presentation estimates until Decision Lab is migrated to the same Simulator engine.",'S19')]
+    story += [Spacer(1,5),P('WHY THIS DOES OR DOES NOT MAKE SENSE','H19'),P(why(r,cur))]
     roster_ctx=analyst_roster_context(r.get('focus_user_id'),cur.get('outgoing_asset_names'),cur.get('return_asset_names'))
     if roster_ctx:
         story += [P('ROSTER CONTEXT','H19'),P(roster_ctx)]

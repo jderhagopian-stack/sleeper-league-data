@@ -45,19 +45,20 @@ def load_module(path: Path, name: str):
 
 def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projections):
     """Exact max-weight legal lineup assignment via slot-mask DP."""
+    core = getattr(simmod, "core", simmod)
     candidates = []
     taxi = set(roster.get("taxi") or [])
     for pid in roster.get("players") or []:
         if pid in taxi:
             continue
-        meta = simmod.player_meta(players, projections, pid)
+        meta = core.player_meta(players, projections, pid)
         pos = meta.get("position")
-        pr = simmod.projection_for(projections, pid, week)
+        pr = core.projection_for(projections, pid, week)
         if not pos or pr is None or pr["active_probability"] <= 0:
             continue
         candidates.append({**meta, **pr})
 
-    slots = simmod.lineup_slots(league)
+    slots = core.lineup_slots(league)
     states = {0: (0.0, {})}
     for c in candidates:
         weight = float(c["mean"]) * float(c["active_probability"])
@@ -65,7 +66,7 @@ def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projectio
         for mask, (value, assign) in prior:
             for idx, slot in enumerate(slots):
                 bit = 1 << idx
-                if mask & bit or not simmod.eligible(c["position"], slot):
+                if mask & bit or not core.eligible(c["position"], slot):
                     continue
                 new_mask = mask | bit
                 new_value = value + weight
@@ -93,7 +94,7 @@ def fast_reoptimize_touched_lineups(dl, simmod, baseline_lineups, hypothetical_r
                                      touched_uids, league, users, players, projections):
     lineups = copy.deepcopy(baseline_lineups)
     by_uid, _ = dl.roster_maps(hypothetical_rosters)
-    reg_weeks = simmod.regular_season_weeks(league)
+    reg_weeks = getattr(simmod, "core", simmod).regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
     all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
     reoptimized = []
@@ -288,6 +289,39 @@ def main():
     current["post_sim_score"] = engine.post_sim_score(current, engine.team_state(focus_uid))
 
     ranked = list(report.get("ranked_finalists") or [])[:5]
+
+    final_sim_count = args.quick_sims
+    confirm_seed = args.seed
+    if args.confirm_sims and args.confirm_sims > args.quick_sims:
+        confirm_seed = simmod.deterministic_seed(league, season)
+        confirm_baseline = dl.simulate_from_lineups(
+            simmod, league, rosters, users, raw_schedule, baseline_lineups,
+            args.confirm_sims, confirm_seed
+        )
+        current["simulation"] = patched_simulate_candidate(
+            dl, model_inputs, baseline_lineups, confirm_baseline, focus_uid,
+            current_partner, outgoing, incoming, args.confirm_sims, confirm_seed
+        )
+        current["post_sim_score"] = engine.post_sim_score(
+            current, engine.team_state(focus_uid)
+        )
+        for row in ranked:
+            buyer_uid = str(row.get("buyer_user_id") or "")
+            out_ids = list(row.get("outgoing_assets") or [])
+            in_ids = list(row.get("return_assets") or row.get("incoming_assets") or [])
+            out_assets = [catalog[x] for x in out_ids if x in catalog]
+            in_assets = [catalog[x] for x in in_ids if x in catalog]
+            if not buyer_uid or len(out_assets) != len(out_ids) or len(in_assets) != len(in_ids):
+                continue
+            row["simulation"] = patched_simulate_candidate(
+                dl, model_inputs, baseline_lineups, confirm_baseline, focus_uid,
+                buyer_uid, out_assets, in_assets, args.confirm_sims, confirm_seed
+            )
+            row["post_sim_score"] = engine.post_sim_score(
+                row, engine.team_state(focus_uid)
+            )
+        final_sim_count = args.confirm_sims
+
     for rank, row in enumerate(ranked, 1):
         row["rank"] = rank
         row["comparison_to_current_offer"] = compare_candidate(row, current)
@@ -304,6 +338,10 @@ def main():
     report["policy"]["forced_cuts_included_in_simulation_and_strategic_value"] = True
     report["policy"]["roster_limit_source"] = "league.roster_positions"
     report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
+    report["simulation"]["final_trade_impact_simulations"] = final_sim_count
+    report["simulation"]["final_trade_impact_engine"] = "current_vectorized_simulator"
+    report["simulation"]["final_trade_impact_seed"] = confirm_seed
+    report["simulation"]["finalists_confirmed_at_high_precision"] = final_sim_count > args.quick_sims
 
     better = [r for r in ranked if r["comparison_to_current_offer"]["verdict_vs_current_offer"] == "BETTER"]
     mixed = [r for r in ranked if r["comparison_to_current_offer"]["verdict_vs_current_offer"] == "MIXED"]

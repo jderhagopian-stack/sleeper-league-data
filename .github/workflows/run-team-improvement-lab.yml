@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install report dependencies
-        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+        run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Build full fantasy-relevant projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run Team Improvement Lab
