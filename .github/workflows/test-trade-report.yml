@@ -65,6 +65,25 @@ jobs:
           assert 'championship_probability_conflicts_with_expected_points' in reasons
           print('adaptive trigger unit test passed',reasons)
           PY
+      - name: Unit test final counter action governance
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('g','script/trade_option_governance.py');g=importlib.util.module_from_spec(spec);spec.loader.exec_module(g)
+          current={'post_sim_score':-100,'simulation':{'strategic':{'objective_state':'retool'}},'buyer_rationality':{'current_state_viable':True}}
+          worse={'comparison_to_current_offer':{'verdict_vs_current_offer':'WORSE'}}
+          better_market={'comparison_to_current_offer':{'verdict_vs_current_offer':'BETTER'}}
+          r={'current_offer_evaluation':current,'suggested_counteroffers':[worse],'market_sweep_alternatives':[]}
+          action,basis=g.recompute_action(r,'COUNTER_CURRENT_OFFEROR')
+          assert action=='DECLINE', (action,basis)
+          r['market_sweep_alternatives']=[better_market]
+          action,basis=g.recompute_action(r,'COUNTER_CURRENT_OFFEROR')
+          assert action=='SHOP_BEFORE_ACCEPTING', (action,basis)
+          r['suggested_counteroffers']=[{'comparison_to_current_offer':{'verdict_vs_current_offer':'BETTER'}}]
+          action,basis=g.recompute_action(r,'DECLINE')
+          assert action=='COUNTER_CURRENT_OFFEROR', (action,basis)
+          print('final counter action governance passed')
+          PY
       - name: Unit test roster legalization
         run: |
           python - <<'PY'
