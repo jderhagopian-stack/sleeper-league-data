@@ -215,7 +215,9 @@ def apply_report_metadata(report, index):
         "historical_behavior_prefers_same_state_samples": True,
         "historical_same_state_behavior_has_aggregate_fallback": True,
         "historical_behavior_can_override_current_state_utility": False,
-        "trade_decision_historical_behavior_internal_component": True,\n        "historical_state_intelligence_shared_source_consumed": True,\n        "historical_behavior_interpretation_owned_by_trade_decision": True,
+        "trade_decision_historical_behavior_internal_component": True,
+        "historical_state_intelligence_shared_source_consumed": True,
+        "historical_behavior_interpretation_owned_by_trade_decision": True,
     })
     report["historical_trade_state_intelligence"] = {
         "model_version": index.get("model_version"),
