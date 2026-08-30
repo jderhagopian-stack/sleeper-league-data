@@ -31,6 +31,7 @@ from typing import Any, Dict, List
 
 BASE_ENGINE = Path("script/run_trade_market_sweep.py")
 ROSTER_AWARE = Path("script/roster_aware_trade.py")
+GM_CORE = Path("script/build_fsffl_gm_engine.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3"
 
 
@@ -112,6 +113,35 @@ def fast_reoptimize_touched_lineups(dl, simmod, baseline_lineups, hypothetical_r
     return lineups, reoptimized
 
 
+def position_need_snapshot(engine, rosters, focus_uid):
+    """Recompute GM3 positional need for a hypothetical roster state.
+
+    Uses the same optimized-team-strength and league-relative starter/depth
+    formula that produces GM3 command-center position needs. This is model
+    output, not report-layer inference.
+    """
+    gm = load_module(GM_CORE, "gm_core_position_need_for_trade")
+    pc, _ = engine.asset_catalog()
+    player_values = {
+        str(row.get("player_id")): {
+            "market_redraft": float(row.get("market_redraft") or 0.0),
+            "market_dynasty": float(row.get("market_dynasty") or 0.0),
+            "position": row.get("position"),
+        }
+        for row in pc.values()
+        if row.get("player_id") is not None
+    }
+    teams = gm.optimized_team_strengths(rosters, player_values, {})
+    row = teams.get(str(focus_uid)) or {}
+    return {
+        "position_need": dict(row.get("position_need") or {}),
+        "contender_score": row.get("contender_score"),
+        "dynasty_roster_score": row.get("dynasty_roster_score"),
+        "starter_redraft_value": row.get("starter_redraft_value"),
+        "starter_dynasty_value": row.get("starter_dynasty_value"),
+    }
+
+
 def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline,
                             focus_uid, buyer_uid, outgoing, incoming, sims, seed):
     simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
@@ -137,6 +167,8 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
     strategic = dl.strategic_summary(focus_uid, effective_actions)
+    needs_before = position_need_snapshot(engine, canonical_rosters, focus_uid)
+    needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid)
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
     return {
@@ -160,6 +192,16 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
             max(0.0, float(buyer_title_delta or 0.0)) - float(title_delta or 0.0), 5
         ),
         "strategic": strategic,
+        "roster_diagnosis": {
+            "model_source": "GM3 optimized_team_strengths",
+            "before": needs_before,
+            "after": needs_after,
+            "position_need_delta": {
+                pos: round(float((needs_after.get("position_need") or {}).get(pos, 0.0)) - float((needs_before.get("position_need") or {}).get(pos, 0.0)), 3)
+                for pos in ("QB", "RB", "WR", "TE")
+            },
+            "lower_need_score_is_better": True,
+        },
     }
 
 
