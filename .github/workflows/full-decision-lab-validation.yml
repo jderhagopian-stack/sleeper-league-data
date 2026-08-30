@@ -16,13 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: python -m pip install numpy
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install simulator dependency
+        run: python -m pip install numpy
       - name: Run 5,000-simulation validation
         run: time python script/run_roster_decision_lab.py --scenario data/decision_lab/full_validation_scenario.json --sims 5000 --output /tmp/decision-lab-full.json
       - name: Validate result
