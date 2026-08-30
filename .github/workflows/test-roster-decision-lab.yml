@@ -40,6 +40,32 @@ jobs:
       - name: Run fast example scenario
         run: time python script/run_roster_decision_lab.py --scenario data/decision_lab/example_scenario.json --sims 250 --output /tmp/decision-lab-example.json
 
+      - name: Assert canonical simulator baseline parity
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('dl','script/run_roster_decision_lab.py')
+          dl=importlib.util.module_from_spec(spec);spec.loader.exec_module(dl)
+          simmod,league,rosters,users,players,season,projections,schedule=dl.load_model_inputs()
+          cached=dl.load_cached_lineups(season)
+          reg=simmod.core.regular_season_weeks(league)
+          ps=int((league.get('settings') or {}).get('playoff_week_start') or 15)
+          weeks=sorted(set(reg+[ps,ps+1,ps+2]))
+          fresh={}
+          by_uid,by_rid=dl.roster_maps(rosters)
+          for rid,roster in by_rid.items():
+              fresh[rid]={w:simmod.optimize_fsffl_fast(roster,w,league,players,projections) for w in weeks}
+          seed=simmod.deterministic_seed(league,season)
+          a=dl.simulate_from_lineups(simmod,league,rosters,users,schedule,cached,1000,seed)
+          b=dl.simulate_from_lineups(simmod,league,rosters,users,schedule,fresh,1000,seed)
+          ai=dl.team_index(a);bi=dl.team_index(b)
+          keys=('expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability')
+          for uid in ai:
+              for k in keys:
+                  assert ai[uid][k]==bi[uid][k], (uid,k,ai[uid][k],bi[uid][k])
+          print('Decision Lab cached-lineup baseline exactly matches fresh canonical Simulator baseline')
+          PY
+
       - name: Validate output invariants
         run: |
           python - <<'PY'
