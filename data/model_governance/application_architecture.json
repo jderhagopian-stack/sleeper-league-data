@@ -127,7 +127,10 @@
         "roster legality",
         "simulation",
         "branch/state transition mechanics"
-      ]
+      ],
+      "entrypoint": "script/counterfactual/application.py",
+      "application_boundary": "script/counterfactual/application.py",
+      "full_alternate_history_production_on_main": false
     }
   },
   "analytics_derived_products": {
