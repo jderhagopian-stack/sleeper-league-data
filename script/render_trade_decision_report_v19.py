@@ -12,8 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from report_language import label, acceptance_fit, action, probability_change, value_change, magnitude_word
-from report_context import analyst_roster_context
+from reporting import label, acceptance_fit, action, probability_change, value_change, magnitude_word, analyst_roster_context, position_need_chart, probability_change_chart
 
 MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
@@ -188,6 +187,18 @@ def render(r,out):
     roster_ctx=analyst_roster_context(r.get('focus_user_id'),cur.get('outgoing_asset_names'),cur.get('return_asset_names'))
     if roster_ctx:
         story += [P('ROSTER CONTEXT','H19'),P(roster_ctx)]
+    visuals=[x for x in (
+        position_need_chart(r.get('focus_user_id')),
+        probability_change_chart(before,after),
+    ) if x is not None]
+    if visuals:
+        story += [P('AT A GLANCE','H19')]
+        if len(visuals)==2:
+            vt=Table([[visuals[0],visuals[1]]],colWidths=[3.70*inch,3.70*inch])
+            vt.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0)]))
+            story += [vt]
+        else:
+            story += visuals
     br=cur.get('buyer_rationality') or {}
     if br.get('heuristic_acceptance_fit'):
         story += [Spacer(1,2),P(f"<b>Other manager:</b> {acceptance_fit(br.get('heuristic_acceptance_fit'))}. This is a fit estimate, not a literal acceptance probability.",'S19')]
