@@ -56,7 +56,10 @@
         "script/trade_state_selector_composition.py",
         "script/trade_multi_asset_composition.py",
         "script/trade_bilateral_composition.py"
-      ]
+      ],
+      "legacy_mechanics_provider": "script/run_trade_market_sweep_v20.py",
+      "legacy_provider_current_decision_authority": false,
+      "legacy_provider_policy": "Retained mechanics only; current Trade Decision application owns final policy and recommendation authority."
     },
     "gm3": {
       "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py",
@@ -73,8 +76,9 @@
       "legacy_provider_current_application_authority": false,
       "application_areas": {
         "team_improvement": {
-          "entrypoint": "script/run_team_improvement_lab.py",
-          "role": "cross-channel roster improvement reasoning"
+          "entrypoint": "script/gm3/team_improvement.py",
+          "role": "cross-channel roster improvement reasoning",
+          "current_implementation": "FSFFL-GM-Team-Improvement-Lab-1.4"
         },
         "portfolio_asset_management": {
           "role": "franchise/asset management views and recommendations",
@@ -138,7 +142,10 @@
         "league_rules"
       ],
       "owns": "season forecast orchestration and simulator outputs",
-      "shared_simulation_engine_remains_core": true
+      "shared_simulation_engine_remains_core": true,
+      "current_engine": "script/run_fsffl_season_simulator_preproduction.py",
+      "current_engine_role": "implementation behind stable application facade",
+      "historical_or_experimental_runners_may_remain": true
     }
   },
   "analytics_derived_products": {
