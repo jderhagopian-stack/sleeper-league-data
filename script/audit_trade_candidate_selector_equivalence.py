@@ -91,6 +91,11 @@ def main():
     rows_old = fixture_rows()
     rows_new = copy.deepcopy(rows_old)
 
+    prepared_for_base = state.prepare_rows(copy.deepcopy(rows_new), ranker)
+    old_base_swing = inherited_swing_selector(copy.deepcopy(prepared_for_base))
+    new_base_swing = selector.base_swing_distinct(copy.deepcopy(prepared_for_base))
+    assert_equal(old_base_swing, new_base_swing, "base_swing_rule")
+
     old_swing = patched.select_swing_distinct(copy.deepcopy(rows_old))
     new_swing = selector.select_swing(
         copy.deepcopy(rows_new),
@@ -135,6 +140,7 @@ def main():
         "shared_selector_model_version": selector.MODEL_VERSION,
         "candidate_count": len(rows_old),
         "normal_selected": old_ids,
+        "base_swing_row_id": None if old_base_swing is None else old_base_swing["row_id"],
         "swing_row_id": None if old_swing is None else old_swing["row_id"],
         "production_switched": False,
     })
