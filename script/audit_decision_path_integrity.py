@@ -32,6 +32,9 @@ def main():
     candidate_pools = text("trade_candidate_pools.py")
     trade_behavior = text("trade_behavioral_intelligence.py")
     historical_behavior = text("trade_historical_behavior.py")
+    state_policy = text("trade_state_policy.py")
+    candidate_selector = text("trade_candidate_selector.py")
+    state_selector_composition = text("trade_state_selector_composition.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -44,7 +47,11 @@ def main():
     production_roster_aware = (
         "trade_engine.py" in report
         and "run_trade_market_sweep_v31.py" in trade_engine
-        and "run_trade_market_sweep_v23.py" in v31
+        and "run_trade_market_sweep_v22.py" in v31
+        and "trade_state_policy.py" in v31
+        and "trade_candidate_selector.py" in v31
+        and "trade_state_selector_composition.py" in v31
+        and "state_selector_composition.install(" in v31
         and "trade_historical_behavior.py" in v31
         and "historical_behavior.install_historical_state_conditioning(" in v31
         and "trade_behavioral_intelligence.py" in v31
@@ -53,6 +60,7 @@ def main():
         and "candidate_pools.apply_to_report(report)" in v31
         and "roster_resolution_governance.py" in v31
         and "roster_interaction_overlay.py" in v31
+        and "run_trade_market_sweep_v23.py" not in v31
         and "run_trade_market_sweep_v24.py" not in v31
         and "run_trade_market_sweep_v26.py" not in v31
         and "run_trade_market_sweep_v27.py" not in v31
@@ -84,10 +92,13 @@ def main():
         and '"affects_trade_valuation": False' in option_governance
         and '"source": "BEHAVIORAL_INTELLIGENCE"' in option_governance
     )
-    acceptance_band_ranking_only = all(x in v23 for x in (
-        '"acceptance_band_is_authoritative_candidate_gate": False',
-        '"acceptance_fit_used_as_negotiation_ranking_signal": True',
-    ))
+    acceptance_band_ranking_only = (
+        all(x in state_selector_composition for x in (
+            '"acceptance_band_is_authoritative_candidate_gate": False',
+            '"acceptance_fit_used_as_negotiation_ranking_signal": True',
+        ))
+        and "trade_candidate_selector.py" in v31
+    )
     acceptance_has_authoritative_gate = (
         not acceptance_separate_from_trade_value
         and not acceptance_band_ranking_only
