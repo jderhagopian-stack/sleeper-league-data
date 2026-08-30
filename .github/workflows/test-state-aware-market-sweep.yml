@@ -40,7 +40,7 @@ jobs:
           assert all(vals[i]['current'] <= vals[i+1]['current']+1e-6 for i in range(len(vals)-1))
           assert all(vals[i]['future'] >= vals[i+1]['future']-1e-6 for i in range(len(vals)-1))
           assert abs(vals[8]['current']-vals[9]['current']) < .01
-          assert abs(vals[4]['current']-vals[5]['current']) < .05
+          assert abs(vals[5]['current']-vals[6]['current']) < .01
           hsg=w.resolve({'contender_score':.20,'dynasty_roster_score':.458,'user_id':'846634401482792960'})
           hsg2=w.resolve({'contender_score':.90,'dynasty_roster_score':.458,'user_id':'846634401482792960'})
           assert hsg['weights']==hsg2['weights'], (hsg,hsg2)
