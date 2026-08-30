@@ -181,8 +181,72 @@ def main():
 
     # Four normal negotiation paths first; dedicated swing displayed fifth.
     top5 = normals + ([swing] if swing else [])
+
+    # Final decision precision: candidate discovery stays cheap, but the current
+    # offer and final displayed options are rerun on the canonical vectorized
+    # Simulator at the requested confirmation count. No later wrapper may
+    # replace these confirmed rows with quick-screen simulation output.
+    final_sim_count = args.quick_sims
+    final_seed = args.seed
+    if args.confirm_sims and args.confirm_sims > args.quick_sims:
+        final_sim_count = args.confirm_sims
+        final_seed = simmod.deterministic_seed(league, season)
+        confirm_baseline = dl.simulate_from_lineups(
+            simmod, league, rosters, users, sched, bl,
+            final_sim_count, final_seed
+        )
+        current["simulation"] = sim(
+            dl, mi, bl, confirm_baseline, focus, partner,
+            outgoing, incoming, final_sim_count, final_seed
+        )
+        current["post_sim_score"] = engine.post_sim_score(
+            current, engine.team_state(focus)
+        )
+        current["buyer_rationality"] = v18.adjusted_buyer_rationality(
+            v16, current, dl, beh, meta
+        )
+
+        for r in top5:
+            buyer = str(r.get("buyer_user_id") or "")
+            out_ids = list(r.get("outgoing_assets") or [])
+            in_ids = list(r.get("return_assets") or r.get("incoming_assets") or [])
+            out_assets = [cat[x] for x in out_ids if x in cat]
+            in_assets = [cat[x] for x in in_ids if x in cat]
+            if not buyer or len(out_assets) != len(out_ids) or len(in_assets) != len(in_ids):
+                continue
+            r["simulation"] = sim(
+                dl, mi, bl, confirm_baseline, focus, buyer,
+                out_assets, in_assets, final_sim_count, final_seed
+            )
+            r["post_sim_score"] = engine.post_sim_score(
+                r, engine.team_state(focus)
+            )
+            r["buyer_rationality"] = v18.adjusted_buyer_rationality(
+                v16, r, dl, beh, meta
+            )
+            r["comparison_to_current_offer"] = v13.compare_candidate(r, current)
+            r["acceptance_likelihood"] = r["buyer_rationality"]["heuristic_acceptance_fit"]
+            r["acceptance_explanation"] = v18.acceptance_note(r["buyer_rationality"])
+            r["why_advantageous_for_focus"] = v18.advantage_note(r)
+            r["negotiation_ranking"] = v18.blended_negotiation_score(r)
+
     for i, r in enumerate(top5, 1):
         r["actionable_rank"] = i
+
+    # Final recommendation uses confirmed displayed options, not quick-screen rows.
+    realistic = [
+        r for r in top5
+        if v16.focal_viable(r)
+        and r["buyer_rationality"]["current_state_viable"]
+        and r["acceptance_likelihood"] in {"HIGH", "MEDIUM"}
+    ]
+    realistic.sort(
+        key=lambda r: (
+            sf((r.get("negotiation_ranking") or {}).get("score")),
+            sf(r.get("post_sim_score"))
+        ),
+        reverse=True
+    )
 
     pivot = [r for r in rows if v16.focal_viable(r) and not r["buyer_rationality"]["current_state_viable"] and r["buyer_rationality"]["state_change_viable"]]
     pivot.sort(key=lambda r: sf(r.get("post_sim_score")), reverse=True)
@@ -238,7 +302,11 @@ def main():
     })
     report["owner_behavior_profiles_available"] = len(beh)
     report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
-    report["simulation"]["execution_path"] = "GM_owner_behavior_plus_blended_ranking_plus_buyer_diversity_plus_reserved_swing_then_fast_decision_lab"
+    report["simulation"]["final_trade_impact_simulations"] = final_sim_count
+    report["simulation"]["final_trade_impact_seed"] = final_seed
+    report["simulation"]["final_trade_impact_engine"] = "current_vectorized_simulator"
+    report["simulation"]["finalists_confirmed_at_high_precision"] = final_sim_count > args.quick_sims
+    report["simulation"]["execution_path"] = "GM_owner_behavior_plus_blended_ranking_plus_buyer_diversity_plus_reserved_swing_then_canonical_final_confirmation"
     Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps(report, indent=2))
 
