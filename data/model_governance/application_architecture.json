@@ -1,0 +1,100 @@
+{
+  "model_version": "FSFFL-Application-Architecture-1.0",
+  "principles": {
+    "shared_core_owns_reusable_concepts": true,
+    "applications_own_application_specific_reasoning": true,
+    "canonical_within_application_does_not_imply_shared": true,
+    "promotion_to_shared_requires_domain_generic_behavior_or_real_second_application_consumer": true,
+    "migration_scaffolding_is_not_permanent_platform_api": true,
+    "historical_versions_may_remain_for_reproducibility_but_not_current_authority": true
+  },
+  "shared_core": {
+    "projection_and_uncertainty": [
+      "script/build_fsffl_player_projections.py",
+      "script/build_fsffl_weekly_projections.py"
+    ],
+    "simulation": [
+      "script/build_fsffl_season_simulator.py",
+      "script/run_fsffl_season_simulator_preproduction.py"
+    ],
+    "lineup_optimization": [
+      "script/lineup_optimizer.py"
+    ],
+    "behavioral_intelligence": [
+      "script/behavioral_intelligence.py",
+      "script/behavioral_intelligence_v3.py",
+      "script/behavioral_intelligence_v3_production.py"
+    ],
+    "historical_fact_reconstruction": [
+      "script/fsffl_historical_state_provider.py"
+    ],
+    "roster_interaction_primitive": [
+      "script/roster_interaction.py"
+    ],
+    "league_rules": [
+      "script/league_configuration.py"
+    ]
+  },
+  "applications": {
+    "trade_decision": {
+      "entrypoint": "script/trade_engine.py",
+      "internal_reasoning": [
+        "script/trade_option_governance.py",
+        "script/trade_candidate_pools.py",
+        "script/trade_candidate_selector.py",
+        "script/trade_state_policy.py",
+        "script/trade_bilateral_gate.py",
+        "script/trade_negotiation_family.py",
+        "script/trade_multi_asset_packages.py",
+        "script/negotiation_ranking.py",
+        "script/roster_interaction_overlay.py",
+        "script/roster_resolution_governance.py",
+        "script/trade_decision/behavior_integration.py",
+        "script/trade_decision/historical_behavior_policy.py"
+      ],
+      "migration_scaffolding": [
+        "script/trade_state_selector_composition.py",
+        "script/trade_multi_asset_composition.py",
+        "script/trade_bilateral_composition.py"
+      ]
+    },
+    "gm3": {
+      "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py",
+      "internal_reasoning": [
+        "script/build_fsffl_gm30.py",
+        "script/run_fsffl_gm30_counterfactual.py",
+        "script/gm30_nonprojection_governance.py",
+        "script/package_curve_robustness.py",
+        "script/nonprojection_high_priority_overrides.py"
+      ]
+    },
+    "team_improvement": {
+      "entrypoint": "script/run_team_improvement_lab.py",
+      "ownership": "GM3 application family"
+    },
+    "historical_trade_analysis": {
+      "entrypoint": "script/run_historical_trade_analysis.py",
+      "ownership": "application using shared historical facts plus GM3/Decision Lab"
+    },
+    "draft_intelligence": {
+      "current_implementation": "GM3 prospect-engine family",
+      "entrypoint": "script/build_gm30_prospect_engine.py"
+    },
+    "what_if": {
+      "current_implementation": "GM3 counterfactual simulation path",
+      "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py"
+    },
+    "contender_analysis": {
+      "current_implementation": "Simulator outputs plus league power presentation",
+      "entrypoint": "script/render_league_power_report.py"
+    },
+    "portfolio_asset_management": {
+      "current_implementation": "GM3 emerging-value / franchise outputs",
+      "entrypoint": "script/build_gm30_emerging_value.py"
+    },
+    "alternate_history": {
+      "current_main_status": "not a standalone production application on main",
+      "shared_foundation_present": "script/fsffl_historical_state_provider.py"
+    }
+  }
+}
