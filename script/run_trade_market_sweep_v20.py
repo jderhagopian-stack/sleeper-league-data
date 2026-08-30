@@ -27,6 +27,7 @@ V18_PATH = Path("script/run_trade_market_sweep_v18.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.14"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
 HIGH_PRIORITY_OVERRIDES = SCRIPT / "nonprojection_high_priority_overrides.py"
+DECISION_UTILITY = SCRIPT / "decision_utility.py"
 
 
 def load_module(path: Path, name: str):
@@ -51,33 +52,18 @@ def clamp(x, lo, hi):
 
 def state_aware_post_sim_score(engine, row, state: str):
     sim = row.get("simulation") or {}
-    d = sim.get("focus_delta") or {}
-    s = sim.get("strategic") or {}
-    weights = s.get("objective_weights")
-    if not weights:
-        raise RuntimeError("State-aware trade scoring requires governed continuous objective_weights; categorical fallback weights are forbidden")
-    current_mult = sf(weights.get("current"), .25) / .40
-    future_mult = sf(weights.get("future"), .45) / .35
-    liquidity_mult = sf(weights.get("liquidity"), .15) / .10
-    resilience_mult = sf(weights.get("resilience"), .15) / .15
-    title = sf(d.get("championship_probability")); playoff = sf(d.get("playoff_probability")); wins = sf(d.get("expected_wins")); points = sf(d.get("expected_points_for"))
-    dynasty = sf(s.get("market_dynasty_delta")); liquidity = sf(s.get("liquidity_value_delta")); optionality = sf(s.get("optionality_value_delta")); resilience = sf(s.get("resilience_value_delta")); externality = sf(sim.get("net_title_equity_swing_against_focus"))
-    current_block = 25000.0 * title + 5000.0 * playoff + 400.0 * wins + 1.25 * points
-    # Final strategic ranking uses primitive value channels only. Negotiation
-    # plausibility/acceptance is intentionally excluded here and is applied
-    # separately by state_aware_blended_negotiation_score. This keeps
-    # "how good is the trade for us?" distinct from "how likely is it to get done?".
-    future_block = dynasty + 0.18 * optionality
-    liquidity_block = 0.25 * liquidity
-    resilience_block = 0.15 * resilience
-    score = current_mult * current_block + future_mult * future_block + liquidity_mult * liquidity_block + resilience_mult * resilience_block - current_mult * 12000.0 * externality
-    # Championship impact is already represented continuously in current_block.
-    # Do not reintroduce a categorical state-label cliff via a hard title-loss cap.
+    utility = load_module(DECISION_UTILITY, "shared_decision_utility_for_trade")
+    resolved = utility.score(sim)
     row["championship_equity_constraint"] = "CONTINUOUS_NO_CATEGORICAL_CAP"
-    row["state_aware_objective_weights"] = weights
-    row["state_aware_score_components"] = {"current": round(current_mult * current_block, 2), "future": round(future_mult * future_block, 2), "liquidity": round(liquidity_mult * liquidity_block, 2), "resilience": round(resilience_mult * resilience_block, 2), "opponent_externality": round(-current_mult * 12000.0 * externality, 2), "composite_strategic_and_break_glass_incremental_weight": 0.0, "negotiation_plausibility_incremental_weight": 0.0}
-    return round(score, 2)
-
+    row["state_aware_objective_weights"] = resolved["objective_weights"]
+    row["state_aware_score_components"] = {
+        **resolved["components"],
+        "composite_strategic_and_break_glass_incremental_weight": 0.0,
+        "negotiation_plausibility_incremental_weight": 0.0,
+    }
+    row["decision_utility_model_version"] = resolved["model_version"]
+    row["decision_utility_scale_status"] = resolved["scale_status"]
+    return resolved["score"]
 
 def state_aware_blended_negotiation_score(row):
     br = row.get("buyer_rationality") or {}
