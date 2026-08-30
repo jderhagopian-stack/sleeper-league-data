@@ -119,3 +119,32 @@ def league_title_odds_chart(teams, width=7.25*inch, height=2.2*inch, limit=8):
     chart.valueAxis.strokeColor=LIGHT; chart.categoryAxis.strokeColor=LIGHT
     d.add(chart)
     return d
+
+
+def position_need_change_chart(roster_diagnosis, width=3.65*inch, height=1.95*inch):
+    """Before/after GM3 positional need; lower scores indicate less roster need."""
+    rd=roster_diagnosis or {}
+    before=(rd.get("before") or {}).get("position_need") or {}
+    after=(rd.get("after") or {}).get("position_need") or {}
+    rows=[(p,_sf(before.get(p)),_sf(after.get(p))) for p in ("QB","RB","WR","TE") if p in before and p in after]
+    if len(rows)<2:
+        return None
+    d=Drawing(width,height)
+    _title(d,"Roster needs: before vs. after")
+    chart=VerticalBarChart()
+    chart.x=34; chart.y=20; chart.width=width-44; chart.height=height-46
+    chart.data=[[b for _,b,_ in rows],[a for _,_,a in rows]]
+    chart.categoryAxis.categoryNames=[p for p,_,_ in rows]
+    chart.valueAxis.valueMin=0; chart.valueAxis.valueMax=1; chart.valueAxis.valueStep=.25
+    chart.valueAxis.labelTextFormat=lambda x:f"{x:.2f}"
+    chart.bars[0].fillColor=colors.HexColor("#AAB7C4")
+    chart.bars[1].fillColor=BLUE
+    chart.bars[0].strokeColor=None; chart.bars[1].strokeColor=None
+    chart.categoryAxis.labels.fontName="Helvetica"; chart.categoryAxis.labels.fontSize=7
+    chart.valueAxis.labels.fontName="Helvetica"; chart.valueAxis.labels.fontSize=6
+    chart.valueAxis.strokeColor=LIGHT; chart.categoryAxis.strokeColor=LIGHT
+    d.add(chart)
+    d.add(String(width-118,height-10,"Before",fontName="Helvetica",fontSize=6.5,fillColor=GRAY))
+    d.add(String(width-70,height-10,"After",fontName="Helvetica",fontSize=6.5,fillColor=BLUE))
+    d.add(String(0,3,"Lower = less positional need",fontName="Helvetica",fontSize=6,fillColor=GRAY))
+    return d

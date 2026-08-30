@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reporting import label, acceptance_fit, action, probability_change, value_change, magnitude_word, analyst_roster_context, position_need_chart, probability_change_chart
+from reporting import label, acceptance_fit, action, magnitude_word, competitive_context, roster_change_context, position_need_change_chart, probability_change_chart
 
 MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
@@ -87,25 +87,47 @@ def bottom_line(r,cur):
     return 'The model does not have a clear enough edge to recommend an immediate move.'
 
 def why(r,cur):
-    sim=cur.get('simulation') or {}; d=sim.get('focus_delta') or {}; st=sim.get('strategic') or {}
-    wins=sf(d.get('expected_wins')); champ=sf(d.get('championship_probability'))*100; play=sf(d.get('playoff_probability'))*100
-    dyn=sf(st.get('market_dynasty_delta')); overall=sf(st.get('strategic_value_delta')); liq=sf(st.get('liquidity_value_delta'))
+    sim=cur.get('simulation') or {}
+    d=sim.get('focus_delta') or {}
+    st=sim.get('strategic') or {}
+    title=sf(d.get('championship_probability'))
+    wins=sf(d.get('expected_wins'))
+    dyn=sf(st.get('market_dynasty_delta'))
+    overall=sf(st.get('strategic_value_delta'))
+    liq=sf(st.get('liquidity_value_delta'))
     parts=[]
-    if abs(wins)>=.03: parts.append(f"expected wins move {wins:+.2f}")
-    if abs(play)>=.5: parts.append(f"playoff odds move {play:+.1f} percentage points")
-    if abs(champ)>=.5: parts.append(f"championship odds move {champ:+.1f} percentage points")
-    if abs(dyn)>=50: parts.append(f"long-term trade value changes {dyn:+,.0f}")
-    if abs(liq)>=50: parts.append(f"future trade flexibility changes {liq:+,.0f}")
-    text="The main trade-offs are: "+'; '.join(parts[:5])+'. '
-    text+=probability_change("Championship odds", (sim.get('focus_before') or {}).get('championship_probability'), (sim.get('focus_after') or {}).get('championship_probability'))+" "
-    text+=value_change("Long-term trade value", dyn)+" "
-    if overall>=75:text+=f" Taken together, the model sees this as a meaningful net positive for this specific roster ({overall:+,.0f} overall franchise impact)."
-    elif overall<=-75:text+=f" Taken together, the model sees this as a meaningful net negative for this specific roster ({overall:+,.0f} overall franchise impact)."
-    else:text+=" Taken together, the overall roster impact is close to neutral."
+
+    if title >= .02:
+        parts.append("This is a meaningful win-now improvement, not a cosmetic roster move: the simulation shows a material increase in championship equity.")
+    elif title >= .005 or wins >= .10:
+        parts.append("The move improves the current-season outlook, though the competitive gain is more incremental than transformative.")
+    elif title <= -.01 or wins <= -.10:
+        parts.append("The move weakens the current-season outlook enough that the return must compensate elsewhere.")
+
+    if dyn <= -500 or liq <= -500:
+        parts.append("The price is the central concern: the team is converting a meaningful amount of future asset value and trade flexibility into present production.")
+    elif dyn >= 500 or liq >= 500:
+        parts.append("The deal also improves the franchise's longer-term asset position rather than requiring a pure win-now sacrifice.")
+
+    if overall <= -75 and (title > 0 or wins > 0):
+        parts.append("That creates a real tension between improving the 2026 roster and paying more than the model considers ideal for the upgrade.")
+    elif overall >= 75:
+        parts.append("The current-season benefit and franchise-value effects point in the same direction.")
+    else:
+        parts.append("The overall franchise trade-off is close enough that roster fit and available alternatives matter more than a single summary score.")
+
+    comp=competitive_context(r.get('focus_user_id'))
+    if comp:
+        parts.append(comp)
+
+    rc=roster_change_context(sim.get('roster_diagnosis'))
+    if rc:
+        parts.append(rc)
+
     sn=synergy_note(cur,r.get('focus_user_id'))
-    if sn:text+=' '+sn
-    text+=' '+roster_note(cur,r.get('focus_user_id'))
-    return text
+    if sn:
+        parts.append(sn)
+    return " ".join(parts)
 
 def what_could_change_answer(r,cur):
     action_code=str(r.get('recommended_next_action') or '')
@@ -183,12 +205,9 @@ def render(r,out):
       card(label('liquidity_value_delta').upper(),f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
     ]
     grid=Table([cards[:3],cards[3:]],colWidths=[2.47*inch]*3,rowHeights=[.56*inch,.56*inch]);grid.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)]))
-    story += [grid,Spacer(1,2),P("Season-impact figures come from the canonical vectorized Simulator with 50,000-run final confirmation for the current offer and actionable finalists.",'S19'),Spacer(1,5),P('WHY THIS DOES OR DOES NOT MAKE SENSE','H19'),P(why(r,cur))]
-    roster_ctx=analyst_roster_context(r.get('focus_user_id'),cur.get('outgoing_asset_names'),cur.get('return_asset_names'))
-    if roster_ctx:
-        story += [P('ROSTER CONTEXT','H19'),P(roster_ctx)]
+    story += [grid,Spacer(1,2),P("Season-impact figures come from the canonical vectorized Simulator with 50,000-run final confirmation for the current offer and actionable finalists.",'S19'),Spacer(1,5),P('ANALYST VIEW','H19'),P(why(r,cur))]
     visuals=[x for x in (
-        position_need_chart(r.get('focus_user_id')),
+        position_need_change_chart(sim.get('roster_diagnosis')),
         probability_change_chart(before,after),
     ) if x is not None]
     if visuals:
