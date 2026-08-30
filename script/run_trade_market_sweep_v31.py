@@ -2,16 +2,17 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.23 supplies the retained candidate/simulation chain and roster-aware trade
-  resolution;
+- v1.21 supplies the retained candidate frontier and simulation chain;
+- roster_resolution_governance verifies and publishes the roster-aware runtime
+  resolver provenance already emitted by the simulation path;
 - roster_interaction_overlay applies the validated roster-specific interaction
   mechanics and refreshes negotiation ranking;
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.24 remains available for reproducibility but is no longer executed
-by the current production path, so its superseded composite-score comparison
-logic cannot run before being overwritten.
+Historical v1.22-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. Their superseded comparison and
+presentation-only layers therefore cannot regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -23,7 +24,8 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V29 = SCRIPT / "run_trade_market_sweep_v29.py"
+V27 = SCRIPT / "run_trade_market_sweep_v27.py"
+ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
 ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
@@ -47,18 +49,20 @@ def out_path():
 
 
 def main():
-    v29 = load(V29, "market_v29_for_125")
+    v27 = load(V27, "market_v27_for_125")
+    roster_resolution = load(ROSTER_RESOLUTION_GOVERNANCE, "roster_resolution_governance_for_125")
     overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
     interaction = load(ROSTER_INTERACTION, "roster_interaction_for_125")
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
-    v29.main()
+    v27.main()
     out = out_path()
     if not out or not out.exists():
         return
 
     report = json.loads(out.read_text(encoding="utf-8"))
+    roster_resolution.apply_to_report(report)
     overlay.apply_to_report(report, interaction, ranker)
     action_basis = gov.apply_to_report(report)
 
@@ -93,6 +97,9 @@ def main():
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
         "canonical_roster_interaction_overlay_shared_component": True,
+        "canonical_roster_resolution_governance_shared_component": True,
+        "historical_v29_executed_in_current_path": False,
+        "historical_v28_executed_in_current_path": False,
         "historical_v30_executed_in_current_path": False,
     })
     report.setdefault("simulation", {})["execution_path"] = (
