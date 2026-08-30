@@ -15,7 +15,8 @@
     "context_required_for_user_facing_numbers": true,
     "narrative_reasoning_required": true,
     "decision_reports_explain_alternatives": true,
-    "one_page_is_preference_not_constraint": true
+    "one_page_is_preference_not_constraint": true,
+    "reporter_style_context_required": true
   },
   "delivery_policy": "For supported FSFFL analytical queries, interpret the raw workflow output conversationally and attach a standardized plain-English PDF. User-facing reports must lead with football meaning and decisions; technical field names and implementation details stay in the source JSON or footer unless a short explanation is necessary.",
   "design_system": {
@@ -142,6 +143,14 @@
       "model_details_location": "footer_or_methodology",
       "narrative_must_be_derived_from_existing_model_outputs": true,
       "renderer_must_not_create_new_model_scores": true
-    }
+    },
+    "roster_context_policy": [
+      "connect recommendations to current optimized lineup access",
+      "connect incoming players to position need and roster weakness when supported",
+      "identify when outgoing players are blocked from the starting lineup or are depth-only assets",
+      "explain shifts from surplus positions to weak positions",
+      "use current competitive-window and simulator context when relevant",
+      "never infer a player will start unless an authoritative lineup output supports it"
+    ]
   }
 }
