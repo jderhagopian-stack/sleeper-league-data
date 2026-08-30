@@ -74,6 +74,7 @@ def main():
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
     gm_governed = text(SCRIPT / "run_fsffl_gm30_counterfactual_governed.py")
+    gm_app = text(SCRIPT / "gm3" / "application.py")
     gm_cf = text(SCRIPT / "run_fsffl_gm30_counterfactual.py")
     gm_gov = text(SCRIPT / "gm30_nonprojection_governance.py")
     high_priority = text(SCRIPT / "nonprojection_high_priority_overrides.py")
@@ -275,12 +276,16 @@ def main():
     })
 
     # GM 3.0 AUTHORITY AND PATCH ORDER
-    gm_runner_governed = "python script/run_fsffl_gm30_counterfactual_governed.py" in gm_runner
+    gm_runner_governed = (
+        "python script/run_fsffl_gm30_counterfactual_governed.py" in gm_runner
+        and "from gm3 import application" in gm_governed
+        and "application.run()" in gm_governed
+    )
     findings.append({
         "id": "GM3-ENTRY-001",
         "ok": gm_runner_governed,
         "severity": "CRITICAL",
-        "observation": "GM 3.0 production must enter through the governed wrapper.",
+        "observation": "GM3 production must enter through the stable governed facade, which delegates application orchestration to gm3/application.py.",
     })
 
     expected_order = [
@@ -291,13 +296,13 @@ def main():
         "counterfactual.install_counterfactual_trade_patch()",
         "gm30.main()",
     ]
-    positions = [gm_governed.find(x) for x in expected_order]
+    positions = [gm_app.find(x) for x in expected_order]
     gm_patch_order_ok = all(x >= 0 for x in positions) and positions == sorted(positions)
     findings.append({
         "id": "GM3-PATCH-002",
         "ok": gm_patch_order_ok,
         "severity": "CRITICAL",
-        "observation": "Runtime adaptation must occur first; current governance/overrides must wrap it; counterfactual simulation must wrap the fully governed trade generator last.",
+        "observation": "Inside the GM3 application boundary, runtime adaptation must occur first; current governance/overrides must wrap it; counterfactual simulation must wrap the fully governed trade generator last.",
         "expected_order": expected_order,
     })
 
