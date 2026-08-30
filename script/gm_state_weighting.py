@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 CALIBRATION_PATH = DATA / "gm" / "state_weight_calibration.json"
 SIM_CONTEXT_PATH = DATA / "gm" / "league" / "simulator_context.json"
+LEAGUE_PATH = DATA / "league.json"
 WEIGHT_KEYS = ("current", "future", "liquidity", "resilience")
 
 LEGACY_ANCHORS = [
@@ -90,12 +91,27 @@ def load_calibration() -> Dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def simulator_index() -> Dict[str, Dict[str, Any]]:
-    """Read the already-produced Simulator 1.0 context once; never simulate."""
+    """Read the canonical active-season Simulator output; GM copy is fallback."""
+    candidates = []
     try:
-        raw = json.loads(SIM_CONTEXT_PATH.read_text(encoding="utf-8"))
-        return {str(x.get("user_id")): x for x in (raw.get("teams") or [])}
+        league = json.loads(LEAGUE_PATH.read_text(encoding="utf-8"))
+        season = str(league.get("season") or "")
+        if season:
+            candidates.append(DATA / "simulator" / season / "outputs" / "standings_projection.json")
+            candidates.append(DATA / "simulator" / season / "outputs" / "season_simulation.json")
     except Exception:
-        return {}
+        pass
+    candidates.append(SIM_CONTEXT_PATH)
+
+    for path in candidates:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            rows = raw.get("teams") or []
+            if rows:
+                return {str(x.get("user_id")): x for x in rows}
+        except Exception:
+            continue
+    return {}
 
 
 def simulator_competitive_score(uid: str, simulator_row: Dict[str, Any] | None = None) -> Tuple[float | None, str]:
