@@ -1,0 +1,34 @@
+name: Trade Multi-Asset Package Equivalence
+
+on:
+  push:
+    paths:
+      - 'script/trade_multi_asset_packages.py'
+      - 'script/audit_trade_multi_asset_package_equivalence.py'
+      - 'script/run_trade_market_sweep_v22.py'
+      - '.github/workflows/trade-multi-asset-package-equivalence.yml'
+  pull_request:
+    paths:
+      - 'script/trade_multi_asset_packages.py'
+      - 'script/audit_trade_multi_asset_package_equivalence.py'
+      - 'script/run_trade_market_sweep_v22.py'
+      - '.github/workflows/trade-multi-asset-package-equivalence.yml'
+  workflow_dispatch:
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile package modules
+        run: |
+          python -m py_compile \
+            script/trade_multi_asset_packages.py \
+            script/audit_trade_multi_asset_package_equivalence.py \
+            script/run_trade_market_sweep_v22.py
+      - name: Prove shared package enumeration equivalence
+        run: python script/audit_trade_multi_asset_package_equivalence.py
