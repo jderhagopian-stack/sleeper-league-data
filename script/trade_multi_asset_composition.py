@@ -17,15 +17,15 @@ MODEL_VERSION = "FSFFL-Multi-Asset-Package-Composition-1.0"
 def install(root, package_generator):
     def patch(mod):
         if hasattr(mod, "candidate_packages") and not getattr(
-            mod, "_shared_multi_asset_packages_installed", False
+            mod, "_trade_decision_multi_asset_packages_installed", False
         ):
             mod.candidate_packages = package_generator.candidate_packages
-            mod._shared_multi_asset_packages_installed = True
+            mod._trade_decision_multi_asset_packages_installed = True
         return mod
 
     def wrap_loader(mod):
         if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_multi_asset_descendant_loader_wrapped", False
+            mod, "_trade_decision_multi_asset_descendant_loader_wrapped", False
         ):
             return mod
 
@@ -38,7 +38,7 @@ def install(root, package_generator):
             return child
 
         mod.load_module = loader
-        mod._shared_multi_asset_descendant_loader_wrapped = True
+        mod._trade_decision_multi_asset_descendant_loader_wrapped = True
         return mod
 
     patch(root)
