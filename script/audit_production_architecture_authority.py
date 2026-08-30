@@ -61,6 +61,7 @@ def main():
     roster_resolution = text(SCRIPT / "roster_resolution_governance.py")
     candidate_pools = text(SCRIPT / "trade_candidate_pools.py")
     trade_behavior = text(SCRIPT / "trade_behavioral_intelligence.py")
+    historical_behavior = text(SCRIPT / "trade_historical_behavior.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -94,9 +95,12 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v24.main()",
+            "v23.main()",
+            "trade_historical_behavior.py",
+            "historical_behavior.install_historical_state_conditioning(",
+            "historical_behavior.apply_report_metadata(report, historical_index)",
             "trade_behavioral_intelligence.py",
-            "trade_behavior.install(v24, bi2, bi3_cache, bi3_cache_status)",
+            "trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)",
             "trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)",
             "trade_candidate_pools.py",
             "candidate_pools.apply_to_report(report)",
@@ -113,10 +117,17 @@ def main():
         and "run_trade_market_sweep_v28.py" not in v31
         and "run_trade_market_sweep_v27.py" not in v31
         and "run_trade_market_sweep_v26.py" not in v31
+        and "run_trade_market_sweep_v24.py" not in v31
+        and has_all(historical_behavior, [
+            "def install_historical_state_conditioning(v23, hist):",
+            "def apply_report_metadata(report, index):",
+            "historical_state_at_trade_uses_future_same_season_results",
+            "canonical_historical_state_trade_behavior_shared_component",
+        ])
         and has_all(trade_behavior, [
             'BI3_VERSION = "FSFFL-Behavioral-Intelligence-3.0"',
             "def load_bi3_cache():",
-            "def install(v24, bi2, bi3_cache, cache_status):",
+            "def install(historical_behavior, bi2, bi3_cache, cache_status):",
             "def apply_report_metadata(report, bi2, bi3_cache, cache_status):",
             "bi3_context_normalized_position_signal_enabled",
         ])
@@ -148,7 +159,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must preserve the latest production BI3-over-BI2 trade behavior through the shared behavioral component, bypass historical v26-v30, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
+        "observation": "Current v31 must preserve historical same-state behavior and the latest production BI3-over-BI2 behavior through shared components, bypass historical v24-v30, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
     })
 
     v30_contains_superseded_decision_logic = (

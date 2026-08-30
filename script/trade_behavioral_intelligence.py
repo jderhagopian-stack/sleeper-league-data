@@ -57,9 +57,9 @@ def bi3_position_trait(cache, uid, position):
     }
 
 
-def install(v24, bi2, bi3_cache, cache_status):
+def install(historical_behavior, bi2, bi3_cache, cache_status):
     """Install the validated BI3-over-BI2 composition onto v24's state layer."""
-    original = v24.install_historical_state_conditioning
+    original = historical_behavior.install_historical_state_conditioning
 
     def upgraded(v23, hist):
         idx = original(v23, hist)
@@ -69,7 +69,7 @@ def install(v24, bi2, bi3_cache, cache_status):
             br = prior(row, br)
             uid = str(row.get("buyer_user_id") or "")
             state = str(br.get("buyer_state") or "unknown")
-            shape = v24.candidate_shape(row)
+            shape = historical_behavior.candidate_shape(row)
             signals = {}
             adj = 0.0
 
@@ -125,7 +125,7 @@ def install(v24, bi2, bi3_cache, cache_status):
             signals["youth_preference"] = youth
             recv_players = [
                 x for x in shape.get("buyer_receives") or []
-                if not v24.is_pick(x)
+                if not historical_behavior.is_pick(x)
             ]
             if recv_players:
                 avg_y = sum(
@@ -153,7 +153,7 @@ def install(v24, bi2, bi3_cache, cache_status):
 
             br["owner_behavior"] = ob
             br["heuristic_acceptance_fit_score"] = score
-            br["heuristic_acceptance_fit"] = v24.band(score)
+            br["heuristic_acceptance_fit"] = historical_behavior.band(score)
             br["acceptance_fit_basis"] = (
                 "current_state_utility_plus_historical_same_state_trade_behavior_"
                 "plus_BI2_state_conditioned_traits_plus_BI3_context_normalized_"
@@ -164,7 +164,7 @@ def install(v24, bi2, bi3_cache, cache_status):
         v23.state_condition_behavior = state_condition_behavior
         return idx
 
-    v24.install_historical_state_conditioning = upgraded
+    historical_behavior.install_historical_state_conditioning = upgraded
 
 
 def apply_report_metadata(report, bi2, bi3_cache, cache_status):
