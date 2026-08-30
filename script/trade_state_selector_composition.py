@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Install shared v23-equivalent state/selector behavior onto a retained engine.
+"""Install Trade Decision v23-equivalent state/selector behavior onto a retained engine.
 
 This composition layer replaces historical state/selector wrappers with
-version-neutral shared components that have passed direct equivalence tests:
+version-neutral Trade Decision components that have passed direct equivalence tests:
 - trade_state_policy.py
 - trade_candidate_selector.py
 - trade_negotiation_family.py
@@ -162,7 +162,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
         "v23_equivalent_candidate_selector": True,
         "v21_equivalent_negotiation_family_supported": negotiation_family is not None,
         "historical_v23_wrapper_required": False,
-        "deeper_historical_versions_named_by_shared_component": False,
+        "deeper_historical_versions_named_by_application_component": False,
         "root_module_patched_by_capability": True,
     }
 
@@ -183,8 +183,8 @@ def apply_report_metadata(report, inherited_action, state_policy):
         "historical_state_at_trade_reconstruction_complete": False,
         "unsupported_post_sim_score_distance_action_cliff_active": False,
         "upstream_action_is_provisional_pending_v31_outcome_comparison": True,
-        "canonical_trade_state_policy_shared_component": True,
-        "canonical_trade_candidate_selector_shared_component": True,
+        "trade_decision_state_policy_internal_component": True,
+        "trade_decision_candidate_selector_internal_component": True,
         "historical_v23_executed_in_current_path": False,
     })
     final_action = state_policy.recompute_action_without_acceptance_band_gate(report)
