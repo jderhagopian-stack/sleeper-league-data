@@ -6,7 +6,9 @@
     "canonical_within_application_does_not_imply_shared": true,
     "promotion_to_shared_requires_domain_generic_behavior_or_real_second_application_consumer": true,
     "migration_scaffolding_is_not_permanent_platform_api": true,
-    "historical_versions_may_remain_for_reproducibility_but_not_current_authority": true
+    "historical_versions_may_remain_for_reproducibility_but_not_current_authority": true,
+    "shared_core_ownership_is_conceptual_not_file_exclusivity": true,
+    "legacy_mechanics_host_does_not_regain_application_authority": true
   },
   "shared_core": {
     "projection_and_uncertainty": [
@@ -33,6 +35,15 @@
     ],
     "league_rules": [
       "script/league_rules.py"
+    ],
+    "valuation_and_future_pick_economics": [
+      "script/build_fsffl_gm_engine.py"
+    ],
+    "team_state_evaluation": [
+      "script/gm_state_weighting.py"
+    ],
+    "roster_resolution": [
+      "script/roster_aware_trade.py"
     ]
   },
   "applications": {
