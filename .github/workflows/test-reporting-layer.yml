@@ -5,6 +5,7 @@ on:
     paths:
       - 'script/fsffl_report_style.py'
       - 'script/report_language.py'
+      - 'script/report_context.py'
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
       - 'script/render_roster_decision_report.py'
@@ -38,7 +39,7 @@ jobs:
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/report_language.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
+        run: python -m py_compile script/report_language.py script/report_context.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
 
       - name: Render standardized reports
         run: |
