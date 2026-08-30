@@ -1,11 +1,14 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "model_governance_version": "FSFFL-Model-Governance-2.1",
   "evidence_hierarchy": [
     "RULE_DEFINED",
     "HISTORICALLY_STATISTICALLY_ESTIMATED",
     "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+    "SIMULATION_DERIVED_ESTIMATE",
+    "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
     "RESEARCH_SUPPORTED_PROXY",
+    "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
     "ASSUMPTION_SENSITIVE_PROVISIONAL"
   ],
   "policy": {
@@ -15,7 +18,9 @@
     "provisional_parameters_must_not_silently_drive_authoritative_recommendations": true,
     "learned_parameters_must_be_versioned": true,
     "learned_parameter_promotion_requires_validation_improvement": true,
-    "software_validation_is_not_empirical_validation": true
+    "software_validation_is_not_empirical_validation": true,
+    "provisional_parameters_may_replace_weaker_legacy_heuristics_when_basis_is_stronger": true,
+    "empirical_promotion_still_requires_validation_improvement": true
   },
   "parameters": [
     {
@@ -102,12 +107,12 @@
         "data/gm/state_weight_calibration.json"
       ],
       "parameter_family": "current production, future value, liquidity and resilience weights",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "evidence_tier": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
       "status": "EXPLICIT_EXPERT_PRIOR_UNVALIDATED_ACTIVE",
       "source": "Versioned data/gm/state_weight_calibration.json expert-prior artifact containing the legacy GM anchors; empirically_validated=false",
       "validation": "Required: real versioned training artifact plus temporal/holdout validation and sensitivity analysis",
       "uncertainty": "high until a historical training artifact demonstrates out-of-sample improvement over the expert prior",
-      "update_policy": "Replace or promote the expert prior only with versioned calibration that improves appropriate holdout performance",
+      "update_policy": "Treat as a bounded Simulator-indexed expert prior; refine via sensitivity/simulation evidence when stronger than legacy anchors, and reserve empirical-promotion labels for temporal holdout improvement.",
       "downstream": [
         "GM valuation",
         "trade ranking",
@@ -198,7 +203,7 @@
       "source": "Current external dynasty pick anchors plus provisional pick-quality/scenario/liquidity transforms; forecast uncertainty is diagnostic and no longer directly rewarded as option value",
       "validation": "Required: temporally comparable rookie-draft outcomes and contemporaneous dynasty-market backtest; separately identify expected player value, positive skew, market liquidity and forecast uncertainty.",
       "uncertainty": "Material for future-heavy trades. Forecast uncertainty no longer creates positive value by construction; quality, liquidity, own-pick control and fallback curves remain provisional.",
-      "update_policy": "Keep forecast uncertainty diagnostic-only unless time-ordered evidence separately identifies an uncertainty/skew premium; recalibrate remaining transforms only on valid historical evidence.",
+      "update_policy": "Refine expected value, timing, liquidity, skew and uncertainty as separate bounded components using the strongest available evidence; reserve empirical promotion for valid historical holdout evidence.",
       "downstream": [
         "asset value",
         "trade value",
@@ -222,7 +227,7 @@
       "source": "High-recall package prescreen plus GM2.2 nonlinear package curve; exact roster legalization supplies actual forced-cut cost",
       "validation": "Required: package-economics residual validation from frozen contemporaneous value snapshots. Generic slot penalty remains inactive because actual cut burden is modeled directly.",
       "uncertainty": "Consolidation/package weights and liquidity adjustment remain uncalibrated; generic roster-slot double counting has been structurally removed.",
-      "update_policy": "Keep exact roster-cut cost canonical; calibrate nonlinear package economics only on valid held-out transaction evidence.",
+      "update_policy": "Keep exact roster-cut cost canonical and represent package economics across a governed uncertainty set of plausible curves; narrow/promote only with valid held-out transaction evidence.",
       "downstream": [
         "trade valuation",
         "candidate discovery",
@@ -265,11 +270,11 @@
       ],
       "parameter_family": "pair insurance, capture scale, portfolio adjustment and acceptance-fit shift",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "BOUNDED_HEURISTIC_ACTIVE",
-      "source": "Current bounded constants",
-      "validation": "Required: historical lineup-availability and/or simulated replacement-outcome estimation",
-      "uncertainty": "bounded but uncalibrated",
-      "update_policy": "Retain as qualified functionality while bounded; replace with versioned empirical estimates when validated",
+      "status": "BOUNDED_HEURISTIC_ACTIVE_ACCEPTANCE_DUPLICATE_REMOVED",
+      "source": "Current bounded pair-insurance constants; roster-interaction value remains a strategic/resilience signal, while the separate uncalibrated acceptance-fit conversion is disabled.",
+      "validation": "Required: estimate pair insurance/capture from canonical simulated lineup-availability/replacement outcomes. No separate acceptance mapping is authorized without choice data.",
+      "uncertainty": "Pair-insurance magnitude remains bounded but uncalibrated; duplicate acceptance influence has been structurally removed.",
+      "update_policy": "Replace pair-insurance constants with versioned simulation-derived marginal effects when validated; keep acceptance-fit conversion disabled unless a defensible accepted/rejected choice target supports it.",
       "downstream": [
         "franchise value",
         "roster fit",
@@ -292,7 +297,7 @@
       "source": "Observed manager actions and leave-one-manager-out context transformed by hand-set blend weights/caps",
       "validation": "Required: time-ordered held-out manager-action prediction versus simple baselines plus family ablations",
       "uncertainty": "manager samples are sparse/non-stationary; structural leakage tests do not establish predictive validity",
-      "update_policy": "Re-estimate on new manager actions with recency-aware validation; only promote if held-out ranking/log-loss improves",
+      "update_policy": "Use observed action counts/context to introduce regularized or shrinkage manager effects now; empirical promotion to calibrated behavior probabilities still requires time-ordered held-out improvement.",
       "downstream": [
         "owner preferences",
         "seller acceptance",
