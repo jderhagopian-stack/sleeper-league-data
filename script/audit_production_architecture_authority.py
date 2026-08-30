@@ -79,6 +79,15 @@ def main():
     gm_gov = text(SCRIPT / "gm30_nonprojection_governance.py")
     high_priority = text(SCRIPT / "nonprojection_high_priority_overrides.py")
     package_curve = text(SCRIPT / "package_curve_robustness.py")
+    application_architecture = json.loads(
+        (ROOT / "data" / "model_governance" / "application_architecture.json").read_text(encoding="utf-8")
+    )
+    gm_pipeline = text(SCRIPT / "run_gm300_production_pipeline.sh")
+    team_improvement_workflow = text(WORKFLOWS / "run-team-improvement-lab.yml")
+    simulator_workflow = text(WORKFLOWS / "test-fsffl-simulator.yml")
+    build_gm_workflow = text(WORKFLOWS / "build-gm30.yml")
+    report_pack_workflow = text(WORKFLOWS / "build-standardized-reports.yml")
+    counterfactual_app = text(SCRIPT / "counterfactual" / "application.py")
     production_workflows = production_workflow_sources()
 
     findings = []
@@ -336,6 +345,97 @@ def main():
         "severity": "CRITICAL",
         "observation": "No production workflow may bypass the governed GM3 wrapper by executing the ungoverned counterfactual entry point directly.",
         "direct_execution_hits": ungoverned_gm_hits,
+    })
+
+
+    # REPO-WIDE APPLICATION AUTHORITY
+    apps = application_architecture.get("applications") or {}
+    trade_arch = apps.get("trade_decision") or {}
+    gm3_arch = apps.get("gm3") or {}
+    simulator_arch = apps.get("simulator") or {}
+
+    legacy_authority_ok = (
+        trade_arch.get("legacy_mechanics_provider") == "script/run_trade_market_sweep_v20.py"
+        and trade_arch.get("legacy_provider_current_decision_authority") is False
+        and gm3_arch.get("legacy_mechanics_provider") == "script/build_fsffl_gm_engine.py"
+        and gm3_arch.get("legacy_provider_current_application_authority") is False
+    )
+    findings.append({
+        "id": "APPLICATION-LEGACY-001",
+        "ok": legacy_authority_ok,
+        "severity": "CRITICAL",
+        "observation": "Declared legacy mechanics providers may remain for reproducibility/mechanics, but neither Trade Decision v20 nor GM2.2 may retain current application decision authority.",
+    })
+
+    draft_breakout_ok = (
+        "python script/draft_intelligence/application.py" in gm_pipeline
+        and "python script/breakout_intelligence/application.py" in gm_pipeline
+        and "python script/build_gm30_prospect_inputs.py" not in gm_pipeline
+        and "python script/build_gm30_prospect_features.py" not in gm_pipeline
+        and "python script/build_gm30_prospect_engine.py" not in gm_pipeline
+        and "python script/build_gm30_emerging_value.py" not in gm_pipeline
+    )
+    findings.append({
+        "id": "APPLICATION-GM3-CONSUMERS-002",
+        "ok": draft_breakout_ok,
+        "severity": "CRITICAL",
+        "observation": "GM3 production must consume Draft Intelligence and Breakout/Sleeper Intelligence as applications rather than directly owning their internal model stages.",
+    })
+
+    team_improvement_ok = (
+        "python script/gm3/team_improvement.py" in team_improvement_workflow
+        and "python script/run_team_improvement_lab_v13.py" not in team_improvement_workflow
+        and "FSFFL-GM-Team-Improvement-Lab-1.4" in team_improvement_workflow
+    )
+    findings.append({
+        "id": "APPLICATION-TEAM-IMPROVEMENT-003",
+        "ok": team_improvement_ok,
+        "severity": "CRITICAL",
+        "observation": "Team Improvement is a GM3 application area with one stable production entrypoint; versioned wrappers remain implementation/history only.",
+    })
+
+    simulator_ok = (
+        simulator_arch.get("entrypoint") == "script/run_fsffl_season_simulator.py"
+        and simulator_arch.get("current_engine") == "script/run_fsffl_season_simulator_preproduction.py"
+        and "python script/run_fsffl_season_simulator.py" in simulator_workflow
+        and "python script/run_fsffl_season_simulator_preproduction.py" not in simulator_workflow
+        and "python script/run_fsffl_season_simulator.py" in build_gm_workflow
+        and "python script/run_fsffl_season_simulator_preproduction.py" not in build_gm_workflow
+    )
+    findings.append({
+        "id": "APPLICATION-SIMULATOR-004",
+        "ok": simulator_ok,
+        "severity": "CRITICAL",
+        "observation": "Simulator production must enter through the stable unversioned application facade, with the vectorized preproduction-named file retained only as the current implementation behind that facade.",
+    })
+
+    counterfactual_ok = (
+        "What-If / Alternate History" in counterfactual_app
+        and "forward_engine_class" in counterfactual_app
+        and "analyze_historical_trade" in counterfactual_app
+        and '"full_alternate_history_production_on_main": False' in counterfactual_app
+    )
+    findings.append({
+        "id": "APPLICATION-COUNTERFACTUAL-005",
+        "ok": counterfactual_ok,
+        "severity": "CRITICAL",
+        "observation": "What-If and Alternate History share one Counterfactual application family while honestly declaring that the full Alternate History production application is not yet on main.",
+    })
+
+    reporting_ok = (
+        "render_gm_franchise_report.py" in report_pack_workflow
+        and "render_simulator_report.py" in report_pack_workflow
+        and "render_draft_recap_report.py" in report_pack_workflow
+        and "render_league_power_report.py" in report_pack_workflow
+        and "render_record_book_report.py" in report_pack_workflow
+        and (application_architecture.get("reports_publications") or {}).get("preseason_report", {}).get("owns_independent_model") is False
+        and (application_architecture.get("analytics_derived_products") or {}).get("record_book", {}).get("predictive_model") is False
+    )
+    findings.append({
+        "id": "APPLICATION-REPORTING-006",
+        "ok": reporting_ok,
+        "severity": "CRITICAL",
+        "observation": "Reports/publications must consume authoritative application or analytics outputs rather than becoming competing model engines; Record Book remains deterministic historical analytics.",
     })
 
     failed = [x for x in findings if not x["ok"]]
