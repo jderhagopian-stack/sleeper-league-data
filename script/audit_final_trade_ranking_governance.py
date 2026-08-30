@@ -80,11 +80,12 @@ def main():
       'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0, 1)',
       'score = .50 * strategic + .30 * acceptance + .20 * behavior',
     ])
-    same_reuse_v20=all(x in v20 for x in [
-      'acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0.0, 1.0)',
-      'behavior = clamp(.50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0.0, 1.0)',
-      'score = .50 * strategic + .30 * acceptance + .20 * behavior',
-    ])
+    ranker=(ROOT/"script"/"negotiation_ranking.py").read_text(encoding="utf-8")
+    same_reuse_v20=not (
+      'return nr.recompute_from_row(row)' in v20
+      and 'ACCEPTANCE_WEIGHT = 0.0' in ranker
+      and 'OWNER_BEHAVIOR_WEIGHT = 0.0' in ranker
+    )
 
     prior_ablation_evidence=all(x in ablation for x in [
       'score_without_strategic_composite',
