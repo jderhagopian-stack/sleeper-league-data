@@ -1,0 +1,37 @@
+name: Trade Bilateral Negotiation Equivalence
+
+on:
+  push:
+    paths:
+      - 'script/trade_negotiation_family.py'
+      - 'script/trade_bilateral_gate.py'
+      - 'script/audit_trade_bilateral_negotiation_equivalence.py'
+      - 'script/run_trade_market_sweep_v21.py'
+      - '.github/workflows/trade-bilateral-negotiation-equivalence.yml'
+  pull_request:
+    paths:
+      - 'script/trade_negotiation_family.py'
+      - 'script/trade_bilateral_gate.py'
+      - 'script/audit_trade_bilateral_negotiation_equivalence.py'
+      - 'script/run_trade_market_sweep_v21.py'
+      - '.github/workflows/trade-bilateral-negotiation-equivalence.yml'
+  workflow_dispatch:
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile shared primitives
+        run: |
+          python -m py_compile \
+            script/trade_negotiation_family.py \
+            script/trade_bilateral_gate.py \
+            script/audit_trade_bilateral_negotiation_equivalence.py \
+            script/run_trade_market_sweep_v21.py
+      - name: Prove bilateral and negotiation equivalence
+        run: python script/audit_trade_bilateral_negotiation_equivalence.py
