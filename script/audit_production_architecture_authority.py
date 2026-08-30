@@ -62,6 +62,9 @@ def main():
     candidate_pools = text(SCRIPT / "trade_candidate_pools.py")
     trade_behavior = text(SCRIPT / "trade_behavioral_intelligence.py")
     historical_behavior = text(SCRIPT / "trade_historical_behavior.py")
+    state_policy = text(SCRIPT / "trade_state_policy.py")
+    candidate_selector = text(SCRIPT / "trade_candidate_selector.py")
+    state_selector_composition = text(SCRIPT / "trade_state_selector_composition.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -95,7 +98,11 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v23.main()",
+            "v22.main()",
+            "trade_state_policy.py",
+            "trade_candidate_selector.py",
+            "trade_state_selector_composition.py",
+            "state_selector_composition.install(",
             "trade_historical_behavior.py",
             "historical_behavior.install_historical_state_conditioning(",
             "historical_behavior.apply_report_metadata(report, historical_index)",
@@ -118,6 +125,21 @@ def main():
         and "run_trade_market_sweep_v27.py" not in v31
         and "run_trade_market_sweep_v26.py" not in v31
         and "run_trade_market_sweep_v24.py" not in v31
+        and "run_trade_market_sweep_v23.py" not in v31
+        and has_all(state_policy, [
+            "def focal_state_beneficial(row):",
+            "def state_condition_behavior(row, br):",
+            "def recompute_action_without_acceptance_band_gate(report):",
+        ])
+        and has_all(candidate_selector, [
+            "def select_normal_four(",
+            "def select_swing(",
+        ])
+        and has_all(state_selector_composition, [
+            "def install(v22, state_policy, selector, ranker):",
+            "def apply_report_metadata(report, inherited_action, state_policy):",
+            "historical_v23_wrapper_required",
+        ])
         and has_all(historical_behavior, [
             "def install_historical_state_conditioning(v23, hist):",
             "def apply_report_metadata(report, index):",
@@ -159,7 +181,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must preserve historical same-state behavior and the latest production BI3-over-BI2 behavior through shared components, bypass historical v24-v30, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
+        "observation": "Current v31 must bypass historical v23-v30, install the proven shared v23-equivalent state-policy and candidate-selector composition over v22, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
     })
 
     v30_contains_superseded_decision_logic = (
