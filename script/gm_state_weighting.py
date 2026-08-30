@@ -69,7 +69,7 @@ def load_calibration() -> Dict[str, Any]:
             "runtime_source": "embedded_fallback",
             "classification_thresholds": LEGACY_THRESHOLDS,
             "anchor_points": [
-                {"contender_score": score, "weights": weights}
+                {"competitive_strength_score": score, "weights": weights}
                 for score, weights in LEGACY_ANCHORS
             ],
             "adjustments": {
@@ -148,7 +148,7 @@ def classify(contender_score: float, thresholds: Dict[str, float] | None = None)
 def interpolate(contender_score: float, anchor_points: Iterable[Dict[str, Any]]) -> Dict[str, float]:
     c = clamp(sf(contender_score, 0.5), 0.0, 1.0)
     pts = sorted(
-        [(sf(x.get("contender_score")), normalize(x.get("weights") or {})) for x in anchor_points],
+        [(sf(x.get("competitive_strength_score", x.get("contender_score"))), normalize(x.get("weights") or {})) for x in anchor_points],
         key=lambda x: x[0],
     )
     if not pts:
