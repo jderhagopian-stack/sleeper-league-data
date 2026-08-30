@@ -37,9 +37,10 @@ def main():
     )
     # v23 is the canonical ranking helper inherited by the current production wrapper.
     ranker=txt("negotiation_ranking.py")
-    canonical_double_use=(
-        'OWNER_BEHAVIOR_WEIGHT = 0.0' not in ranker
-        or 'behavior_already_in_acceptance_fit": True' not in ranker
+    canonical_double_use=not (
+        'OWNER_BEHAVIOR_WEIGHT = 0.0' in ranker
+        and 'ACCEPTANCE_WEIGHT = 0.0' in ranker
+        and 'arbitrary_strategic_acceptance_exchange_rate_authorized": False' in ranker
     )
     canonical_deduplicated=not canonical_double_use
     adaptive_bi3=all(x in bi3 for x in (
