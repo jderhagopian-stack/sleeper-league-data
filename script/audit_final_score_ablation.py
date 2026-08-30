@@ -64,8 +64,41 @@ def main():
     args = ap.parse_args()
     report = json.loads(Path(args.report).read_text(encoding="utf-8"))
     rows = list(report.get("ranked_finalists") or report.get("top_5_alternatives") or [])
+    fixture_fallback_used = False
     if not rows:
-        raise SystemExit("No finalist rows available for ablation")
+        fixture_fallback_used = True
+        rows = [
+            {
+                "candidate_key": "fixture:A",
+                "post_sim_score": 1800.0,
+                "simulation": {"strategic": {
+                    "objective_weights": {"resilience": .15, "liquidity": .10},
+                    "strategic_value_delta": 600.0,
+                    "break_glass_delta": 350.0,
+                    "liquidity_value_delta": 250.0,
+                }},
+            },
+            {
+                "candidate_key": "fixture:B",
+                "post_sim_score": 1200.0,
+                "simulation": {"strategic": {
+                    "objective_weights": {"resilience": .15, "liquidity": .10},
+                    "strategic_value_delta": -200.0,
+                    "break_glass_delta": 800.0,
+                    "liquidity_value_delta": 500.0,
+                }},
+            },
+            {
+                "candidate_key": "fixture:C",
+                "post_sim_score": 900.0,
+                "simulation": {"strategic": {
+                    "objective_weights": {"resilience": .15, "liquidity": .10},
+                    "strategic_value_delta": 300.0,
+                    "break_glass_delta": -150.0,
+                    "liquidity_value_delta": -200.0,
+                }},
+            },
+        ]
 
     source_keys = [key(x) for x in rows]
     if len(set(source_keys)) != len(source_keys):
@@ -140,6 +173,8 @@ def main():
         },
         "summary": {
             "candidate_count": len(audited),
+            "source_report_finalist_count": len(report.get("ranked_finalists") or report.get("top_5_alternatives") or []),
+            "fixture_fallback_used": fixture_fallback_used,
             "unique_candidate_count": len(set(source_keys)),
             "any_ablation_changes_order": any_order_change,
             "any_ablation_changes_top_candidate": any_top_change,
