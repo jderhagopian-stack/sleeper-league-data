@@ -167,6 +167,16 @@ jobs:
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
           assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
+          simmeta=a.get('simulation') or {}
+          assert simmeta.get('final_trade_impact_simulations')==50000
+          assert simmeta.get('final_trade_impact_engine')=='current_vectorized_simulator'
+          assert simmeta.get('finalists_confirmed_at_high_precision') is True
+          published=json.load(open('data/simulator/2026/outputs/season_simulation.json'))
+          focus=str(a.get('focus_user_id') or '')
+          pub=next(x for x in published['teams'] if str(x.get('user_id'))==focus)
+          before=((a.get('current_offer_evaluation') or {}).get('simulation') or {}).get('focus_before') or {}
+          for key in ('expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability'):
+              assert before.get(key)==pub.get(key), (key,before.get(key),pub.get(key))
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
           text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
