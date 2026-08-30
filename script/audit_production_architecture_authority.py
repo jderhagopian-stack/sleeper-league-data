@@ -156,7 +156,7 @@ def main():
         and has_all(multi_asset_packages, [
             "def candidate_packages(",
             "max_return_total_assets_with_players",
-            "canonical_multi_asset_package_generator_shared_component",
+            "trade_decision_multi_asset_package_generator_internal_component",
         ])
         and has_all(multi_asset_composition, [
             "def install(root, package_generator):",
