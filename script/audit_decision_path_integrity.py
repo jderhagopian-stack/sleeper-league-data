@@ -28,6 +28,7 @@ def main():
     v31 = text("run_trade_market_sweep_v31.py")
     option_governance = text("trade_option_governance.py")
     roster_overlay = text("roster_interaction_overlay.py")
+    roster_resolution = text("roster_resolution_governance.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -40,15 +41,19 @@ def main():
     production_roster_aware = (
         "trade_engine.py" in report
         and "run_trade_market_sweep_v31.py" in trade_engine
-        and "run_trade_market_sweep_v29.py" in v31
+        and "run_trade_market_sweep_v27.py" in v31
+        and "roster_resolution_governance.py" in v31
         and "roster_interaction_overlay.py" in v31
+        and "run_trade_market_sweep_v28.py" not in v31
+        and "run_trade_market_sweep_v29.py" not in v31
         and "run_trade_market_sweep_v30.py" not in v31
         and "legalize_trade_rosters" in v13
         and "forced_cut" in v13
     )
     runtime_version_single_source = (
-        "simulation.roster_resolution_model_version" in v29
-        and "ROSTER_MODEL=" not in v29.replace("runtime_roster_model", "")
+        "simulation.roster_resolution_model_version" in roster_resolution
+        and "ROSTER_MODEL=" not in roster_resolution
+        and "roster_resolution.apply_to_report(report)" in v31
     )
 
     acceptance_declared_heuristic = (
