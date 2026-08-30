@@ -79,6 +79,7 @@ def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
         utility = load_module(DECISION_UTILITY_PATH, "buyer_shared_decision_utility")
         buyer_sim = {
             "focus_delta": buyer_delta,
+            "league_reference": sim.get("league_reference") or {},
             "strategic": bs,
             # Counterparty incentive should not subtract the focal-team externality.
             # That is a focal strategic consideration, not a cost to the buyer.
