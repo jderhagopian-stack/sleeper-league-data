@@ -389,7 +389,7 @@ def main():
         },
         "policy": {
             "channels_compared_on_common_objective": True,
-            "shared_decision_utility": "FSFFL-Shared-Decision-Utility-1.0",
+            "shared_decision_utility": "FSFFL-Shared-Decision-Utility-2.0",
             "categorical_team_improvement_state_weights_active": False,
             "legacy_contender_and_dynasty_guardrails_authoritative": False,
             "acceptance_fit_used_as_candidate_eligibility_gate": False,
