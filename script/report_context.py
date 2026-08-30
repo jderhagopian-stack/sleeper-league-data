@@ -12,6 +12,7 @@ ROOT=Path(__file__).resolve().parents[1]
 INDEX=ROOT/"data"/"gm"/"franchise_index.json"
 ASSETS=ROOT/"data"/"fsffl_asset_values.json"
 SIM=ROOT/"data"/"gm"/"league"/"simulator_context.json"
+STATE_CALIBRATION=ROOT/"data"/"gm"/"state_weight_calibration.json"
 
 
 def _load(path,default=None):
