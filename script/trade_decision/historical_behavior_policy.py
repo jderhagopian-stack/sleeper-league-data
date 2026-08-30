@@ -4,8 +4,8 @@
 Extracted from historical Counter Market Sweep v1.18. Reconstructs manager
 competitive state at the time of completed trades, prefers behavior observed in
 historically similar states when evidence supports it, and falls back to the
-aggregate current-state-conditioned behavior layer when same-state evidence is
-weak.
+aggregate historical behavior layer when same-state evidence is weak. Competitive
+state is an evidence-selection context, not a hand-set multiplier or decision cliff.
 
 Historical reconstruction is approximate and cannot override current-state
 trade utility.
@@ -82,7 +82,8 @@ def candidate_shape(row):
     }
 
 
-def current_state_static_condition(row, br):
+def current_state_behavior_context(row, br):
+    """Resolve current state for historical lookup without categorical rescaling."""
     sig = dict(br.get("owner_behavior") or {})
     static_adj = sf(sig.get("static_historical_adjustment", sig.get("adjustment")))
     base = sf(
@@ -91,25 +92,7 @@ def current_state_static_condition(row, br):
     )
     state = str(br.get("buyer_state") or "unknown")
     shape = candidate_shape(row)
-    net_pick_in = shape["net_pick_in"]
-
-    if state == "elite_contender":
-        compat = 1.0 if net_pick_in < 0 else .55 if net_pick_in > 0 else .75
-    elif state == "contender":
-        compat = .90 if net_pick_in < 0 else .60 if net_pick_in > 0 else .75
-    elif state == "retool":
-        compat = 1.0 if net_pick_in > 0 else .40 if net_pick_in < 0 else .70
-    elif state == "rebuild":
-        compat = 1.0 if net_pick_in > 0 else .15 if net_pick_in < 0 else .60
-    else:
-        compat = .50
-
-    conditioned = static_adj * compat
-    if state in {"rebuild", "retool"} and net_pick_in < 0 and conditioned > 0:
-        conditioned = min(conditioned, .01)
-    if state in {"contender", "elite_contender"} and net_pick_in > 0 and conditioned > 0:
-        conditioned = min(conditioned, .02)
-    return base, static_adj, conditioned, compat, state, shape, sig
+    return base, static_adj, state, shape, sig
 
 
 def same_state_fit(profile, shape):
@@ -152,33 +135,32 @@ def install_historical_state_conditioning(v23, hist):
     index = hist.build_index()
 
     def state_condition_behavior(row, br):
-        base, static_adj, current_conditioned, compat, state, shape, sig = (
-            current_state_static_condition(row, br)
-        )
+        base, static_adj, state, shape, sig = current_state_behavior_context(row, br)
         uid = str(row.get("buyer_user_id") or "")
         profile = hist.owner_state_profile(uid, state)
         historical_adj, evidence_weight, signals = same_state_fit(profile, shape)
 
         hist_blend = clamp(evidence_weight * .78, 0.0, .72)
-        combined = (1.0 - hist_blend) * current_conditioned + hist_blend * historical_adj
+        # Same-state transaction evidence is useful context; the categorical
+        # state label itself does not impose a hand-set compatibility multiplier
+        # or direction-specific cap. Blend observed same-state behavior against
+        # the aggregate historical signal according to evidence quality only.
+        combined = (1.0 - hist_blend) * static_adj + hist_blend * historical_adj
         combined = clamp(combined, -.16, .16)
 
         net_pick_in = int(shape.get("net_pick_in") or 0)
-        if state in {"rebuild", "retool"} and net_pick_in < 0 and combined > 0:
-            combined = min(combined, .01)
-        if state in {"contender", "elite_contender"} and net_pick_in > 0 and combined > 0:
-            combined = min(combined, .02)
 
         score = round(clamp(base + combined, 0.0, 1.0), 4)
         sig.update({
             "static_historical_adjustment": round(static_adj, 4),
-            "current_state_conditioned_aggregate_adjustment": round(current_conditioned, 4),
+            "aggregate_historical_adjustment": round(static_adj, 4),
+            "categorical_state_rescaling_authorized": False,
             "historical_same_state_adjustment": round(historical_adj, 4),
             "historical_same_state_blend_weight": round(hist_blend, 4),
             "state_conditioned_adjustment": round(combined, 4),
             "adjustment": round(combined, 4),
             "current_state": state,
-            "state_compatibility_weight": round(compat, 3),
+            "state_compatibility_weight": None,
             "buyer_net_pick_in": net_pick_in,
             "historical_same_state_sample": int(profile.get("trade_sample") or 0),
             "historical_same_state_reconstruction_confidence": round(
