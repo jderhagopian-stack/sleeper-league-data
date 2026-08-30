@@ -223,6 +223,24 @@
         "Shared Core valuation/team state"
       ],
       "owns_independent_model": false
+    },
+    "reporting_module": {
+      "stable_facade": "script/reporting/__init__.py",
+      "owns": [
+        "user-facing terminology",
+        "contextual narrative composition",
+        "number context",
+        "evidence-triggered visual selection",
+        "shared report styling"
+      ],
+      "consumes": [
+        "Shared Core outputs",
+        "Application outputs",
+        "Analytics / Derived Product outputs"
+      ],
+      "decision_authority": false,
+      "rescoring_authority": false,
+      "workflow_specific_renderers_remain_thin_consumers": true
     }
   }
 }
