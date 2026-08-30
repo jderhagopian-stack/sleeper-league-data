@@ -89,7 +89,8 @@ jobs:
           assert 'BI3_context_normalized_position_signal' in new['simulation']['execution_path']
           text=json.dumps(new)
           assert 'confidence_weighted_blend' in text
-          assert 'bi3_context_normalized' in text\n          assert 'behavioral_adjustment_method' in text
+          assert 'bi3_context_normalized' in text
+          assert 'behavioral_adjustment_method' in text
           refresh=int(Path('/tmp/bi3-refresh-seconds.txt').read_text().strip())
           old_sec=int(Path('/tmp/v119-seconds.txt').read_text().strip())
           new_sec=int(Path('/tmp/v120-seconds.txt').read_text().strip())

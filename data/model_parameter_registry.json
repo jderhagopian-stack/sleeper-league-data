@@ -343,7 +343,7 @@
       "source": "Full owned tradeable asset pool and all plausibility bands are retained. Expensive simulation is prioritized by absolute log distance between market-anchored package values, then focal market/redraft surplus; legacy protected-asset, need, redraft and value-ratio coefficient stacks no longer determine prescreen order.",
       "validation": "Full-pool/full-band recall regression remains active. Downstream canonical simulation/utility determines trade quality; prescreen only allocates computation.",
       "uncertainty": "Any finite simulation shortlist can miss a useful market-outlier package, but arbitrary cross-signal prescreen coefficients and band eligibility gates no longer create that risk.",
-      "update_policy": "Benchmark shortlist recall against expanded downstream simulation where tractable. Increase/optimize compute coverage rather than reintroducing unsupported weighted prescreen heuristics.",
+      "update_policy": "Re-estimate shortlist recall against expanded downstream simulation on each material search change where tractable. Increase or optimize compute coverage rather than reintroducing unsupported weighted prescreen heuristics; replace the search priority only if a better held-out recall method is demonstrated.",
       "downstream": [
         "candidate trade universe",
         "deep simulation coverage"

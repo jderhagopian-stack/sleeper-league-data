@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse,json,importlib.util
 from pathlib import Path
 
-MODEL_VERSION="FSFFL-Negotiation-Ranking-Dedup-Ablation-1.0"
+MODEL_VERSION="FSFFL-Negotiation-Ranking-Dedup-Ablation-2.0"
 
 def f(x,d=0.0):
     try:return float(x)
@@ -43,7 +43,7 @@ def main():
       behavior=f(nr.get("owner_behavior_match_component"),.5)
       current=f(nr.get("score"))
       legacy=.50*strategic+.30*acceptance+.20*behavior
-      dedup=.625*strategic+.375*acceptance
+      dedup=strategic
       audited.append({
         "candidate_key":repr(key(r)),
         "current_report_score":round(current,4),
@@ -65,7 +65,7 @@ def main():
         nr=nrmod.compose(strategic,acceptance,behavior)
         current=f(nr.get("score"))
         legacy=.50*strategic+.30*acceptance+.20*behavior
-        dedup=.625*strategic+.375*acceptance
+        dedup=strategic
         audited.append({
           "candidate_key":f"fixture:{i}",
           "current_report_score":round(current,4),
@@ -87,6 +87,7 @@ def main():
         "historical_validation":False,
         "coefficient_tuning":False,
         "structural_double_count_ablation":True,
+        "canonical_ranking_is_focal_decision_utility_only":True,
         "rank_change_proves_material_leverage_not_empirical_superiority":True,
       },
       "summary":{

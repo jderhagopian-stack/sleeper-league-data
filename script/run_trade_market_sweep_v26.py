@@ -164,7 +164,9 @@ def install(v24, bi2, bi3_cache, cache_status):
             ob["bi3_cache_status"] = cache_status
             ob["bi3_interactive_historical_replay"] = False
             ob["full_action_sources"] = ["trades", "drafts", "waivers_free_agents", "faab", "drops_cuts"]
-            ob["behavioral_intelligence_adjustment"] = round(adj, 4)\n            ob["behavioral_evidence_confidence"] = behavior_confidence\n            ob["behavioral_adjustment_method"] = "confidence_weighted_boundary_shrinkage"
+            ob["behavioral_intelligence_adjustment"] = round(adj, 4)
+            ob["behavioral_evidence_confidence"] = behavior_confidence
+            ob["behavioral_adjustment_method"] = "confidence_weighted_boundary_shrinkage"
             ob["behavioral_intelligence_signals"] = signals
             ob["behavioral_intelligence_can_override_current_state_utility"] = False
             br["owner_behavior"] = ob

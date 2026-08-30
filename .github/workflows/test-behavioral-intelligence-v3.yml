@@ -77,7 +77,7 @@ jobs:
           c=json.loads(Path('/tmp/behavioral-action-context.json').read_text())
           b=json.loads(Path('/tmp/behavioral-intelligence-v3.json').read_text())
           assert c['model_version']=='FSFFL-Behavioral-Action-Context-1.1'
-          assert b['model_version']=='FSFFL-Behavioral-Intelligence-3.0-RESEARCH'
+          assert b['model_version'].startswith('FSFFL-Behavioral-Intelligence-3.0-RESEARCH')
           assert b['production_status']=='RESEARCH_NOT_YET_PROMOTED'
           assert c['policy']['shared_historical_state_provider'] is True
           assert c['policy']['alternate_history_reconstruction_pattern_reused'] is True

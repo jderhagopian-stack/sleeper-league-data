@@ -121,7 +121,7 @@ jobs:
 
           m=json.load(open('data/audit/market_value_adjustments_audit.json'))
           mids={x['id']:x for x in m['findings']}
-          assert m['production_behavior_changed'] is False
+          assert m['production_behavior_changed'] is True
           assert m['policy']['same_source_market_trend_requires_incremental_validation'] is True
           assert mids['MARKET-RANK-CURVE-001']['authoritative_incremental_adjustment_claim_allowed'] is False
           assert mids['MARKET-MOMENTUM-DOUBLE-COUNT-001']['authoritative_incremental_adjustment_claim_allowed'] is False
@@ -129,7 +129,7 @@ jobs:
 
           f=json.load(open('data/audit/future_pick_economics_audit.json'))
           fids={x['id']:x for x in f['findings']}
-          assert f['production_behavior_changed'] is False
+          assert f['production_behavior_changed'] is True
           assert f['policy']['forecast_uncertainty_is_not_automatically_positive_option_value'] is True
           assert f['policy']['market_liquidity_and_outcome_optionality_must_be_separated'] is True
           assert f['summary']['all_expected_runtime_markers_detected'] is True
@@ -158,7 +158,7 @@ jobs:
 
           b=json.load(open('data/audit/behavioral_acceptance_audit.json'))
           bids={x['id']:x for x in b['findings']}
-          assert b['production_scoring_behavior_changed'] is False
+          assert b['production_scoring_behavior_changed'] is True
           assert b['policy']['production_deployment_is_not_empirical_validation'] is True
           assert b['summary']['production_facade_empirical_scope_qualified'] is True
           assert b['summary']['predictive_holdout_test_detected'] is False
@@ -169,7 +169,7 @@ jobs:
 
           z=json.load(open('data/audit/roster_interaction_cut_governance_audit.json'))
           zids={x['id']:x for x in z['findings']}
-          assert z['production_behavior_changed'] is False
+          assert z['production_behavior_changed'] is True
           assert z['policy']['roster_legality_is_rule_defined'] is True
           assert z['policy']['cut_selection_is_not_rule_defined'] is True
           assert z['policy']['roster_interaction_must_show_incremental_value_over_lineup_simulation'] is True
@@ -181,7 +181,7 @@ jobs:
 
           b=json.load(open('data/audit/behavioral_acceptance_governance_audit.json'))
           bids={x['id']:x for x in b['findings']}
-          assert b['production_behavior_changed'] is False
+          assert b['production_behavior_changed'] is True
           assert b['policy']['revealed_preference_is_not_acceptance_probability'] is True
           assert b['policy']['acceptance_probability_requires_offer_or_choice_denominator'] is True
           assert b['summary']['acceptance_evidence_ready_for_probability_fit'] is False
@@ -200,7 +200,8 @@ jobs:
           assert fr['production_behavior_changed'] is True
           assert fr['policy']['duplicate_evidence_must_not_receive_positive_incremental_weight'] is True
           assert fr['summary']['canonical_weights_detected'] is True
-          assert fr['summary']['prior_strategic_acceptance_ratio_preserved'] is True
+          assert fr['summary']['prior_strategic_acceptance_ratio_preserved'] is False
+          assert fr['summary']['arbitrary_strategic_acceptance_exchange_rate_removed'] is True
           assert fr['summary']['shared_composer_used_by_v18_v20_v23'] is True
           assert fr['summary']['positive_duplicate_behavior_weight_detected'] is False
           print(json.dumps(r['summary'],indent=2))

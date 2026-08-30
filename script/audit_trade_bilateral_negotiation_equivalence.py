@@ -67,7 +67,8 @@ def main():
         "bilateral_gate_model_version": gate.MODEL_VERSION,
         "family_cases": len(family_rows),
         "gate_cases": len(gate_cases),
-        "production_switched": True,\n        "legacy_categorical_gate_equivalence_required": False,
+        "production_switched": True,
+        "legacy_categorical_gate_equivalence_required": False,
     })
 
 
