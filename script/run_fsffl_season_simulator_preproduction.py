@@ -431,6 +431,7 @@ def run_preproduction_simulation(
     projections,
     n_sims=50000,
     seed=None,
+    lineups_override=None,
 ):
     started = time.perf_counter()
     season = str(league["season"])
@@ -454,10 +455,13 @@ def run_preproduction_simulation(
     t0 = time.perf_counter()
     lineups = defaultdict(dict)
     backups = defaultdict(dict)
+    supplied = lineups_override or {}
     for rid, roster in roster_dir.items():
         for week in all_weeks:
-            lineup = optimize_fsffl_fast(
-                roster, week, league, players, projections
+            lineup = (
+                (supplied.get(rid) or {}).get(week)
+                or (supplied.get(str(rid)) or {}).get(str(week))
+                or optimize_fsffl_fast(roster, week, league, players, projections)
             )
             lineups[rid][week] = lineup
             backups[rid][week] = build_backup_chains(
@@ -639,6 +643,8 @@ def run_preproduction_simulation(
             "same_nfl_team_correlation": True,
             "opponent_adjustment_source": adjustment_source,
             "deterministic_season_config_seed": True,
+            "external_lineup_override_supported": True,
+            "external_lineup_override_used": bool(lineups_override),
         },
         "runtime": {
             "lineup_build_seconds": round(lineup_seconds, 3),
