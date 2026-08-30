@@ -2,7 +2,7 @@
 """Install canonical bilateral buyer gating by capability.
 
 Replaces the historical v1.15 wrapper's buyer-rationality hard gate with the
-version-neutral trade_bilateral_gate primitive. The shared component does not
+version-neutral trade_bilateral_gate primitive. This Trade Decision component does not
 name or import historical sweep versions; it wraps whichever retained module
 exposes the buyer_rationality capability.
 
@@ -52,7 +52,7 @@ def install(root, bilateral_gate):
         "model_version": MODEL_VERSION,
         "bilateral_gate_model_version": bilateral_gate.MODEL_VERSION,
         "historical_v21_wrapper_required": False,
-        "historical_versions_named_by_shared_component": False,
+        "historical_versions_named_by_application_component": False,
     }
 
 
@@ -69,8 +69,8 @@ def apply_report_metadata(report, bilateral_gate, negotiation_family):
         "negotiation_family_deduplication": True,
         "swing_must_be_distinct_negotiation_family": True,
         "low_and_very_low_acceptance_fit_can_appear_in_normal_slots_if_bilaterally_rational": True,
-        "canonical_bilateral_buyer_gate_shared_component": True,
-        "canonical_negotiation_family_shared_component": True,
+        "trade_decision_bilateral_gate_internal_component": True,
+        "trade_decision_negotiation_family_internal_component": True,
         "historical_v21_executed_in_current_path": False,
     })
     report.setdefault("candidate_counts", {})[
