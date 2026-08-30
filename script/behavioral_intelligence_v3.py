@@ -17,14 +17,19 @@ import argparse
 import importlib.util
 import json
 import math
+import statistics
 from collections import defaultdict
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 BI2_PATH = SCRIPT / "behavioral_intelligence.py"
-MODEL_VERSION = "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
+MODEL_VERSION = "FSFFL-Behavioral-Intelligence-3.0-RESEARCH-SHRINKAGE-1"
 POSITIONS = ("QB", "RB", "WR", "TE")
-SOURCE_WEIGHT = {"trade": 1.0, "draft": .58, "acquisition": .22}
+# Action-type opportunity normalization already controls for the very different
+# choice environments of trades, drafts and acquisitions. Per-action
+# context_confidence is therefore the evidence weight; no second hand-set source
+# multiplier is applied.
+SOURCE_WEIGHT = {"trade": 1.0, "draft": 1.0, "acquisition": 1.0}
 OPPORTUNITY_SMOOTHING = 1.0
 NEED_FLOOR = .30
 
@@ -60,9 +65,23 @@ def strength(v):
     return "VERY_HIGH" if a >= .55 else "HIGH" if a >= .36 else "MODERATE" if a >= .18 else "LOW"
 
 
-def confidence(weight, avg_context):
-    sample_conf = 1 - math.exp(-max(0.0, weight) / 7.0)
-    return round(min(.98, sample_conf * (.45 + .55 * clamp(avg_context, 0, 1))), 4)
+def shrinkage_factor(weight, prior_strength):
+    """Empirical-Bayes-style shrinkage toward the league-neutral prior.
+
+    prior_strength is the median positive manager effective sample in the same
+    action-context build, so the amount of shrinkage automatically adapts as the
+    league history grows instead of depending on a hand-set saturation constant.
+    """
+    w = max(0.0, sf(weight))
+    p = max(0.001, sf(prior_strength, 1.0))
+    return clamp(w / (w + p), 0.0, 1.0)
+
+
+def confidence(weight, avg_context, prior_strength):
+    return round(
+        min(.98, shrinkage_factor(weight, prior_strength) * clamp(avg_context, 0, 1)),
+        4,
+    )
 
 
 def valid_acquired(row):
@@ -201,15 +220,20 @@ def add_action(acc, row, env):
             pa["exit_need_sum"] += w * sf(needs.get(p), .5)
 
 
-def finalize(acc):
+def finalize(acc, prior_strength):
     avg_ctx = acc["context_sum"] / max(.0001, acc["context_weight"])
     out_pos = {}
     for p in POSITIONS:
         a = acc["position"][p]
         cw = a["chosen_weight"]
         ew = a["exit_weight"]
-        residual = clamp(a["preference_residual_sum"] / max(.001, acc["weight"]) * 3.0)
-        raw_need_residual = clamp(a["raw_need_residual_sum"] / max(.001, acc["weight"]) * 3.0)
+        shrink = shrinkage_factor(acc["weight"], prior_strength)
+        # obs - expected is already naturally bounded in [-1, 1]. The prior
+        # implementation multiplied it by 3.0, an arbitrary scale expansion.
+        # Keep the native residual scale and shrink sparse manager estimates
+        # toward the league-neutral prior (zero).
+        residual = clamp(a["preference_residual_sum"] / max(.001, acc["weight"]) * shrink)
+        raw_need_residual = clamp(a["raw_need_residual_sum"] / max(.001, acc["weight"]) * shrink)
         need_response = a["need_sum"] / cw if cw else None
         redundancy = a["redundancy_sum"] / cw if cw else None
         exit_need = a["exit_need_sum"] / ew if ew else None
@@ -218,12 +242,13 @@ def finalize(acc):
         for kind in SOURCE_WEIGHT:
             sw = a["source_weight"].get(kind, 0.0)
             if sw:
-                by_source[kind] = round(clamp(a["source_residual"][kind] / sw * 3.0), 4)
+                by_source[kind] = round(clamp(a["source_residual"][kind] / sw), 4)
         out_pos[p] = {
             "opportunity_and_need_adjusted_preference": {
                 "score": round(residual, 4),
                 "strength": strength(residual),
-                "confidence": confidence(acc["weight"], avg_ctx),
+                "confidence": confidence(acc["weight"], avg_ctx, prior_strength),
+                "shrinkage_factor": round(shrink, 4),
                 "interpretation": "positive means acquired more often than roster need plus the action-type league opportunity prior predicts",
             },
             "need_only_preference_for_comparison": round(raw_need_residual, 4),
@@ -287,6 +312,8 @@ def build(context_path):
             add_action(accs[uid], row, env)
     owners = {}
     all_uids = sorted(set((bi2.get("owners") or {}).keys()) | set(accs.keys()))
+    positive_weights = [sf(accs[uid].get("weight")) for uid in all_uids if sf(accs[uid].get("weight")) > 0]
+    prior_strength = statistics.median(positive_weights) if positive_weights else 1.0
     for uid in all_uids:
         old = (bi2.get("owners") or {}).get(uid, {})
         owners[uid] = {
@@ -294,7 +321,7 @@ def build(context_path):
             "team_name": old.get("team_name"),
             "persistent_bi2": old.get("persistent"),
             "state_conditioned_bi2": old.get("by_state"),
-            "context_normalized": finalize(accs[uid]),
+            "context_normalized": finalize(accs[uid], prior_strength),
         }
     return {
         "model_version": MODEL_VERSION,
@@ -317,6 +344,14 @@ def build(context_path):
             "league_action_type_position_mix": environment_summary(env),
             "smoothing_per_position": OPPORTUNITY_SMOOTHING,
             "need_floor": NEED_FLOOR,
+            "source_weight_policy": "equal_after_action_type_opportunity_normalization; per-action context_confidence supplies evidence weight",
+        },
+        "shrinkage": {
+            "method": "manager_effective_sample_over_manager_effective_sample_plus_league_median_effective_sample",
+            "prior_mean": 0.0,
+            "prior_strength": round(prior_strength, 4),
+            "prior_strength_basis": "median positive manager weighted context sample in the current build",
+            "self_updates_as_history_grows": True,
         },
         "action_context_model_version": ctx.get("model_version"),
         "historical_state_provider": ctx.get("historical_state_provider"),
