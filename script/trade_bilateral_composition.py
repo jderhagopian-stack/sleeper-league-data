@@ -2,7 +2,7 @@
 """Install canonical bilateral buyer gating by capability.
 
 Replaces the historical v1.15 wrapper's buyer-rationality hard gate with the
-version-neutral trade_bilateral_gate primitive. The shared component does not
+version-neutral trade_bilateral_gate primitive. This Trade Decision component does not
 name or import historical sweep versions; it wraps whichever retained module
 exposes the buyer_rationality capability.
 
@@ -17,7 +17,7 @@ MODEL_VERSION = "FSFFL-Bilateral-Buyer-Gate-Composition-1.0"
 def install(root, bilateral_gate):
     def patch(mod):
         if hasattr(mod, "buyer_rationality") and not getattr(
-            mod, "_shared_bilateral_gate_installed", False
+            mod, "_trade_decision_bilateral_gate_installed", False
         ):
             original = mod.buyer_rationality
 
@@ -25,12 +25,12 @@ def install(root, bilateral_gate):
                 return bilateral_gate.apply(original(row, dl))
 
             mod.buyer_rationality = buyer_rationality
-            mod._shared_bilateral_gate_installed = True
+            mod._trade_decision_bilateral_gate_installed = True
         return mod
 
     def wrap_loader(mod):
         if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_bilateral_descendant_loader_wrapped", False
+            mod, "_trade_decision_bilateral_descendant_loader_wrapped", False
         ):
             return mod
 
@@ -43,7 +43,7 @@ def install(root, bilateral_gate):
             return child
 
         mod.load_module = loader
-        mod._shared_bilateral_descendant_loader_wrapped = True
+        mod._trade_decision_bilateral_descendant_loader_wrapped = True
         return mod
 
     patch(root)
@@ -52,7 +52,7 @@ def install(root, bilateral_gate):
         "model_version": MODEL_VERSION,
         "bilateral_gate_model_version": bilateral_gate.MODEL_VERSION,
         "historical_v21_wrapper_required": False,
-        "historical_versions_named_by_shared_component": False,
+        "historical_versions_named_by_application_component": False,
     }
 
 
@@ -69,8 +69,8 @@ def apply_report_metadata(report, bilateral_gate, negotiation_family):
         "negotiation_family_deduplication": True,
         "swing_must_be_distinct_negotiation_family": True,
         "low_and_very_low_acceptance_fit_can_appear_in_normal_slots_if_bilaterally_rational": True,
-        "canonical_bilateral_buyer_gate_shared_component": True,
-        "canonical_negotiation_family_shared_component": True,
+        "trade_decision_bilateral_gate_internal_component": True,
+        "trade_decision_negotiation_family_internal_component": True,
         "historical_v21_executed_in_current_path": False,
     })
     report.setdefault("candidate_counts", {})[

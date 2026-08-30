@@ -77,6 +77,28 @@ def main():
         and 'TRADE_HISTORICAL_BEHAVIOR = SCRIPT / "trade_historical_behavior.py"' not in v31
     )
 
+
+    gm3_facade = (ROOT / "script" / "run_fsffl_gm30_counterfactual_governed.py").read_text(encoding="utf-8")
+    gm3_app = (ROOT / "script" / "gm3" / "application.py").read_text(encoding="utf-8")
+    gm3_boundary_ok = (
+        "from gm3 import application" in gm3_facade
+        and "application.run()" in gm3_facade
+        and "gm30.patch_gm22_runtime(season)" in gm3_app
+        and "legacy_provider_has_current_application_authority" in gm3_app
+    )
+
+    gm_runner = (ROOT / "script" / "run_gm300_production_pipeline.sh").read_text(encoding="utf-8")
+    draft_boundary_ok = (
+        "python script/draft_intelligence/application.py" in gm_runner
+        and "python script/build_gm30_prospect_inputs.py" not in gm_runner
+        and "python script/build_gm30_prospect_features.py" not in gm_runner
+        and "python script/build_gm30_prospect_engine.py" not in gm_runner
+    )
+    breakout_boundary_ok = (
+        "python script/breakout_intelligence/application.py" in gm_runner
+        and "python script/build_gm30_emerging_value.py" not in gm_runner
+    )
+
     behavior_internal = (
         ROOT / "script" / "trade_decision" / "behavior_integration.py"
     ).read_text(encoding="utf-8")
@@ -97,7 +119,25 @@ def main():
         principles.get("canonical_within_application_does_not_imply_shared") is True,
         principles.get("promotion_to_shared_requires_domain_generic_behavior_or_real_second_application_consumer") is True,
         principles.get("migration_scaffolding_is_not_permanent_platform_api") is True,
+        principles.get("shared_core_ownership_is_conceptual_not_file_exclusivity") is True,
+        principles.get("legacy_mechanics_host_does_not_regain_application_authority") is True,
     ])
+
+    required_shared_concepts = {
+        "projection_and_uncertainty",
+        "valuation_and_future_pick_economics",
+        "team_state_evaluation",
+        "roster_resolution",
+        "lineup_optimization",
+        "simulation",
+        "behavioral_intelligence",
+        "historical_fact_reconstruction",
+        "roster_interaction_primitive",
+        "league_rules",
+    }
+    missing_shared_concepts = sorted(
+        required_shared_concepts - set((reg.get("shared_core") or {}).keys())
+    )
 
     findings = {
         "registry_files_present": not missing,
@@ -106,14 +146,23 @@ def main():
         "shared_to_application_dependency_violations": shared_to_app,
         "trade_bi_interpretation_owned_by_trade_decision": trade_boundary_ok,
         "trade_interpretation_files_marked_application_owned": interpretation_marked_app_owned,
+        "gm3_application_boundary_active": gm3_boundary_ok,
+        "draft_intelligence_application_boundary_active": draft_boundary_ok,
+        "breakout_intelligence_application_boundary_active": breakout_boundary_ok,
         "architecture_principles_present": principles_ok,
+        "required_shared_core_concepts_registered": not missing_shared_concepts,
+        "missing_shared_core_concepts": missing_shared_concepts,
     }
     passed = all([
         findings["registry_files_present"],
         findings["shared_core_has_no_application_internal_dependencies"],
         findings["trade_bi_interpretation_owned_by_trade_decision"],
         findings["trade_interpretation_files_marked_application_owned"],
+        findings["gm3_application_boundary_active"],
+        findings["draft_intelligence_application_boundary_active"],
+        findings["breakout_intelligence_application_boundary_active"],
         findings["architecture_principles_present"],
+        findings["required_shared_core_concepts_registered"],
     ])
     payload = {
         "model_version": MODEL_VERSION,

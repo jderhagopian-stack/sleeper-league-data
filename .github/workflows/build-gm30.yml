@@ -58,7 +58,7 @@ jobs:
       - name: Run fresh 50k baseline season simulator
         env:
           FSFFL_SIMULATIONS: "50000"
-        run: python script/run_fsffl_season_simulator_preproduction.py
+        run: python script/run_fsffl_season_simulator.py
 
       - name: Verify baseline simulator validation
         shell: bash

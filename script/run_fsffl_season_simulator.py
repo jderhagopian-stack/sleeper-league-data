@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
+"""Stable FSFFL Simulator application entry point.
+
+Delegates to the current validated vectorized Simulator implementation while
+preserving the environment-configurable simulation count contract. Historical
+and experimental runners remain available for reproducibility/benchmarking.
 """
-Run the FSFFL simulator with an environment-configurable simulation count.
+from __future__ import annotations
 
-Usage:
-  FSFFL_SIMULATIONS=3000 python script/run_fsffl_season_simulator.py
-  FSFFL_SIMULATIONS=50000 python script/run_fsffl_season_simulator.py
-"""
+import run_fsffl_season_simulator_preproduction as current
 
-import os
-import build_fsffl_season_simulator as simulator
+MODEL_VERSION = "FSFFL-Simulator-Application-1.0"
 
-count = int(os.getenv("FSFFL_SIMULATIONS", "5000"))
-if count < 100:
-    raise SystemExit("FSFFL_SIMULATIONS must be at least 100.")
 
-simulator.DEFAULT_SIMS = count
-simulator.main()
+def main():
+    current.main()
+
+
+if __name__ == "__main__":
+    main()

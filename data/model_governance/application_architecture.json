@@ -6,7 +6,9 @@
     "canonical_within_application_does_not_imply_shared": true,
     "promotion_to_shared_requires_domain_generic_behavior_or_real_second_application_consumer": true,
     "migration_scaffolding_is_not_permanent_platform_api": true,
-    "historical_versions_may_remain_for_reproducibility_but_not_current_authority": true
+    "historical_versions_may_remain_for_reproducibility_but_not_current_authority": true,
+    "shared_core_ownership_is_conceptual_not_file_exclusivity": true,
+    "legacy_mechanics_host_does_not_regain_application_authority": true
   },
   "shared_core": {
     "projection_and_uncertainty": [
@@ -33,6 +35,15 @@
     ],
     "league_rules": [
       "script/league_rules.py"
+    ],
+    "valuation_and_future_pick_economics": [
+      "script/build_fsffl_gm_engine.py"
+    ],
+    "team_state_evaluation": [
+      "script/gm_state_weighting.py"
+    ],
+    "roster_resolution": [
+      "script/roster_aware_trade.py"
     ]
   },
   "applications": {
@@ -56,45 +67,162 @@
         "script/trade_state_selector_composition.py",
         "script/trade_multi_asset_composition.py",
         "script/trade_bilateral_composition.py"
-      ]
+      ],
+      "legacy_mechanics_provider": "script/run_trade_market_sweep_v20.py",
+      "legacy_provider_current_decision_authority": false,
+      "legacy_provider_policy": "Retained mechanics only; current Trade Decision application owns final policy and recommendation authority."
     },
     "gm3": {
       "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py",
       "internal_reasoning": [
+        "script/gm3/application.py",
         "script/build_fsffl_gm30.py",
         "script/run_fsffl_gm30_counterfactual.py",
         "script/gm30_nonprojection_governance.py",
         "script/package_curve_robustness.py",
         "script/nonprojection_high_priority_overrides.py"
-      ]
+      ],
+      "application_boundary": "script/gm3/application.py",
+      "legacy_mechanics_provider": "script/build_fsffl_gm_engine.py",
+      "legacy_provider_current_application_authority": false,
+      "application_areas": {
+        "team_improvement": {
+          "entrypoint": "script/gm3/team_improvement.py",
+          "role": "cross-channel roster improvement reasoning",
+          "current_implementation": "FSFFL-GM-Team-Improvement-Lab-1.4"
+        },
+        "portfolio_asset_management": {
+          "role": "franchise/asset management views and recommendations",
+          "current_sources": [
+            "GM3 franchise outputs",
+            "Breakout / Sleeper Intelligence",
+            "Draft Intelligence"
+          ]
+        }
+      }
     },
-    "team_improvement": {
-      "entrypoint": "script/run_team_improvement_lab.py",
-      "ownership": "GM3 application family"
+    "draft_intelligence": {
+      "entrypoint": "script/draft_intelligence/application.py",
+      "internal_reasoning": [
+        "script/build_gm30_prospect_inputs.py",
+        "script/build_gm30_prospect_features.py",
+        "script/build_gm30_prospect_engine.py"
+      ],
+      "gm3_consumes_output": true,
+      "gm3_owns_model": false
+    },
+    "breakout_sleeper_intelligence": {
+      "entrypoint": "script/breakout_intelligence/application.py",
+      "internal_reasoning": [
+        "script/build_gm30_emerging_value.py"
+      ],
+      "gm3_consumes_output": true,
+      "gm3_owns_model": false,
+      "rookies_owned_by": "Draft Intelligence"
+    },
+    "what_if_alternate_history": {
+      "application_family": "Counterfactual",
+      "modes": {
+        "forward_what_if": {
+          "current_implementation": "script/run_fsffl_gm30_counterfactual.py",
+          "current_owner": "GM3 application integration",
+          "future_boundary": "Counterfactual application family"
+        },
+        "historical_alternate_history": {
+          "shared_foundation": "script/fsffl_historical_state_provider.py",
+          "current_main_status": "shared historical reconstruction present; full Alternate History application is not yet current production on main",
+          "historical_trade_consumer": "script/run_historical_trade_analysis.py"
+        }
+      },
+      "shared_primitives": [
+        "historical state reconstruction",
+        "state cloning and transaction application",
+        "roster legality",
+        "simulation",
+        "branch/state transition mechanics"
+      ],
+      "entrypoint": "script/counterfactual/application.py",
+      "application_boundary": "script/counterfactual/application.py",
+      "full_alternate_history_production_on_main": false
+    },
+    "simulator": {
+      "entrypoint": "script/run_fsffl_season_simulator.py",
+      "consumes_shared_core": [
+        "projection_and_uncertainty",
+        "simulation",
+        "league_rules"
+      ],
+      "owns": "season forecast orchestration and simulator outputs",
+      "shared_simulation_engine_remains_core": true,
+      "current_engine": "script/run_fsffl_season_simulator_preproduction.py",
+      "current_engine_role": "implementation behind stable application facade",
+      "historical_or_experimental_runners_may_remain": true
+    }
+  },
+  "analytics_derived_products": {
+    "record_book": {
+      "builder": "script/build_competition_record_book.py",
+      "audit_builder": "script/build_record_book_audit.py",
+      "source_role": "deterministic historical aggregation",
+      "predictive_model": false
+    },
+    "competitive_landscape": {
+      "source": "Simulator application outputs",
+      "renderer": "script/render_league_power_report.py",
+      "independent_power_model": false
     },
     "historical_trade_analysis": {
       "entrypoint": "script/run_historical_trade_analysis.py",
-      "ownership": "application using shared historical facts plus GM3/Decision Lab"
-    },
-    "draft_intelligence": {
-      "current_implementation": "GM3 prospect-engine family",
-      "entrypoint": "script/build_gm30_prospect_engine.py"
-    },
-    "what_if": {
-      "current_implementation": "GM3 counterfactual simulation path",
-      "entrypoint": "script/run_fsffl_gm30_counterfactual_governed.py"
+      "sources": [
+        "shared historical facts",
+        "GM3/Decision Lab evaluation"
+      ],
+      "independent_valuation_model": false
     },
     "contender_analysis": {
-      "current_implementation": "Simulator outputs plus league power presentation",
-      "entrypoint": "script/render_league_power_report.py"
+      "source": "Simulator application outputs",
+      "renderer": "script/render_league_power_report.py",
+      "independent_model": false
+    }
+  },
+  "reports_publications": {
+    "standardized_report_pack": {
+      "workflow": ".github/workflows/build-standardized-reports.yml",
+      "presentation_only": true
     },
-    "portfolio_asset_management": {
-      "current_implementation": "GM3 emerging-value / franchise outputs",
-      "entrypoint": "script/build_gm30_emerging_value.py"
+    "record_book": {
+      "renderer": "script/render_record_book_report.py",
+      "consumes": "analytics_derived_products.record_book"
     },
-    "alternate_history": {
-      "current_main_status": "not a standalone production application on main",
-      "shared_foundation_present": "script/fsffl_historical_state_provider.py"
+    "competitive_landscape": {
+      "renderer": "script/render_league_power_report.py",
+      "consumes": "Simulator outputs"
+    },
+    "draft_recap": {
+      "renderer": "script/render_draft_recap_report.py",
+      "consumes": [
+        "Draft Intelligence",
+        "GM3/team state"
+      ]
+    },
+    "team_season_outlook": {
+      "renderer": "script/render_simulator_report.py",
+      "consumes": "Simulator outputs"
+    },
+    "gm_franchise_report": {
+      "renderer": "script/render_gm_franchise_report.py",
+      "consumes": "GM3 outputs"
+    },
+    "preseason_report": {
+      "status": "publication/orchestration product",
+      "consumes": [
+        "Simulator",
+        "GM3",
+        "Draft Intelligence",
+        "Breakout/Sleeper Intelligence",
+        "Shared Core valuation/team state"
+      ],
+      "owns_independent_model": false
     }
   }
 }

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'script/run_fsffl_gm30_counterfactual_governed.py'
+      - 'script/gm3/**'
       - 'script/gm30_nonprojection_governance.py'
       - 'script/package_curve_robustness.py'
       - 'script/nonprojection_high_priority_overrides.py'
@@ -34,6 +35,8 @@ jobs:
           python-version: '3.11'
       - name: Install runtime dependency
         run: python -m pip install --disable-pip-version-check numpy
+      - name: Compile GM3 application boundary
+        run: python -m py_compile script/gm3/application.py script/run_fsffl_gm30_counterfactual_governed.py
       - name: Run governed GM3 on frozen checked-out inputs
         run: python script/run_fsffl_gm30_counterfactual_governed.py
       - name: Verify governed outputs and counterfactual execution

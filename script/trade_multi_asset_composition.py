@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Install the canonical multi-asset package generator by capability.
+"""Install the Trade Decision multi-asset package generator by capability.
 
 This composition module lets current production retain deeper candidate-search
 mechanics without depending on the historical v22 wrapper. It never imports or
 names historical sweep versions. Instead, as the retained engine loads
 descendants, any module exposing the base candidate_packages capability is
-rebound to the shared trade_multi_asset_packages.candidate_packages function.
+rebound to the Trade Decision trade_multi_asset_packages.candidate_packages function.
 
 No pruning, simulation, buyer-rationality, or decision logic is changed.
 """
@@ -17,15 +17,15 @@ MODEL_VERSION = "FSFFL-Multi-Asset-Package-Composition-1.0"
 def install(root, package_generator):
     def patch(mod):
         if hasattr(mod, "candidate_packages") and not getattr(
-            mod, "_shared_multi_asset_packages_installed", False
+            mod, "_trade_decision_multi_asset_packages_installed", False
         ):
             mod.candidate_packages = package_generator.candidate_packages
-            mod._shared_multi_asset_packages_installed = True
+            mod._trade_decision_multi_asset_packages_installed = True
         return mod
 
     def wrap_loader(mod):
         if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_multi_asset_descendant_loader_wrapped", False
+            mod, "_trade_decision_multi_asset_descendant_loader_wrapped", False
         ):
             return mod
 
@@ -38,16 +38,16 @@ def install(root, package_generator):
             return child
 
         mod.load_module = loader
-        mod._shared_multi_asset_descendant_loader_wrapped = True
+        mod._trade_decision_multi_asset_descendant_loader_wrapped = True
         return mod
 
     patch(root)
     wrap_loader(root)
     return {
         "model_version": MODEL_VERSION,
-        "shared_package_generator_model_version": package_generator.MODEL_VERSION,
+        "trade_decision_package_generator_model_version": package_generator.MODEL_VERSION,
         "historical_v22_wrapper_required": False,
-        "historical_versions_named_by_shared_component": False,
+        "historical_versions_named_by_application_component": False,
     }
 
 
@@ -59,5 +59,5 @@ def apply_report_metadata(report, package_generator):
     })
     report.setdefault("simulation", {})["execution_path"] = (
         str((report.get("simulation") or {}).get("execution_path") or "")
-        + "_plus_shared_multi_asset_candidate_search"
+        + "_plus_trade_decision_multi_asset_candidate_search"
     )

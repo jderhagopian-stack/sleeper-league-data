@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Install shared v23-equivalent state/selector behavior onto a retained engine.
+"""Install Trade Decision v23-equivalent state/selector behavior onto a retained engine.
 
 This composition layer replaces historical state/selector wrappers with
-version-neutral shared components that have passed direct equivalence tests:
+version-neutral Trade Decision components that have passed direct equivalence tests:
 - trade_state_policy.py
 - trade_candidate_selector.py
 - trade_negotiation_family.py
@@ -25,7 +25,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
 
     def patch_state_capabilities(mod):
         if hasattr(mod, "adjusted_buyer_rationality") and not getattr(
-            mod, "_shared_state_behavior_installed", False
+            mod, "_trade_decision_state_behavior_installed", False
         ):
             original = mod.adjusted_buyer_rationality
 
@@ -35,10 +35,10 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
                 )
 
             mod.adjusted_buyer_rationality = adjusted
-            mod._shared_state_behavior_installed = True
+            mod._trade_decision_state_behavior_installed = True
 
         if hasattr(mod, "focal_viable") and not getattr(
-            mod, "_shared_focal_state_policy_installed", False
+            mod, "_trade_decision_focal_state_policy_installed", False
         ):
             original = mod.focal_viable
 
@@ -50,7 +50,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
                 return bool(ok and beneficial)
 
             mod.focal_viable = focal_viable
-            mod._shared_focal_state_policy_installed = True
+            mod._trade_decision_focal_state_policy_installed = True
         return mod
 
     def family_key_for(mod):
@@ -59,7 +59,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
         return getattr(mod, "negotiation_family_key", None)
 
     def patch_selector_capabilities(mod):
-        if getattr(mod, "_shared_candidate_selector_installed", False):
+        if getattr(mod, "_trade_decision_candidate_selector_installed", False):
             return mod
 
         family_key = family_key_for(mod)
@@ -94,7 +94,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
 
             mod.select_normal_four_strict = normal
             mod.select_swing_distinct = swing
-            mod._shared_candidate_selector_installed = True
+            mod._trade_decision_candidate_selector_installed = True
             return mod
 
         # Older inherited interface: install the current v21/v23 semantics
@@ -126,7 +126,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
 
             mod.select_normal_four = normal
             mod.select_swing = swing
-            mod._shared_candidate_selector_installed = True
+            mod._trade_decision_candidate_selector_installed = True
 
         return mod
 
@@ -137,7 +137,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
 
     def wrap_descendant_loader(mod):
         if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_state_descendant_loader_wrapped", False
+            mod, "_trade_decision_state_descendant_loader_wrapped", False
         ):
             return mod
 
@@ -150,7 +150,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
             return child
 
         mod.load_module = loader
-        mod._shared_state_descendant_loader_wrapped = True
+        mod._trade_decision_state_descendant_loader_wrapped = True
         return mod
 
     patch_capabilities(root)
@@ -162,7 +162,7 @@ def install(root, state_policy, selector, ranker, negotiation_family=None):
         "v23_equivalent_candidate_selector": True,
         "v21_equivalent_negotiation_family_supported": negotiation_family is not None,
         "historical_v23_wrapper_required": False,
-        "deeper_historical_versions_named_by_shared_component": False,
+        "deeper_historical_versions_named_by_application_component": False,
         "root_module_patched_by_capability": True,
     }
 
@@ -183,8 +183,8 @@ def apply_report_metadata(report, inherited_action, state_policy):
         "historical_state_at_trade_reconstruction_complete": False,
         "unsupported_post_sim_score_distance_action_cliff_active": False,
         "upstream_action_is_provisional_pending_v31_outcome_comparison": True,
-        "canonical_trade_state_policy_shared_component": True,
-        "canonical_trade_candidate_selector_shared_component": True,
+        "trade_decision_state_policy_internal_component": True,
+        "trade_decision_candidate_selector_internal_component": True,
         "historical_v23_executed_in_current_path": False,
     })
     final_action = state_policy.recompute_action_without_acceptance_band_gate(report)

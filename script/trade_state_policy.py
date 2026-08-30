@@ -3,7 +3,7 @@
 
 Mechanical extraction of the current v1.17 state-policy semantics. This module
 contains no market-sweep orchestration and does not mutate historical wrappers.
-It provides reusable policy primitives for current/future FSFFL applications:
+It provides Trade Decision-internal policy primitives for the current application:
 
 - continuous focal-state eligibility;
 - current-state conditioning of historical owner behavior;
@@ -106,7 +106,7 @@ def state_condition_behavior(row, br):
 
 
 def recompute_negotiation_ranking(row, ranker):
-    """Recompute ranking using the canonical shared negotiation-ranker."""
+    """Recompute ranking using the canonical Trade Decision negotiation-ranker."""
     br = row.get("buyer_rationality") or {}
     post = sf(row.get("post_sim_score"))
     strategic = clamp(.50 + .50 * math.tanh(post / 5000.0), 0, 1)
