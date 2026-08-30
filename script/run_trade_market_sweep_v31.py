@@ -2,7 +2,9 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.16 supplies the retained multi-asset candidate-generation engine;
+- v1.15 supplies the retained bilateral market-intelligence/family-dedup engine;
+- trade_multi_asset_composition installs the validated shared v1.16-equivalent
+  expanded multi-asset package generator;
 - trade_state_selector_composition installs the v1.17-equivalent shared state
   policy and candidate selector onto that retained engine;
 - trade_historical_behavior applies the validated historical same-state manager
@@ -18,11 +20,12 @@ Current production composition:
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.17-v1.24 wrappers remain available for reproducibility but are no
-longer executed by the current production path. Dynamic state policy, candidate
-selection, historical same-state behavior, current BI3 composition, and
-candidate-pool semantics now live in shared components, while superseded wrapper
-presentation/comparison logic cannot regain decision authority.
+Historical v1.16-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. Multi-asset package generation,
+dynamic state policy, candidate selection, historical same-state behavior,
+current BI3 composition, and candidate-pool semantics now live in shared
+components, while superseded wrapper presentation/comparison logic cannot
+regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -34,7 +37,9 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V22 = SCRIPT / "run_trade_market_sweep_v22.py"
+V21 = SCRIPT / "run_trade_market_sweep_v21.py"
+TRADE_MULTI_ASSET_PACKAGES = SCRIPT / "trade_multi_asset_packages.py"
+TRADE_MULTI_ASSET_COMPOSITION = SCRIPT / "trade_multi_asset_composition.py"
 TRADE_STATE_POLICY = SCRIPT / "trade_state_policy.py"
 TRADE_CANDIDATE_SELECTOR = SCRIPT / "trade_candidate_selector.py"
 TRADE_STATE_SELECTOR_COMPOSITION = SCRIPT / "trade_state_selector_composition.py"
@@ -67,7 +72,13 @@ def out_path():
 
 
 def main():
-    v22 = load(V22, "market_v22_for_125")
+    v21 = load(V21, "market_v21_for_125")
+    multi_asset_packages = load(
+        TRADE_MULTI_ASSET_PACKAGES, "trade_multi_asset_packages_for_125"
+    )
+    multi_asset_composition = load(
+        TRADE_MULTI_ASSET_COMPOSITION, "trade_multi_asset_composition_for_125"
+    )
     state_policy = load(TRADE_STATE_POLICY, "trade_state_policy_for_125")
     candidate_selector = load(TRADE_CANDIDATE_SELECTOR, "trade_candidate_selector_for_125")
     state_selector_composition = load(
@@ -85,15 +96,16 @@ def main():
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
     state_selector_composition.install(
-        v22, state_policy, candidate_selector, ranker
+        v21, state_policy, candidate_selector, ranker
     )
+    multi_asset_composition.install(v21, multi_asset_packages)
     bi3_cache, bi3_cache_status = trade_behavior.load_bi3_cache()
     trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)
     historical_index = historical_behavior.install_historical_state_conditioning(
         state_policy, historical_state
     )
-    v22.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
-    v22.main()
+    v21.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
+    v21.main()
     out = out_path()
     if not out or not out.exists():
         return
@@ -103,6 +115,7 @@ def main():
     state_selector_composition.apply_report_metadata(
         report, inherited_action, state_policy
     )
+    multi_asset_composition.apply_report_metadata(report, multi_asset_packages)
     historical_behavior.apply_report_metadata(report, historical_index)
     trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)
     candidate_pools.apply_to_report(report)
@@ -145,6 +158,8 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_multi_asset_package_generator_shared_component": True,
+        "historical_v22_executed_in_current_path": False,
         "canonical_trade_state_policy_shared_component": True,
         "canonical_trade_candidate_selector_shared_component": True,
         "historical_v23_executed_in_current_path": False,

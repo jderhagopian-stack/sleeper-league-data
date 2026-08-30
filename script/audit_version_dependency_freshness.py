@@ -35,8 +35,8 @@ MODEL_VERSION = "FSFFL-Version-Dependency-Freshness-Audit-1.1"
 # endorsements of the old module's decision authority. Each should eventually
 # move to a version-neutral shared utility when practical.
 INTENTIONAL_MECHANICAL_PINS = {
-    ("script/run_trade_market_sweep_v31.py", "script/run_trade_market_sweep_v22.py"):
-        "Current v31 consumes the retained v22 multi-asset candidate-generation engine, installs version-neutral v23-equivalent state-policy and candidate-selector components, then applies shared historical same-state behavior, current BI3-over-BI2 behavior, candidate pools, roster resolution, roster interaction, and option governance. Historical v23-v30 wrappers are bypassed.",
+    ("script/run_trade_market_sweep_v31.py", "script/run_trade_market_sweep_v21.py"):
+        "Current v31 consumes the retained v21 bilateral market-intelligence/family-dedup engine, installs the shared v22-equivalent multi-asset package generator plus shared v23-equivalent state-policy/candidate-selector components, then applies shared historical same-state behavior, current BI3-over-BI2 behavior, candidate pools, roster resolution, roster interaction, and option governance. Historical v22-v30 wrappers are bypassed.",
 }
 
 # Exact inherited wrapper edges present when this guardrail was introduced.

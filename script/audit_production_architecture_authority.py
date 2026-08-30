@@ -65,6 +65,8 @@ def main():
     state_policy = text(SCRIPT / "trade_state_policy.py")
     candidate_selector = text(SCRIPT / "trade_candidate_selector.py")
     state_selector_composition = text(SCRIPT / "trade_state_selector_composition.py")
+    multi_asset_packages = text(SCRIPT / "trade_multi_asset_packages.py")
+    multi_asset_composition = text(SCRIPT / "trade_multi_asset_composition.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -98,7 +100,10 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v22.main()",
+            "v21.main()",
+            "trade_multi_asset_packages.py",
+            "trade_multi_asset_composition.py",
+            "multi_asset_composition.install(v21, multi_asset_packages)",
             "trade_state_policy.py",
             "trade_candidate_selector.py",
             "trade_state_selector_composition.py",
@@ -126,6 +131,17 @@ def main():
         and "run_trade_market_sweep_v26.py" not in v31
         and "run_trade_market_sweep_v24.py" not in v31
         and "run_trade_market_sweep_v23.py" not in v31
+        and "run_trade_market_sweep_v22.py" not in v31
+        and has_all(multi_asset_packages, [
+            "def candidate_packages(",
+            "max_return_total_assets_with_players",
+            "canonical_multi_asset_package_generator_shared_component",
+        ])
+        and has_all(multi_asset_composition, [
+            "def install(root, package_generator):",
+            "def apply_report_metadata(report, package_generator):",
+            "historical_v22_executed_in_current_path",
+        ])
         and has_all(state_policy, [
             "def focal_state_beneficial(row):",
             "def state_condition_behavior(row, br):",
@@ -136,7 +152,7 @@ def main():
             "def select_swing(",
         ])
         and has_all(state_selector_composition, [
-            "def install(v22, state_policy, selector, ranker):",
+            "def install(root, state_policy, selector, ranker):",
             "def apply_report_metadata(report, inherited_action, state_policy):",
             "historical_v23_wrapper_required",
         ])
@@ -181,7 +197,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must bypass historical v23-v30, install the proven shared v23-equivalent state-policy and candidate-selector composition over v22, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
+        "observation": "Current v31 must bypass historical v22-v30, consume v21, install the proven shared v22-equivalent multi-asset package generator and shared v23-equivalent state-policy/candidate-selector composition, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
     })
 
     v30_contains_superseded_decision_logic = (

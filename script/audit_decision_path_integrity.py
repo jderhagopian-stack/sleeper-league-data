@@ -35,6 +35,8 @@ def main():
     state_policy = text("trade_state_policy.py")
     candidate_selector = text("trade_candidate_selector.py")
     state_selector_composition = text("trade_state_selector_composition.py")
+    multi_asset_packages = text("trade_multi_asset_packages.py")
+    multi_asset_composition = text("trade_multi_asset_composition.py")
     v30 = text("run_trade_market_sweep_v30.py")
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
@@ -47,7 +49,10 @@ def main():
     production_roster_aware = (
         "trade_engine.py" in report
         and "run_trade_market_sweep_v31.py" in trade_engine
-        and "run_trade_market_sweep_v22.py" in v31
+        and "run_trade_market_sweep_v21.py" in v31
+        and "trade_multi_asset_packages.py" in v31
+        and "trade_multi_asset_composition.py" in v31
+        and "multi_asset_composition.install(v21, multi_asset_packages)" in v31
         and "trade_state_policy.py" in v31
         and "trade_candidate_selector.py" in v31
         and "trade_state_selector_composition.py" in v31
@@ -60,6 +65,7 @@ def main():
         and "candidate_pools.apply_to_report(report)" in v31
         and "roster_resolution_governance.py" in v31
         and "roster_interaction_overlay.py" in v31
+        and "run_trade_market_sweep_v22.py" not in v31
         and "run_trade_market_sweep_v23.py" not in v31
         and "run_trade_market_sweep_v24.py" not in v31
         and "run_trade_market_sweep_v26.py" not in v31
