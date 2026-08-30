@@ -5,6 +5,7 @@ on:
     paths:
       - 'script/run_team_improvement_lab.py'
       - 'script/run_team_improvement_lab_v13.py'
+      - 'script/gm3/team_improvement.py'
       - 'script/build_fsffl_full_projection_universe.py'
       - 'script/render_gm_action_report_v10.py'
       - 'script/roster_aware_trade.py'
@@ -28,7 +29,7 @@ jobs:
       - name: Install report dependencies
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile Team Improvement Lab
-        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/gm3/team_improvement.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
       - name: Unit test competitive-state calibration
         run: |
           python - <<'PY'
@@ -89,7 +90,7 @@ jobs:
       - name: Run Team Improvement Lab smoke test
         run: |
           mkdir -p /tmp/team-improvement
-          python script/run_team_improvement_lab_v13.py --focus-user-id 846634401482792960 --quick-sims 50 --confirm-sims 100 --trade-screen 8 --waiver-screen 8 --confirm-top 3 --output /tmp/team-improvement/report.json
+          python script/gm3/team_improvement.py --focus-user-id 846634401482792960 --quick-sims 50 --confirm-sims 100 --trade-screen 8 --waiver-screen 8 --confirm-top 3 --output /tmp/team-improvement/report.json
           python script/render_gm_action_report_v10.py --input /tmp/team-improvement/report.json --output /tmp/team-improvement/GM_Action_Report.pdf
       - name: Validate output invariants
         run: |
