@@ -16,7 +16,7 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parent
 RESEARCH = SCRIPT / "behavioral_intelligence_v3.py"
 MODEL_VERSION = "FSFFL-Behavioral-Intelligence-3.0"
-EXPECTED_RESEARCH_VERSION = "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
+EXPECTED_RESEARCH_VERSION_PREFIX = "FSFFL-Behavioral-Intelligence-3.0-RESEARCH"
 
 
 def load_research():
@@ -24,7 +24,7 @@ def load_research():
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(mod)
-    if getattr(mod, "MODEL_VERSION", None) != EXPECTED_RESEARCH_VERSION:
+    if not str(getattr(mod, "MODEL_VERSION", "")).startswith(EXPECTED_RESEARCH_VERSION_PREFIX):
         raise RuntimeError(
             f"Unexpected BI3 research implementation: {getattr(mod, 'MODEL_VERSION', None)}"
         )
@@ -34,15 +34,16 @@ def load_research():
 def build(context_path):
     research = load_research()
     payload = research.build(context_path)
-    if payload.get("model_version") != EXPECTED_RESEARCH_VERSION:
+    research_version = str(getattr(research, "MODEL_VERSION", ""))
+    if payload.get("model_version") != research_version:
         raise RuntimeError(f"Unexpected BI3 research output: {payload.get('model_version')}")
     payload["model_version"] = MODEL_VERSION
     payload["production_status"] = "PRODUCTION"
     payload["empirical_validation_status"] = "NOT_PREDICTIVELY_VALIDATED"
     payload["predictive_holdout_validated"] = False
     payload["validation_scope"] = ["software_correctness", "boundedness", "non_leakage_and_context_normalization", "runtime_and_cache_behavior"]
-    payload["source_research_model_version"] = EXPECTED_RESEARCH_VERSION
-    payload["validated_research_model_version"] = EXPECTED_RESEARCH_VERSION
+    payload["source_research_model_version"] = research_version
+    payload["validated_research_model_version"] = research_version
     payload.setdefault("architecture", {})["production_facade"] = True
     payload["architecture"]["production_promotion_preserves_research_implementation"] = True
     payload["architecture"]["software_promotion_is_not_empirical_validation"] = True

@@ -143,7 +143,16 @@ jobs:
               assert fit.get('affects_trade_valuation') is False,fit
               if c.get('verdict_vs_current_offer')=='BETTER':better.append(row)
 
-          expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else ('COUNTER_CURRENT_OFFEROR' if better else 'ACCEPT_NOW')
+          current=r.get('current_offer_evaluation') or {}
+          buyer_viable=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
+          focal_viable=float(current.get('post_sim_score') or 0)>0
+          current_viable=focal_viable and buyer_viable
+          if better:
+              expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else 'COUNTER_CURRENT_OFFEROR'
+          else:
+              expected_action='ACCEPT_NOW' if current_viable else 'DECLINE'
+          assert buyer_viable is False, current.get('buyer_rationality')
+          assert float((current.get('buyer_rationality') or {}).get('buyer_decision_utility_score') or 0)<0
           assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
           print({
             'recommended_next_action':r.get('recommended_next_action'),

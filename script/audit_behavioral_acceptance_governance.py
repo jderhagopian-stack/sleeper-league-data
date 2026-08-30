@@ -15,7 +15,10 @@ DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
 BI3=ROOT/"script"/"behavioral_intelligence_v3.py"
 V24=ROOT/"script"/"run_trade_market_sweep_v24.py"
 V26=ROOT/"script"/"run_trade_market_sweep_v26.py"
-V23=ROOT/"script"/"run_trade_market_sweep_v23.py"\nV16=ROOT/"script"/"run_trade_market_sweep_v16.py"\nINTEGRATION=ROOT/"script"/"trade_decision"/"behavior_integration.py"\nBILATERAL=ROOT/"script"/"trade_bilateral_gate.py"
+V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
+V16=ROOT/"script"/"run_trade_market_sweep_v16.py"
+INTEGRATION=ROOT/"script"/"trade_decision"/"behavior_integration.py"
+BILATERAL=ROOT/"script"/"trade_bilateral_gate.py"
 RANKER=ROOT/"script"/"negotiation_ranking.py"
 READINESS=OUT/"transaction_evidence_readiness_audit.json"
 REGISTRY=DATA/"model_parameter_registry.json"
@@ -29,7 +32,10 @@ def main():
     bi3=BI3.read_text(encoding="utf-8")
     v24=V24.read_text(encoding="utf-8")
     v26=V26.read_text(encoding="utf-8")
-    v23=V23.read_text(encoding="utf-8")\n    v16=V16.read_text(encoding="utf-8")\n    integration=INTEGRATION.read_text(encoding="utf-8")\n    bilateral=BILATERAL.read_text(encoding="utf-8")
+    v23=V23.read_text(encoding="utf-8")
+    v16=V16.read_text(encoding="utf-8")
+    integration=INTEGRATION.read_text(encoding="utf-8")
+    bilateral=BILATERAL.read_text(encoding="utf-8")
     ranker=RANKER.read_text(encoding="utf-8")
     readiness=load(READINESS,{}) or {}
     registry=load(REGISTRY,{}) or {}
@@ -92,7 +98,7 @@ def main():
       {
         "id":"BEHAVIOR-ACCEPTANCE-OVERLAP-001","severity":"HIGH",
         "status":"SIGNAL_REUSE_DETECTED" if final_signal_reuse else "RESOLVED_BY_ZERO_INCREMENTAL_BEHAVIOR_WEIGHT",
-        "observation":"The prior negotiation rank reused owner behavior after it had already adjusted acceptance fit. The canonical composer now retains behavior as a diagnostic but assigns it zero incremental ranking weight; the distinct strategic/acceptance ratio is preserved by renormalization.",
+        "observation":"The prior negotiation rank reused owner behavior after it had already adjusted acceptance fit. The canonical composer now retains behavior as a diagnostic but assigns it zero incremental ranking weight. Acceptance itself is also diagnostic-only in ranking until a calibrated offer-choice denominator exists.",
         "authoritative_incremental_adjustment_claim_allowed":False,
       },
     ]
@@ -105,11 +111,15 @@ def main():
         "acceptance_probability_requires_offer_or_choice_denominator":True,
         "heuristic_acceptance_bands_must_not_be_reported_as_calibrated_probabilities":True,
         "behavioral_signal_reuse_requires_final_score_ablation":True,
-        "promotion_requires_time_ordered_holdout_improvement":True,\n        "sparse_manager_effects_use_adaptive_shrinkage":True,\n        "categorical_buyer_state_floors_authoritative":False,
+        "promotion_requires_time_ordered_holdout_improvement":True,
+        "sparse_manager_effects_use_adaptive_shrinkage":True,
+        "categorical_buyer_state_floors_authoritative":False,
       },
       "summary":{
         "behavior_research_markers_detected":behavior_markers,
-        "behavior_bounded_secondary_markers_detected":behavior_bounded,\n        "continuous_buyer_utility_gate_detected":continuous_buyer_gate,\n        "legacy_buyer_state_floors_detected":legacy_buyer_state_floors,
+        "behavior_bounded_secondary_markers_detected":behavior_bounded,
+        "continuous_buyer_utility_gate_detected":continuous_buyer_gate,
+        "legacy_buyer_state_floors_detected":legacy_buyer_state_floors,
         "heuristic_acceptance_band_markers_detected":acceptance_band_markers,
         "acceptance_evidence_ready_for_probability_fit":acceptance_ready,
         "behavior_signal_reused_in_negotiation_ranking":final_signal_reuse,

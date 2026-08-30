@@ -18,7 +18,10 @@ def main():
     v16=txt("run_trade_market_sweep_v16.py")
     v18=txt("run_trade_market_sweep_v18.py")
     v23=txt("run_trade_market_sweep_v23.py")
-    v26=txt("run_trade_market_sweep_v26.py")\n    behavior_integration=text_path = (SCRIPT/"trade_decision"/"behavior_integration.py").read_text(encoding="utf-8")\n    bi3=txt("behavioral_intelligence_v3.py")\n    bilateral=txt("trade_bilateral_gate.py")
+    v26=txt("run_trade_market_sweep_v26.py")
+    behavior_integration=text_path = (SCRIPT/"trade_decision"/"behavior_integration.py").read_text(encoding="utf-8")
+    bi3=txt("behavioral_intelligence_v3.py")
+    bilateral=txt("trade_bilateral_gate.py")
     facade=txt("behavioral_intelligence_v3_production.py")
     workflow=(ROOT/".github/workflows/test-behavioral-intelligence-v3-production.yml").read_text(encoding="utf-8")
     trans=load(OUT/"transaction_evidence_readiness_audit.json",{}) or {}
@@ -26,7 +29,8 @@ def main():
     params={x.get("id"):x for x in reg.get("parameters",[])}
 
     thresholds=all(x in v16 for x in ("score >= 0.68","score >= 0.48","score >= 0.28"))
-    state_floors=all(x in v16 for x in ("title_floor = -0.04","title_floor = -0.05","title_floor = -0.10"))
+    state_floors=any(x in v16 for x in ("title_floor = -0.04","title_floor = -0.05","title_floor = -0.10"))
+    continuous_buyer_utility=all(x in v16 for x in ("DECISION_UTILITY_PATH", "buyer_decision_utility_score", "categorical_buyer_state_thresholds_authoritative")) and all(x in bilateral for x in ("FSFFL-Bilateral-Buyer-Gate-2.0", "buyer_decision_utility_score"))
     behavior_enters_acceptance=(
         "base_score+sf(sig.get(\"adjustment\"))" in v18.replace(" ","")
         or "base_score + sf(sig.get(\"adjustment\"))" in v18
@@ -116,16 +120,21 @@ def main():
         "production_deployment_is_not_empirical_validation":True,
         "acceptance_fit_is_not_probability_without_accept_reject_denominator":True,
         "behavioral_signal_reuse_requires_ablation":True,
-        "acceptance_band_labels_remain_descriptive_and_uncalibrated":True,\n        "categorical_buyer_state_thresholds_removed":True,\n        "behavioral_sparse_data_uses_adaptive_shrinkage":True,
+        "acceptance_band_labels_remain_descriptive_and_uncalibrated":True,
+        "categorical_buyer_state_thresholds_removed":True,
+        "behavioral_sparse_data_uses_adaptive_shrinkage":True,
         "predictive_promotion_requires_time_ordered_holdout_improvement":True,
       },
       "summary":{
         "acceptance_band_thresholds_detected":thresholds,
-        "buyer_state_floors_detected":state_floors,\n        "continuous_buyer_utility_gate_detected":continuous_buyer_utility,
+        "buyer_state_floors_detected":state_floors,
+        "continuous_buyer_utility_gate_detected":continuous_buyer_utility,
         "historical_behavior_enters_acceptance_score":behavior_enters_acceptance,
         "canonical_negotiation_ranking_reuses_behavior":canonical_double_use,
         "canonical_negotiation_ranking_deduplicated":canonical_deduplicated,
-        "bi3_hand_set_blend_and_caps_detected":bi3_handset,\n        "bi3_adaptive_shrinkage_detected":adaptive_bi3,\n        "trade_behavior_confidence_weighted_integration_detected":confidence_weighted_integration,
+        "bi3_hand_set_blend_and_caps_detected":bi3_handset,
+        "bi3_adaptive_shrinkage_detected":adaptive_bi3,
+        "trade_behavior_confidence_weighted_integration_detected":confidence_weighted_integration,
         "predictive_holdout_test_detected":predictive_holdout,
         "accept_reject_denominator_ready":denominator,
         "production_facade_empirical_scope_qualified":facade_qualified,
@@ -135,7 +144,8 @@ def main():
     }
     (OUT/"behavioral_acceptance_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
-    if not thresholds or state_floors or not continuous_buyer_utility: raise SystemExit("Acceptance governance did not converge to continuous buyer utility")\n    if not adaptive_bi3 or not confidence_weighted_integration: raise SystemExit("Behavioral shrinkage governance markers missing")
+    if not thresholds or state_floors or not continuous_buyer_utility: raise SystemExit("Acceptance governance did not converge to continuous buyer utility")
+    if not adaptive_bi3 or not confidence_weighted_integration: raise SystemExit("Behavioral shrinkage governance markers missing")
     if not canonical_deduplicated: raise SystemExit("Canonical negotiation ranking still double-counts behavior")
     if not facade_qualified: raise SystemExit("BI3 production facade does not separate software and empirical validation")
     if not registry_ok: raise SystemExit("Behavior/acceptance registry classifications are inconsistent")
