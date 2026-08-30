@@ -40,7 +40,7 @@ def main():
         'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"',
         'statistics.median(values.values())',
         'baseline_team_market_redraft_value',
-        'canonical_baseline_simulator_league_mean',
+        'ref = sim.get("league_reference") or {}',
         '"fixed_unit_conversion_coefficients_used": False',
         '"optionality_incremental_value_authorized": False',
         '"negotiation_plausibility_incremental_weight": 0.0',
