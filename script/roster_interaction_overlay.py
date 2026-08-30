@@ -200,7 +200,7 @@ def apply_to_report(report, interaction, ranker):
             "The current overlay receives the retained candidate universe from "
             "the upstream market-sweep chain rather than the complete pre-filter universe"
         ),
-        "shared_overlay_model_version": MODEL_VERSION,
+        "trade_decision_roster_interaction_overlay_model_version": MODEL_VERSION,
     }
     governance["recommendation_authority"] = (
         "PROVISIONAL_POST_RANK_OVERLAY_SENSITIVE"
