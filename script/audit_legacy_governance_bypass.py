@@ -15,6 +15,7 @@ def main():
     dl=read("script/decision_lab_state_aware.py")
     v20=read("script/run_trade_market_sweep_v20.py")
     state=read("script/trade_state_policy.py")
+    hist=read("script/trade_decision/historical_behavior_policy.py")
     high=read("script/nonprojection_high_priority_overrides.py")
     ggov=read("script/gm30_nonprojection_governance.py")
 
@@ -41,6 +42,8 @@ def main():
       "categorical_title_loss_cap_disabled":"engine.contender_title_cap = lambda state: None" in v20 and "engine.contender_title_cap(state)" not in v20,
       "categorical_behavior_state_table_removed":all(x not in state for x in ('if state == "elite_contender"','elif state == "contender"','elif state == "retool"','elif state == "rebuild"')),
       "categorical_behavior_conditioning_forbidden":"categorical_state_conditioning_authorized" in state,
+      "historical_same_state_analysis_preserved":"historical_behavior_prefers_same_state_samples" in hist and "owner_state_profile(uid, state)" in hist,
+      "historical_same_state_categorical_rescaling_removed":"categorical_state_rescaling_authorized" in hist and all(x not in hist for x in ('if state == "elite_contender"','elif state == "contender"','elif state == "retool"','elif state == "rebuild"')),
       "market_momentum_incremental_value_removed":"incremental_adjustment_authorized" in high and "market_momentum_incremental_value_removed" in high,
       "own_pick_control_bonus_removed":"own_pick_control_incremental_value_authorized" in high and "own_pick_control_incremental_value_authorized" in ggov,
       "forecast_uncertainty_incremental_pick_value_removed":"forecast_uncertainty_incremental_value_authorized" in ggov,
@@ -63,6 +66,7 @@ def main():
         "Trade Decision categorical championship-loss cap",
         "Trade Decision categorical state-weight fallback",
         "Trade Decision categorical state-conditioned behavior table",
+        "Historical same-state BI categorical compatibility multipliers",
       ],
     }
     OUT.parent.mkdir(parents=True,exist_ok=True)
