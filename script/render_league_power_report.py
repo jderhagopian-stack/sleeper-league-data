@@ -12,13 +12,29 @@ MODEL_VERSION='FSFFL-League-Power-Report-1.2'
 
 def load(p): return json.loads(Path(p).read_text(encoding='utf-8'))
 
+def league_story(teams):
+    if not teams:
+        return "No league outlook is available."
+    top=teams[0]
+    second=teams[1] if len(teams)>1 else None
+    top_title=safe_float(top.get("championship_probability"))*100
+    second_title=safe_float(second.get("championship_probability"))*100 if second else 0.0
+    gap=top_title-second_title
+    if gap>=5:
+        shape="The current favorite has a meaningful championship-odds advantage over the field."
+    elif gap>=2:
+        shape="There is a clear favorite, but the championship race remains competitive."
+    else:
+        shape="The championship race is tightly clustered with no dominant favorite."
+    return f"{shape} {clean(top.get('team_name'))} leads at {top_title:.1f}% title odds; the gap to the next team is {gap:.1f} percentage points."
+
 def render(input_path,output):
     d=load(input_path); teams=sorted(d.get('teams') or [],key=lambda x:(safe_float(x.get('championship_probability')),safe_float(x.get('expected_wins'))),reverse=True); s=styles()
     doc=SimpleDocTemplate(str(output),pagesize=letter,leftMargin=.42*inch,rightMargin=.42*inch,topMargin=.4*inch,bottomMargin=.44*inch)
     story=[P(s,'FSFFL LEAGUE COMPETITIVE LANDSCAPE','FS_Title'),P(s,f"Season {d.get('season')} | {d.get('simulator_model_version')} | Ranked by championship probability, then expected wins",'FS_Sub'),Spacer(1,5)]
     if teams:
         lead=teams[0]; cards=[kpi_card(s,'Highest Title Odds',clean(lead.get('team_name')),'blue',1.75*inch),kpi_card(s,'Top Title Odds',f"{safe_float(lead.get('championship_probability'))*100:.1f}%",'positive',1.75*inch),kpi_card(s,'Top Expected Wins',f"{max(safe_float(x.get('expected_wins')) for x in teams):.2f}",'positive',1.75*inch),kpi_card(s,'League Teams',str(len(teams)),'neutral',1.75*inch)]
-        ct=Table([cards],colWidths=[1.86*inch]*4); ct.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)])); story += [ct,Spacer(1,6)]
+        ct=Table([cards],colWidths=[1.86*inch]*4); ct.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)])); story += [ct,Spacer(1,6),P(s,'LEAGUE STORY','FS_Section'),P(s,league_story(teams),'FS_Body'),Spacer(1,5)]
     rows=[[P(s,'#','FS_CardLabel'),P(s,'TEAM','FS_CardLabel'),P(s,'WINS','FS_CardLabel'),P(s,'POINTS','FS_CardLabel'),P(s,'PLAYOFF','FS_CardLabel'),P(s,'1ST-RD BYE','FS_CardLabel'),P(s,'DIVISION','FS_CardLabel'),P(s,'TITLE','FS_CardLabel')]]
     for i,t in enumerate(teams,1):
         rows.append([P(s,str(i),'FS_Body'),P(s,t.get('team_name'),'FS_Body'),P(s,f"{safe_float(t.get('expected_wins')):.2f}",'FS_Body'),P(s,f"{safe_float(t.get('expected_points_for')):.0f}",'FS_Body'),P(s,f"{safe_float(t.get('playoff_probability'))*100:.0f}%",'FS_Body'),P(s,f"{safe_float(t.get('bye_probability'))*100:.0f}%",'FS_Body'),P(s,f"{safe_float(t.get('division_probability'))*100:.0f}%",'FS_Body'),P(s,f"{safe_float(t.get('championship_probability'))*100:.1f}%",'FS_Body')])
