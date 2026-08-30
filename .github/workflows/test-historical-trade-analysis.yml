@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install reportlab pypdf
+      - run: pip install numpy reportlab pypdf
       - name: Compile
         run: python -m py_compile script/run_historical_trade_analysis.py script/historical_trade_gm3_adapter.py script/build_historical_gm3_bundle.py script/render_historical_trade_report.py script/run_roster_decision_lab.py
       - name: Validate archive certification fail-safe
