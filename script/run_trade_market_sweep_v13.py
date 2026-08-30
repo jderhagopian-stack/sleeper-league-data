@@ -291,14 +291,16 @@ def main():
     ranked = list(report.get("ranked_finalists") or [])[:5]
 
     final_sim_count = args.quick_sims
+    confirm_seed = args.seed
     if args.confirm_sims and args.confirm_sims > args.quick_sims:
+        confirm_seed = simmod.deterministic_seed(league, season)
         confirm_baseline = dl.simulate_from_lineups(
             simmod, league, rosters, users, raw_schedule, baseline_lineups,
-            args.confirm_sims, args.seed
+            args.confirm_sims, confirm_seed
         )
         current["simulation"] = patched_simulate_candidate(
             dl, model_inputs, baseline_lineups, confirm_baseline, focus_uid,
-            current_partner, outgoing, incoming, args.confirm_sims, args.seed
+            current_partner, outgoing, incoming, args.confirm_sims, confirm_seed
         )
         current["post_sim_score"] = engine.post_sim_score(
             current, engine.team_state(focus_uid)
@@ -313,7 +315,7 @@ def main():
                 continue
             row["simulation"] = patched_simulate_candidate(
                 dl, model_inputs, baseline_lineups, confirm_baseline, focus_uid,
-                buyer_uid, out_assets, in_assets, args.confirm_sims, args.seed
+                buyer_uid, out_assets, in_assets, args.confirm_sims, confirm_seed
             )
             row["post_sim_score"] = engine.post_sim_score(
                 row, engine.team_state(focus_uid)
@@ -338,6 +340,7 @@ def main():
     report["simulation"]["lineup_reoptimization"] = "exact_slot_mask_dynamic_programming"
     report["simulation"]["final_trade_impact_simulations"] = final_sim_count
     report["simulation"]["final_trade_impact_engine"] = "current_vectorized_simulator"
+    report["simulation"]["final_trade_impact_seed"] = confirm_seed
     report["simulation"]["finalists_confirmed_at_high_precision"] = final_sim_count > args.quick_sims
 
     better = [r for r in ranked if r["comparison_to_current_offer"]["verdict_vs_current_offer"] == "BETTER"]
