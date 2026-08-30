@@ -70,15 +70,21 @@
       ],
       "application_boundary": "script/gm3/application.py",
       "legacy_mechanics_provider": "script/build_fsffl_gm_engine.py",
-      "legacy_provider_current_application_authority": false
-    },
-    "team_improvement": {
-      "entrypoint": "script/run_team_improvement_lab.py",
-      "ownership": "GM3 application family"
-    },
-    "historical_trade_analysis": {
-      "entrypoint": "script/run_historical_trade_analysis.py",
-      "ownership": "application using shared historical facts plus GM3/Decision Lab"
+      "legacy_provider_current_application_authority": false,
+      "application_areas": {
+        "team_improvement": {
+          "entrypoint": "script/run_team_improvement_lab.py",
+          "role": "cross-channel roster improvement reasoning"
+        },
+        "portfolio_asset_management": {
+          "role": "franchise/asset management views and recommendations",
+          "current_sources": [
+            "GM3 franchise outputs",
+            "Breakout / Sleeper Intelligence",
+            "Draft Intelligence"
+          ]
+        }
+      }
     },
     "draft_intelligence": {
       "entrypoint": "script/draft_intelligence/application.py",
@@ -89,14 +95,6 @@
       ],
       "gm3_consumes_output": true,
       "gm3_owns_model": false
-    },
-    "contender_analysis": {
-      "current_implementation": "Simulator outputs plus league power presentation",
-      "entrypoint": "script/render_league_power_report.py"
-    },
-    "portfolio_asset_management": {
-      "current_implementation": "GM3 emerging-value / franchise outputs",
-      "entrypoint": "script/build_gm30_emerging_value.py"
     },
     "breakout_sleeper_intelligence": {
       "entrypoint": "script/breakout_intelligence/application.py",
@@ -131,6 +129,16 @@
       "entrypoint": "script/counterfactual/application.py",
       "application_boundary": "script/counterfactual/application.py",
       "full_alternate_history_production_on_main": false
+    },
+    "simulator": {
+      "entrypoint": "script/run_fsffl_season_simulator.py",
+      "consumes_shared_core": [
+        "projection_and_uncertainty",
+        "simulation",
+        "league_rules"
+      ],
+      "owns": "season forecast orchestration and simulator outputs",
+      "shared_simulation_engine_remains_core": true
     }
   },
   "analytics_derived_products": {
@@ -147,8 +155,16 @@
     },
     "historical_trade_analysis": {
       "entrypoint": "script/run_historical_trade_analysis.py",
-      "role": "historical reconstruction plus existing GM3/Decision Lab evaluation",
+      "sources": [
+        "shared historical facts",
+        "GM3/Decision Lab evaluation"
+      ],
       "independent_valuation_model": false
+    },
+    "contender_analysis": {
+      "source": "Simulator application outputs",
+      "renderer": "script/render_league_power_report.py",
+      "independent_model": false
     }
   },
   "reports_publications": {
