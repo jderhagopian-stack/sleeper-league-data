@@ -65,7 +65,7 @@ def recompute_from_row(row):
 
     This is behavior-equivalent to the historical
     run_trade_market_sweep_v23.recompute_negotiation_ranking helper. Keeping the
-    transform here lets current callers depend on a stable shared capability
+    transform here lets current callers depend on a stable Trade Decision-internal capability
     rather than a superseded model wrapper.
     """
     br = row.get("buyer_rationality") or {}
