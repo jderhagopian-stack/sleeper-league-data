@@ -67,6 +67,9 @@ def main():
     state_selector_composition = text(SCRIPT / "trade_state_selector_composition.py")
     multi_asset_packages = text(SCRIPT / "trade_multi_asset_packages.py")
     multi_asset_composition = text(SCRIPT / "trade_multi_asset_composition.py")
+    bilateral_gate = text(SCRIPT / "trade_bilateral_gate.py")
+    negotiation_family = text(SCRIPT / "trade_negotiation_family.py")
+    bilateral_composition = text(SCRIPT / "trade_bilateral_composition.py")
     v30 = text(SCRIPT / "run_trade_market_sweep_v30.py")
     trade_review = text(SCRIPT / "run_trade_review.py")
     gm_runner = text(SCRIPT / "run_gm300_production_pipeline.sh")
@@ -100,10 +103,15 @@ def main():
 
     v31_final_authority = (
         has_all(v31, [
-            "v21.main()",
+            "v20.main()",
+            "trade_bilateral_gate.py",
+            "trade_negotiation_family.py",
+            "trade_bilateral_composition.py",
+            "bilateral_composition.install(",
+            "bilateral_composition.apply_report_metadata(report, negotiation_family)",
             "trade_multi_asset_packages.py",
             "trade_multi_asset_composition.py",
-            "multi_asset_composition.install(v21, multi_asset_packages)",
+            "multi_asset_composition.install(v20, multi_asset_packages)",
             "trade_state_policy.py",
             "trade_candidate_selector.py",
             "trade_state_selector_composition.py",
@@ -131,7 +139,23 @@ def main():
         and "run_trade_market_sweep_v26.py" not in v31
         and "run_trade_market_sweep_v24.py" not in v31
         and "run_trade_market_sweep_v23.py" not in v31
+        and "run_trade_market_sweep_v21.py" not in v31
         and "run_trade_market_sweep_v22.py" not in v31
+        and has_all(bilateral_gate, [
+            "def evaluate(br):",
+            "def apply(br):",
+            "BUYER_IRRATIONAL",
+        ])
+        and has_all(negotiation_family, [
+            "def family_key(row):",
+            "primary_players",
+            "pick_only",
+        ])
+        and has_all(bilateral_composition, [
+            "def install(root, bilateral_gate, negotiation_family, selector):",
+            "def apply_report_metadata(report, negotiation_family):",
+            "historical_v21_executed_in_current_path",
+        ])
         and has_all(multi_asset_packages, [
             "def candidate_packages(",
             "max_return_total_assets_with_players",
@@ -197,7 +221,7 @@ def main():
         "id": "TRADE-AUTHORITY-002",
         "ok": v31_final_authority,
         "severity": "CRITICAL",
-        "observation": "Current v31 must bypass historical v22-v30, consume v21, install the proven shared v22-equivalent multi-asset package generator and shared v23-equivalent state-policy/candidate-selector composition, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
+        "observation": "Current v31 must bypass historical v21-v30, consume v20, install the proven shared v21-equivalent bilateral/family selector behavior, shared v22-equivalent multi-asset package generator, and shared v23-equivalent state-policy/candidate-selector composition, preserve historical same-state and current BI3-over-BI2 behavior through shared components, then apply shared candidate-pool, roster-resolution, roster-interaction, and option-governance components.",
     })
 
     v30_contains_superseded_decision_logic = (
