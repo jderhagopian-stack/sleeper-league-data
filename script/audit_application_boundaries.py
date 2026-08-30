@@ -103,11 +103,12 @@ def main():
     trade_reg = (reg.get("applications") or {}).get("trade_decision") or {}
     sim_alignment = trade_reg.get("decision_lab_simulator_alignment") or {}
     decision_lab_alignment_explicit = (
-        'Path("script/build_fsffl_season_simulator.py")' in decision_lab_src
-        and "legacy simulation adapter" in decision_lab_src
-        and sim_alignment.get("status") == "legacy_adapter_explicit_pending_migration"
-        and sim_alignment.get("published_season_baseline_must_come_from_canonical_simulator") is True
-        and sim_alignment.get("migration_required") is True
+        'Path("script/run_fsffl_season_simulator_preproduction.py")' in decision_lab_src
+        and "current vectorized Simulator implementation" in decision_lab_src
+        and sim_alignment.get("status") == "aligned_current_vectorized_simulator"
+        and sim_alignment.get("paired_hypothetical_runs_use_canonical_scoring_mechanics") is True
+        and sim_alignment.get("final_trade_confirmation_simulations") == 50000
+        and sim_alignment.get("migration_required") is False
     )
 
     behavior_internal = (
