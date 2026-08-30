@@ -10,6 +10,7 @@ on:
       - 'script/roster_interaction_overlay.py'
       - 'script/roster_resolution_governance.py'
       - 'script/trade_candidate_pools.py'
+      - 'script/trade_behavioral_intelligence.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -23,6 +24,7 @@ on:
       - 'script/roster_interaction_overlay.py'
       - 'script/roster_resolution_governance.py'
       - 'script/trade_candidate_pools.py'
+      - 'script/trade_behavioral_intelligence.py'
       - 'script/run_trade_report.py'
       - 'script/audit_trade_option_outcome_consistency.py'
       - 'data/audit/skattebo_stevenson_option_regression.json'
@@ -50,6 +52,7 @@ jobs:
             script/roster_interaction_overlay.py \
             script/roster_resolution_governance.py \
             script/trade_candidate_pools.py \
+            script/trade_behavioral_intelligence.py \
             script/run_trade_report.py \
             script/audit_trade_option_outcome_consistency.py
       - name: Run option outcome consistency regression
@@ -82,6 +85,8 @@ jobs:
           assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
           assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False
           assert p['descriptive_state_labels_create_action_cliffs'] is False
+          assert p['historical_v26_executed_in_current_path'] is False
+          assert p['canonical_trade_behavioral_intelligence_shared_component'] is True
           assert p['historical_v27_executed_in_current_path'] is False
           assert p['canonical_trade_candidate_pools_shared_component'] is True
           assert p['historical_v28_executed_in_current_path'] is False
