@@ -77,7 +77,7 @@ def shrinkage_factor(weight, prior_strength):
     return clamp(w / (w + p), 0.0, 1.0)
 
 
-def confidence(weight, avg_context, prior_strength):
+def confidence(weight, avg_context, prior_strength=1.0):
     return round(
         min(.98, shrinkage_factor(weight, prior_strength) * clamp(avg_context, 0, 1)),
         4,
