@@ -19,7 +19,7 @@ trade_option_governance.py.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Roster-Interaction-Overlay-1.0"
+MODEL_VERSION = "FSFFL-Roster-Interaction-Overlay-1.1"
 
 TRACKED_SECTIONS = (
     "suggested_counteroffers",
@@ -87,26 +87,27 @@ def apply_row(row, report, interaction):
     strategic = sim.get("strategic") or {}
     weights = strategic.get("objective_weights") or {}
     resilience_weight = clamp(sf(weights.get("resilience"), .15), 0, .35)
-    weighted = round(fdelta * resilience_weight, 2)
+    proposed_weighted = round(fdelta * resilience_weight, 2)
+    # GM3 strategic profiles already include team-specific replacement
+    # resilience from lineup reoptimization. Until pair-insurance adds
+    # incremental predictive/simulation value beyond that channel, keep the
+    # same-team interaction estimate as a diagnostic instead of paying it a
+    # second time in final utility.
+    weighted = 0.0
     strategic["roster_interaction_value_delta"] = round(fdelta, 2)
+    strategic["roster_interaction_proposed_weighted_delta_diagnostic"] = proposed_weighted
     strategic["roster_interaction_weighted_delta"] = weighted
-    strategic["strategic_value_delta_pre_roster_interaction"] = sf(
-        strategic.get("strategic_value_delta")
-    )
-    strategic["strategic_value_delta"] = round(
-        sf(strategic.get("strategic_value_delta")) + weighted, 2
-    )
+    strategic["roster_interaction_incremental_value_authorized"] = False
     sim["strategic"] = strategic
 
     comps = row.get("state_aware_score_components") or {}
     if comps:
-        comps["resilience_pre_roster_interaction"] = sf(comps.get("resilience"))
-        comps["roster_interaction"] = weighted
-        comps["resilience"] = round(sf(comps.get("resilience")) + weighted, 2)
+        comps["roster_interaction_diagnostic"] = proposed_weighted
+        comps["roster_interaction"] = 0.0
         row["state_aware_score_components"] = comps
 
     row["post_sim_score_pre_roster_interaction"] = sf(row.get("post_sim_score"))
-    row["post_sim_score"] = round(sf(row.get("post_sim_score")) + weighted, 2)
+    row["post_sim_score"] = sf(row.get("post_sim_score"))
 
     br = row.get("buyer_rationality") or {}
     if br:
@@ -222,7 +223,7 @@ def apply_to_report(report, interaction, ranker):
     report.setdefault("policy", {}).update({
         "roster_interaction_model_version": interaction.MODEL_VERSION,
         "roster_interaction_overlay_model_version": MODEL_VERSION,
-        "roster_specific_correlated_asset_value_enabled": True,
+        "roster_specific_correlated_asset_value_enabled": True,\n        "roster_interaction_incremental_final_score_value_authorized": False,\n        "roster_interaction_reason": "team-specific replacement resilience is already modeled; pair-insurance remains diagnostic pending incremental validation",
         "same_team_position_insurance_enabled": True,
         "interaction_rules_generic_and_symmetric": True,
         "player_specific_interaction_exceptions": False,
