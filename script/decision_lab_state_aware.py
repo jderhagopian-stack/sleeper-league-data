@@ -204,9 +204,14 @@ def install(base_dl):
         def total(rows, key):
             return sum(float(x.get(key) or 0.0) for x in rows)
 
+        baseline_team_market_redraft = sum(float((x or {}).get("market_redraft") or 0.0) for x in baseline_map.values())
+        post_team_market_redraft = sum(float((x or {}).get("market_redraft") or 0.0) for x in post_map.values())
+
         return {
             "sent": sent_rows,
             "received": rec_rows,
+            "baseline_team_market_redraft_value": round(baseline_team_market_redraft, 2),
+            "post_team_market_redraft_value": round(post_team_market_redraft, 2),
             "market_dynasty_delta": round(total(rec_rows, "market_dynasty") - total(sent_rows, "market_dynasty"), 2),
             "market_redraft_delta": round(total(rec_rows, "market_redraft") - total(sent_rows, "market_redraft"), 2),
             "base_franchise_value_delta": round(total(rec_rows, "base_franchise_value") - total(sent_rows, "base_franchise_value"), 2),
