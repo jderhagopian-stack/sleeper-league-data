@@ -9,10 +9,10 @@ Current production composition:
   expanded multi-asset package generator;
 - trade_state_selector_composition installs the v1.17-equivalent shared state
   policy and candidate selector onto that retained engine;
-- trade_historical_behavior applies the validated historical same-state manager
-  behavior conditioning that v1.18 previously carried;
-- trade_behavioral_intelligence applies the current production BI3-over-BI2
-  acceptance/behavior composition that v1.20 previously carried;
+- Trade Decision's internal historical-behavior policy interprets shared
+  historical-state intelligence for trade feasibility;
+- Trade Decision's internal BI integration interprets production BI3-over-BI2
+  intelligence for trade feasibility;
 - trade_candidate_pools organizes same-partner counters and market alternatives
   with the validated v1.21 eligibility/dedup semantics;
 - roster_resolution_governance verifies and publishes the roster-aware runtime
@@ -25,9 +25,10 @@ Current production composition:
 Historical v1.15-v1.24 wrappers remain available for reproducibility but are no
 longer executed by the current production path. Bilateral market gating,
 negotiation-family identity, multi-asset package generation, dynamic state
-policy, candidate selection, historical same-state behavior, current BI3
-composition, and candidate-pool semantics now live in shared components, while
-superseded wrapper presentation/comparison logic cannot regain decision authority.
+policy and candidate-selection mechanics are separated from the historical
+wrappers. Trade-specific BI/history interpretation remains owned by Trade
+Decision rather than being promoted into Shared Core. Superseded wrapper
+presentation/comparison logic cannot regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -49,9 +50,9 @@ TRADE_STATE_POLICY = SCRIPT / "trade_state_policy.py"
 TRADE_CANDIDATE_SELECTOR = SCRIPT / "trade_candidate_selector.py"
 TRADE_STATE_SELECTOR_COMPOSITION = SCRIPT / "trade_state_selector_composition.py"
 HISTORICAL_STATE = SCRIPT / "historical_state_behavior.py"
-TRADE_HISTORICAL_BEHAVIOR = SCRIPT / "trade_historical_behavior.py"
+TRADE_HISTORICAL_BEHAVIOR = SCRIPT / "trade_decision" / "historical_behavior_policy.py"
 BI2 = SCRIPT / "behavioral_intelligence.py"
-TRADE_BEHAVIOR = SCRIPT / "trade_behavioral_intelligence.py"
+TRADE_BEHAVIOR = SCRIPT / "trade_decision" / "behavior_integration.py"
 TRADE_CANDIDATE_POOLS = SCRIPT / "trade_candidate_pools.py"
 ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
@@ -182,9 +183,13 @@ def main():
         "canonical_trade_state_policy_shared_component": True,
         "canonical_trade_candidate_selector_shared_component": True,
         "historical_v23_executed_in_current_path": False,
-        "canonical_historical_state_trade_behavior_shared_component": True,
+        "trade_decision_historical_behavior_internal_component": True,
+        "historical_state_intelligence_shared_source_consumed": True,
+        "historical_behavior_interpretation_owned_by_trade_decision": True,
         "historical_v24_executed_in_current_path": False,
-        "canonical_trade_behavioral_intelligence_shared_component": True,
+        "trade_decision_behavior_integration_internal_component": True,
+        "behavioral_intelligence_shared_source_consumed": True,
+        "trade_behavior_interpretation_owned_by_trade_decision": True,
         "historical_v26_executed_in_current_path": False,
         "canonical_trade_candidate_pools_shared_component": True,
         "historical_v27_executed_in_current_path": False,
