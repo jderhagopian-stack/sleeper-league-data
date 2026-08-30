@@ -88,6 +88,7 @@ def install(engine):
         "market_momentum_incremental_value_removed": False,
         "owner_specific_valuation_multipliers_diagnostic_only": False,
         "football_market_repricing_overlays_diagnostic_only": False,
+        "simulator_continuous_pick_quality_anchor": False,
     }
 
     # The current market price already embeds the information that produced its
@@ -123,6 +124,79 @@ def install(engine):
             return out
         engine.infer_fc_pick_values = infer_statsguy_pick_values
         applied["statsguy_future_pick_anchor"] = True
+
+    # Future-pick point estimates: replace the legacy hard early/mid/late
+    # contender-score cliff with a continuous interpolation across observed
+    # external early/mid/late pick-market cells. The interpolation coordinate
+    # is the original team's canonical Simulator competitive percentile. This
+    # keeps useful pick-quality differentiation without hand-set team-strength
+    # blend coefficients or categorical valuation jumps.
+    original_build_future_pick_assets = getattr(engine, "build_future_pick_assets", None)
+    if original_build_future_pick_assets is not None:
+        def simulator_continuous_pick_assets(
+            rosters, traded_picks, team_profiles, profile_by_uid, detected_pick_values
+        ):
+            assets = original_build_future_pick_assets(
+                rosters, traded_picks, team_profiles, profile_by_uid, detected_pick_values
+            )
+            try:
+                season = int(engine.LEAGUE_RULES["season"])
+                sim = engine.load_json(
+                    engine.DATA / "simulator" / str(season) / "outputs" / "standings_projection.json",
+                    {},
+                ) or {}
+                teams = list(sim.get("teams") or [])
+                ordered = sorted(
+                    teams,
+                    key=lambda x: (
+                        _sf(x.get("championship_probability")),
+                        _sf(x.get("bye_probability")),
+                        _sf(x.get("playoff_probability")),
+                        _sf(x.get("expected_wins")),
+                    ),
+                )
+                # Weakest=0 -> early anchor; strongest=1 -> late anchor.
+                n = len(ordered)
+                pct = {
+                    str(row.get("user_id")): (i / (n - 1) if n > 1 else 0.5)
+                    for i, row in enumerate(ordered)
+                    if row.get("user_id") is not None
+                }
+                for aid, row in assets.items():
+                    uid = str(row.get("original_owner_user_id") or "")
+                    if uid not in pct:
+                        row["pick_quality_point_estimate_source"] = "legacy_fallback_simulator_team_missing"
+                        continue
+                    year = int(row.get("season"))
+                    rnd = int(row.get("round"))
+                    early = engine.fallback_pick_value(year, "early", rnd, detected_pick_values)
+                    mid = engine.fallback_pick_value(year, "mid", rnd, detected_pick_values)
+                    late = engine.fallback_pick_value(year, "late", rnd, detected_pick_values)
+                    p = pct[uid]
+                    if p <= 0.5:
+                        value = early + (mid - early) * (p / 0.5)
+                    else:
+                        value = mid + (late - mid) * ((p - 0.5) / 0.5)
+                    display_tier = "early" if p < (1.0 / 3.0) else "late" if p > (2.0 / 3.0) else "mid"
+                    row["legacy_discrete_tier_value_diagnostic"] = row.get("market_dynasty")
+                    row["market_dynasty"] = round(value, 1)
+                    row["projected_pick_tier"] = display_tier
+                    row["simulator_competitive_percentile"] = round(p, 4)
+                    row["pick_quality_point_estimate_source"] = "canonical_simulator_percentile_continuous_external_market_interpolation"
+                    row["pick_quality_categorical_cliff_authoritative"] = False
+                    row["pick_quality_scenario_values"] = {
+                        "early": round(early, 1),
+                        "mid": round(mid, 1),
+                        "late": round(late, 1),
+                    }
+                    row["pick_quality_scenario_values_are_uncertainty_bounds_not_probabilities"] = True
+                applied["simulator_continuous_pick_quality_anchor"] = True
+            except Exception as exc:
+                for row in assets.values():
+                    row["pick_quality_point_estimate_source"] = "legacy_fallback_simulator_unavailable"
+                    row["pick_quality_point_estimate_error"] = repr(exc)
+            return assets
+        engine.build_future_pick_assets = simulator_continuous_pick_assets
 
     original_pick_profile = getattr(engine, "_u_pick_profile", None)
     if original_pick_profile is not None:
@@ -297,6 +371,7 @@ def install(engine):
             "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
             "market_momentum_incremental_value_authorized": False,
             "statsguy_future_pick_market_anchor": applied["statsguy_future_pick_anchor"],
+            "simulator_continuous_pick_quality_anchor": applied["simulator_continuous_pick_quality_anchor"],
             "owner_specific_valuation_multipliers_incremental_value_authorized": False,
             "owner_specific_valuation_multipliers_diagnostic_only": applied["owner_specific_valuation_multipliers_diagnostic_only"],
             "performance_usage_injury_news_market_repricing_authorized": False,
