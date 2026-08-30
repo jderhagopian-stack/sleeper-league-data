@@ -55,6 +55,65 @@ jobs:
       - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
         run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/trade_engine.py script/run_trade_market_sweep_v31.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/roster_interaction_overlay.py script/roster_resolution_governance.py script/trade_candidate_pools.py script/trade_decision/behavior_integration.py script/trade_decision/historical_behavior_policy.py script/trade_negotiation_family.py script/trade_bilateral_gate.py script/trade_bilateral_composition.py script/trade_multi_asset_packages.py script/trade_multi_asset_composition.py script/trade_state_policy.py script/trade_candidate_selector.py script/trade_state_selector_composition.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+      - name: Unit test final cut-plan optimizer overrides retention prescreen
+        run: |
+          python - <<'PY'
+          import copy, importlib.util
+          spec=importlib.util.spec_from_file_location('v13','script/run_trade_market_sweep_v13.py')
+          v13=importlib.util.module_from_spec(spec);spec.loader.exec_module(v13)
+
+          class DL:
+              def roster_maps(self, rosters):
+                  return ({str(r['user_id']):r for r in rosters},{int(r['roster_id']):r for r in rosters})
+              def remove_player(self, roster, pid):
+                  roster['players']=[x for x in roster.get('players',[]) if str(x)!=str(pid)]
+              def simulate_from_lineups(self,*args,**kwargs):
+                  return {'teams':[]}
+
+          class Engine:
+              def team_state(self,uid): return 'test'
+              def post_sim_score(self,row,state):
+                  remaining=set((row.get('simulation') or {}).get('remaining') or [])
+                  # B is the downstream-optimal cut even though A has lower retention cost.
+                  return 100.0 if 'B' not in remaining else 10.0
+
+          dl=DL(); engine=Engine()
+          canonical=[{'user_id':'u','roster_id':1,'players':['A','B','C'],'taxi':[],'reserve':[]}]
+          pre=copy.deepcopy(canonical)
+          default=[{'user_id':'u','roster_id':1,'players':['B','C'],'taxi':[],'reserve':[]}]
+          res={'u':{
+              'required_cuts':1,
+              'selected_cuts':[{'player_id':'A','retention_cost':1,'base_franchise_value':1,'market_dynasty':1}],
+              'cut_candidate_pool':[
+                  {'player_id':'A','retention_cost':1,'base_franchise_value':1,'market_dynasty':1},
+                  {'player_id':'B','retention_cost':2,'base_franchise_value':2,'market_dynasty':2},
+                  {'player_id':'C','retention_cost':3,'base_franchise_value':3,'market_dynasty':3},
+              ],
+          }}
+          actions=[{'type':'trade'}]
+          old=v13._simulate_resolved_candidate
+          try:
+              v13._simulate_resolved_candidate=lambda engine,dl,model_inputs,baseline_lineups,baseline,focus_uid,buyer_uid,actions,hyp,effective,resolution,cuts,sims,seed: {
+                  'remaining': list(dl.roster_maps(hyp)[0]['u']['players']),
+                  'strategic': {'objective_weights': {'current':.4,'future':.35,'liquidity':.1,'resilience':.15}},
+              }
+              model_inputs=(object(),{},canonical,{}, {},'2026',{},[])
+              out_rosters,out_res,out_actions=v13._optimize_final_focus_cut_plan(
+                  engine,dl,model_inputs,{},'u','b',actions,pre,default,res,
+                  [{'type':'cut','user_id':'u','players':['A']}],
+                  50000,123,[{'asset_id':'player:X'}],[{'asset_id':'player:Y'}]
+              )
+          finally:
+              v13._simulate_resolved_candidate=old
+          selected=[x['player_id'] for x in out_res['u']['selected_cuts']]
+          assert selected==['B'], selected
+          meta=out_res['u']['final_cut_plan_optimization']
+          assert meta['status']=='EXACT_TRACTABLE_PLAN_SEARCH'
+          assert meta['selected_plan_differs_from_retention_prescreen'] is True
+          assert out_actions[0]['players']==['B']
+          print('Final cut-plan optimizer correctly overrides retention prescreen')
+          PY
+
       - name: Unit test GM3 roster-need parity
         run: |
           python - <<'PY'
