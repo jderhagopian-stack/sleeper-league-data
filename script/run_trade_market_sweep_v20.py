@@ -9,7 +9,7 @@ Upgrade over 1.13:
 - descriptive competition classifications remain, but hard weight cliffs do not;
 - the final negotiation ranking consumes the state-aware post-simulation score
   instead of rebuilding focal strategic gain from generic wins/dynasty deltas;
-- contender title-equity caps remain hard guardrails;
+- categorical contender title-equity caps are disabled; championship impact remains a continuous simulation input;
 - canonical roster and GM state remain read-only.
 """
 from __future__ import annotations
@@ -49,20 +49,13 @@ def clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
 
-def fallback_weights(state: str):
-    return {
-        "elite_contender": {"current": 0.50, "future": 0.25, "liquidity": 0.10, "resilience": 0.15},
-        "contender": {"current": 0.40, "future": 0.35, "liquidity": 0.10, "resilience": 0.15},
-        "retool": {"current": 0.23, "future": 0.47, "liquidity": 0.15, "resilience": 0.15},
-        "rebuild": {"current": 0.10, "future": 0.60, "liquidity": 0.20, "resilience": 0.10},
-    }.get(str(state), {"current": 0.25, "future": 0.45, "liquidity": 0.15, "resilience": 0.15})
-
-
 def state_aware_post_sim_score(engine, row, state: str):
     sim = row.get("simulation") or {}
     d = sim.get("focus_delta") or {}
     s = sim.get("strategic") or {}
-    weights = s.get("objective_weights") or fallback_weights(state)
+    weights = s.get("objective_weights")
+    if not weights:
+        raise RuntimeError("State-aware trade scoring requires governed continuous objective_weights; categorical fallback weights are forbidden")
     current_mult = sf(weights.get("current"), .25) / .40
     future_mult = sf(weights.get("future"), .45) / .35
     liquidity_mult = sf(weights.get("liquidity"), .15) / .10
@@ -78,10 +71,9 @@ def state_aware_post_sim_score(engine, row, state: str):
     liquidity_block = 0.25 * liquidity
     resilience_block = 0.15 * resilience
     score = current_mult * current_block + future_mult * future_block + liquidity_mult * liquidity_block + resilience_mult * resilience_block - current_mult * 12000.0 * externality
-    cap = engine.contender_title_cap(state)
-    if cap is not None and title < -cap:
-        score -= 12000.0 + 50000.0 * abs(title + cap); row["championship_equity_constraint"] = "FAIL"
-    else: row["championship_equity_constraint"] = "PASS"
+    # Championship impact is already represented continuously in current_block.
+    # Do not reintroduce a categorical state-label cliff via a hard title-loss cap.
+    row["championship_equity_constraint"] = "CONTINUOUS_NO_CATEGORICAL_CAP"
     row["state_aware_objective_weights"] = weights
     row["state_aware_score_components"] = {"current": round(current_mult * current_block, 2), "future": round(future_mult * future_block, 2), "liquidity": round(liquidity_mult * liquidity_block, 2), "resilience": round(resilience_mult * resilience_block, 2), "opponent_externality": round(-current_mult * 12000.0 * externality, 2), "composite_strategic_and_break_glass_incremental_weight": 0.0, "negotiation_plausibility_incremental_weight": 0.0}
     return round(score, 2)
@@ -114,6 +106,7 @@ def install_engine_upgrade(engine, overlay, high_priority=None):
     original_import = engine.import_decision_lab
     def upgraded_import_decision_lab(): return overlay.install(original_import())
     engine.import_decision_lab = upgraded_import_decision_lab
+    engine.contender_title_cap = lambda state: None
     engine.post_sim_score = lambda row, state: state_aware_post_sim_score(engine, row, state)
     return engine
 
