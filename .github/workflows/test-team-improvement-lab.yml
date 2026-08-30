@@ -95,7 +95,7 @@ jobs:
           assert r['policy']['competitive_state_tilts_but_does_not_dominate'] is True
           assert r['policy']['championship_probability_uses_diminishing_returns'] is False
           assert r['policy']['dynasty_value_destruction_guardrail'] is False
-          assert r['ranking_calibration']['version']=='shared-decision-utility-1.0'
+          assert r['ranking_calibration']['version']=='shared-decision-utility-2.0'
           assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
           for row in r.get('top_cross_channel_options') or []:
