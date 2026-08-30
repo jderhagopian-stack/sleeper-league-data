@@ -358,17 +358,17 @@
         "script/run_roster_decision_lab.py"
       ],
       "parameter_family": "championship-probability and value thresholds for accept/lean/reject",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "LEGACY_HEURISTIC_ACTIVE_NONCANONICAL_PATH",
-      "source": "Current fixed decision thresholds in the legacy Decision Lab path",
-      "validation": "Required: simulation-error-aware calibration and historical decision/outcome testing",
-      "uncertainty": "threshold width may be smaller than simulation/model uncertainty; production trade report uses the newer market-sweep chain",
-      "update_policy": "Do not promote legacy bands; prefer canonical confidence-aware utility shared across production decision modules",
+      "evidence_tier": "RULE_DEFINED",
+      "status": "LEGACY_NUMERIC_THRESHOLDS_REMOVED_PARETO_DIRECTION_ACTIVE",
+      "source": "Legacy Decision Lab uses threshold-free Pareto direction over Simulator competitive outcomes plus market-dynasty value. Competitive-state labels are descriptive only; production Trade Decision remains authoritative.",
+      "validation": "Structural invariant: no fixed championship/value accept/lean/reject thresholds remain in the legacy Decision Lab classifier.",
+      "uncertainty": "Mixed tradeoffs intentionally remain needs_context and are resolved by the canonical production decision utility rather than a legacy cutoff.",
+      "update_policy": "Do not reintroduce numeric recommendation cliffs. Keep this compatibility path conservative and defer mixed decisions to canonical Trade Decision.",
       "downstream": [
         "legacy accept/lean/reject recommendation"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": false
     },
     {
       "id": "TEAM-IMPROVEMENT-001",
