@@ -67,6 +67,75 @@ def team_context(uid):
     }
 
 
+def competitive_context(uid):
+    """Describe team strength continuously; categorical state thresholds are provisional."""
+    ctx=team_context(uid)
+    if not ctx:
+        return ""
+    command=ctx.get("command") or {}
+    score=_sf(command.get("contender_score"),0.5)
+    dynasty=_sf(command.get("dynasty_roster_score"),0.5)
+    sim=ctx.get("sim") or {}
+    title=_sf(sim.get("championship_probability"))*100
+    rank=ctx.get("title_rank"); total=ctx.get("league_size")
+    cal=_load(STATE_CALIBRATION,{}) or {}
+    thresholds=cal.get("classification_thresholds") or {}
+    contender=_sf(thresholds.get("contender"),0.55)
+    delta=score-contender
+    parts=[f"GM3's contender score is {score:.3f} and long-term roster-strength score is {dynasty:.3f}."]
+    if abs(delta)<=.05:
+        side="above" if delta>=0 else "below"
+        parts.append(
+            f"The contender score is only {abs(delta):.3f} {side} the model's provisional contender boundary, so the categorical state label should be treated as borderline rather than definitive."
+        )
+    else:
+        parts.append("GM3's categorical state thresholds remain a governed expert prior rather than an empirically validated classification.")
+    if title>0:
+        if rank and total:
+            parts.append(f"The current Simulator gives this team {title:.1f}% championship odds, ranking #{rank} of {total}.")
+        else:
+            parts.append(f"The current Simulator gives this team {title:.1f}% championship odds.")
+    return " ".join(parts)
+
+
+def roster_change_context(roster_diagnosis):
+    """Explain what a hypothetical transaction fixes and what remains afterward."""
+    rd=roster_diagnosis or {}
+    before=(rd.get("before") or {}).get("position_need") or {}
+    after=(rd.get("after") or {}).get("position_need") or {}
+    if not before or not after:
+        return ""
+    positions=("QB","RB","WR","TE")
+    rows=[]
+    for pos in positions:
+        b=_sf(before.get(pos)); a=_sf(after.get(pos))
+        rows.append((pos,b,a,a-b))
+    biggest_before=max(rows,key=lambda x:x[1])
+    biggest_after=max(rows,key=lambda x:x[2])
+    improved=sorted([x for x in rows if x[3] < -.02], key=lambda x:x[3])
+    worsened=sorted([x for x in rows if x[3] > .02], key=lambda x:x[3], reverse=True)
+    parts=[]
+    if improved:
+        pos,b,a,d=improved[0]
+        parts.append(f"The biggest structural improvement is at {pos}: need falls from {b:.3f} to {a:.3f}.")
+    elif all(abs(x[3])<=.02 for x in rows):
+        parts.append("The transaction changes player quality but does not materially alter the roster's positional-need profile.")
+    if biggest_before[0] != biggest_after[0]:
+        parts.append(
+            f"Before the move, {biggest_before[0]} is the largest need; afterward, {biggest_after[0]} becomes the largest remaining need at {biggest_after[2]:.3f}."
+        )
+    else:
+        parts.append(
+            f"{biggest_after[0]} remains the largest need after the move at {biggest_after[2]:.3f}, so the trade improves the roster without fully solving that weakness."
+        )
+    if worsened:
+        pos,b,a,d=worsened[0]
+        parts.append(f"The main new cost is at {pos}, where need rises from {b:.3f} to {a:.3f}.")
+    else:
+        parts.append("No other position becomes materially weaker under the GM3 need calculation.")
+    return " ".join(parts)
+
+
 def analyst_roster_context(uid,outgoing_names=None,incoming_names=None):
     """Return reporter-style roster context supported entirely by existing outputs."""
     ctx=team_context(uid)
@@ -79,17 +148,9 @@ def analyst_roster_context(uid,outgoing_names=None,incoming_names=None):
     needs=ctx["needs"]
     sentences=[]
 
-    command=ctx["command"]
-    state=str(command.get("team_state") or "").replace("_"," ")
-    title=_sf((ctx.get("sim") or {}).get("championship_probability"))*100
-    rank=ctx.get("title_rank"); total=ctx.get("league_size")
-    if state:
-        if rank and total:
-            sentences.append(
-                f"This is a {state} roster with {title:.1f}% championship odds, ranking #{rank} of {total} in the current simulator."
-            )
-        else:
-            sentences.append(f"This is currently classified as a {state} roster.")
+    comp=competitive_context(uid)
+    if comp:
+        sentences.append(comp)
 
     incoming_positions=[]
     for name in incoming:
