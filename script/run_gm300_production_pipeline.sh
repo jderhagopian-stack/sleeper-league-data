@@ -31,8 +31,23 @@ echo "FSFFL GM 3.0.0 PRODUCTION PIPELINE"
 echo "========================================"
 
 echo "[1/10] Clean GM production output"
+# data/gm contains both generated GM outputs and governed calibration inputs.
+# Preserve static governance artifacts across the production-output rebuild so
+# the daily refresh cannot silently delete the active prior or future training data.
+preserve_dir="$(mktemp -d)"
+for governed_input in state_weight_calibration.json state_weight_training_examples.json; do
+  if [[ -f "data/gm/$governed_input" ]]; then
+    cp "data/gm/$governed_input" "$preserve_dir/$governed_input"
+  fi
+done
 rm -rf data/gm
 mkdir -p data/gm
+for governed_input in state_weight_calibration.json state_weight_training_examples.json; do
+  if [[ -f "$preserve_dir/$governed_input" ]]; then
+    cp "$preserve_dir/$governed_input" "data/gm/$governed_input"
+  fi
+done
+rm -rf "$preserve_dir"
 
 echo "[2-4/10] Run Draft Intelligence application"
 python script/draft_intelligence/application.py
