@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install shared v23-equivalent state/selector behavior onto the retained engine.
+"""Install shared v23-equivalent state/selector behavior onto a retained engine.
 
 This composition layer replaces v23's historical monkey-patch wrapper with
 version-neutral shared components that have already passed direct equivalence
@@ -8,25 +8,22 @@ tests:
 - trade_candidate_selector.py
 - negotiation_ranking.py
 
-The only explicit historical production pin belongs to the caller (v31 -> v22).
-This module does not import or name deeper historical sweep versions. Instead it
-augments inherited modules by capability as v22's existing loader chain reaches
-them. That preserves the existing mechanics without creating new stale
-dependencies from the shared toolbox.
+The explicit historical production pin belongs to the caller. This module does
+not import or name historical sweep versions. It augments the supplied root
+module and any descendants by capability, preserving inherited mechanics without
+creating new stale dependencies from the shared toolbox.
 
 This module does not own final option comparison or final action authority.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.1"
+MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.2"
 
 
-def install(v22, state_policy, selector, ranker):
-    """Compose shared state and selector policies into v22's inherited engine."""
+def install(root, state_policy, selector, ranker):
+    """Compose shared state and selector policies into a retained engine tree."""
 
     def patch_state_capabilities(mod):
-        # The historical buyer-rationality layer exposing this capability gets
-        # current state-conditioned Behavioral Intelligence.
         if hasattr(mod, "adjusted_buyer_rationality") and not getattr(
             mod, "_shared_state_behavior_installed", False
         ):
@@ -40,8 +37,6 @@ def install(v22, state_policy, selector, ranker):
             mod.adjusted_buyer_rationality = adjusted
             mod._shared_state_behavior_installed = True
 
-        # The historical focal-viability layer exposing this capability gets
-        # continuous focal-state eligibility rather than descriptive label cliffs.
         if hasattr(mod, "focal_viable") and not getattr(
             mod, "_shared_focal_state_policy_installed", False
         ):
@@ -58,31 +53,7 @@ def install(v22, state_policy, selector, ranker):
             mod._shared_focal_state_policy_installed = True
         return mod
 
-    def wrap_descendant_loader(mod):
-        if not hasattr(mod, "load_module") or getattr(
-            mod, "_shared_state_descendant_loader_wrapped", False
-        ):
-            return mod
-
-        original_loader = mod.load_module
-
-        def loader(path, name):
-            child = original_loader(path, name)
-            child = patch_state_capabilities(child)
-            child = wrap_descendant_loader(child)
-            return child
-
-        mod.load_module = loader
-        mod._shared_state_descendant_loader_wrapped = True
-        return mod
-
-    original_v22_loader = v22.load_module
-
-    def patched_v22_loader(path, name):
-        mod = original_v22_loader(path, name)
-
-        # v22's direct child is the selector-owning layer. Patch by capability,
-        # not by a historical filename/version.
+    def patch_selector_capabilities(mod):
         if (
             hasattr(mod, "select_normal_four_strict")
             and hasattr(mod, "select_swing_distinct")
@@ -113,18 +84,41 @@ def install(v22, state_policy, selector, ranker):
             mod.select_normal_four_strict = normal
             mod.select_swing_distinct = swing
             mod._shared_candidate_selector_installed = True
-
-        mod = patch_state_capabilities(mod)
-        mod = wrap_descendant_loader(mod)
         return mod
 
-    v22.load_module = patched_v22_loader
+    def patch_capabilities(mod):
+        mod = patch_selector_capabilities(mod)
+        mod = patch_state_capabilities(mod)
+        return mod
+
+    def wrap_descendant_loader(mod):
+        if not hasattr(mod, "load_module") or getattr(
+            mod, "_shared_state_descendant_loader_wrapped", False
+        ):
+            return mod
+
+        original_loader = mod.load_module
+
+        def loader(path, name):
+            child = original_loader(path, name)
+            child = patch_capabilities(child)
+            child = wrap_descendant_loader(child)
+            return child
+
+        mod.load_module = loader
+        mod._shared_state_descendant_loader_wrapped = True
+        return mod
+
+    root = patch_capabilities(root)
+    root = wrap_descendant_loader(root)
+
     return {
         "model_version": MODEL_VERSION,
         "v23_equivalent_state_policy": True,
         "v23_equivalent_candidate_selector": True,
         "historical_v23_wrapper_required": False,
         "deeper_historical_versions_named_by_shared_component": False,
+        "root_module_patched_by_capability": True,
     }
 
 
