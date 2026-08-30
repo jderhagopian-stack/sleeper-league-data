@@ -77,7 +77,7 @@ def main() -> None:
     report = {
         "schema_version": "1.2",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
