@@ -51,7 +51,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install report dependencies
-        run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
+        run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile changed production modules
         run: |
           python -m py_compile \
