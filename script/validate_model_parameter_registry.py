@@ -18,7 +18,10 @@ EVIDENCE_TIERS = {
     "RULE_DEFINED",
     "HISTORICALLY_STATISTICALLY_ESTIMATED",
     "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+    "SIMULATION_DERIVED_ESTIMATE",
+    "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
     "RESEARCH_SUPPORTED_PROXY",
+    "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
     "ASSUMPTION_SENSITIVE_PROVISIONAL",
 }
 
@@ -75,7 +78,10 @@ def main() -> None:
         "RULE_DEFINED",
         "HISTORICALLY_STATISTICALLY_ESTIMATED",
         "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+        "SIMULATION_DERIVED_ESTIMATE",
+        "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
         "RESEARCH_SUPPORTED_PROXY",
+        "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
         "ASSUMPTION_SENSITIVE_PROVISIONAL",
     ]:
         fail("evidence hierarchy changed or is incomplete")
@@ -120,7 +126,7 @@ def main() -> None:
             if not isinstance(p[field], str) or not p[field].strip():
                 errors.append(f"{pid}: {field} must be documented")
 
-        if p["evidence_tier"] == "ASSUMPTION_SENSITIVE_PROVISIONAL":
+        if p["evidence_tier"] in {"EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR", "ASSUMPTION_SENSITIVE_PROVISIONAL"}:
             if p.get("bounds_required") is not True:
                 errors.append(f"{pid}: provisional parameters must set bounds_required=true")
             if p["authoritative_use"] is not False:
@@ -129,6 +135,8 @@ def main() -> None:
         if p["evidence_tier"] in {
             "HISTORICALLY_STATISTICALLY_ESTIMATED",
             "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+            "SIMULATION_DERIVED_ESTIMATE",
+            "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
             "RESEARCH_SUPPORTED_PROXY",
         }:
             update = p["update_policy"].lower()
