@@ -86,6 +86,7 @@ def install(engine):
         "own_pick_control_bonus_removed": False,
         "statsguy_future_pick_anchor": False,
         "market_momentum_incremental_value_removed": False,
+        "owner_specific_valuation_multipliers_diagnostic_only": False,
     }
 
     # The current market price already embeds the information that produced its
@@ -133,6 +134,85 @@ def install(engine):
             return out
         engine._u_pick_profile = pick_profile_without_control_bonus
         applied["own_pick_control_bonus_removed"] = True
+
+
+    # Owner-specific buy/hold/pick multipliers (need, historical preference,
+    # competitive-window, endowment, starter and thin-depth premiums) overlap
+    # concepts now modeled explicitly by continuous GM3 objective utility,
+    # lineup reoptimization and Behavioral Intelligence. Preserve their proposed
+    # values as diagnostics, but do not let the legacy hand-set coefficients
+    # alter the market-anchored franchise value a second time.
+    original_owner_buy = getattr(engine, "owner_player_buy_value", None)
+    original_owner_hold = getattr(engine, "owner_player_hold_value", None)
+    original_owner_pick = getattr(engine, "owner_pick_value", None)
+
+    if original_owner_buy is not None:
+        def governed_owner_player_buy_value(
+            uid, asset, team_profiles, prefs, performance=None, baselines=None,
+            usage=None, snaps=None, manual=None,
+        ):
+            proposed, factors = original_owner_buy(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            factors = dict(factors or {})
+            base = _sf(factors.get("fsffl_base"), proposed)
+            factors["legacy_proposed_owner_buy_value_diagnostic"] = round(_sf(proposed), 1)
+            factors["owner_specific_multiplier_incremental_value_authorized"] = False
+            factors["governed_value_basis"] = "market_anchored_fsffl_base_plus_downstream_continuous_utility"
+            factors["multiplier"] = 1.0
+            return base, factors
+        engine.owner_player_buy_value = governed_owner_player_buy_value
+
+    if original_owner_hold is not None and original_owner_buy is not None:
+        def governed_owner_player_hold_value(
+            uid, asset, team_profiles, prefs, starters, performance=None,
+            baselines=None, usage=None, snaps=None, manual=None,
+        ):
+            proposed_buy, buy_factors = original_owner_buy(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            governed_buy, factors = engine.owner_player_buy_value(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            factors = dict(factors or {})
+            # Record the former owner-specific buy proposal plus the legacy
+            # hold-overlay proposal without granting either incremental value.
+            try:
+                proposed_hold, _ = original_owner_hold(
+                    uid, asset, team_profiles, prefs, starters, performance,
+                    baselines, usage, snaps, manual,
+                )
+            except Exception:
+                proposed_hold = proposed_buy
+            factors["legacy_proposed_owner_buy_value_diagnostic"] = round(_sf(proposed_buy), 1)
+            factors["legacy_proposed_owner_hold_value_diagnostic"] = round(_sf(proposed_hold), 1)
+            factors["current_owner_endowment_premium"] = 0.0
+            factors["starter_dependency_premium"] = 0.0
+            factors["thin_depth_hold_premium"] = 0.0
+            factors["hold_multiplier_over_buy_value"] = 1.0
+            factors["legacy_owner_hold_overlay_incremental_value_authorized"] = False
+            return governed_buy, factors
+        engine.owner_player_hold_value = governed_owner_player_hold_value
+
+    if original_owner_pick is not None:
+        def governed_owner_pick_value(uid, pick, team_profiles, prefs, hold):
+            proposed, factors = original_owner_pick(uid, pick, team_profiles, prefs, hold)
+            factors = dict(factors or {})
+            base = _sf(factors.get("market_base"), _sf(pick.get("market_dynasty"), proposed))
+            factors["legacy_proposed_owner_pick_value_diagnostic"] = round(_sf(proposed), 1)
+            factors["pick_preference_adjustment"] = 0.0
+            factors["competitive_window_adjustment"] = 0.0
+            factors["hold_endowment_premium"] = 0.0
+            factors["owner_specific_pick_multiplier_incremental_value_authorized"] = False
+            factors["multiplier"] = 1.0
+            return base, factors
+        engine.owner_pick_value = governed_owner_pick_value
+
+    if any(x is not None for x in (original_owner_buy, original_owner_hold, original_owner_pick)):
+        applied["owner_specific_valuation_multipliers_diagnostic_only"] = True
 
     original_profiles = getattr(engine, "build_strategic_asset_profiles_for_team", None)
     if original_profiles is None or not hasattr(engine, "GM22"):
@@ -185,6 +265,8 @@ def install(engine):
             "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
             "market_momentum_incremental_value_authorized": False,
             "statsguy_future_pick_market_anchor": applied["statsguy_future_pick_anchor"],
+            "owner_specific_valuation_multipliers_incremental_value_authorized": False,
+            "owner_specific_valuation_multipliers_diagnostic_only": applied["owner_specific_valuation_multipliers_diagnostic_only"],
             "new_hand_set_coefficients_introduced": False,
         }
         return payload
