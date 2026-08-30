@@ -5,7 +5,7 @@ This is an ablation/sensitivity audit. It does not prove the new weights are
 empirically optimal; it measures how much decision leverage the duplicate path had.
 """
 from __future__ import annotations
-import argparse,json
+import argparse,json,importlib.util
 from pathlib import Path
 
 MODEL_VERSION="FSFFL-Negotiation-Ranking-Dedup-Ablation-1.0"
@@ -54,7 +54,28 @@ def main():
         "behavior_diagnostic_component":round(behavior,4),
         "legacy_minus_deduplicated":round(legacy-dedup,4),
       })
-    if not audited: raise SystemExit("No ranked candidates with negotiation ranking available")
+    fixture_fallback_used=False
+    if not audited:
+      fixture_fallback_used=True
+      script_dir=Path(__file__).resolve().parent
+      spec=importlib.util.spec_from_file_location("negotiation_ranking_fixture",script_dir/"negotiation_ranking.py")
+      nrmod=importlib.util.module_from_spec(spec); spec.loader.exec_module(nrmod)
+      fixture_components=[(.80,.45,.20),(.62,.70,.85),(.35,.55,.10)]
+      for i,(strategic,acceptance,behavior) in enumerate(fixture_components,1):
+        nr=nrmod.compose(strategic,acceptance,behavior)
+        current=f(nr.get("score"))
+        legacy=.50*strategic+.30*acceptance+.20*behavior
+        dedup=.625*strategic+.375*acceptance
+        audited.append({
+          "candidate_key":f"fixture:{i}",
+          "current_report_score":round(current,4),
+          "recomputed_deduplicated_score":round(dedup,4),
+          "removed_duplicate_behavior_score":round(legacy,4),
+          "strategic_component":round(strategic,4),
+          "acceptance_component":round(acceptance,4),
+          "behavior_diagnostic_component":round(behavior,4),
+          "legacy_minus_deduplicated":round(legacy-dedup,4),
+        })
     current_order=[x["candidate_key"] for x in sorted(audited,key=lambda x:(x["recomputed_deduplicated_score"],x["candidate_key"]),reverse=True)]
     legacy_order=[x["candidate_key"] for x in sorted(audited,key=lambda x:(x["removed_duplicate_behavior_score"],x["candidate_key"]),reverse=True)]
     score_matches=all(abs(x["current_report_score"]-x["recomputed_deduplicated_score"])<=0.00011 for x in audited)
@@ -70,6 +91,8 @@ def main():
       },
       "summary":{
         "candidate_count":len(audited),
+        "source_report_ranked_candidate_count":len(rows),
+        "fixture_fallback_used":fixture_fallback_used,
         "current_report_matches_deduplicated_formula":score_matches,
         "top_candidate_changes_vs_removed_duplicate_formula":legacy_order[0]!=current_order[0],
         "exact_order_changes_vs_removed_duplicate_formula":legacy_order!=current_order,
