@@ -2,7 +2,9 @@
 """FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
 
 Current production composition:
-- v1.17 supplies the retained dynamic-state candidate engine;
+- v1.16 supplies the retained multi-asset candidate-generation engine;
+- trade_state_selector_composition installs the v1.17-equivalent shared state
+  policy and candidate selector onto that retained engine;
 - trade_historical_behavior applies the validated historical same-state manager
   behavior conditioning that v1.18 previously carried;
 - trade_behavioral_intelligence applies the current production BI3-over-BI2
@@ -16,11 +18,11 @@ Current production composition:
 - trade_option_governance owns final BETTER/MIXED/WORSE comparison and action
   authority.
 
-Historical v1.18-v1.24 wrappers remain available for reproducibility but are no
-longer executed by the current production path. Historical same-state behavior,
-current BI3 composition, and candidate-pool semantics now live in shared
-components, while superseded wrapper presentation/comparison logic cannot
-regain decision authority.
+Historical v1.17-v1.24 wrappers remain available for reproducibility but are no
+longer executed by the current production path. Dynamic state policy, candidate
+selection, historical same-state behavior, current BI3 composition, and
+candidate-pool semantics now live in shared components, while superseded wrapper
+presentation/comparison logic cannot regain decision authority.
 
 No player-specific exceptions are permitted.
 """
@@ -32,7 +34,10 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
-V23 = SCRIPT / "run_trade_market_sweep_v23.py"
+V22 = SCRIPT / "run_trade_market_sweep_v22.py"
+TRADE_STATE_POLICY = SCRIPT / "trade_state_policy.py"
+TRADE_CANDIDATE_SELECTOR = SCRIPT / "trade_candidate_selector.py"
+TRADE_STATE_SELECTOR_COMPOSITION = SCRIPT / "trade_state_selector_composition.py"
 HISTORICAL_STATE = SCRIPT / "historical_state_behavior.py"
 TRADE_HISTORICAL_BEHAVIOR = SCRIPT / "trade_historical_behavior.py"
 BI2 = SCRIPT / "behavioral_intelligence.py"
@@ -62,7 +67,12 @@ def out_path():
 
 
 def main():
-    v23 = load(V23, "market_v23_for_125")
+    v22 = load(V22, "market_v22_for_125")
+    state_policy = load(TRADE_STATE_POLICY, "trade_state_policy_for_125")
+    candidate_selector = load(TRADE_CANDIDATE_SELECTOR, "trade_candidate_selector_for_125")
+    state_selector_composition = load(
+        TRADE_STATE_SELECTOR_COMPOSITION, "trade_state_selector_composition_for_125"
+    )
     historical_state = load(HISTORICAL_STATE, "historical_state_behavior_for_125")
     historical_behavior = load(TRADE_HISTORICAL_BEHAVIOR, "trade_historical_behavior_for_125")
     bi2 = load(BI2, "behavioral_intelligence_for_125")
@@ -74,18 +84,25 @@ def main():
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
+    state_selector_composition.install(
+        v22, state_policy, candidate_selector, ranker
+    )
     bi3_cache, bi3_cache_status = trade_behavior.load_bi3_cache()
     trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)
     historical_index = historical_behavior.install_historical_state_conditioning(
-        v23, historical_state
+        state_policy, historical_state
     )
-    v23.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
-    v23.main()
+    v22.MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.20"
+    v22.main()
     out = out_path()
     if not out or not out.exists():
         return
 
     report = json.loads(out.read_text(encoding="utf-8"))
+    inherited_action = report.get("recommended_next_action")
+    state_selector_composition.apply_report_metadata(
+        report, inherited_action, state_policy
+    )
     historical_behavior.apply_report_metadata(report, historical_index)
     trade_behavior.apply_report_metadata(report, bi2, bi3_cache, bi3_cache_status)
     candidate_pools.apply_to_report(report)
@@ -128,6 +145,9 @@ def main():
         "candidate_generation_unchanged": True,
         "simulation_unchanged": True,
         "canonical_option_governance_shared_component": True,
+        "canonical_trade_state_policy_shared_component": True,
+        "canonical_trade_candidate_selector_shared_component": True,
+        "historical_v23_executed_in_current_path": False,
         "canonical_historical_state_trade_behavior_shared_component": True,
         "historical_v24_executed_in_current_path": False,
         "canonical_trade_behavioral_intelligence_shared_component": True,
