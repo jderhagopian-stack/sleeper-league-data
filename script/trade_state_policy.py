@@ -46,61 +46,39 @@ def focal_state_beneficial(row):
     post = sf(row.get("post_sim_score"))
     if post <= 0:
         return False
-    if state in {"contender", "elite_contender"} and row.get("championship_equity_constraint") == "FAIL":
-        return False
     return True
 
 
 def state_condition_behavior(row, br):
-    """Condition aggregate behavior on the buyer's current competitive state."""
+    """Preserve historical behavior without categorical competitive-state cliffs.
+
+    The buyer's current-state utility is already represented in the underlying
+    acceptance model. Historical behavior remains a bounded secondary signal,
+    but provisional team-state labels do not scale or suppress it.
+    """
     sig = dict(br.get("owner_behavior") or {})
     static_adj = sf(sig.get("adjustment"))
     base = sf(
         br.get("state_utility_acceptance_fit_score"),
         sf(br.get("heuristic_acceptance_fit_score"), .5) - static_adj,
     )
-    state = str(br.get("buyer_state") or "unknown")
-
-    buyer_receives = [str(x) for x in (row.get("outgoing_assets") or [])]
-    buyer_sends = [str(x) for x in (row.get("return_assets") or [])]
-    recv_picks = sum(x.startswith("pick:") for x in buyer_receives)
-    send_picks = sum(x.startswith("pick:") for x in buyer_sends)
-    net_pick_in = recv_picks - send_picks
-
-    if state == "elite_contender":
-        compat = 1.0 if net_pick_in < 0 else .55 if net_pick_in > 0 else .75
-    elif state == "contender":
-        compat = .90 if net_pick_in < 0 else .60 if net_pick_in > 0 else .75
-    elif state == "retool":
-        compat = 1.0 if net_pick_in > 0 else .40 if net_pick_in < 0 else .70
-    elif state == "rebuild":
-        compat = 1.0 if net_pick_in > 0 else .15 if net_pick_in < 0 else .60
-    else:
-        compat = .50
-
-    conditioned = static_adj * compat
-    if state in {"rebuild", "retool"} and net_pick_in < 0 and conditioned > 0:
-        conditioned = min(conditioned, .01)
-    if state in {"contender", "elite_contender"} and net_pick_in > 0 and conditioned > 0:
-        conditioned = min(conditioned, .02)
-
-    score = round(clamp(base + conditioned, 0.0, 1.0), 4)
+    score = round(clamp(base + static_adj, 0.0, 1.0), 4)
     sig.update({
         "static_historical_adjustment": round(static_adj, 4),
-        "state_conditioned_adjustment": round(conditioned, 4),
-        "adjustment": round(conditioned, 4),
-        "current_state": state,
-        "state_compatibility_weight": round(compat, 3),
-        "buyer_net_pick_in": int(net_pick_in),
+        "state_conditioned_adjustment": round(static_adj, 4),
+        "adjustment": round(static_adj, 4),
+        "current_state": focal_current_state(row),
+        "state_compatibility_weight": None,
+        "categorical_state_conditioning_authorized": False,
         "state_conditioning_note": (
-            "Aggregate historical behavior is attenuated when it conflicts "
-            "with the manager's current competitive state."
+            "Historical behavior is retained as a bounded secondary feasibility signal; "
+            "provisional competitive-state labels do not rescale it."
         ),
     })
     br["owner_behavior"] = sig
     br["heuristic_acceptance_fit_score"] = score
     br["heuristic_acceptance_fit"] = band(score)
-    br["acceptance_fit_basis"] = "current_state_utility_plus_state_conditioned_historical_behavior"
+    br["acceptance_fit_basis"] = "current_state_utility_plus_unconditioned_historical_behavior"
     br["acceptance_band_is_descriptive_not_probability"] = True
     return br
 
