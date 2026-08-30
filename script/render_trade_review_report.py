@@ -46,6 +46,8 @@ def clean(x, n=140):
     s=str(x or "").replace("\u2013","-").replace("\u2014","-").replace("\u2019","'")
     s=s.encode("ascii","ignore").decode("ascii")
     s=s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+    if n is None:
+        return s
     return s if len(s)<=n else s[:n-1].rstrip()+"..."
 
 
@@ -95,7 +97,7 @@ def side_card(uid,row,s):
     return Table([
       [Paragraph(clean(row.get("team_name") or row.get("manager") or uid,55),s["team"])],
       [Paragraph(f"<b>Team situation:</b> {clean(str(row.get('team_state') or 'unknown').replace('_',' ').title(),30)}<br/><b>Receives:</b> {clean(', '.join(rec) or 'None',120)}<br/><b>Gives up:</b> {clean(', '.join(sent) or 'None',120)}",s["body"])],
-      [Paragraph(("<b>Analyst context:</b> "+clean(context,420)) if context else "",s["small"])],
+      [Paragraph(("<b>Analyst context:</b> "+clean(context,None)) if context else "",s["small"])],
       [Table(metrics,colWidths=[0.91*inch,0.94*inch,0.92*inch,0.97*inch],style=TableStyle([
         ("FONTNAME",(0,0),(-1,-1),"Helvetica"),("FONTSIZE",(0,0),(-1,-1),6.15),("TEXTCOLOR",(0,0),(-1,-1),INK),
         ("FONTNAME",(0,0),(0,-1),"Helvetica-Bold"),("FONTNAME",(2,0),(2,-1),"Helvetica-Bold"),
