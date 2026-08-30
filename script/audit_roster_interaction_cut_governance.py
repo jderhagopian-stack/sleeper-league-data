@@ -19,7 +19,7 @@ ROSTER = ROOT / "script" / "roster_aware_trade.py"
 INTERACTION = ROOT / "script" / "roster_interaction.py"
 CUT_SENS = ROOT / "script" / "audit_roster_cut_sensitivity.py"
 REGISTRY = DATA / "model_parameter_registry.json"
-MODEL_VERSION = "FSFFL-Roster-Interaction-Cut-Governance-1.0"
+MODEL_VERSION = "FSFFL-Roster-Interaction-Cut-Governance-1.1"
 
 
 def load(path, default=None):
@@ -61,11 +61,12 @@ def main():
         'MAX_PAIR_INSURANCE_PCT = 0.12',
         'PAIR_CAPTURE_SCALE = 0.30',
         'MAX_PORTFOLIO_ADJUSTMENT = 600.0',
-        'MAX_ACCEPTANCE_FIT_SHIFT = 0.04',
+        'MAX_ACCEPTANCE_FIT_SHIFT = 0.0',
         '0.45 * downside +',
         '0.30 * max(injury_now, availability_uncertainty) +',
         '0.25 * role_uncertainty',
-        'math.tanh(delta / 1200.0) * MAX_ACCEPTANCE_FIT_SHIFT',
+        '"acceptance_fit_shift": 0.0',
+        '"acceptance_shift_enabled": False',
     ])
 
     cut_reg = params.get("ROSTER-CUT-001") or {}
@@ -103,8 +104,8 @@ def main():
         {
             "id": "ROSTER-ACCEPTANCE-OVERLAP-001",
             "severity": "HIGH",
-            "status": "PROVISIONAL_ACCEPTANCE_OVERLAY" if 'acceptance_fit_shift' in interaction else "MISSING",
-            "observation": "Roster-interaction value also shifts acceptance fit, creating a second path into counterparty plausibility. It must be ablated jointly with behavioral/acceptance modeling before promotion.",
+            "status": "DUPLICATE_ACCEPTANCE_PATH_DISABLED" if '"acceptance_shift_enabled": False' in interaction else "IMPLEMENTATION_DRIFT",
+            "observation": "The former roster-interaction-to-acceptance conversion is disabled. Roster interaction remains a bounded strategic/resilience signal and no longer receives a second uncalibrated path into counterparty plausibility.",
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
     ]
@@ -117,7 +118,7 @@ def main():
             "cut_selection_is_not_rule_defined": True,
             "cut_prescreen_must_not_have_final_authority_when_tractable": True,
             "roster_interaction_must_show_incremental_value_over_lineup_simulation": True,
-            "acceptance_shift_requires_joint_behavioral_ablation": True,
+            "uncalibrated_duplicate_acceptance_shift_disabled": True,
             "boundedness_is_not_empirical_validation": True,
         },
         "summary": {
