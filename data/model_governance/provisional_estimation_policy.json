@@ -1,0 +1,29 @@
+{
+  "model_version": "FSFFL-Provisional-Estimation-Policy-1.0",
+  "purpose": "Govern replacement of arbitrary legacy heuristics when gold-standard empirical calibration is not yet available.",
+  "principle": "The model should move upward in evidence quality whenever a stronger defensible basis exists; lack of final empirical promotion evidence is not a reason to preserve a weaker arbitrary constant.",
+  "evidence_ladder": [
+    "RULE_DEFINED",
+    "HISTORICALLY_STATISTICALLY_ESTIMATED",
+    "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+    "SIMULATION_DERIVED_ESTIMATE",
+    "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
+    "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+    "LEGACY_ARBITRARY_HEURISTIC"
+  ],
+  "replacement_rules": {
+    "structural_elimination_preferred_when_signal_is_duplicate_or_unidentified": true,
+    "stronger_basis_may_replace_weaker_legacy_heuristic_without_full_empirical_promotion": true,
+    "provisional_replacements_must_be_bounded": true,
+    "provisional_replacements_must_be_versioned": true,
+    "provisional_replacements_must_report_uncertainty_or_status": true,
+    "learned_parameter_promotion_still_requires_holdout_improvement": true,
+    "software_regression_equivalence_does_not_count_as_empirical_validation": true
+  },
+  "learning_policy": {
+    "preserve_raw_observations_and_provenance": true,
+    "collect_future_outcomes_for_recalibration": true,
+    "prefer_shrinkage_toward_league_or_neutral_baselines_for_sparse_manager_specific_signals": true,
+    "prefer_simulation_derived_marginal_effects_when_canonical_simulator_can_identify_effect": true
+  }
+}
