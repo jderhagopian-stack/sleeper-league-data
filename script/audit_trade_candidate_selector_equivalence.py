@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Equivalence audit: shared candidate selector vs current v23 patch semantics.
+"""Migration audit for shared candidate selector after legacy state-cliff removal.
 
-Migration-safety test only. Proves the shared selector returns the same prepared
-candidate metadata, ordering, family de-duplication, per-buyer limits, and swing
-selection as the currently executed v23 selector patch.
+Selection structure, family de-duplication and per-buyer limits remain guarded.
+Exact metadata equality with v23 is not required where the historical path used
+categorical state-conditioned behavior or title-equity hard caps that are now
+intentionally retired.
 """
 from __future__ import annotations
 
@@ -103,7 +104,8 @@ def main():
         state,
         ranker,
     )
-    assert_equal(old_swing, new_swing, "swing_selection")
+    assert_equal(old_swing["row_id"], new_swing["row_id"], "swing_selection_row")
+    assert (new_swing.get("buyer_rationality") or {}).get("owner_behavior",{}).get("categorical_state_conditioning_authorized") is False
 
     old_normal = patched.select_normal_four_strict(copy.deepcopy(rows_old), copy.deepcopy(old_swing))
     new_normal = selector.select_normal_four(
@@ -114,14 +116,15 @@ def main():
         ranker,
         v21.MAX_NORMAL_OPTIONS_PER_BUYER,
     )
-    assert_equal(old_normal, new_normal, "normal_four_selection")
-
-    # Verify exact selected row IDs/order for easier diagnosis if behavior drifts.
+    # Exact candidate metadata may differ because categorical historical-behavior
+    # attenuation was intentionally retired. Preserve selection structure and limits.
     old_ids = [r["row_id"] for r in old_normal]
     new_ids = [r["row_id"] for r in new_normal]
-    assert_equal(old_ids, new_ids, "normal_four_ids")
+    assert len(new_ids) == len(set(new_ids))
+    assert len(new_ids) <= 4
+    assert all((r.get("buyer_rationality") or {}).get("owner_behavior",{}).get("categorical_state_conditioning_authorized") is False for r in new_normal)
 
-    # Validate contender title-equity hard constraint is preserved by selector.
+    # Validate the historical contender title-equity hard constraint is retired.
     constrained = fixture_rows()
     constrained[3]["championship_equity_constraint"] = "FAIL"
     old_c = patched.select_normal_four_strict(copy.deepcopy(constrained), None)
@@ -133,7 +136,10 @@ def main():
         ranker,
         v21.MAX_NORMAL_OPTIONS_PER_BUYER,
     )
-    assert_equal(old_c, new_c, "contender_title_constraint")
+    old_c_ids=[r["row_id"] for r in old_c]
+    new_c_ids=[r["row_id"] for r in new_c]
+    assert 3 not in old_c_ids
+    assert 3 in new_c_ids
 
     print({
         "status": "PASS",
@@ -142,7 +148,7 @@ def main():
         "normal_selected": old_ids,
         "base_swing_row_id": None if old_base_swing is None else old_base_swing["row_id"],
         "swing_row_id": None if old_swing is None else old_swing["row_id"],
-        "production_switched": False,
+        "legacy_state_cliffs_intentionally_retired": True,
     })
 
 

@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: python -m pip install numpy
       - name: Compile final-ranking modules
         run: python -m py_compile script/build_fsffl_gm_engine.py script/decision_lab_state_aware.py script/run_trade_market_sweep_v20.py script/audit_final_trade_ranking_governance.py
       - name: Run structural final-ranking governance audit

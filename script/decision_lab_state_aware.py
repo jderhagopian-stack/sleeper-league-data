@@ -30,8 +30,22 @@ def _load(path: Path, name: str):
 def _gm_core():
     gm30 = _load(SCRIPT / "build_fsffl_gm30.py", "gm30_state_aware_overlay")
     weighting = _load(SCRIPT / "gm_state_weighting.py", "gm_state_weighting_for_overlay")
+    high_priority = _load(
+        SCRIPT / "nonprojection_high_priority_overrides.py",
+        "nonprojection_high_priority_overrides_for_overlay",
+    )
+    gm30_gov = _load(
+        SCRIPT / "gm30_nonprojection_governance.py",
+        "gm30_nonprojection_governance_for_overlay",
+    )
     season = gm30.active_season()
     gm30.patch_gm22_runtime(season)
+
+    # Hypothetical profiles must use the same governed non-projection economics
+    # as production GM3. Dynamic season patching happens first, then structural
+    # de-duplication / pick governance, exactly as in gm3/application.py.
+    high_priority.install(gm30.core)
+    gm30_gov.install(gm30.core)
 
     # Crucial consistency rule: the same continuous weights used to rank a
     # hypothetical also drive GM strategic-profile construction itself.
@@ -40,6 +54,12 @@ def _gm_core():
 
     gm30.core._u_team_objective_weights = continuous_team_objective_weights
     gm30.core._state_weighting_runtime = weighting
+    gm30.core.DECISION_LAB_GM_GOVERNANCE_RUNTIME = {
+        "dynamic_patch_first": True,
+        "high_priority_nonprojection_governance_installed": True,
+        "gm30_pick_governance_installed": True,
+        "continuous_state_weighting_installed": True,
+    }
     return gm30.core
 
 
