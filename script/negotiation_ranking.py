@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
-"""Canonical negotiation-ranking composition.
+"""Canonical Trade Decision negotiation ranking.
 
-Owner behavior is already incorporated upstream into heuristic acceptance fit.
-This composer therefore gives the separate owner-behavior diagnostic zero
-additional ranking weight to avoid counting the same evidence twice.
+Trade quality and focal utility are separated from counterparty acceptance.
+The bilateral buyer-utility gate determines whether a trade is economically
+viable for the other side; Behavioral Intelligence then reports descriptive
+acceptance fit. Neither is converted into an arbitrary exchange rate against
+focal franchise utility.
 
-The remaining strategic/acceptance weights preserve the prior 0.50:0.30 ratio:
-0.50/(0.50+0.30)=0.625 and 0.30/(0.50+0.30)=0.375.
-This is a structural de-duplication, not an output-tuned reweighting.
-
-The row-level helper preserves the exact historical v1.17 transform so callers
-can use the canonical component directly instead of importing a superseded
-trade-sweep wrapper solely to reach that mechanic.
+Among retained viable candidates, ranking is therefore by the canonical shared
+focal decision utility itself. Acceptance and owner behavior remain visible
+diagnostics/tie-break context for the human negotiator, not weighted value.
 """
 from __future__ import annotations
 
-import math
-
-MODEL_VERSION = "FSFFL-Negotiation-Ranking-2.0"
-STRATEGIC_WEIGHT = 0.625
-ACCEPTANCE_WEIGHT = 0.375
+MODEL_VERSION = "FSFFL-Negotiation-Ranking-3.0"
+STRATEGIC_WEIGHT = 1.0
+ACCEPTANCE_WEIGHT = 0.0
 OWNER_BEHAVIOR_WEIGHT = 0.0
 
 
@@ -35,16 +31,16 @@ def _sf(x, default=0.0):
 
 
 def compose(strategic, acceptance, behavior):
-    strategic = clamp(strategic)
+    """Compatibility composer for normalized callers.
+
+    No acceptance/behavior exchange coefficient is authorized. The supplied
+    strategic component alone determines score.
+    """
+    strategic = float(strategic)
     acceptance = clamp(acceptance)
     behavior = clamp(behavior)
-    score = (
-        STRATEGIC_WEIGHT * strategic
-        + ACCEPTANCE_WEIGHT * acceptance
-        + OWNER_BEHAVIOR_WEIGHT * behavior
-    )
     return {
-        "score": round(score, 4),
+        "score": round(strategic, 4),
         "focal_strategic_gain_component": round(strategic, 4),
         "acceptance_fit_component": round(acceptance, 4),
         "owner_behavior_match_component": round(behavior, 4),
@@ -56,24 +52,34 @@ def compose(strategic, acceptance, behavior):
         "ranking_model_version": MODEL_VERSION,
         "behavior_already_in_acceptance_fit": True,
         "owner_behavior_component_is_diagnostic_only": True,
-        "deduplication_basis": "renormalized_prior_distinct_component_ratio_0.50_to_0.30",
+        "acceptance_component_is_diagnostic_only": True,
+        "arbitrary_strategic_acceptance_exchange_rate_authorized": False,
+        "ranking_basis": "canonical_focal_decision_utility_after_bilateral_viability",
     }
 
 
 def recompute_from_row(row):
-    """Recompute negotiation ranking from a trade-evaluation row.
-
-    This is behavior-equivalent to the historical
-    run_trade_market_sweep_v23.recompute_negotiation_ranking helper. Keeping the
-    transform here lets current callers depend on a stable Trade Decision-internal capability
-    rather than a superseded model wrapper.
-    """
     br = row.get("buyer_rationality") or {}
     post = _sf(row.get("post_sim_score"))
-    strategic = clamp(.50 + .50 * math.tanh(post / 5000.0), 0, 1)
-    acceptance = clamp(_sf(br.get("heuristic_acceptance_fit_score"), .5), 0, 1)
-    behavior = clamp(.50 + _sf((br.get("owner_behavior") or {}).get("adjustment")) / .32, 0, 1)
-    out = compose(strategic, acceptance, behavior)
-    out["focal_strategic_gain_source"] = "state_aware_post_sim_score"
-    out["state_aware_post_sim_score"] = round(post, 2)
+    acceptance = clamp(_sf(br.get("heuristic_acceptance_fit_score"), .5))
+    behavior = clamp(.50 + _sf((br.get("owner_behavior") or {}).get("adjustment")), 0, 1)
+    out = {
+        "score": round(post, 2),
+        "focal_strategic_gain_component": round(post, 2),
+        "acceptance_fit_component": round(acceptance, 4),
+        "owner_behavior_match_component": round(behavior, 4),
+        "weights": {
+            "focal_strategic_gain": 1.0,
+            "acceptance_fit": 0.0,
+            "owner_behavior_match": 0.0,
+        },
+        "ranking_model_version": MODEL_VERSION,
+        "behavior_already_in_acceptance_fit": True,
+        "owner_behavior_component_is_diagnostic_only": True,
+        "acceptance_component_is_diagnostic_only": True,
+        "arbitrary_strategic_acceptance_exchange_rate_authorized": False,
+        "ranking_basis": "canonical_focal_decision_utility_after_bilateral_viability",
+        "focal_strategic_gain_source": "state_aware_post_sim_score",
+        "state_aware_post_sim_score": round(post, 2),
+    }
     return out
