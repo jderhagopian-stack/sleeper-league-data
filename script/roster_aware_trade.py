@@ -23,7 +23,7 @@ from __future__ import annotations
 import copy
 from typing import Any, Dict, Iterable, List, Tuple
 
-MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.3"
+MODEL_VERSION = "FSFFL-Roster-Aware-Trade-Resolution-1.4"
 CUT_SHORTLIST_SIZE = 3
 
 
@@ -131,6 +131,7 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
         protected = set(explicit_protected.get(uid, set())) | newly_acquired
         selected = []
         shortlist = []
+        candidate_pool = []
         if incremental_overflow:
             eligible_ids = [pid for pid in pre_cut_ids if pid not in protected]
             if len(eligible_ids) < incremental_overflow:
@@ -140,6 +141,7 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
                 )
             profiles = [cut_profile(dl, uid, pid, players) for pid in eligible_ids]
             profiles.sort(key=lambda x: (sf(x.get("retention_cost")), sf(x.get("base_franchise_value")), str(x.get("player_id"))))
+            candidate_pool = profiles
             shortlist = profiles[:max(CUT_SHORTLIST_SIZE, incremental_overflow)]
             selected = profiles[:incremental_overflow]
             for row in selected:
@@ -163,8 +165,10 @@ def legalize_trade_rosters(dl, canonical_rosters: List[Dict[str, Any]], hypothet
             "required_cuts": incremental_overflow,
             "selected_cuts": selected,
             "cut_candidate_shortlist": shortlist,
+            "cut_candidate_pool": candidate_pool,
+            "cut_candidate_pool_size": len(candidate_pool),
             "cut_shortlist_size": CUT_SHORTLIST_SIZE,
-            "cut_selection_method": "retention_cost_prescreen",
+            "cut_selection_method": "retention_cost_prescreen_pending_final_plan_optimization",
             "newly_acquired_protected_from_automatic_cut": sorted(newly_acquired),
             "protected_from_automatic_cut": sorted(protected),
             "cut_base_franchise_value": round(sum(sf(x.get("base_franchise_value")) for x in selected), 2),

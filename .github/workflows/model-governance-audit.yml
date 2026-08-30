@@ -19,6 +19,8 @@ on:
       - 'script/audit_behavioral_acceptance_governance.py'
       - 'script/audit_final_trade_ranking.py'
       - 'script/audit_legacy_governance_bypass.py'
+      - 'script/audit_heuristic_refinement_first_pass.py'
+      - 'data/model_governance/heuristic_refinement_backlog.json'
       - 'script/negotiation_ranking.py'
       - 'script/validate_model_parameter_registry.py'
       - 'script/**/*.py'
@@ -59,6 +61,7 @@ jobs:
           python script/audit_behavioral_acceptance_governance.py
           python script/audit_final_trade_ranking.py
           python script/audit_legacy_governance_bypass.py
+          python script/audit_heuristic_refinement_first_pass.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -187,6 +190,9 @@ jobs:
           assert bids['ACCEPTANCE-PROBABILITY-001']['authoritative_probability_claim_allowed'] is False
           assert bids['BEHAVIOR-ACCEPTANCE-OVERLAP-001']['authoritative_incremental_adjustment_claim_allowed'] is False
 
+          hr=json.load(open('data/audit/heuristic_refinement_first_pass.json'))
+          assert hr['passed'] is True
+          assert all(hr['findings'].values())
           lg=json.load(open('data/audit/legacy_governance_bypass_audit.json'))
           assert lg['passed'] is True
           assert all(lg['findings'].values())

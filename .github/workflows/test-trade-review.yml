@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: python -m pip install numpy
       - name: Install report dependencies
         run: python -m pip install 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile
@@ -51,7 +52,7 @@ jobs:
           assert r['policy']['forced_cut_candidates_simulated_when_required'] is True
           assert r['policy']['forced_cut_candidate_shortlist_size']==3
           assert r['simulation']['n_sims']==250
-          assert r['simulation']['roster_resolution_model_version']=='FSFFL-Roster-Aware-Trade-Resolution-1.3'
+          assert r['simulation']['roster_resolution_model_version']=='FSFFL-Roster-Aware-Trade-Resolution-1.4'
           for uid,row in r['team_reviews'].items():
               rr=row['roster_resolution']
               assert rr.get('roster_legal') is True

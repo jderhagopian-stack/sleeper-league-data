@@ -11,9 +11,10 @@ in O(players * slots * 2^slots), which is tiny for the FSFFL nine-slot lineup.
 Canonical Sleeper / GM / Simulator state remains read-only.
 
 Roster-aware trade resolution is applied before lineup optimization: if a
-hypothetical trade would exceed the Sleeper active-roster limit, the least
-harmful legal cuts are selected from GM 3.0 state-aware retention values and
-included in both the simulation and strategic valuation.
+hypothetical trade would exceed the Sleeper active-roster limit, retention values
+provide a fast legal prescreen. For final 50,000-simulation candidates, tractable
+focal cut-plan spaces are enumerated and selected by downstream canonical Trade
+Score before the final simulation.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ import argparse
 import contextlib
 import copy
 import importlib.util
+import itertools
 import io
 import json
 import sys
@@ -32,7 +34,9 @@ from typing import Any, Dict, List
 BASE_ENGINE = Path("script/run_trade_market_sweep.py")
 ROSTER_AWARE = Path("script/roster_aware_trade.py")
 GM_CORE = Path("script/build_fsffl_gm_engine.py")
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3"
+FINAL_CUT_PLAN_MAX_COMBINATIONS = 27
+FINAL_CUT_PLAN_SCREEN_SIMS = 1000
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3.1"
 
 
 def load_module(path: Path, name: str):
@@ -148,19 +152,12 @@ def position_need_snapshot(engine, rosters, focus_uid):
     }
 
 
-def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline,
-                            focus_uid, buyer_uid, outgoing, incoming, sims, seed):
+def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, baseline,
+                                 focus_uid, buyer_uid, actions, hypothetical_rosters,
+                                 effective_actions, roster_resolution, auto_cut_actions,
+                                 sims, seed):
     simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
-    actions = engine.scenario_actions(focus_uid, buyer_uid, outgoing, incoming)
-    hypothetical_rosters, _ = dl.apply_actions(canonical_rosters, actions)
     touched = dl.touched_users(focus_uid, actions)
-
-    roster_aware = load_module(ROSTER_AWARE, "roster_aware_trade_for_v13")
-    hypothetical_rosters, roster_resolution, auto_cut_actions = roster_aware.legalize_trade_rosters(
-        dl, canonical_rosters, hypothetical_rosters, touched, league, players
-    )
-    effective_actions = list(actions) + list(auto_cut_actions)
-
     hypothetical_lineups, reoptimized = fast_reoptimize_touched_lineups(
         dl, simmod, baseline_lineups, hypothetical_rosters, touched,
         league, users, players, projections
@@ -182,7 +179,7 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
         "trade_actions": actions,
         "automatic_roster_cut_actions": auto_cut_actions,
         "roster_resolution": roster_resolution,
-        "roster_resolution_model_version": roster_aware.MODEL_VERSION,
+        "roster_resolution_model_version": "FSFFL-Roster-Aware-Trade-Resolution-1.4",
         "teams_reoptimized": reoptimized,
         "focus_before": b,
         "focus_after": h,
@@ -209,6 +206,131 @@ def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline
             "lower_need_score_is_better": True,
         },
     }
+
+
+def _forced_focus_cut_plan(dl, pre_cut_rosters, focus_uid, plan):
+    rosters = copy.deepcopy(pre_cut_rosters)
+    by_uid, _ = dl.roster_maps(rosters)
+    roster = by_uid.get(str(focus_uid))
+    if not roster:
+        raise RuntimeError(f"Missing focal roster {focus_uid} for cut-plan optimization")
+    for pid in plan:
+        dl.remove_player(roster, str(pid))
+    action = {
+        "type": "cut",
+        "user_id": str(focus_uid),
+        "players": [str(x) for x in plan],
+        "automatic_roster_legalization": True,
+        "baseline_aware_incremental_cut": True,
+        "final_cut_plan_optimization": True,
+    }
+    return rosters, action
+
+
+def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
+                                   focus_uid, buyer_uid, actions, pre_cut_rosters,
+                                   default_rosters, roster_resolution, auto_cut_actions,
+                                   sims, seed, outgoing, incoming):
+    """Use downstream model utility, not retention-cost ordering, for tractable final focal cuts."""
+    res = (roster_resolution or {}).get(str(focus_uid)) or {}
+    required = int(res.get("required_cuts") or 0)
+    pool = list(res.get("cut_candidate_pool") or [])
+    if sims < 50000 or required <= 0 or len(pool) <= required:
+        return default_rosters, roster_resolution, auto_cut_actions
+
+    ids = [str(x.get("player_id")) for x in pool if x.get("player_id")]
+    plans = list(itertools.combinations(ids, required))
+    meta = {
+        "eligible_plan_count": len(plans),
+        "max_exact_plan_count": FINAL_CUT_PLAN_MAX_COMBINATIONS,
+        "screen_simulations": FINAL_CUT_PLAN_SCREEN_SIMS,
+        "selection_objective": "canonical_downstream_trade_score",
+        "retention_cost_is_final_authority": False,
+    }
+    if not plans or len(plans) > FINAL_CUT_PLAN_MAX_COMBINATIONS:
+        res["final_cut_plan_optimization"] = {
+            **meta,
+            "status": "FALLBACK_TO_RETENTION_PRESCREEN_PLAN_SPACE_TOO_LARGE",
+        }
+        return default_rosters, roster_resolution, auto_cut_actions
+
+    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
+    screen_seed = seed
+    screen_baseline = dl.simulate_from_lineups(
+        simmod, league, canonical_rosters, users, raw_schedule,
+        baseline_lineups, FINAL_CUT_PLAN_SCREEN_SIMS, screen_seed
+    )
+    profile_by_id = {str(x.get("player_id")): x for x in pool}
+    scored = []
+    for plan in plans:
+        plan_rosters, cut_action = _forced_focus_cut_plan(dl, pre_cut_rosters, focus_uid, plan)
+        effective_actions = list(actions) + [cut_action]
+        plan_resolution = copy.deepcopy(roster_resolution)
+        pres = plan_resolution.get(str(focus_uid)) or {}
+        selected = [profile_by_id[x] for x in plan if x in profile_by_id]
+        pres["selected_cuts"] = selected
+        pres["cut_selection_method"] = "downstream_trade_score_exact_plan_search"
+        pres["cut_base_franchise_value"] = round(sum(float(x.get("base_franchise_value") or 0.0) for x in selected), 2)
+        pres["cut_market_dynasty_value"] = round(sum(float(x.get("market_dynasty") or 0.0) for x in selected), 2)
+        plan_resolution[str(focus_uid)] = pres
+
+        sim = _simulate_resolved_candidate(
+            engine, dl, model_inputs, baseline_lineups, screen_baseline,
+            focus_uid, buyer_uid, actions, plan_rosters, effective_actions,
+            plan_resolution, [cut_action], FINAL_CUT_PLAN_SCREEN_SIMS, screen_seed
+        )
+        temp = {
+            "buyer_user_id": str(buyer_uid),
+            "outgoing_assets": [str(x.get("asset_id")) for x in outgoing],
+            "return_assets": [str(x.get("asset_id")) for x in incoming],
+            "simulation": sim,
+        }
+        score = float(engine.post_sim_score(temp, engine.team_state(focus_uid)))
+        scored.append((score, tuple(plan), plan_rosters, plan_resolution, [cut_action]))
+
+    scored.sort(key=lambda x: (x[0], tuple(x[1])), reverse=True)
+    best_score, best_plan, best_rosters, best_resolution, best_actions = scored[0]
+    default_plan = tuple(str(x.get("player_id")) for x in (res.get("selected_cuts") or []))
+    best_res = best_resolution.get(str(focus_uid)) or {}
+    best_res["final_cut_plan_optimization"] = {
+        **meta,
+        "status": "EXACT_TRACTABLE_PLAN_SEARCH",
+        "default_retention_plan": list(default_plan),
+        "selected_plan": list(best_plan),
+        "selected_plan_differs_from_retention_prescreen": tuple(best_plan) != default_plan,
+        "screen_post_sim_score": round(best_score, 2),
+        "all_plan_scores": [
+            {"cut_player_ids": list(plan), "post_sim_score": round(score, 2)}
+            for score, plan, *_ in scored
+        ],
+    }
+    best_resolution[str(focus_uid)] = best_res
+    return best_rosters, best_resolution, best_actions
+
+
+def fast_simulate_candidate(engine, dl, model_inputs, baseline_lineups, baseline,
+                            focus_uid, buyer_uid, outgoing, incoming, sims, seed):
+    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
+    actions = engine.scenario_actions(focus_uid, buyer_uid, outgoing, incoming)
+    pre_cut_rosters, _ = dl.apply_actions(canonical_rosters, actions)
+    touched = dl.touched_users(focus_uid, actions)
+
+    roster_aware = load_module(ROSTER_AWARE, "roster_aware_trade_for_v13")
+    hypothetical_rosters, roster_resolution, auto_cut_actions = roster_aware.legalize_trade_rosters(
+        dl, canonical_rosters, pre_cut_rosters, touched, league, players
+    )
+    hypothetical_rosters, roster_resolution, auto_cut_actions = _optimize_final_focus_cut_plan(
+        engine, dl, model_inputs, baseline_lineups,
+        focus_uid, buyer_uid, actions, pre_cut_rosters,
+        hypothetical_rosters, roster_resolution, auto_cut_actions,
+        sims, seed, outgoing, incoming
+    )
+    effective_actions = list(actions) + list(auto_cut_actions)
+    return _simulate_resolved_candidate(
+        engine, dl, model_inputs, baseline_lineups, baseline,
+        focus_uid, buyer_uid, actions, hypothetical_rosters,
+        effective_actions, roster_resolution, auto_cut_actions, sims, seed
+    )
 
 
 def metric(sim: Dict[str, Any], path: str) -> float:

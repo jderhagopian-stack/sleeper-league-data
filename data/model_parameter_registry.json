@@ -242,11 +242,11 @@
       ],
       "parameter_family": "retention-cost weights and starter/core multipliers",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "HEURISTIC_ACTIVE_SEARCH_ACCELERATOR",
-      "source": "Current hard-coded retention formula",
-      "validation": "Required: compare heuristic cut choice to exhaustive/top-k post-cut roster optimization",
-      "uncertainty": "can change simulated roster and verdict when a trade forces cuts",
-      "update_policy": "Prefer exact/top-k resolution where computationally feasible; recalibrate only if heuristic remains necessary",
+      "status": "FINAL_FOCAL_TRACTABLE_PLAN_SEARCH_ACTIVE_PRESCREEN_FALLBACK",
+      "source": "Retention-cost prescreen plus exact tractable final focal cut-plan enumeration scored through the canonical downstream Trade Score",
+      "validation": "Final focal candidates enumerate all legal cut plans when the combination count is <=27 using 1,000-simulation common-random-number screening, then rerun the selected plan at the canonical final simulation count. Large plan spaces and non-focal cut choices retain the governed prescreen.",
+      "uncertainty": "Final focal one-cut cases are usually exact; large combinatorial plan spaces and counterparty cuts can still depend on retention-cost ordering.",
+      "update_policy": "Expand exact/top-k final-plan search where runtime remains acceptable; retain prescreen only as search acceleration/fallback, not unquestioned final authority.",
       "downstream": [
         "post-trade roster",
         "lineup simulation",
@@ -254,7 +254,8 @@
         "trade verdict"
       ],
       "authoritative_use": false,
-      "bounds_required": true
+      "bounds_required": true,
+      "notes": "Structural refinement first pass: retention-cost ordering no longer has final authority for tractable focal cut-plan spaces."
     },
     {
       "id": "ROSTER-INTERACTION-001",

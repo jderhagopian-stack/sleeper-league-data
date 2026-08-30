@@ -1,0 +1,108 @@
+{
+  "model_version": "FSFFL-Heuristic-Refinement-Backlog-1.0",
+  "purpose": "Prioritize remaining active/provisional heuristics after the completed hard-code audit without reopening that audit.",
+  "policy": {
+    "structural_elimination_preferred_over_recalibration": true,
+    "existing_repo_evidence_used_before_new_external_research": true,
+    "no_coefficient_replacement_without_incremental_evidence": true,
+    "provisional_functionality_preserved_when_no_better_supported_replacement_exists": true
+  },
+  "improve_now_with_existing_evidence": [
+    {
+      "id": "ROSTER-CUT-001",
+      "priority": "HIGH",
+      "action": "Final focal cut plans use tractable downstream Trade Score enumeration; retention-cost ordering remains prescreen/fallback only.",
+      "status": "IMPLEMENTED_ON_BRANCH",
+      "evidence": [
+        "existing cut sensitivity audit",
+        "exact lineup reoptimization",
+        "canonical Simulator",
+        "canonical post-simulation Trade Score"
+      ],
+      "remaining_gap": "Large combinatorial cut spaces and counterparty cut choice still use the governed retention prescreen."
+    },
+    {
+      "id": "GM22-CONFIG-001",
+      "priority": "HIGH",
+      "action": "Family-by-family ablation before any coefficient tuning.",
+      "status": "AUDIT_NEXT",
+      "evidence": [
+        "current GM3 profiles",
+        "historical reconstruction infrastructure",
+        "existing governance/ablation framework"
+      ],
+      "remaining_gap": "No defensible held-out strategy target yet for coefficient fitting."
+    },
+    {
+      "id": "TRADE-SCORE-001",
+      "priority": "VERY_HIGH",
+      "action": "Continue grouped/primitive channel ablation; shrink/remove only channels that prove redundant or non-incremental.",
+      "status": "ABLATION_ACTIVE_NO_SAFE_REWEIGHT_YET",
+      "evidence": [
+        "final-score ablation",
+        "historical reconstruction",
+        "current finalist rankings"
+      ],
+      "remaining_gap": "Primitive scale constants remain unidentified without a valid time-ordered ranking/choice target."
+    },
+    {
+      "id": "TRADE-PRESCREEN-001",
+      "priority": "MEDIUM_HIGH",
+      "action": "Keep full-pool recall regression and test plausibility thresholds against tractable expanded enumeration.",
+      "status": "LOSSY_ASSET_CAPS_ALREADY_REMOVED",
+      "evidence": [
+        "full-pool recall audit",
+        "expanded enumeration"
+      ],
+      "remaining_gap": "Plausibility coefficients require accepted/rejected or choice-opportunity evidence before calibration."
+    },
+    {
+      "id": "TEAM-IMPROVEMENT-001",
+      "priority": "MEDIUM",
+      "action": "Converge toward shared canonical decision utility instead of maintaining separate ranking weights.",
+      "status": "STRUCTURAL_CONVERGENCE_CANDIDATE",
+      "evidence": [
+        "Shared Core architecture",
+        "canonical Simulator",
+        "Trade Decision utility primitives"
+      ],
+      "remaining_gap": "Must prove recommendation behavior remains sensible under shared utility."
+    }
+  ],
+  "needs_genuinely_new_or_better_evidence": [
+    {
+      "id": "PROJECTION-UNCERTAINTY-001",
+      "reason": "Needs archived forecast residuals and distributional coverage tests."
+    },
+    {
+      "id": "ACCEPTANCE-GATE-001",
+      "reason": "Needs a defensible denominator of rejected offers or opportunity/choice observations before probability calibration."
+    },
+    {
+      "id": "BEHAVIOR-001",
+      "reason": "Needs more time-ordered manager actions for robust coefficient promotion, although same-state analysis remains useful now."
+    },
+    {
+      "id": "PACKAGE-ECON-001",
+      "reason": "Needs frozen contemporaneous market snapshots and enough multi-asset trades for residual validation."
+    },
+    {
+      "id": "PICK-MODEL-001",
+      "reason": "Several transforms require contemporaneous historical dynasty-market and rookie-outcome evidence; current-market backfill is not valid."
+    },
+    {
+      "id": "STATE-WEIGHTS-001",
+      "reason": "The expert-prior objective-weight curve requires an independent strategy-outcome target with temporal holdout before empirical promotion."
+    }
+  ],
+  "already_structurally_neutralized": [
+    "same-source market rank repricing",
+    "market momentum incremental repricing",
+    "own-pick control incremental bonus",
+    "forecast uncertainty as automatic positive pick optionality",
+    "duplicate pick liquidity/quality/optionality premiums",
+    "generic multi-asset roster-slot penalty",
+    "market-tier scarcity incremental premium",
+    "categorical competitive-state decision cliffs"
+  ]
+}
