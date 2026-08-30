@@ -1,0 +1,37 @@
+name: Trade State Policy Equivalence
+
+on:
+  push:
+    paths:
+      - 'script/trade_state_policy.py'
+      - 'script/audit_trade_state_policy_equivalence.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/negotiation_ranking.py'
+      - '.github/workflows/trade-state-policy-equivalence.yml'
+  pull_request:
+    paths:
+      - 'script/trade_state_policy.py'
+      - 'script/audit_trade_state_policy_equivalence.py'
+      - 'script/run_trade_market_sweep_v23.py'
+      - 'script/negotiation_ranking.py'
+      - '.github/workflows/trade-state-policy-equivalence.yml'
+  workflow_dispatch:
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile state policy modules
+        run: |
+          python -m py_compile \
+            script/trade_state_policy.py \
+            script/audit_trade_state_policy_equivalence.py \
+            script/run_trade_market_sweep_v23.py \
+            script/negotiation_ranking.py
+      - name: Prove shared policy equivalence to current v23
+        run: python script/audit_trade_state_policy_equivalence.py
