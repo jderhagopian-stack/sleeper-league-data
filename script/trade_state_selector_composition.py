@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """Install shared v23-equivalent state/selector behavior onto a retained engine.
 
-This composition layer replaces v23's historical monkey-patch wrapper with
-version-neutral shared components that have already passed direct equivalence
-tests:
+This composition layer replaces historical state/selector wrappers with
+version-neutral shared components that have passed direct equivalence tests:
 - trade_state_policy.py
 - trade_candidate_selector.py
+- trade_negotiation_family.py
 - negotiation_ranking.py
 
 The explicit historical production pin belongs to the caller. This module does
-not import or name historical sweep versions. It augments the supplied root
-module and any descendants by capability, preserving inherited mechanics without
-creating new stale dependencies from the shared toolbox.
+not import or name historical sweep versions. It augments the supplied root and
+descendants by capability, preserving current behavior without creating new
+stale dependencies.
 
 This module does not own final option comparison or final action authority.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.2"
+MODEL_VERSION = "FSFFL-Trade-State-Selector-Composition-1.3"
 
 
-def install(root, state_policy, selector, ranker):
-    """Compose shared state and selector policies into a retained engine tree."""
+def install(root, state_policy, selector, ranker, negotiation_family=None):
+    """Compose current state and selector policies into a retained engine tree."""
 
     def patch_state_capabilities(mod):
         if hasattr(mod, "adjusted_buyer_rationality") and not getattr(
@@ -53,13 +53,24 @@ def install(root, state_policy, selector, ranker):
             mod._shared_focal_state_policy_installed = True
         return mod
 
+    def family_key_for(mod):
+        if negotiation_family is not None:
+            return negotiation_family.family_key
+        return getattr(mod, "negotiation_family_key", None)
+
     def patch_selector_capabilities(mod):
+        if getattr(mod, "_shared_candidate_selector_installed", False):
+            return mod
+
+        family_key = family_key_for(mod)
+
+        # Newer inherited interface: selector functions live on the module
+        # under their strict/distinct names.
         if (
             hasattr(mod, "select_normal_four_strict")
             and hasattr(mod, "select_swing_distinct")
-            and hasattr(mod, "negotiation_family_key")
+            and family_key is not None
             and hasattr(mod, "MAX_NORMAL_OPTIONS_PER_BUYER")
-            and not getattr(mod, "_shared_candidate_selector_installed", False)
         ):
             inherited_swing = mod.select_swing_distinct
 
@@ -67,7 +78,7 @@ def install(root, state_policy, selector, ranker):
                 return selector.select_normal_four(
                     viable,
                     swing,
-                    mod.negotiation_family_key,
+                    family_key,
                     state_policy,
                     ranker,
                     mod.MAX_NORMAL_OPTIONS_PER_BUYER,
@@ -84,6 +95,39 @@ def install(root, state_policy, selector, ranker):
             mod.select_normal_four_strict = normal
             mod.select_swing_distinct = swing
             mod._shared_candidate_selector_installed = True
+            return mod
+
+        # Older inherited interface: install the current v21/v23 semantics
+        # directly over select_normal_four/select_swing. The shared base swing
+        # rule replaces the older pre-v21 swing scoring.
+        if (
+            hasattr(mod, "select_normal_four")
+            and hasattr(mod, "select_swing")
+            and family_key is not None
+            and hasattr(mod, "MAX_NORMAL_OPTIONS_PER_BUYER")
+        ):
+            def normal(viable, swing):
+                return selector.select_normal_four(
+                    viable,
+                    swing,
+                    family_key,
+                    state_policy,
+                    ranker,
+                    mod.MAX_NORMAL_OPTIONS_PER_BUYER,
+                )
+
+            def swing(viable):
+                return selector.select_swing(
+                    viable,
+                    selector.base_swing_distinct,
+                    state_policy,
+                    ranker,
+                )
+
+            mod.select_normal_four = normal
+            mod.select_swing = swing
+            mod._shared_candidate_selector_installed = True
+
         return mod
 
     def patch_capabilities(mod):
@@ -109,13 +153,14 @@ def install(root, state_policy, selector, ranker):
         mod._shared_state_descendant_loader_wrapped = True
         return mod
 
-    root = patch_capabilities(root)
-    root = wrap_descendant_loader(root)
+    patch_capabilities(root)
+    wrap_descendant_loader(root)
 
     return {
         "model_version": MODEL_VERSION,
         "v23_equivalent_state_policy": True,
         "v23_equivalent_candidate_selector": True,
+        "v21_equivalent_negotiation_family_supported": negotiation_family is not None,
         "historical_v23_wrapper_required": False,
         "deeper_historical_versions_named_by_shared_component": False,
         "root_module_patched_by_capability": True,
