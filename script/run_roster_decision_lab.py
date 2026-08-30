@@ -5,7 +5,7 @@ Fast ephemeral what-if engine for trades, adds, drops/cuts, and multi-step
 roster moves. Canonical Sleeper/GM state is read-only.
 
 Performance design:
-- Reuse the published Simulator optimized-lineup cache where compatible.
+- Rebuild baseline lineups with the current canonical Simulator optimizer on every run; the full 12-team lineup build is fast enough that persisted-cache drift is not justified.
 - Re-optimize only teams touched by the hypothetical decision.
 - Run paired Monte Carlo from prepared lineups for fast decision deltas.
 - Use the same simulation seed for baseline and hypothetical worlds.
@@ -319,36 +319,35 @@ def load_model_inputs():
 
 
 def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
-    """Load cached canonical lineups and restore runtime-only player metadata.
+    """Compatibility facade that rebuilds the canonical baseline lineups fresh.
 
-    The persisted lineup cache intentionally omits nfl_team, while the current
-    vectorized Simulator retains it internally for opponent adjustments and
-    same-team correlation. Decision Lab must restore that field or its baseline
-    will not exactly reproduce the canonical Simulator despite using the same
-    players, seed and engine.
+    Historical Decision Lab versions reused weekly_optimized_lineups.json.
+    The current vectorized Simulator can rebuild all FSFFL lineups in well under
+    a second, so fresh construction is preferred over any persisted-cache drift.
+    This guarantees the same optimizer and runtime metadata used by the
+    authoritative Simulator while preserving the existing caller API.
     """
-    cache = load_json(DATA / "simulator" / season / "outputs" / "weekly_optimized_lineups.json", {}) or {}
-    raw = cache.get("lineups") or {}
-    if not raw:
-        raise RuntimeError("Missing canonical weekly optimized-lineup cache; run Simulator 1.0 first")
+    simmod = import_simulator()
+    league = load_json(DATA / "league.json", {}) or {}
+    rosters = load_json(DATA / "rosters.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
-
-    def hydrate(row):
-        out = dict(row)
-        pid = str(out.get("player_id") or "")
-        meta = players.get(pid) or {}
-        team = meta.get("team") or meta.get("team_abbr")
-        out["nfl_team"] = str(team).upper() if team else None
-        return out
-
+    projections = load_json(
+        DATA / "simulator" / season / "inputs" / "player_weekly_projections.json",
+        {},
+    ) or {}
+    reg_weeks = simmod.core.regular_season_weeks(league)
+    playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
+    all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
+    _, by_rid = roster_maps(rosters)
     return {
-        int(rid): {
-            int(week): [hydrate(row) for row in rows]
-            for week, rows in weeks.items()
+        rid: {
+            week: simmod.optimize_fsffl_fast(
+                roster, week, league, players, projections
+            )
+            for week in all_weeks
         }
-        for rid, weeks in raw.items()
+        for rid, roster in by_rid.items()
     }
-
 
 def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, touched_uids,
                                league, users, players, projections):
