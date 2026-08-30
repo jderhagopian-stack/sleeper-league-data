@@ -236,8 +236,8 @@ jobs:
               nr=x.get('negotiation_ranking') or {}
               if nr:
                   assert abs(float(nr['state_aware_post_sim_score'])-float(x['post_sim_score']))<1e-6
-                  assert nr['ranking_model_version']=='FSFFL-Negotiation-Ranking-2.0'
-                  assert nr['weights']=={'focal_strategic_gain':0.625,'acceptance_fit':0.375,'owner_behavior_match':0.0}
+                  assert nr['ranking_model_version']=='FSFFL-Negotiation-Ranking-3.0'
+                  assert nr['weights']=={'focal_strategic_gain':1.0,'acceptance_fit':0.0,'owner_behavior_match':0.0}
                   assert nr['behavior_already_in_acceptance_fit'] is True
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
