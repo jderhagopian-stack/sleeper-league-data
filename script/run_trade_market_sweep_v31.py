@@ -104,13 +104,13 @@ def main():
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
 
+    bilateral_composition.install(
+        v20, bilateral_gate, negotiation_family, candidate_selector
+    )
     state_selector_composition.install(
         v20, state_policy, candidate_selector, ranker
     )
     multi_asset_composition.install(v20, multi_asset_packages)
-    bilateral_composition.install(
-        v20, bilateral_gate, negotiation_family, candidate_selector
-    )
     bi3_cache, bi3_cache_status = trade_behavior.load_bi3_cache()
     trade_behavior.install(historical_behavior, bi2, bi3_cache, bi3_cache_status)
     historical_index = historical_behavior.install_historical_state_conditioning(
