@@ -1,0 +1,62 @@
+name: Opportunity Engine Phase 2 Calibration
+
+on:
+  workflow_dispatch:
+    inputs:
+      focus_user_id:
+        description: 'Sleeper user id of franchise to calibrate'
+        required: true
+        default: '846634401482792960'
+        type: string
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python script/build_fsffl_full_projection_universe.py
+      - run: python script/refresh_behavioral_intelligence_v3.py
+      - name: Run calibration matrix
+        run: |
+          mkdir -p /tmp/oe-cal
+          run_oe () {
+            label=$1; quick=$2; confirm=$3; trade=$4; waiver=$5; top=$6; pdepth=$7; psims=$8; pconfirm=$9
+            python script/opportunity_engine/application.py \
+              --focus-user-id '${{ inputs.focus_user_id }}' \
+              --quick-sims "$quick" --confirm-sims "$confirm" \
+              --trade-screen "$trade" --waiver-screen "$waiver" --confirm-top "$top" \
+              --portfolio-depth "$pdepth" --portfolio-sims "$psims" --portfolio-confirm-sims "$pconfirm" \
+              --portfolio-confirm-top 3 --trade-review-depth 0 \
+              --output "/tmp/oe-cal/${label}.json"
+          }
+          # Current production budget.
+          run_oe prod 200 1000 30 30 5 6 500 5000
+          # Simulation-only sensitivity, holding search depth constant.
+          run_oe sims_500 500 2500 30 30 5 6 1000 5000
+          run_oe sims_1000 1000 5000 30 30 5 6 2000 7500
+          # Search-depth sensitivity, with moderately higher precision.
+          run_oe search_50 500 2500 50 50 10 10 1000 5000
+          run_oe search_75 500 2500 75 75 15 12 1000 5000
+          # Deep same-state reference; diagnostic, not ground truth.
+          run_oe reference 1000 7500 100 100 20 15 2000 10000
+      - name: Compare configurations
+        run: |
+          python script/audit_opportunity_engine_phase2_calibration.py \
+            --reference /tmp/oe-cal/reference.json \
+            --candidate prod=/tmp/oe-cal/prod.json \
+            --candidate sims_500=/tmp/oe-cal/sims_500.json \
+            --candidate sims_1000=/tmp/oe-cal/sims_1000.json \
+            --candidate search_50=/tmp/oe-cal/search_50.json \
+            --candidate search_75=/tmp/oe-cal/search_75.json \
+            --output /tmp/oe-cal/calibration.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-engine-phase2-calibration
+          path: /tmp/oe-cal/*
+          if-no-files-found: error
+          retention-days: 30
