@@ -587,6 +587,49 @@ def _attach_reviews_to_portfolio(portfolio, reviews):
     return out
 
 
+def _execution_status(plan):
+    """Report authority conflicts without inventing a new trade score."""
+    if not plan:
+        return {
+            "status": "NO_ACTION",
+            "authority": "GM3 Team Improvement",
+        }
+    steps = list(plan.get("steps") or [])
+    if not steps:
+        steps = [plan]
+    trade_steps = [x for x in steps if str(x.get("channel") or "") == "TRADE"]
+    if not trade_steps:
+        return {
+            "status": "GOVERNED_NO_TRADE_REVIEW_REQUIRED",
+            "authority": "GM3 Team Improvement",
+        }
+
+    actions = []
+    missing = False
+    for step in trade_steps:
+        review = step.get("trade_decision_review") or {}
+        action = review.get("recommended_next_action")
+        if not action:
+            missing = True
+        else:
+            actions.append(str(action))
+
+    if missing:
+        status = "PENDING_TRADE_DECISION_REVIEW"
+    elif any(x == "DECLINE" for x in actions):
+        status = "BLOCKED_BY_TRADE_DECISION"
+    elif any(x in {"COUNTER_CURRENT_OFFEROR", "SHOP_BEFORE_ACCEPTING"} for x in actions):
+        status = "TRADE_DECISION_REFINEMENT_RECOMMENDED"
+    else:
+        status = "TRADE_DECISION_FOCALLY_ACCEPTABLE_COUNTERPARTY_WILLINGNESS_UNOBSERVED"
+    return {
+        "status": status,
+        "trade_decision_actions": actions,
+        "authority": "Trade Decision",
+        "counterparty_willingness_observed": False,
+    }
+
+
 def _best_plan(single, portfolio):
     best_portfolio = (portfolio or {}).get("best_portfolio") or {}
     preferred = bool((portfolio or {}).get("best_portfolio_preferred_to_best_single_step"))
@@ -597,11 +640,18 @@ def _best_plan(single, portfolio):
             "Higher GM3 Team Improvement utility than the best single step at equal confirmation precision."
         )
         plan["selection_authority"] = "GM3 Team Improvement"
+        plan["execution_status"] = _execution_status(plan)
         return plan
     plan = copy.deepcopy(single or {})
-    plan["plan_type"] = "SINGLE_STEP" if plan else "HOLD"
-    plan["selection_basis"] = "Best governed single-step action from GM3 Team Improvement."
+    channel = str(plan.get("channel") or "")
+    plan["plan_type"] = "HOLD" if channel == "HOLD" or not plan else "SINGLE_STEP"
+    plan["selection_basis"] = (
+        "Explicit HOLD benchmark from GM3 Team Improvement."
+        if plan["plan_type"] == "HOLD"
+        else "Best governed single-step action from GM3 Team Improvement."
+    )
     plan["selection_authority"] = "GM3 Team Improvement"
+    plan["execution_status"] = _execution_status(plan)
     return plan
 
 
