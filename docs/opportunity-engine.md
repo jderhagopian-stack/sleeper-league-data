@@ -39,8 +39,12 @@ It does not create a second valuation model.
 10. Low-cost portfolio screening followed by deeper confirmation of finalists.
 11. Equal-precision comparison of the best portfolio against the best single move.
 12. Trade Decision routing for leading generated trade proposals.
-13. Presentation-only Markdown report.
-14. On-demand GitHub Actions workflow.
+13. Trade Decision routing for trade steps inside the preferred portfolio.
+14. A governed **best plan available** that chooses between the best single step and the best confirmed two-move portfolio using equal-precision GM3 utility.
+15. Negotiation revisit queue for positive-utility trades with currently LOW/VERY_LOW behavioral fit.
+16. Explicit search-coverage disclosure so bounded computational search is never presented as exhaustive.
+17. Presentation-only Markdown report.
+18. On-demand GitHub Actions workflow.
 
 ## Search vs judgment
 
@@ -97,3 +101,15 @@ Production workflow:
 The workflow builds the full projection universe, refreshes Behavioral
 Intelligence, runs Opportunity Engine, routes the leading trade through Trade
 Decision, renders a report, and uploads the resulting artifacts.
+
+## Completion semantics
+
+Opportunity Engine 1.5 is considered the first complete decision-grade version of the
+on-demand opportunity workflow. It can search single actions, compare them across
+trade/waiver/HOLD channels, construct and confirm compatible two-move portfolios,
+route generated trades through Trade Decision, and select the best governed plan.
+
+"Complete" does not mean exhaustive enumeration of every theoretically possible
+transaction. Search depth remains bounded for runtime reasons and is disclosed in
+the output. Future work can improve search breadth or add new specialist channels
+without changing the authority contract.
