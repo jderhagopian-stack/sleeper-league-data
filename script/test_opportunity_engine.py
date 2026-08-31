@@ -44,6 +44,8 @@ assert [x["description"] for x in board["ranked_single_step_opportunities"]] == 
     "Trade A for B", "Add E", "Trade C for D"
 ], "Opportunity Engine must preserve upstream governed order rather than resorting"
 assert board["best_move_available"]["description"] == "Trade A for B"
+assert board["best_plan_available"]["description"] == "Trade A for B"
+assert board["best_plan_available"]["plan_type"] == "SINGLE_STEP"
 assert board["best_trade_opportunity"]["opportunity_engine_status"] == "CANDIDATE_REQUIRES_TRADE_DECISION_REVIEW"
 assert board["best_waiver_opportunity"]["opportunity_engine_status"] == "GOVERNED_SINGLE_STEP_OPPORTUNITY"
 assert board["provenance"]["opportunity_engine_rescoring_applied"] is False
@@ -66,10 +68,31 @@ summary=mod._summarize_trade_decision({
 assert summary["recommended_next_action"]=="ACCEPT_NOW"
 assert summary["generated_proposal_willingness_observed"] is False
 assert board["capability_status"]["multi_step_portfolio_optimization"] is False
+assert board["capability_status"]["best_plan_selects_between_single_and_portfolio_on_governed_utility"] is True
+assert board["negotiation_revisit_queue"] == []
+assert board["search_coverage"]["bounded_search_not_exhaustive"] is True
 assert board["policy"]["specialized_views_preserve_upstream_order"] is True
 assert board["provenance"]["portfolio_scores_owned_by_gm3_team_improvement"] is True
 assert board["provenance"]["specialist_intelligence_changes_ranking"] is False
-assert board["model_version"]=="FSFFL-Opportunity-Engine-1.4"
+assert board["model_version"]=="FSFFL-Opportunity-Engine-1.5"
 assert board["policy"]["specialist_intelligence_is_context_not_rescoring"] is True
 assert board["policy"]["portfolio_search_budget_is_computational_only"] is True
 print("Opportunity Engine governed composition regression passed")
+
+synthetic_portfolio = {
+    "best_portfolio": {
+        "description": "Trade A for B THEN Add E",
+        "team_improvement_score": 15.0,
+        "steps": [
+            {"channel": "TRADE", "description": "Trade A for B"},
+            {"channel": "WAIVER", "description": "Add E"},
+        ],
+    },
+    "top_portfolios": [],
+    "best_portfolio_preferred_to_best_single_step": True,
+    "candidate_pairs_evaluated": 1,
+}
+plan_board = mod.build_board(source, portfolio_depth=2, portfolio_override=synthetic_portfolio)
+assert plan_board["best_plan_available"]["plan_type"] == "PORTFOLIO"
+assert plan_board["best_plan_available"]["description"] == "Trade A for B THEN Add E"
+print("Opportunity Engine governed best-plan selection regression passed")
