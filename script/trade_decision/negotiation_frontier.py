@@ -9,7 +9,7 @@ acceptance probability, or an exchange rate between feasibility and focal value.
 from __future__ import annotations
 import copy
 
-MODEL_VERSION = "FSFFL-Trade-Decision-Negotiation-Frontier-1.1"
+MODEL_VERSION = "FSFFL-Trade-Decision-Negotiation-Frontier-1.2"
 AUTHORITY = "Trade Decision"
 
 
@@ -68,25 +68,33 @@ def classify_trade(row):
     """Interpret a governed generated package for negotiation use."""
     out = copy.deepcopy(row)
     utility = _counterparty_utility(out)
+    focal = _focal_utility(out)
     fit = str(out.get("acceptance_fit") or out.get("source_recommendation_band") or "UNKNOWN").upper()
     bilateral = utility is not None and utility >= 0.0
-    if not bilateral:
+    focal_positive = focal is not None and focal > 0.0
+    if not focal_positive:
+        bucket = "FOCAL_OVERPAY"
+        posture = "DO_NOT_PURSUE_AT_EXPECTED_COST"
+        reason = "The governed GM3 franchise-improvement utility is non-positive at this package price."
+    elif not bilateral:
         bucket = "THEORETICAL_UPGRADE"
         posture = "DO_NOT_TREAT_AS_ACTIONABLE"
         reason = "The current generated package does not clear governed counterparty bilateral utility."
     elif fit in {"HIGH", "MEDIUM"}:
         bucket = "ACTIONABLE_NEGOTIATION"
-        posture = "WORTH_SENDING_OR_OPENING_NEGOTIATION"
-        reason = "The package clears governed bilateral utility and descriptive negotiation fit is medium/high."
+        posture = "PURSUE"
+        reason = "The package clears governed bilateral utility and remains positive for the focal franchise."
     else:
         bucket = "NEGOTIATION_TARGET"
-        posture = "EXPLORE_PRICE_NOT_EXECUTION_READY"
-        reason = "The package clears governed bilateral utility, but descriptive negotiation fit is weak."
+        posture = "OPEN_NEGOTIATION"
+        reason = "The package clears governed bilateral utility and remains positive for the focal franchise, but descriptive negotiation fit is weak."
     out["negotiation_frontier"] = {
         "model_version": MODEL_VERSION,
         "authority": AUTHORITY,
         "bucket": bucket,
         "negotiation_posture": posture,
+        "focal_team_improvement_utility": focal,
+        "focal_utility_positive": focal_positive,
         "counterparty_shared_utility": utility,
         "counterparty_bilateral_viable": bilateral,
         "descriptive_acceptance_fit": fit,
@@ -97,7 +105,6 @@ def classify_trade(row):
         "creates_new_acceptance_probability": False,
     }
     return out
-
 
 def build_target_price_frontier(rows):
     """Build a discrete negotiation frontier from already-evaluated packages.
@@ -168,6 +175,7 @@ def build(rows):
     actionable = [x for x in classified if x["negotiation_frontier"]["bucket"] == "ACTIONABLE_NEGOTIATION"]
     explore = [x for x in classified if x["negotiation_frontier"]["bucket"] == "NEGOTIATION_TARGET"]
     theoretical = [x for x in classified if x["negotiation_frontier"]["bucket"] == "THEORETICAL_UPGRADE"]
+    focal_overpay = [x for x in classified if x["negotiation_frontier"]["bucket"] == "FOCAL_OVERPAY"]
     grouped = {}
     for row in rows:
         if str(row.get("channel") or "") != "TRADE":
@@ -187,6 +195,9 @@ def build(rows):
         "best_actionable_trade": actionable[0] if actionable else None,
         "best_negotiation_target": explore[0] if explore else None,
         "best_theoretical_upgrade": theoretical[0] if theoretical else None,
+        "focal_overpay_packages": focal_overpay,
+        "best_focal_overpay_package": focal_overpay[0] if focal_overpay else None,
+        "high_impact_price_gap_targets": [x for x in price_frontiers if not x.get("price_overlap_exists")],
         "target_price_frontiers": price_frontiers,
         "best_price_overlap": next((x for x in price_frontiers if x.get("price_overlap_exists")), None),
         "policy": {
