@@ -14,7 +14,7 @@ future-value cliff.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.1"
+MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.2"
 
 
 def sf(v, d=0.0):
@@ -32,14 +32,33 @@ def key(row):
     )
 
 
+def _economic_asset_signature(asset):
+    aid = str(asset.get("asset_id") or "")
+    if asset.get("asset_type") != "pick":
+        return ("asset", aid)
+    pp = asset.get("pick_profile") or {}
+    return (
+        "pick",
+        int(pp.get("season") or 0),
+        int(pp.get("round") or 0),
+        round(sf(asset.get("market_dynasty")), 2),
+        str(pp.get("most_likely_tier") or ""),
+    )
+
+
+def _economic_side_signature(row, side):
+    strategic = ((row.get("simulation") or {}).get("strategic") or {})
+    assets = strategic.get(side) or []
+    if assets:
+        return tuple(sorted(_economic_asset_signature(x) for x in assets))
+    return tuple(sorted(map(str, row.get("outgoing_assets" if side == "sent" else "return_assets") or [])))
+
+
 def family(row):
     return (
         str(row.get("buyer_user_id") or ""),
-        tuple(sorted(map(str, row.get("outgoing_assets") or []))),
-        tuple(sorted(
-            x for x in map(str, row.get("return_assets") or [])
-            if not x.startswith("pick:")
-        )),
+        _economic_side_signature(row, "sent"),
+        _economic_side_signature(row, "received"),
     )
 
 
@@ -172,6 +191,8 @@ def apply_to_report(report):
         "suggested_counteroffers_max": 2,
         "suggested_counteroffers_same_partner_only": True,
         "suggested_counteroffers_never_padded": True,
+        "economically_identical_pick_packages_deduplicated": True,
+        "pick_deduplication_requires_same_season_round_market_value_and_tier": True,
         "market_sweep_max": 5,
         "market_sweep_excludes_current_partner": True,
         "market_sweep_never_padded": True,
