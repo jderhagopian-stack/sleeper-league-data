@@ -5,7 +5,7 @@ import copy, importlib.util, sys
 from pathlib import Path
 MODEL_VERSION='FSFFL-GM-Team-Improvement-Application-1.0'
 EXPECTED_IMPLEMENTATION_VERSION='FSFFL-GM-Team-Improvement-Lab-1.6'
-SCRIPT=Path(__file__).resolve().parent.parent; IMPLEMENTATION=SCRIPT/'run_team_improvement_lab_v13.py'
+SCRIPT=Path(__file__).resolve().parent.parent; IMPLEMENTATION=SCRIPT/'run_team_improvement_lab_v16.py'
 if str(SCRIPT) not in sys.path: sys.path.insert(0,str(SCRIPT))
 def _load_current():
     spec=importlib.util.spec_from_file_location('fsffl_gm3_team_improvement_current',IMPLEMENTATION); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
