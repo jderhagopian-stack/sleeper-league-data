@@ -31,3 +31,5 @@ jobs:
     uses: ./.github/workflows/gm30-nonprojection-governance.yml
   statsguy-market-decisions:
     uses: ./.github/workflows/statsguy-player-market-decisions.yml
+  opportunity-engine:
+    uses: ./.github/workflows/test-opportunity-engine.yml

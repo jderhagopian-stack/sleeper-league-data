@@ -64,9 +64,6 @@ jobs:
           mkdir -p /tmp/team-improvement
           python script/gm3/team_improvement.py --focus-user-id 846634401482792960 --quick-sims 50 --confirm-sims 100 --trade-screen 8 --waiver-screen 8 --confirm-top 3 --output /tmp/team-improvement/report.json
           python script/render_gm_action_report_v10.py --input /tmp/team-improvement/report.json --output /tmp/team-improvement/GM_Action_Report.pdf
-      - name: Build Opportunity Engine board from governed Team Improvement output
-        run: |
-          python script/opportunity_engine/application.py --focus-user-id 846634401482792960 --team-improvement-input /tmp/team-improvement/report.json --portfolio-depth 5 --portfolio-sims 50 --trade-review-depth 0 --output /tmp/team-improvement/opportunity-board.json
       - name: Validate output invariants
         run: |
           python - <<'PY'
@@ -102,27 +99,6 @@ jobs:
           assert 'FSFFL GM ACTION REPORT' in text
           assert '...' not in text and '\u2026' not in text, text
           print('Team Improvement Lab shared utility + GM Action Report validation passed')
-          PY
-          python - <<'PY'
-          import json
-          b=json.load(open('/tmp/team-improvement/opportunity-board.json'))
-          r=json.load(open('/tmp/team-improvement/report.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.2'
-          assert b['provenance']['source_model_version']==r['model_version']
-          assert b['provenance']['cross_channel_order_preserved_from_source'] is True
-          assert b['provenance']['opportunity_engine_rescoring_applied'] is False
-          assert b['provenance']['opportunity_engine_reranking_applied'] is False
-          assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
-          assert b['capability_status']['multi_step_portfolio_optimization'] is True
-          assert b['portfolio_optimization']['candidate_pairs_evaluated'] > 0
-          assert b['portfolio_optimization']['authority']=='GM3 Team Improvement'
-          assert b['trade_decision_reviews']==[]
-          assert [x.get('description') for x in b['ranked_single_step_opportunities']] == [x.get('description') for x in r['top_cross_channel_options']]
-          if b.get('best_trade_opportunity'):
-              assert b['best_trade_opportunity']['opportunity_engine_status']=='CANDIDATE_REQUIRES_TRADE_DECISION_REVIEW'
-          if b.get('best_waiver_opportunity'):
-              assert b['best_waiver_opportunity']['opportunity_engine_status']=='GOVERNED_SINGLE_STEP_OPPORTUNITY'
-          print('Opportunity Engine live vertical-slice validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
