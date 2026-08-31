@@ -135,11 +135,16 @@ jobs:
             --trade-review-confirm-sims '50000' \
             --output /tmp/opportunity-engine/opportunity-board.json \
             | tee /tmp/opportunity-engine/summary.log
-      - name: Render Opportunity Engine summary
+      - name: Render Opportunity Engine machine-readable summary
         run: |
           python script/render_opportunity_engine_report.py \
             --input /tmp/opportunity-engine/opportunity-board.json \
             --output /tmp/opportunity-engine/Opportunity_Engine_Report.md
+      - name: Render standardized Opportunity Engine PDF
+        run: |
+          python script/render_opportunity_engine_pdf.py \
+            --input /tmp/opportunity-engine/opportunity-board.json \
+            --output /tmp/opportunity-engine/Opportunity_Engine_Report.pdf
       - name: Validate governed output
         run: |
           python - <<'PY'
@@ -165,6 +170,21 @@ jobs:
                   assert x['authority']=='Trade Decision'
                   assert x['trade_decision']['generated_proposal_willingness_observed'] is False
           print('Opportunity Engine 2.0 governed production validation passed')
+          PY
+      - name: Validate standardized PDF deliverable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          p=Path('/tmp/opportunity-engine/Opportunity_Engine_Report.pdf')
+          assert p.exists() and p.stat().st_size > 5000
+          r=PdfReader(str(p))
+          assert len(r.pages) >= 2
+          text='\n'.join((page.extract_text() or '') for page in r.pages)
+          assert 'FSFFL OPPORTUNITY ENGINE' in text
+          assert 'RANKED OPPORTUNITY BOARD' in text
+          assert 'EXECUTION, UNCERTAINTY & GOVERNANCE' in text
+          print(f'Validated standardized Opportunity Engine PDF: {len(r.pages)} pages, {p.stat().st_size} bytes')
           PY
       - uses: actions/upload-artifact@v4
         with:
