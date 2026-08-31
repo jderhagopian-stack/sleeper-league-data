@@ -11,16 +11,16 @@ import json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'data'/'audit'; OUT.mkdir(parents=True,exist_ok=True)
-MODEL_VERSION='FSFFL-Trade-Negotiation-Signal-Accounting-1.0'
+MODEL_VERSION='FSFFL-Trade-Negotiation-Signal-Accounting-1.1'
 FILES={
  'utility':ROOT/'script'/'decision_utility.py',
  'ranker':ROOT/'script'/'negotiation_ranking.py',
  'bilateral':ROOT/'script'/'trade_bilateral_gate.py',
  'behavior':ROOT/'script'/'trade_decision'/'behavior_integration.py',
  'frontier':ROOT/'script'/'trade_decision'/'negotiation_frontier.py',
- 'gm3':ROOT/'script'/'run_team_improvement_lab_v13.py',
+ 'gm3':ROOT/'script'/'run_team_improvement_lab_v16.py',
  'oe_adapter':ROOT/'script'/'opportunity_engine'/'negotiation_frontier.py',
- 'oe':ROOT/'script'/'opportunity_engine'/'application_v2.py',
+ 'oe':ROOT/'script'/'opportunity_engine'/'application_v21.py',
 }
 def text(k): return FILES[k].read_text(encoding='utf-8')
 def main():
