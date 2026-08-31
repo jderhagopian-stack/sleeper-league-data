@@ -64,6 +64,32 @@ findings = [
         "ok": declared.get("shared_core_policy", "").startswith("No new Shared Core primitive"),
         "observation": "Phase 1 does not prematurely promote application orchestration into Shared Core.",
     },
+    {
+        "id": "OE-BEST-PLAN-007",
+        "ok": (
+            "best_portfolio_preferred_to_best_single_step" in source
+            and "Higher GM3 Team Improvement utility than the best single step at equal confirmation precision." in source
+            and declared.get("best_plan_policy", "").startswith("Opportunity Engine may select")
+        ),
+        "observation": "Best-plan selection must reuse GM3's explicit equal-precision single-vs-portfolio comparison rather than inventing a score.",
+    },
+    {
+        "id": "OE-REVISIT-008",
+        "ok": (
+            'not in {"LOW", "VERY_LOW"}' in source
+            and "acceptance_fit_is_not_probability" in source
+            and "revisit_basis" in source
+        ),
+        "observation": "Negotiation revisit queue may reuse existing behavioral-fit labels but may not create a new probability or threshold.",
+    },
+    {
+        "id": "OE-COVERAGE-009",
+        "ok": (
+            '"bounded_search_not_exhaustive": True' in source
+            and declared.get("search_coverage_policy", "").startswith("Search budgets are computational limits")
+        ),
+        "observation": "Opportunity search coverage must disclose bounded computational search rather than imply exhaustive enumeration.",
+    },
 ]
 
 failed = [x for x in findings if not x["ok"]]
