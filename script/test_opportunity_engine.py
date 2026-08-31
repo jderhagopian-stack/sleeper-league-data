@@ -50,4 +50,6 @@ assert board["provenance"]["opportunity_engine_rescoring_applied"] is False
 assert board["provenance"]["opportunity_engine_reranking_applied"] is False
 assert board["policy"]["creates_new_valuation_model"] is False
 assert board["capability_status"]["multi_step_portfolio_optimization"] is False
+assert board["policy"]["specialized_views_preserve_upstream_order"] is True
+assert board["provenance"]["portfolio_scores_owned_by_gm3_team_improvement"] is True
 print("Opportunity Engine governed composition regression passed")

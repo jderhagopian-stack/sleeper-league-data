@@ -1,5 +1,5 @@
 {
-  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.0",
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.1",
   "application": "Opportunity Engine",
   "layer": "Application",
   "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
@@ -10,7 +10,8 @@
     "existing_authoritative_modules_retain_authority": true,
     "search_heuristics_are_non_authoritative": true,
     "final_outputs_preserve_source_provenance": true,
-    "no_hidden_rescoring": true
+    "no_hidden_rescoring": true,
+    "portfolio_search_may_not_create_parallel_utility": true
   },
   "authority_map": {
     "projections": "Shared Core projection and uncertainty system",
@@ -20,16 +21,24 @@
     "behavioral_evidence": "Behavioral Intelligence",
     "prospect_evaluation": "Draft Intelligence",
     "breakout_and_emerging_value": "Breakout / Sleeper Intelligence",
-    "opportunity_engine": "Candidate search orchestration, coverage accounting, and governed output composition only"
+    "opportunity_engine": "Candidate search orchestration, specialized governed views, portfolio candidate enumeration, coverage accounting, and output composition only",
+    "portfolio_evaluation": "GM3 / Team Improvement with Shared Decision Utility"
   },
   "phase_1_vertical_slice": {
-    "channels": ["TRADE", "WAIVER", "HOLD"],
-    "single_step_only": true,
+    "channels": [
+      "TRADE",
+      "WAIVER",
+      "HOLD"
+    ],
+    "single_step_discovery": true,
     "candidate_source": "GM3 Team Improvement",
     "cross_channel_order_source": "GM3 Team Improvement",
     "trade_candidates_require_trade_decision_review_before_execution": true,
     "waiver_candidates_use_team_improvement_authority": true,
-    "multi_step_portfolio_optimization_enabled": false
+    "specialized_views_use_existing_governed_signals_without_rescoring": true,
+    "two_step_portfolio_optimization_enabled": true,
+    "portfolio_evaluation_authority": "GM3 Team Improvement",
+    "portfolio_search_budget_is_computational_only": true
   },
   "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
   "forbidden_authority": [
