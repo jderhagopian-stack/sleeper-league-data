@@ -1,0 +1,31 @@
+name: CI Suite - Behavioral Intelligence and Benchmarks
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  behavioral-v2:
+    uses: ./.github/workflows/test-behavioral-intelligence.yml
+  behavioral-v3-context:
+    uses: ./.github/workflows/test-behavioral-intelligence-v3.yml
+  behavioral-v3-production:
+    uses: ./.github/workflows/test-behavioral-intelligence-v3-production.yml
+  empirical-benchmark:
+    uses: ./.github/workflows/empirical-validation-and-benchmark-gate.yml

@@ -1,0 +1,33 @@
+name: CI Suite - Trade Integration
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  counter-market-sweep:
+    uses: ./.github/workflows/test-counter-market-sweep.yml
+  state-aware-market-sweep:
+    uses: ./.github/workflows/test-state-aware-market-sweep.yml
+  bilateral-market-intelligence:
+    uses: ./.github/workflows/test-market-intelligence-bilateral.yml
+  automatic-trade-report:
+    uses: ./.github/workflows/test-trade-report.yml
+  historical-trade-analysis:
+    uses: ./.github/workflows/test-historical-trade-analysis.yml
