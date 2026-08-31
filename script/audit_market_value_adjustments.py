@@ -67,9 +67,9 @@ def main() -> None:
         },
         {
             "id": "MARKET-OVERLAY-CORRELATION-001",
-            "status": "ABLATION_REQUIRED_FOR_REMAINING_INDEPENDENT_OVERLAYS",
+            "status": "DUPLICATIVE_REPRICING_REMOVED_DIAGNOSTICS_PRESERVED",
             "evidence_tier": gm_config.get("evidence_tier"),
-            "observation": "Recent performance, usage/snap trend, injury status and manual news can still overlap. Bounds limit leverage but do not establish independent predictive value.",
+            "observation": "Recent performance, usage/snap trend, injury status and manual news remain available as football context, but their former hand-set percentage adjustments no longer reprice the current dynasty-market anchor. Current production impact belongs in projections/Simulator; market residual repricing can return only with held-out incremental evidence.",
             "authoritative_incremental_adjustment_claim_allowed": False,
         },
     ]
@@ -77,7 +77,7 @@ def main() -> None:
     report = {
         "schema_version": "1.2",
         "audit_family": "market/value adjustments",
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "production_state_changed_by_governed_fix": True,
         "policy": {
             "current_market_anchor_is_not_empirical_validation_of_overlays": True,
@@ -92,7 +92,8 @@ def main() -> None:
             "market_trend_remains_available_as_diagnostic": True,
             "market_trend_reintroduction_requires_temporal_holdout_improvement": True,
             "bounded_adjustment_is_not_evidence_of_correctness": True,
-            "correlated_overlay_families_require_ablation": True,
+            "correlated_overlay_families_require_ablation_before_reintroduction": True,
+            "performance_usage_injury_news_incremental_market_repricing_removed": True,
             "promotion_requires_temporal_holdout_improvement": True,
             "new_coefficient_introduced": False,
         },

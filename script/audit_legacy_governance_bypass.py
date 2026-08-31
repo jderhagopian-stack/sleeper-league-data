@@ -15,6 +15,8 @@ def main():
     dl=read("script/decision_lab_state_aware.py")
     v20=read("script/run_trade_market_sweep_v20.py")
     state=read("script/trade_state_policy.py")
+    utility=read("script/decision_utility.py")
+    bilateral=read("script/trade_bilateral_gate.py")
     hist=read("script/trade_decision/historical_behavior_policy.py")
     high=read("script/nonprojection_high_priority_overrides.py")
     ggov=read("script/gm30_nonprojection_governance.py")
@@ -38,16 +40,19 @@ def main():
       "decision_lab_governance_install_order_correct":dl_order==sorted(dl_order),
       "decision_lab_installs_high_priority_nonprojection_governance":"high_priority.install(gm30.core)" in dl,
       "decision_lab_installs_gm30_pick_governance":"gm30_gov.install(gm30.core)" in dl,
-      "categorical_state_weight_fallback_removed":"def fallback_weights(" not in v20 and "categorical fallback weights are forbidden" in v20,
+      "categorical_state_weight_fallback_removed":"def fallback_weights(" not in v20 and "resolved = utility.score(sim)" in v20 and "categorical fallback weights are forbidden" in utility,
       "categorical_title_loss_cap_disabled":"engine.contender_title_cap = lambda state: None" in v20 and "engine.contender_title_cap(state)" not in v20,
       "categorical_behavior_state_table_removed":all(x not in state for x in ('if state == "elite_contender"','elif state == "contender"','elif state == "retool"','elif state == "rebuild"')),
       "categorical_behavior_conditioning_forbidden":"categorical_state_conditioning_authorized" in state,
+      "categorical_buyer_gate_removed":"FSFFL-Bilateral-Buyer-Gate-2.0" in bilateral and "buyer_decision_utility_score" in bilateral and all(x not in bilateral for x in ('state == "elite_contender"','state == "contender"','state == "retool"','state == "rebuild"')),
       "historical_same_state_analysis_preserved":"historical_behavior_prefers_same_state_samples" in hist and "owner_state_profile(uid, state)" in hist,
       "historical_same_state_categorical_rescaling_removed":"categorical_state_rescaling_authorized" in hist and all(x not in hist for x in ('if state == "elite_contender"','elif state == "contender"','elif state == "retool"','elif state == "rebuild"')),
       "market_momentum_incremental_value_removed":"incremental_adjustment_authorized" in high and "market_momentum_incremental_value_removed" in high,
       "own_pick_control_bonus_removed":"own_pick_control_incremental_value_authorized" in high and "own_pick_control_incremental_value_authorized" in ggov,
       "forecast_uncertainty_incremental_pick_value_removed":"forecast_uncertainty_incremental_value_authorized" in ggov,
       "duplicate_pick_incremental_premiums_removed":"quality_optionality_incremental_value_authorized" in high and "liquidity_incremental_value_authorized" in high,
+      "fixed_trade_utility_conversion_constants_removed":"FSFFL-Shared-Decision-Utility-2.0" in utility and all(x not in utility for x in ("CURRENT_TITLE_SCALE","CURRENT_PLAYOFF_SCALE","CURRENT_WINS_SCALE","CURRENT_POINTS_SCALE","FUTURE_OPTIONALITY_SCALE","LIQUIDITY_SCALE","RESILIENCE_SCALE","OPPONENT_EXTERNALITY_SCALE")),
+      "legacy_owner_specific_value_multipliers_non_authoritative":"owner_specific_valuation_multipliers_incremental_value_authorized" in high and "owner_specific_valuation_multipliers_diagnostic_only" in high,
     }
     passed=all(findings.values())
     payload={
@@ -66,11 +71,14 @@ def main():
         "Trade Decision categorical championship-loss cap",
         "Trade Decision categorical state-weight fallback",
         "Trade Decision categorical state-conditioned behavior table",
+        "Trade Decision categorical buyer feasibility thresholds",
+        "Fixed Trade Decision unit-conversion constants",
+        "Legacy GM owner-specific need/preference/window/endowment value multipliers",
         "Historical same-state BI categorical compatibility multipliers",
       ],
     }
     OUT.parent.mkdir(parents=True,exist_ok=True)
-    OUT.write_text(json.dumps(payload,indent=2)+"\n",encoding="utf-8")
+    OUT.write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload,indent=2))
     if not passed:
       raise SystemExit("Legacy governance bypass audit failed")

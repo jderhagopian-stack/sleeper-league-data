@@ -86,6 +86,9 @@ def install(engine):
         "own_pick_control_bonus_removed": False,
         "statsguy_future_pick_anchor": False,
         "market_momentum_incremental_value_removed": False,
+        "owner_specific_valuation_multipliers_diagnostic_only": False,
+        "football_market_repricing_overlays_diagnostic_only": False,
+        "simulator_continuous_pick_quality_anchor": False,
     }
 
     # The current market price already embeds the information that produced its
@@ -122,6 +125,79 @@ def install(engine):
         engine.infer_fc_pick_values = infer_statsguy_pick_values
         applied["statsguy_future_pick_anchor"] = True
 
+    # Future-pick point estimates: replace the legacy hard early/mid/late
+    # contender-score cliff with a continuous interpolation across observed
+    # external early/mid/late pick-market cells. The interpolation coordinate
+    # is the original team's canonical Simulator competitive percentile. This
+    # keeps useful pick-quality differentiation without hand-set team-strength
+    # blend coefficients or categorical valuation jumps.
+    original_build_future_pick_assets = getattr(engine, "build_future_pick_assets", None)
+    if original_build_future_pick_assets is not None:
+        def simulator_continuous_pick_assets(
+            rosters, traded_picks, team_profiles, profile_by_uid, detected_pick_values
+        ):
+            assets = original_build_future_pick_assets(
+                rosters, traded_picks, team_profiles, profile_by_uid, detected_pick_values
+            )
+            try:
+                season = int(engine.LEAGUE_RULES["season"])
+                sim = engine.load_json(
+                    engine.DATA / "simulator" / str(season) / "outputs" / "standings_projection.json",
+                    {},
+                ) or {}
+                teams = list(sim.get("teams") or [])
+                ordered = sorted(
+                    teams,
+                    key=lambda x: (
+                        _sf(x.get("championship_probability")),
+                        _sf(x.get("bye_probability")),
+                        _sf(x.get("playoff_probability")),
+                        _sf(x.get("expected_wins")),
+                    ),
+                )
+                # Weakest=0 -> early anchor; strongest=1 -> late anchor.
+                n = len(ordered)
+                pct = {
+                    str(row.get("user_id")): (i / (n - 1) if n > 1 else 0.5)
+                    for i, row in enumerate(ordered)
+                    if row.get("user_id") is not None
+                }
+                for aid, row in assets.items():
+                    uid = str(row.get("original_owner_user_id") or "")
+                    if uid not in pct:
+                        row["pick_quality_point_estimate_source"] = "legacy_fallback_simulator_team_missing"
+                        continue
+                    year = int(row.get("season"))
+                    rnd = int(row.get("round"))
+                    early = engine.fallback_pick_value(year, "early", rnd, detected_pick_values)
+                    mid = engine.fallback_pick_value(year, "mid", rnd, detected_pick_values)
+                    late = engine.fallback_pick_value(year, "late", rnd, detected_pick_values)
+                    p = pct[uid]
+                    if p <= 0.5:
+                        value = early + (mid - early) * (p / 0.5)
+                    else:
+                        value = mid + (late - mid) * ((p - 0.5) / 0.5)
+                    display_tier = "early" if p < (1.0 / 3.0) else "late" if p > (2.0 / 3.0) else "mid"
+                    row["legacy_discrete_tier_value_diagnostic"] = row.get("market_dynasty")
+                    row["market_dynasty"] = round(value, 1)
+                    row["projected_pick_tier"] = display_tier
+                    row["simulator_competitive_percentile"] = round(p, 4)
+                    row["pick_quality_point_estimate_source"] = "canonical_simulator_percentile_continuous_external_market_interpolation"
+                    row["pick_quality_categorical_cliff_authoritative"] = False
+                    row["pick_quality_scenario_values"] = {
+                        "early": round(early, 1),
+                        "mid": round(mid, 1),
+                        "late": round(late, 1),
+                    }
+                    row["pick_quality_scenario_values_are_uncertainty_bounds_not_probabilities"] = True
+                applied["simulator_continuous_pick_quality_anchor"] = True
+            except Exception as exc:
+                for row in assets.values():
+                    row["pick_quality_point_estimate_source"] = "legacy_fallback_simulator_unavailable"
+                    row["pick_quality_point_estimate_error"] = repr(exc)
+            return assets
+        engine.build_future_pick_assets = simulator_continuous_pick_assets
+
     original_pick_profile = getattr(engine, "_u_pick_profile", None)
     if original_pick_profile is not None:
         def pick_profile_without_control_bonus(aid, uid, ctx):
@@ -133,6 +209,116 @@ def install(engine):
             return out
         engine._u_pick_profile = pick_profile_without_control_bonus
         applied["own_pick_control_bonus_removed"] = True
+
+
+    # Recent performance, usage, snap, injury, and manual-news signals can be
+    # highly useful football context, but multiplying the current dynasty market
+    # anchor by hand-set percentages double counts information already reflected
+    # in the market and/or the canonical Simulator projections. Preserve the
+    # proposed adjustments as diagnostics, but authorize zero incremental
+    # dynasty-market repricing until residual held-out evidence supports it.
+    original_performance_adjustment = getattr(engine, "performance_adjustment", None)
+    if original_performance_adjustment is not None:
+        def diagnostic_only_performance_adjustment(asset, performance, baselines):
+            proposed, meta = original_performance_adjustment(asset, performance, baselines)
+            meta = dict(meta or {})
+            meta["proposed_incremental_adjustment_diagnostic"] = round(_sf(proposed), 4)
+            meta["incremental_market_repricing_authorized"] = False
+            meta["adjustment"] = 0.0
+            return 0.0, meta
+        engine.performance_adjustment = diagnostic_only_performance_adjustment
+
+    original_football_adjustment = getattr(engine, "football_intelligence_adjustment", None)
+    if original_football_adjustment is not None:
+        def diagnostic_only_football_adjustment(asset, usage, snaps, manual):
+            proposed, meta = original_football_adjustment(asset, usage, snaps, manual)
+            meta = dict(meta or {})
+            meta["proposed_incremental_adjustment_diagnostic"] = round(_sf(proposed), 4)
+            meta["incremental_market_repricing_authorized"] = False
+            meta["total_adjustment"] = 0.0
+            return 0.0, meta
+        engine.football_intelligence_adjustment = diagnostic_only_football_adjustment
+
+    if original_performance_adjustment is not None or original_football_adjustment is not None:
+        applied["football_market_repricing_overlays_diagnostic_only"] = True
+
+    # Owner-specific buy/hold/pick multipliers (need, historical preference,
+    # competitive-window, endowment, starter and thin-depth premiums) overlap
+    # concepts now modeled explicitly by continuous GM3 objective utility,
+    # lineup reoptimization and Behavioral Intelligence. Preserve their proposed
+    # values as diagnostics, but do not let the legacy hand-set coefficients
+    # alter the market-anchored franchise value a second time.
+    original_owner_buy = getattr(engine, "owner_player_buy_value", None)
+    original_owner_hold = getattr(engine, "owner_player_hold_value", None)
+    original_owner_pick = getattr(engine, "owner_pick_value", None)
+
+    if original_owner_buy is not None:
+        def governed_owner_player_buy_value(
+            uid, asset, team_profiles, prefs, performance=None, baselines=None,
+            usage=None, snaps=None, manual=None,
+        ):
+            proposed, factors = original_owner_buy(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            factors = dict(factors or {})
+            base = _sf(factors.get("fsffl_base"), proposed)
+            factors["legacy_proposed_owner_buy_value_diagnostic"] = round(_sf(proposed), 1)
+            factors["owner_specific_multiplier_incremental_value_authorized"] = False
+            factors["governed_value_basis"] = "market_anchored_fsffl_base_plus_downstream_continuous_utility"
+            factors["multiplier"] = 1.0
+            return base, factors
+        engine.owner_player_buy_value = governed_owner_player_buy_value
+
+    if original_owner_hold is not None and original_owner_buy is not None:
+        def governed_owner_player_hold_value(
+            uid, asset, team_profiles, prefs, starters, performance=None,
+            baselines=None, usage=None, snaps=None, manual=None,
+        ):
+            proposed_buy, buy_factors = original_owner_buy(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            governed_buy, factors = engine.owner_player_buy_value(
+                uid, asset, team_profiles, prefs, performance, baselines,
+                usage, snaps, manual,
+            )
+            factors = dict(factors or {})
+            # Record the former owner-specific buy proposal plus the legacy
+            # hold-overlay proposal without granting either incremental value.
+            try:
+                proposed_hold, _ = original_owner_hold(
+                    uid, asset, team_profiles, prefs, starters, performance,
+                    baselines, usage, snaps, manual,
+                )
+            except Exception:
+                proposed_hold = proposed_buy
+            factors["legacy_proposed_owner_buy_value_diagnostic"] = round(_sf(proposed_buy), 1)
+            factors["legacy_proposed_owner_hold_value_diagnostic"] = round(_sf(proposed_hold), 1)
+            factors["current_owner_endowment_premium"] = 0.0
+            factors["starter_dependency_premium"] = 0.0
+            factors["thin_depth_hold_premium"] = 0.0
+            factors["hold_multiplier_over_buy_value"] = 1.0
+            factors["legacy_owner_hold_overlay_incremental_value_authorized"] = False
+            return governed_buy, factors
+        engine.owner_player_hold_value = governed_owner_player_hold_value
+
+    if original_owner_pick is not None:
+        def governed_owner_pick_value(uid, pick, team_profiles, prefs, hold):
+            proposed, factors = original_owner_pick(uid, pick, team_profiles, prefs, hold)
+            factors = dict(factors or {})
+            base = _sf(factors.get("market_base"), _sf(pick.get("market_dynasty"), proposed))
+            factors["legacy_proposed_owner_pick_value_diagnostic"] = round(_sf(proposed), 1)
+            factors["pick_preference_adjustment"] = 0.0
+            factors["competitive_window_adjustment"] = 0.0
+            factors["hold_endowment_premium"] = 0.0
+            factors["owner_specific_pick_multiplier_incremental_value_authorized"] = False
+            factors["multiplier"] = 1.0
+            return base, factors
+        engine.owner_pick_value = governed_owner_pick_value
+
+    if any(x is not None for x in (original_owner_buy, original_owner_hold, original_owner_pick)):
+        applied["owner_specific_valuation_multipliers_diagnostic_only"] = True
 
     original_profiles = getattr(engine, "build_strategic_asset_profiles_for_team", None)
     if original_profiles is None or not hasattr(engine, "GM22"):
@@ -185,6 +371,11 @@ def install(engine):
             "pick_round_quality_optionality_liquidity_premiums_incremental_value_authorized": False,
             "market_momentum_incremental_value_authorized": False,
             "statsguy_future_pick_market_anchor": applied["statsguy_future_pick_anchor"],
+            "simulator_continuous_pick_quality_anchor": applied["simulator_continuous_pick_quality_anchor"],
+            "owner_specific_valuation_multipliers_incremental_value_authorized": False,
+            "owner_specific_valuation_multipliers_diagnostic_only": applied["owner_specific_valuation_multipliers_diagnostic_only"],
+            "performance_usage_injury_news_market_repricing_authorized": False,
+            "football_market_repricing_overlays_diagnostic_only": applied["football_market_repricing_overlays_diagnostic_only"],
             "new_hand_set_coefficients_introduced": False,
         }
         return payload

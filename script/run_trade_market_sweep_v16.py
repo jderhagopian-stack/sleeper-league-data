@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 V13_PATH = Path("script/run_trade_market_sweep_v13.py")
+DECISION_UTILITY_PATH = Path("script/decision_utility.py")
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.7"
 DEFAULT_SEARCH_DEPTH = 40
 
@@ -47,67 +48,100 @@ def install_read_caches(engine):
 
 
 def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
+    """Describe buyer incentive using the same continuous utility as the focal side.
+
+    This replaces categorical state-specific title/value floors as decision
+    authority. Acceptance remains a plausibility description, not a calibrated
+    probability.
+    """
     sim = row.get("simulation") or {}
     buyer_uid = str(row.get("buyer_user_id") or "")
     state = str(row.get("buyer_state") or "unknown")
     actions = sim.get("actions") or []
-    bs = dl.strategic_summary(buyer_uid, actions) if buyer_uid and actions else {}
+    bs = sim.get("buyer_strategic") or (
+        dl.strategic_summary(buyer_uid, actions) if buyer_uid and actions else {}
+    )
     dynasty = float(bs.get("market_dynasty_delta") or 0.0)
     redraft = float(bs.get("market_redraft_delta") or 0.0)
     break_glass = float(bs.get("break_glass_delta") or 0.0)
-    title = float(sim.get("buyer_championship_probability_delta") or 0.0)
+    buyer_delta = sim.get("buyer_delta") or {}
+    title = float(
+        buyer_delta.get(
+            "championship_probability",
+            sim.get("buyer_championship_probability_delta") or 0.0,
+        )
+        or 0.0
+    )
 
-    if state == "elite_contender":
-        title_floor = -0.04
-        viable = title >= title_floor or (title >= -0.07 and dynasty >= 1800 and redraft >= -1500)
-    elif state == "contender":
-        title_floor = -0.05
-        viable = title >= title_floor or (title >= -0.08 and dynasty >= 1600 and redraft >= -1800)
-    elif state == "retool":
-        title_floor = -0.10
-        viable = dynasty >= -500 and (title >= title_floor or dynasty >= 1200)
-    elif state == "rebuild":
-        title_floor = None
-        viable = dynasty >= -300 or break_glass >= 0
+    utility_score = None
+    utility_status = "UNAVAILABLE_NEUTRAL_SEARCH"
+    if bs.get("objective_weights"):
+        utility = load_module(DECISION_UTILITY_PATH, "buyer_shared_decision_utility")
+        buyer_sim = {
+            "focus_delta": buyer_delta,
+            "league_reference": sim.get("league_reference") or {},
+            "strategic": bs,
+            # Counterparty incentive should not subtract the focal-team externality.
+            # That is a focal strategic consideration, not a cost to the buyer.
+            "net_title_equity_swing_against_focus": 0.0,
+        }
+        resolved = utility.score(buyer_sim)
+        utility_score = float(resolved.get("score") or 0.0)
+        utility_status = resolved.get("scale_status") or "PROVISIONAL_SHARED_UTILITY"
+
+    # Missing governed buyer utility no longer falls back to categorical hard
+    # thresholds. Keep the candidate searchable and report uncertainty.
+    viable = True if utility_score is None else utility_score >= 0.0
+    label = (
+        "BUYER_UTILITY_NONNEGATIVE"
+        if utility_score is not None and viable
+        else "BUYER_UTILITY_NEGATIVE"
+        if utility_score is not None
+        else "BUYER_UTILITY_UNAVAILABLE"
+    )
+    reason = (
+        "buyer-side shared continuous utility is non-negative"
+        if utility_score is not None and viable
+        else "buyer-side shared continuous utility is negative"
+        if utility_score is not None
+        else "governed buyer utility unavailable; candidate retained rather than rejected by a legacy heuristic"
+    )
+
+    # Convert utility to a bounded descriptive fit using transaction exposure as
+    # its own scale. This removes the old state-specific floors and hand-set
+    # title/dynasty/break-glass coefficients. It is not an acceptance probability.
+    sent = list(bs.get("sent") or [])
+    received = list(bs.get("received") or [])
+    exposure = sum(
+        abs(float(x.get("market_dynasty") or x.get("base_franchise_value") or 0.0))
+        for x in sent + received
+    )
+    if utility_score is None or exposure <= 0:
+        score = 0.5
     else:
-        title_floor = -0.06
-        viable = title >= title_floor and dynasty >= -1200
-
-    pivot_viable = (dynasty >= 700 or break_glass >= 700) and redraft >= -9000
-    if viable:
-        label = "CURRENT_STATE_VIABLE"
-        reason = "buyer-side GM utility is compatible with the owner's current competitive objective"
-    elif pivot_viable:
-        label = "STATE_CHANGE_DEPENDENT"
-        reason = "buyer-side utility conflicts with the current objective but becomes rational under a retool/rebuild pivot"
-    else:
-        label = "BUYER_IRRATIONAL"
-        reason = "buyer gives up too much current and/or long-term utility even after allowing for a strategic-state change"
-
-    score = 0.50
-    score += max(-0.30, min(0.30, title * 2.5))
-    score += max(-0.18, min(0.18, dynasty / 9000.0))
-    score += max(-0.12, min(0.12, break_glass / 12000.0))
-    if state in {"elite_contender", "contender"} and title < -0.08:
-        score -= 0.25
-    score = round(max(0.0, min(1.0, score)), 4)
+        import math
+        score = round(max(0.0, min(1.0, 0.5 + 0.5 * math.tanh(utility_score / exposure))), 4)
     band = "HIGH" if score >= 0.68 else "MEDIUM" if score >= 0.48 else "LOW" if score >= 0.28 else "VERY_LOW"
 
     return {
         "buyer_state": state,
         "current_state_gate": label,
         "current_state_viable": bool(viable),
-        "state_change_viable": bool(pivot_viable),
+        "state_change_viable": False,
         "heuristic_acceptance_fit_score": score,
         "heuristic_acceptance_fit": band,
+        "acceptance_band_is_descriptive_not_probability": True,
         "reason": reason,
+        "buyer_decision_utility_score": None if utility_score is None else round(utility_score, 2),
+        "buyer_decision_utility_status": utility_status,
+        "buyer_utility_exposure_scale": round(exposure, 2),
         "buyer_title_delta": round(title, 5),
         "buyer_market_dynasty_delta": round(dynasty, 2),
         "buyer_market_redraft_delta": round(redraft, 2),
         "buyer_break_glass_delta": round(break_glass, 2),
-        "title_loss_floor_for_current_state": title_floor,
+        "title_loss_floor_for_current_state": None,
+        "categorical_buyer_state_thresholds_authoritative": False,
     }
-
 
 def focal_viable(row: Dict[str, Any]) -> bool:
     return row.get("championship_equity_constraint") == "PASS" and row.get("plausibility") in {"HIGH", "MEDIUM"}

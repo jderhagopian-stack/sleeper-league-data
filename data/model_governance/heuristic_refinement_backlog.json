@@ -26,74 +26,74 @@
     {
       "id": "GM22-CONFIG-001",
       "priority": "HIGH",
-      "action": "Family-by-family ablation, then replace surviving arbitrary constants with bounded evidence-supported or simulation-derived provisional estimates where available.",
-      "status": "AUDIT_NEXT",
+      "action": "Keep legacy owner-specific and football-market percentage multipliers diagnostic-only; use market anchors, canonical projections/Simulator, continuous utility and BI in their appropriate roles.",
+      "status": "STRUCTURAL_DEDUPLICATION_IMPLEMENTED",
       "evidence": [
         "current GM3 profiles",
         "historical reconstruction infrastructure",
         "existing governance/ablation framework"
       ],
-      "remaining_gap": "No defensible held-out strategy target yet for coefficient fitting."
+      "remaining_gap": "Reintroduction of any individual overlay requires residual held-out evidence; no high-leverage legacy owner/football multiplier remains authoritative."
     },
     {
       "id": "TRADE-SCORE-001",
       "priority": "VERY_HIGH",
-      "action": "Continue primitive-channel ablation and replace arbitrary scale dependence with empirically observed/common scaling where possible; retain uncertainty labels until temporal choice validation exists.",
-      "status": "ABLATION_ACTIVE_NO_SAFE_REWEIGHT_YET",
+      "action": "Use Shared Decision Utility 2.0 with league-relative Simulator normalization and observed market-value scales; no fixed cross-unit conversion coefficients.",
+      "status": "DATA_DERIVED_SCALING_IMPLEMENTED",
       "evidence": [
         "final-score ablation",
         "historical reconstruction",
         "current finalist rankings"
       ],
-      "remaining_gap": "Primitive scale constants remain unidentified without a valid time-ordered ranking/choice target."
+      "remaining_gap": "Normative continuous objective-state preferences still require stronger strategy/outcome evidence for empirical promotion."
     },
     {
       "id": "TRADE-PRESCREEN-001",
       "priority": "MEDIUM_HIGH",
-      "action": "Optimize discovery thresholds for recall against tractable expanded enumeration; keep acceptance calibration separate.",
-      "status": "LOSSY_ASSET_CAPS_ALREADY_REMOVED",
+      "action": "Preserve full owned asset pool and all plausibility bands; heuristics prioritize simulation work but cannot erase a candidate solely by band.",
+      "status": "FULL_POOL_FULL_BAND_RECALL_GOVERNED",
       "evidence": [
         "full-pool recall audit",
         "expanded enumeration"
       ],
-      "remaining_gap": "Plausibility coefficients require accepted/rejected or choice-opportunity evidence before calibration."
+      "remaining_gap": "Prescreen ordering can still be optimized against downstream canonical-utility recall; it no longer has hard eligibility authority."
     },
     {
       "id": "TEAM-IMPROVEMENT-001",
       "priority": "MEDIUM",
-      "action": "Converge toward shared canonical decision utility and remove categorical/duplicative guardrail authority where canonical utility already prices the same effect.",
-      "status": "STRUCTURAL_CONVERGENCE_CANDIDATE",
+      "action": "Use the same Shared Decision Utility 2.0 as Trade Decision; legacy categorical state weights and contender/dynasty guardrails are diagnostic-only.",
+      "status": "SHARED_UTILITY_CONVERGENCE_IMPLEMENTED",
       "evidence": [
         "Shared Core architecture",
         "canonical Simulator",
         "Trade Decision utility primitives"
       ],
-      "remaining_gap": "Must prove recommendation behavior remains sensible under shared utility."
+      "remaining_gap": "No separate Team Improvement coefficient family remains; shared input/utility validation applies."
     },
     {
       "id": "ROSTER-INTERACTION-001",
       "priority": "HIGH",
-      "action": "Remove uncalibrated roster-interaction acceptance-fit conversion; keep roster-interaction value as a bounded strategic/resilience signal until simulation-derived calibration is available.",
-      "status": "STRUCTURAL_DEDUPLICATION_NEXT",
+      "action": "Keep pair-insurance/context diagnostics, but disable incremental final-score and acceptance value because replacement resilience is already modeled.",
+      "status": "DIAGNOSTIC_ONLY_PENDING_INCREMENTAL_EVIDENCE",
       "evidence": [
         "canonical strategic utility",
         "existing roster-interaction value delta",
         "double-counting governance"
       ],
-      "remaining_gap": "Pair-insurance magnitude remains bounded but uncalibrated; simulation-derived marginal insurance value is the next target."
+      "remaining_gap": "Re-enable only if simulation/outcome evidence shows incremental value beyond existing replacement resilience."
     },
     {
       "id": "BEHAVIOR-001",
       "priority": "MEDIUM_HIGH",
-      "action": "Move toward shrinkage/regularized manager effects using observed action counts and context confidence; treat current hand-set transforms as priors rather than fixed truth.",
-      "status": "IMPROVE_WITH_EXISTING_ACTION_DATA",
+      "action": "Use adaptive league-sample shrinkage and confidence-weighted BI2/BI3 integration instead of fixed blend/adjustment coefficients.",
+      "status": "ADAPTIVE_SHRINKAGE_IMPLEMENTED",
       "evidence": [
         "time-ordered manager actions",
         "leave-one-manager-out context",
         "context confidence",
         "league baseline behavior"
       ],
-      "remaining_gap": "More observations are still needed for empirical promotion, but lack of promotion evidence does not justify indefinite arbitrary blend weights."
+      "remaining_gap": "Time-ordered held-out manager-choice evidence is still required for empirical promotion/calibrated probability."
     },
     {
       "id": "STATE-WEIGHTS-001",
@@ -122,14 +122,14 @@
     {
       "id": "PICK-MODEL-001",
       "priority": "MEDIUM_HIGH",
-      "action": "Decompose expected rookie value, time-to-realization, liquidity, skew and forecast uncertainty; improve components separately using current anchors, rookie outcomes and bounded priors rather than one opaque transform.",
-      "status": "COMPONENT_REFINEMENT_WITH_EXISTING_EVIDENCE",
+      "action": "Use external pick-market cells with continuous canonical-Simulator competitive-percentile interpolation; preserve early/mid/late cells as uncertainty scenarios and keep duplicate liquidity/optionality/control premiums disabled.",
+      "status": "CONTINUOUS_SIMULATOR_MARKET_ANCHOR_IMPLEMENTED",
       "evidence": [
         "Stats Guy normalized pick anchors",
         "rookie outcome history",
         "current pick-quality governance"
       ],
-      "remaining_gap": "Some time/liquidity transforms still require contemporaneous historical market evidence for final calibration."
+      "remaining_gap": "Long-horizon persistence and interval coverage still require frozen historical forecast-to-slot cohorts."
     }
   ],
   "needs_genuinely_new_or_better_evidence": [
@@ -166,6 +166,12 @@
     "duplicate pick liquidity/quality/optionality premiums",
     "generic multi-asset roster-slot penalty",
     "market-tier scarcity incremental premium",
-    "categorical competitive-state decision cliffs"
+    "categorical competitive-state decision cliffs",
+    "legacy owner-specific need/preference/window/endowment/starter/depth value multipliers",
+    "hand-set recent-performance/usage/snap/injury/manual-news dynasty-market percentage repricing",
+    "legacy Decision Lab numeric accept/lean/reject thresholds",
+    "roster-interaction incremental final-score and acceptance overlays",
+    "fixed Trade Score cross-unit conversion coefficients",
+    "discrete future-pick contender-score tier valuation cliff"
   ]
 }

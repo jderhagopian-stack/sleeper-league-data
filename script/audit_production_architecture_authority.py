@@ -96,11 +96,11 @@ def main():
     trade_entry_current = (
         has_all(trade_report, [
             "MARKET_SWEEP=Path('script/trade_engine.py')",
-            "EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'",
+            "EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.26'",
         ])
         and has_all(trade_engine, [
             'CURRENT_ENGINE = SCRIPT / "run_trade_market_sweep_v31.py"',
-            'EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.25"',
+            'EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.26"',
             "load_current_engine().main()",
         ])
     )

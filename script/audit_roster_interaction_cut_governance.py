@@ -17,6 +17,7 @@ OUT = DATA / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 ROSTER = ROOT / "script" / "roster_aware_trade.py"
 INTERACTION = ROOT / "script" / "roster_interaction.py"
+OVERLAY = ROOT / "script" / "roster_interaction_overlay.py"
 CUT_SENS = ROOT / "script" / "audit_roster_cut_sensitivity.py"
 REGISTRY = DATA / "model_parameter_registry.json"
 MODEL_VERSION = "FSFFL-Roster-Interaction-Cut-Governance-1.1"
@@ -31,6 +32,7 @@ def load(path, default=None):
 def main():
     roster = ROSTER.read_text(encoding="utf-8")
     interaction = INTERACTION.read_text(encoding="utf-8")
+    overlay = OVERLAY.read_text(encoding="utf-8")
     cut_sens = CUT_SENS.read_text(encoding="utf-8") if CUT_SENS.exists() else ""
     registry = load(REGISTRY, {}) or {}
     params = {str(x.get("id")): x for x in (registry.get("parameters") or [])}
@@ -62,11 +64,13 @@ def main():
         'PAIR_CAPTURE_SCALE = 0.30',
         'MAX_PORTFOLIO_ADJUSTMENT = 600.0',
         'MAX_ACCEPTANCE_FIT_SHIFT = 0.0',
-        '0.45 * downside +',
-        '0.30 * max(injury_now, availability_uncertainty) +',
-        '0.25 * role_uncertainty',
         '"acceptance_fit_shift": 0.0',
         '"acceptance_shift_enabled": False',
+    ])
+    interaction_incremental_disabled = all(x in overlay for x in [
+        '"roster_interaction_incremental_value_authorized"] = False',
+        '"roster_interaction": 0.0',
+        '"roster_interaction_incremental_final_score_value_authorized": False',
     ])
 
     cut_reg = params.get("ROSTER-CUT-001") or {}
@@ -112,13 +116,14 @@ def main():
 
     payload = {
         "model_version": MODEL_VERSION,
-        "production_behavior_changed": False,
+        "production_behavior_changed": True,
         "policy": {
             "roster_legality_is_rule_defined": True,
             "cut_selection_is_not_rule_defined": True,
             "cut_prescreen_must_not_have_final_authority_when_tractable": True,
             "roster_interaction_must_show_incremental_value_over_lineup_simulation": True,
             "uncalibrated_duplicate_acceptance_shift_disabled": True,
+            "uncalibrated_incremental_interaction_value_disabled": True,
             "boundedness_is_not_empirical_validation": True,
         },
         "summary": {
@@ -129,6 +134,7 @@ def main():
             "cut_prescreen_markers_detected": cut_markers,
             "downstream_cut_sensitivity_tool_detected": downstream_cut_sensitivity,
             "roster_interaction_markers_detected": interaction_markers,
+            "roster_interaction_incremental_final_score_disabled": interaction_incremental_disabled,
             "registry_consistent": registry_consistent,
         },
         "findings": findings,

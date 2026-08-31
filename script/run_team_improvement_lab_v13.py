@@ -171,14 +171,14 @@ def main():
         }
         report.setdefault("policy", {})["waiver_candidates_use_canonical_full_projection_universe"] = True
         report["ranking_calibration"] = {
-            "version": "competitive-state-calibration-2.0",
-            "principle": "competitive_state_tilts_but_does_not_dominate",
-            "championship_probability_diminishing_returns": {
-                "full_weight_through_probability_points": 4.0,
-                "marginal_weight_beyond_knee": 0.35,
-            },
-            "dynasty_value_guardrail_enabled": True,
-            "notes": "Displayed football outcomes remain raw simulation results; only recommendation ranking uses the calibrated utility function.",
+            "version": "shared-decision-utility-2.0",
+            "principle": "Team Improvement and Trade Decision use the same continuous primitive utility",
+            "shared_utility_model": "FSFFL-Shared-Decision-Utility-2.0",
+            "categorical_state_weights_active": False,
+            "legacy_championship_diminishing_return_rule_active": False,
+            "legacy_dynasty_value_guardrail_authoritative": False,
+            "scale_status": "DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS",
+            "notes": "Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate.",
         }
         out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 

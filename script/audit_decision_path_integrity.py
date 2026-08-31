@@ -47,6 +47,7 @@ def main():
     v29 = text("run_trade_market_sweep_v29.py")
     v23 = text("run_trade_market_sweep_v23.py")
     v20 = text("run_trade_market_sweep_v20.py")
+    utility = text("decision_utility.py")
     v13 = text("run_trade_market_sweep_v13.py")
     v16 = text("run_trade_market_sweep_v16.py")
     state = text("decision_lab_state_aware.py")
@@ -107,7 +108,9 @@ def main():
             "behavioral_intelligence_informs_counterparty_feasibility_not_trade_value",
         ))
         and '"affects_trade_valuation": False' in option_governance
-        and '"source": "BEHAVIORAL_INTELLIGENCE"' in option_governance
+        and '"BEHAVIORAL_INTELLIGENCE"' in option_governance
+        and '"OBSERVED_CURRENT_OFFER_PLUS_BEHAVIORAL_DIAGNOSTIC"' in option_governance
+        and '"counter_acceptance_itself_observed": False' in option_governance
     )
     acceptance_band_ranking_only = (
         all(x in state_selector_composition for x in (
@@ -124,29 +127,42 @@ def main():
         and "realistic" in v16
     )
 
-    # The final score must use primitive channels only. Composite strategic
-    # and break-glass summaries remain available upstream for explanation but
-    # receive no incremental final-score weight.
+    # The final score must use Shared Decision Utility 2.0. Current-season
+    # outcomes are normalized against the canonical league baseline and combined
+    # without hand-set cross-metric coefficients; future, liquidity and
+    # resilience remain distinct value-denominated channels.
     final_overlap_tokens = {
-        "primitive_dynasty_delta_in_final_score": "market_dynasty_delta" in v20 and "future_block" in v20,
-        "primitive_liquidity_delta_in_final_score": "liquidity_value_delta" in v20 and "liquidity_block" in v20,
-        "primitive_optionality_delta_in_final_score": "optionality_value_delta" in v20 and "future_block" in v20,
-        "primitive_resilience_delta_in_final_score": "resilience_value_delta" in v20 and "resilience_block" in v20,
+        "shared_utility_called": 'resolved = utility.score(sim)' in v20,
+        "league_relative_current_signal": (
+            "statistics.median(values.values())" in utility
+            and 'ref = sim.get("league_reference") or {}' in utility
+        ),
+        "market_dynasty_delta_in_final_score": 'future_value = sf(s.get("market_dynasty_delta"))' in utility,
+        "liquidity_delta_in_final_score": 'liquidity_value = sf(s.get("liquidity_value_delta"))' in utility,
+        "resilience_delta_in_final_score": 'resilience_value = sf(s.get("resilience_value_delta"))' in utility,
+        "optionality_diagnostic_only": '"optionality_incremental_value_authorized": False' in utility,
         "strategic_composite_built_upstream_for_diagnostics": "strategic_value_delta" in state and "strategic_score" in state,
         "break_glass_built_upstream_for_diagnostics": "break_glass_delta" in state,
     }
     final_composite_overlap = (
-        'strategic = sf(s.get("strategic_value_delta"))' in v20
-        or 'break_glass = sf(s.get("break_glass_delta"))' in v20
-        or '0.30 * break_glass' in v20
-        or '0.15 * strategic' in v20
+        's.get("strategic_value_delta")' in utility
+        or 's.get("break_glass_delta")' in utility
+        or '0.30 * break_glass' in utility
+        or '0.15 * strategic' in utility
     )
+    fixed_unit_conversion_constants = any(x in utility for x in (
+        "CURRENT_TITLE_SCALE", "CURRENT_PLAYOFF_SCALE", "CURRENT_WINS_SCALE",
+        "CURRENT_POINTS_SCALE", "FUTURE_OPTIONALITY_SCALE", "LIQUIDITY_SCALE",
+        "RESILIENCE_SCALE", "OPPONENT_EXTERNALITY_SCALE",
+    ))
     primitive_final_score = all(final_overlap_tokens[k] for k in (
-        "primitive_dynasty_delta_in_final_score",
-        "primitive_liquidity_delta_in_final_score",
-        "primitive_optionality_delta_in_final_score",
-        "primitive_resilience_delta_in_final_score",
-    )) and not final_composite_overlap
+        "shared_utility_called",
+        "league_relative_current_signal",
+        "market_dynasty_delta_in_final_score",
+        "liquidity_delta_in_final_score",
+        "resilience_delta_in_final_score",
+        "optionality_diagnostic_only",
+    )) and not final_composite_overlap and not fixed_unit_conversion_constants
 
     behavior_oos_predictive_test = any(
         token in behavior_prod_test.lower()
@@ -226,7 +242,7 @@ def main():
             "severity": "HIGH",
             "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
             "observation": (
-                "The state-aware final score now uses primitive dynasty, optionality, liquidity and direct roster-replacement resilience channels. Strategic and break-glass composites remain available for explanation but no longer receive separate final-score weight."
+                "The final score uses Shared Decision Utility 2.0: league-relative Simulator current outcomes plus market-dynasty future value and direct liquidity/replacement-resilience channels. Optionality, strategic and break-glass composites remain diagnostic only, and fixed cross-unit conversion constants are absent."
             ),
             "detected_components": final_overlap_tokens,
             "authoritative_empirical_claim_allowed": False,
@@ -258,6 +274,7 @@ def main():
             "final_score_overlap_ablation_required": True,
             "final_score_overlap_currently_detected": final_composite_overlap,
             "primitive_final_score_active": primitive_final_score,
+            "fixed_unit_conversion_constants_detected": fixed_unit_conversion_constants,
             "behavioral_predictive_holdout_detected": behavior_oos_predictive_test,
         },
         "findings": findings,

@@ -29,8 +29,8 @@ def main():
       "retention_formula_not_claimed_final_authority":"retention_cost_is_final_authority" in v13,
       "registry_updated":params.get("ROSTER-CUT-001",{}).get("status")=="FINAL_FOCAL_TRACTABLE_PLAN_SEARCH_ACTIVE_PRESCREEN_FALLBACK",
       "refinement_backlog_separates_existing_vs_new_evidence":bool(backlog.get("improve_now_with_existing_evidence")) and bool(backlog.get("needs_genuinely_new_or_better_evidence")),
-      "no_unsupported_trade_score_reweight_in_first_pass":any(
-          x.get("id")=="TRADE-SCORE-001" and x.get("status")=="ABLATION_ACTIVE_NO_SAFE_REWEIGHT_YET"
+      "trade_score_uses_stronger_basis_after_first_pass":any(
+          x.get("id")=="TRADE-SCORE-001" and x.get("status")=="DATA_DERIVED_SCALING_IMPLEMENTED"
           for x in (backlog.get("improve_now_with_existing_evidence") or [])
       ),
       "evidence_ladder_replaces_strict_no_replacement_rule":backlog.get("policy",{}).get("no_arbitrary_coefficient_replacement_without_stronger_basis") is True

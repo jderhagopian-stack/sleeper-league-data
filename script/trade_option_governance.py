@@ -13,7 +13,7 @@ and thresholds are intentionally unchanged.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.3"
+MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.5"
 EPS = 1e-9
 DECISION_OUTPUTS = (
     "expected_points_for",
@@ -131,14 +131,19 @@ def acceptance(row):
     )
 
 
-def current_mutually_viable(current):
+def current_offer_focally_acceptable(current):
+    """Whether the offer in hand is beneficial for the focal franchise.
+
+    Counterparty utility must not veto ACCEPT_NOW: if the other manager has
+    already made the offer, their willingness is observed. Buyer-side utility
+    remains relevant for generated counters and market alternatives.
+    """
     state = objective_state(current)
     post = sf(current.get("post_sim_score"))
     focal = post > 0
     if state in {"contender", "elite_contender"} and current.get("championship_equity_constraint") == "FAIL":
         focal = False
-    buyer = bool((current.get("buyer_rationality") or {}).get("current_state_viable"))
-    return focal and buyer
+    return focal
 
 
 def recompute_action(report, inherited):
@@ -152,21 +157,26 @@ def recompute_action(report, inherited):
         if (x.get("comparison_to_current_offer") or {}).get("verdict_vs_current_offer") == "BETTER"
     ]
 
-    if not current_mutually_viable(current):
-        # A non-viable current offer cannot inherit COUNTER merely because an
-        # earlier stage produced one. The final action must still be supported
-        # by a surviving option that is actually better than the current offer.
+    if not current_offer_focally_acceptable(current):
+        # Current-offer acceptance is a focal-franchise decision. Counterparty
+        # utility cannot veto an offer already in hand; it only matters when
+        # estimating feasibility of generated counters/alternatives.
         if counters:
-            return "COUNTER_CURRENT_OFFEROR", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_BUT_BETTER_SAME_PARTNER_COUNTER_EXISTS"
+            return "COUNTER_CURRENT_OFFEROR", "CURRENT_OFFER_NOT_FOCALLY_ACCEPTABLE_BUT_BETTER_SAME_PARTNER_COUNTER_EXISTS"
         if markets:
-            return "SHOP_BEFORE_ACCEPTING", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_BUT_BETTER_MARKET_ALTERNATIVE_EXISTS"
-        return "DECLINE", "CURRENT_OFFER_NOT_MUTUALLY_VIABLE_AND_NO_BETTER_ACTIONABLE_OPTION"
+            return "SHOP_BEFORE_ACCEPTING", "CURRENT_OFFER_NOT_FOCALLY_ACCEPTABLE_BUT_BETTER_MARKET_ALTERNATIVE_EXISTS"
+        return "DECLINE", "CURRENT_OFFER_NOT_FOCALLY_ACCEPTABLE_AND_NO_BETTER_ACTIONABLE_OPTION"
 
     if counters:
+        if any(
+            x.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+            for x in counters
+        ):
+            return "COUNTER_CURRENT_OFFEROR", "BETTER_OFFEROR_ANCHORED_CONCESSION_EXISTS_AROUND_OBSERVED_WILLINGNESS"
         return "COUNTER_CURRENT_OFFEROR", "BETTER_SAME_PARTNER_COUNTER_EXISTS_FEASIBILITY_REPORTED_SEPARATELY"
     if markets:
         return "SHOP_BEFORE_ACCEPTING", "BETTER_MARKET_ALTERNATIVE_EXISTS_FEASIBILITY_REPORTED_SEPARATELY"
-    return "ACCEPT_NOW", "NO_BETTER_OPTION_THAN_MUTUALLY_VIABLE_CURRENT_OFFER"
+    return "ACCEPT_NOW", "FOCALLY_BENEFICIAL_OFFER_IN_HAND_AND_NO_BETTER_ACTIONABLE_OPTION"
 
 
 def apply_to_report(report):
@@ -178,9 +188,19 @@ def apply_to_report(report):
             row["comparison_to_current_offer"] = comp
             row["why_prefer_over_current_offer"] = comp["reason"]
             row["why_advantageous_for_focus"] = comp["reason"]
+            offeror_anchor = (
+                section == "suggested_counteroffers"
+                and row.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+                and str(report.get("offer_direction") or "") == "INCOMING_OFFER"
+            )
             row["counterparty_feasibility"] = {
                 "acceptance_fit": acceptance(row),
-                "source": "BEHAVIORAL_INTELLIGENCE",
+                "source": (
+                    "OBSERVED_CURRENT_OFFER_PLUS_BEHAVIORAL_DIAGNOSTIC"
+                    if offeror_anchor else "BEHAVIORAL_INTELLIGENCE"
+                ),
+                "observed_current_offer_willingness_anchor": offeror_anchor,
+                "counter_acceptance_itself_observed": False,
                 "affects_trade_valuation": False,
                 "reported_separately": True,
             }

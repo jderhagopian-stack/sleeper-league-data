@@ -84,20 +84,12 @@ def state_condition_behavior(row, br):
 
 
 def recompute_negotiation_ranking(row, ranker):
-    """Recompute ranking using the canonical Trade Decision negotiation-ranker."""
-    br = row.get("buyer_rationality") or {}
-    post = sf(row.get("post_sim_score"))
-    strategic = clamp(.50 + .50 * math.tanh(post / 5000.0), 0, 1)
-    acceptance = clamp(sf(br.get("heuristic_acceptance_fit_score"), .5), 0, 1)
-    behavior = clamp(
-        .50 + sf((br.get("owner_behavior") or {}).get("adjustment")) / .32,
-        0,
-        1,
-    )
-    out = ranker.compose(strategic, acceptance, behavior)
-    out["focal_strategic_gain_source"] = "state_aware_post_sim_score"
-    out["state_aware_post_sim_score"] = round(post, 2)
-    return out
+    """Rank retained negotiations by canonical focal utility.
+
+    Acceptance/behavior remain separate descriptive feasibility context and do
+    not receive an arbitrary exchange weight against franchise utility.
+    """
+    return ranker.recompute_from_row(row)
 
 
 def recompute_action_without_acceptance_band_gate(report):

@@ -57,7 +57,9 @@ jobs:
           python -m py_compile \
             script/run_trade_market_sweep_v23.py \
             script/run_trade_market_sweep_v27.py \
+            script/run_trade_market_sweep.py \
             script/run_trade_market_sweep_v31.py \
+            script/trade_report_context.py \
             script/trade_option_governance.py \
             script/roster_interaction_overlay.py \
             script/roster_resolution_governance.py \
@@ -95,11 +97,19 @@ jobs:
           from pathlib import Path
           r=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.json'))
           s=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression-summary.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18'
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.26'
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19'
           p=r['policy']
           g=r['governance']['option_outcome_consistency']
           assert p['unsupported_numeric_score_cutoff_used_for_better_worse'] is False
+          assert p['offer_origin_aware_counter_search'] is True
+          assert p['offer_origin_context_exposed'] is True
+          assert (r.get('offer_context') or {}).get('direction')=='INCOMING_OFFER'
+          assert (r.get('offer_context') or {}).get('current_terms_willingness_observed') is True
+          assert int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_enumerated') or 0)>0
+          assert int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_simulated') or 0)>0
+          assert r.get('future_pick_outlook')
+          assert (r.get('value_metric_context') or {}).get('incremental_asset_liquidity')
           assert p['acceptance_likelihood_is_separate_from_trade_valuation'] is True
           assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
           assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False
@@ -143,7 +153,21 @@ jobs:
               assert fit.get('affects_trade_valuation') is False,fit
               if c.get('verdict_vs_current_offer')=='BETTER':better.append(row)
 
-          expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else ('COUNTER_CURRENT_OFFEROR' if better else 'ACCEPT_NOW')
+          current=r.get('current_offer_evaluation') or {}
+          buyer_viable=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
+          focal_viable=float(current.get('post_sim_score') or 0)>0
+          if better:
+              expected_action='SHOP_BEFORE_ACCEPTING' if any(x in (r.get('market_sweep_alternatives') or []) for x in better) else 'COUNTER_CURRENT_OFFEROR'
+          else:
+              expected_action='ACCEPT_NOW' if focal_viable else 'DECLINE'
+          # This fixture deliberately protects offer-in-hand semantics:
+          # Chef Niners' modeled utility is negative, but they have made the
+          # offer. Their modeled willingness therefore cannot veto our accept.
+          assert buyer_viable is False, current.get('buyer_rationality')
+          assert float((current.get('buyer_rationality') or {}).get('buyer_decision_utility_score') or 0)<0
+          assert focal_viable is True
+          assert p['current_offer_is_evaluated_on_focal_utility_not_counterparty_willingness'] is True
+          assert g['current_offer_counterparty_utility_can_veto_acceptance'] is False
           assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
           print({
             'recommended_next_action':r.get('recommended_next_action'),

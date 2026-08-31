@@ -75,8 +75,8 @@ jobs:
           cur=d['current_offer_evaluation']['simulation']['strategic']; assert cur['hypothetical_profiles_recomputed'] is True; assert abs(sum(cur['objective_weights'].values())-1)<1e-5; assert all(x['profile_source']=='post_trade_focal_gm' for x in cur['received'])
           for row in d['top_5_alternatives']:
               nr=row['negotiation_ranking']; assert nr['focal_strategic_gain_source']=='state_aware_post_sim_score'; assert abs(float(nr['state_aware_post_sim_score'])-float(row['post_sim_score']))<1e-6
-              assert nr['ranking_model_version']=='FSFFL-Negotiation-Ranking-2.0'
-              assert nr['weights']=={'focal_strategic_gain':0.625,'acceptance_fit':0.375,'owner_behavior_match':0.0}
+              assert nr['ranking_model_version']=='FSFFL-Negotiation-Ranking-3.0'
+              assert nr['weights']=={'focal_strategic_gain':1.0,'acceptance_fit':0.0,'owner_behavior_match':0.0}
               assert nr['behavior_already_in_acceptance_fit'] is True
           print('Counter Market Sweep 1.14 state-aware ranking compatibility passed')
           PY

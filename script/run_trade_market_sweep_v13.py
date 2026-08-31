@@ -170,10 +170,30 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
     strategic = dl.strategic_summary(focus_uid, effective_actions)
+    buyer_strategic = dl.strategic_summary(buyer_uid, effective_actions) if ob and oh else {}
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
     needs_before = position_need_snapshot(engine, canonical_rosters, focus_uid) if sims >= 50000 else {}
     needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid) if sims >= 50000 else {}
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
+    buyer_delta = {
+        "expected_wins": dl.delta(ob.get("expected_wins"), oh.get("expected_wins")) if ob and oh else 0.0,
+        "expected_points_for": dl.delta(ob.get("expected_points_for"), oh.get("expected_points_for")) if ob and oh else 0.0,
+        "playoff_probability": dl.delta(ob.get("playoff_probability"), oh.get("playoff_probability")) if ob and oh else 0.0,
+        "bye_probability": dl.delta(ob.get("bye_probability"), oh.get("bye_probability")) if ob and oh else 0.0,
+        "championship_probability": buyer_title_delta,
+    }
     return {
         "actions": effective_actions,
         "trade_actions": actions,
@@ -181,6 +201,7 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         "roster_resolution": roster_resolution,
         "roster_resolution_model_version": "FSFFL-Roster-Aware-Trade-Resolution-1.4",
         "teams_reoptimized": reoptimized,
+        "league_reference": league_reference,
         "focus_before": b,
         "focus_after": h,
         "focus_delta": {
@@ -190,6 +211,10 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
             "bye_probability": dl.delta(b.get("bye_probability"), h.get("bye_probability")),
             "championship_probability": title_delta,
         },
+        "buyer_before": ob,
+        "buyer_after": oh,
+        "buyer_delta": buyer_delta,
+        "buyer_strategic": buyer_strategic,
         "buyer_championship_probability_delta": buyer_title_delta,
         "net_title_equity_swing_against_focus": round(
             max(0.0, float(buyer_title_delta or 0.0)) - float(title_delta or 0.0), 5

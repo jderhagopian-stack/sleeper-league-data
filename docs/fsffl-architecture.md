@@ -19,6 +19,7 @@ Reusable facts, estimates, and mechanics:
 - historical fact reconstruction
 - roster/team-state primitives
 - roster-interaction primitives
+- shared decision-utility primitives used by Trade Decision and GM3 Team Improvement
 - shared data access and standardized metrics
 
 Promotion to Shared Core requires either genuinely domain-generic behavior or a real second application consumer.
@@ -53,7 +54,7 @@ Owns season-forecast orchestration and published simulator outputs while consumi
 
 These remain inside GM3 rather than becoming separate engines unless they later develop a genuinely distinct workflow and decision policy:
 
-- Team Improvement
+- Team Improvement — consumes the shared decision-utility primitive rather than owning a separate categorical ranking-weight system
 - Portfolio / Asset Management
 
 ## Analytics / Derived Products

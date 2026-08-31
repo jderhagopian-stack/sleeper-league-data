@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Canonical bilateral buyer current-state hard gate.
+"""Canonical bilateral buyer-utility gate.
 
-Mechanical extraction of the current production v1.15 buyer-rationality
-safeguard. The gate prevents candidate recommendations that are strongly
-irrational for the counterparty in their current competitive state.
+The gate no longer uses categorical contender/retool/rebuild thresholds.
+Counterparty feasibility is based on the sign of the same continuous shared
+decision utility used elsewhere. If governed buyer utility is unavailable, the
+candidate is retained rather than rejected by a legacy heuristic.
 
-Behavioral/acceptance fit remains secondary evidence. This gate is based on
-buyer utility losses and does not change focal trade valuation.
+Acceptance-fit bands remain descriptive and are not calibrated probabilities.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Bilateral-Buyer-Gate-1.0"
+MODEL_VERSION = "FSFFL-Bilateral-Buyer-Gate-2.0"
 
 
 def sf(x, default=0.0):
@@ -21,56 +21,23 @@ def sf(x, default=0.0):
 
 
 def evaluate(br):
-    state = str(br.get("buyer_state") or "unknown")
-    title = sf(br.get("buyer_title_delta"))
-    dynasty = sf(br.get("buyer_market_dynasty_delta"))
-    redraft = sf(br.get("buyer_market_redraft_delta"))
-    break_glass = sf(br.get("buyer_break_glass_delta"))
-
-    fail = False
-    reason = None
-    if (
-        state == "elite_contender"
-        and title <= -0.03
-        and dynasty < 0
-        and break_glass < 0
-    ):
-        fail = True
-        reason = "elite contender loses title equity plus dynasty and break-glass value"
-    elif (
-        state == "contender"
-        and title <= -0.04
-        and dynasty < 0
-        and break_glass < 0
-    ):
-        fail = True
-        reason = "contender loses meaningful title equity plus dynasty and break-glass value"
-    elif state == "retool" and dynasty <= -1200 and break_glass <= -1200:
-        fail = True
-        reason = "retool buyer gives up excessive long-term and break-glass value"
-    elif state == "rebuild" and dynasty <= -900 and break_glass <= -900:
-        fail = True
-        reason = "rebuild buyer gives up excessive long-term and break-glass value"
-
-    if dynasty <= -1400 and redraft <= -1800 and break_glass <= -1200:
-        fail = True
-        reason = "buyer loses heavily across dynasty, redraft, and break-glass value"
-
-    return (not fail), reason
+    score = br.get("buyer_decision_utility_score")
+    if score is None:
+        return True, "governed buyer utility unavailable; legacy categorical gate not used"
+    if sf(score) >= 0.0:
+        return True, "buyer shared continuous utility is non-negative"
+    return False, "buyer shared continuous utility is negative"
 
 
 def apply(br):
     passes, reason = evaluate(br)
     br["market_intelligence_hard_gate_pass"] = bool(passes)
-    br["market_intelligence_hard_gate_reason"] = (
-        reason or "buyer current-state utility clears bilateral hard gate"
-    )
+    br["market_intelligence_hard_gate_reason"] = reason
+    br["bilateral_gate_model_version"] = MODEL_VERSION
+    br["categorical_state_thresholds_authoritative"] = False
+    br["missing_utility_defaults_to_retain_for_search"] = True
     if not passes:
         br["current_state_viable"] = False
-        br["current_state_gate"] = "BUYER_IRRATIONAL"
+        br["current_state_gate"] = "BUYER_UTILITY_NEGATIVE"
         br["reason"] = reason
-        br["heuristic_acceptance_fit_score"] = min(
-            sf(br.get("heuristic_acceptance_fit_score")), 0.27
-        )
-        br["heuristic_acceptance_fit"] = "VERY_LOW"
     return br

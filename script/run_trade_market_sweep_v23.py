@@ -59,8 +59,8 @@ def state_condition_behavior(row,br):
     br['owner_behavior']=sig;br['heuristic_acceptance_fit_score']=score;br['heuristic_acceptance_fit']=band(score);br['acceptance_fit_basis']='current_state_utility_plus_state_conditioned_historical_behavior';br['acceptance_band_is_descriptive_not_probability']=True;return br
 
 def recompute_negotiation_ranking(row):
-    br=row.get('buyer_rationality') or {};post=sf(row.get('post_sim_score'));strategic=clamp(.50+.50*math.tanh(post/5000.0),0,1);acceptance=clamp(sf(br.get('heuristic_acceptance_fit_score'),.5),0,1);behavior=clamp(.50+sf((br.get('owner_behavior') or {}).get('adjustment'))/.32,0,1)
-    nr=load_module(NEGOTIATION_RANKING,'negotiation_ranking_for_v117');out=nr.compose(strategic,acceptance,behavior);out['focal_strategic_gain_source']='state_aware_post_sim_score';out['state_aware_post_sim_score']=round(post,2);return out
+    nr=load_module(NEGOTIATION_RANKING,'negotiation_ranking_for_v117')
+    return nr.recompute_from_row(row)
 
 def patch_v18(mod):
     original=mod.adjusted_buyer_rationality

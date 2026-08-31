@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 SCRIPT=ROOT/"script"; DATA=ROOT/"data"; OUT=DATA/"audit"; OUT.mkdir(parents=True,exist_ok=True)
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-1.2"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-2.0"
 
 def read(name): return (SCRIPT/name).read_text(encoding="utf-8")
 def compact(s): return ''.join(str(s).split())
@@ -15,7 +15,10 @@ def uses_canonical_composer(src):
     c=compact(src)
     return (
         'negotiation_ranking.py' in src
-        and 'nr.compose(strategic,acceptance,behavior)' in c
+        and (
+            'nr.compose(strategic,acceptance,behavior)' in c
+            or 'nr.recompute_from_row(row)' in c
+        )
     )
 
 def main():
@@ -26,11 +29,13 @@ def main():
     v30=read("run_trade_market_sweep_v30.py")
 
     canonical_weights=(
-        "STRATEGIC_WEIGHT = 0.625" in ranker
-        and "ACCEPTANCE_WEIGHT = 0.375" in ranker
+        "STRATEGIC_WEIGHT = 1.0" in ranker
+        and "ACCEPTANCE_WEIGHT = 0.0" in ranker
         and "OWNER_BEHAVIOR_WEIGHT = 0.0" in ranker
+        and '"arbitrary_strategic_acceptance_exchange_rate_authorized": False' in ranker
     )
-    ratio_preserved=abs((0.625/0.375)-(0.50/0.30)) < 1e-12
+    ratio_preserved=False
+    arbitrary_exchange_rate_removed=canonical_weights
     composer_paths={
         'v18':uses_canonical_composer(v18),
         'v20':uses_canonical_composer(v20),
@@ -56,7 +61,7 @@ def main():
         "id":"FINAL-RANK-BEHAVIOR-DEDUP-001",
         "severity":"INFO" if canonical_weights and shared_composer else "CRITICAL",
         "status":"STRUCTURAL_DOUBLE_COUNT_REMOVED" if canonical_weights and shared_composer else "DOUBLE_COUNT_OR_MULTIPLE_SOURCE_REMAINS",
-        "observation":"Owner-behavior evidence already modifies acceptance fit upstream. The canonical negotiation composer therefore assigns the separate behavior diagnostic zero incremental ranking weight. The original strategic:acceptance ratio is preserved exactly by renormalizing 0.50:0.30 to 0.625:0.375.",
+        "observation":"Counterparty feasibility is handled by shared buyer utility and acceptance fit remains descriptive. The canonical negotiation rank therefore orders viable candidates by focal decision utility alone; acceptance and owner behavior receive zero arbitrary exchange weight.",
         "production_behavior_changed":True,
         "change_basis":"structural de-duplication; no empirical coefficient was learned or tuned",
       },
@@ -71,8 +76,8 @@ def main():
       {
         "id":"FINAL-RANK-EMPIRICAL-001",
         "severity":"HIGH",
-        "status":"WEIGHTS_STILL_PROVISIONAL",
-        "observation":"Removing duplicate evidence does not empirically validate the remaining strategic/acceptance tradeoff. The 0.625/0.375 weights inherit the prior 0.50/0.30 distinct-component ratio and remain provisional pending a defensible historical/choice target.",
+        "status":"ARBITRARY_STRATEGIC_ACCEPTANCE_EXCHANGE_RATE_REMOVED",
+        "observation":"No fitted acceptance probability exists, so acceptance is not traded off numerically against focal utility. If future accepted/rejected opportunity data support a calibrated ranking contribution, it can be introduced with held-out validation.",
         "authoritative_empirical_claim_allowed":False,
       },
     ]
@@ -81,16 +86,18 @@ def main():
       "production_behavior_changed":True,
       "policy":{
         "duplicate_evidence_must_not_receive_positive_incremental_weight":True,
-        "deduplication_preserves_prior_distinct_component_ratio":True,
+        "deduplication_preserves_prior_distinct_component_ratio":False,
+        "arbitrary_strategic_acceptance_exchange_rate_removed":True,
         "owner_behavior_diagnostic_preserved":True,
         "deduplication_is_not_empirical_validation":True,
-        "remaining_ranking_weights_remain_provisional":True,
+        "acceptance_ranking_weight_authorized":False,
         "source_formatting_cannot_determine_governance_pass_fail":True,
         "production_refresh_should_use_version_neutral_shared_helper":True,
       },
       "summary":{
         "canonical_weights_detected":canonical_weights,
         "prior_strategic_acceptance_ratio_preserved":ratio_preserved,
+        "arbitrary_strategic_acceptance_exchange_rate_removed":arbitrary_exchange_rate_removed,
         "shared_composer_used_by_v18_v20_v23":shared_composer,
         "canonical_composer_by_path":composer_paths,
         "production_post_overlay_refresh_uses_v23":False,
@@ -102,7 +109,7 @@ def main():
     }
     (OUT/"final_trade_ranking_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
     print(json.dumps(payload["summary"],indent=2))
-    if not canonical_weights or not ratio_preserved: raise SystemExit("Canonical ranking weights do not implement exact structural de-duplication")
+    if not canonical_weights or not arbitrary_exchange_rate_removed: raise SystemExit("Canonical ranking still contains unsupported strategic/acceptance exchange weighting")
     if not shared_composer or not production_refresh_uses_shared: raise SystemExit("Final negotiation ranking does not use the canonical shared source")
     if duplicate_positive_behavior_weight: raise SystemExit("Positive duplicate owner-behavior ranking weight remains")
 if __name__=="__main__": main()

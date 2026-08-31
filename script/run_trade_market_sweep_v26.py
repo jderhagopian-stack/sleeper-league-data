@@ -76,6 +76,27 @@ def bi3_position_trait(cache, uid, position):
     }
 
 
+
+def trait_confidence(trait):
+    return clamp(max(
+        sf(trait.get("persistent_confidence"), 0.0),
+        sf(trait.get("state_confidence"), 0.0),
+        sf(trait.get("confidence"), 0.0),
+    ), 0.0, 1.0)
+
+
+def combine_behavior_signals(base, signal_rows):
+    """Bounded evidence-weighted revealed-preference update, not probability."""
+    rows=[(clamp(sf(s),-1,1),clamp(sf(w),0,1)) for s,w in signal_rows if sf(w)>0]
+    if not rows:
+        return round(clamp(base,0,1),4),0.0,0.0
+    total_w=sum(w for _,w in rows)
+    signed=sum(s*w for s,w in rows)/max(total_w,1e-9)
+    confidence=sum(w for _,w in rows)/len(rows)
+    room=(1.0-base) if signed>=0 else base
+    adjustment=signed*confidence*room
+    return round(clamp(base+adjustment,0,1),4),round(adjustment,4),round(confidence,4)
+
 def install(v24, bi2, bi3_cache, cache_status):
     original = v24.install_historical_state_conditioning
 
@@ -89,54 +110,53 @@ def install(v24, bi2, bi3_cache, cache_status):
             state = str(br.get("buyer_state") or "unknown")
             shape = v24.candidate_shape(row)
             signals = {}
-            adj = 0.0
+            behavior_rows = []
 
-            # Position acquisition: retain BI2's state-conditioned signal as the
-            # majority component, then context-correct it with cached BI3.
+            # Positional affinity combines BI2 and BI3 according to the
+            # confidence carried by their observed samples; no fixed blend.
             recv_pos = shape.get("received_positions") or []
             if recv_pos:
-                vals = []
                 for p in recv_pos:
                     name = {"QB": "qb_accumulation", "WR": "wr_affinity", "RB": "rb_affinity", "TE": "te_affinity"}.get(p)
                     if not name:
                         continue
                     t2 = bi2.trait_score(uid, name, state)
                     t3 = bi3_position_trait(bi3_cache, uid, p) if cache_status == "AVAILABLE" else {"score": 0.0, "confidence": 0.0, "strength": None, "source": "cache_unavailable"}
-                    # At full BI3 confidence, context normalization gets 45% of
-                    # the positional signal; BI2/state remains 55%. Sparse BI3
-                    # evidence naturally reduces the context share.
-                    w3 = .45 * sf(t3.get("confidence"), 0.0)
-                    blend = (1 - w3) * sf(t2.get("score")) + w3 * sf(t3.get("score"))
-                    vals.append(blend)
+                    c2 = trait_confidence(t2)
+                    c3 = trait_confidence(t3)
+                    den = c2 + c3
+                    blend = ((c2 * sf(t2.get("score")) + c3 * sf(t3.get("score"))) / den) if den > 0 else 0.0
+                    conf = clamp(den / 2.0, 0.0, 1.0)
+                    behavior_rows.append((blend, conf))
                     signals[f"{p}_affinity"] = {
                         "bi2_persistent_plus_state": t2,
                         "bi3_context_normalized": t3,
-                        "bi3_blend_weight": round(w3, 4),
-                        "blended_score": round(blend, 4),
+                        "confidence_weighted_blend": round(blend, 4),
+                        "combined_evidence_confidence": round(conf, 4),
                     }
-                if vals:
-                    adj += .035 * (sum(vals) / len(vals))
 
-            # Non-positional traits remain BI2/state-conditioned in 1.20.
             pick = bi2.trait_score(uid, "draft_pick_accumulation", state)
             signals["draft_pick_accumulation"] = pick
-            adj += .030 * sf(pick.get("score")) * clamp(sf(shape.get("net_pick_in")) / 2.0, -1, 1)
+            pick_direction = clamp(sf(shape.get("net_pick_in")), -1, 1)
+            if pick_direction:
+                behavior_rows.append((sf(pick.get("score")) * pick_direction, trait_confidence(pick)))
 
             large = bi2.trait_score(uid, "large_package_tolerance", state)
             signals["large_package_tolerance"] = large
             if int(shape.get("total_assets") or 0) >= 4:
-                adj += .020 * sf(large.get("score"))
+                behavior_rows.append((sf(large.get("score")), trait_confidence(large)))
 
             youth = bi2.trait_score(uid, "youth_preference", state)
             signals["youth_preference"] = youth
             recv_players = [x for x in shape.get("buyer_receives") or [] if not v24.is_pick(x)]
             if recv_players:
                 avg_y = sum(bi2.youth_score(str(x).replace("player:", "")) for x in recv_players) / len(recv_players)
-                adj += .025 * sf(youth.get("score")) * ((avg_y - .5) * 2)
+                youth_direction = clamp((avg_y - .5) * 2, -1, 1)
+                behavior_rows.append((sf(youth.get("score")) * youth_direction, trait_confidence(youth)))
 
-            adj = clamp(adj, -.075, .075)
             base = sf(br.get("heuristic_acceptance_fit_score"), .5)
-            score = round(clamp(base + adj, 0, 1), 4)
+            score, adj, behavior_confidence = combine_behavior_signals(base, behavior_rows)
+
             ob = dict(br.get("owner_behavior") or {})
             ob["behavioral_intelligence_version"] = BI3_VERSION
             ob["bi2_persistent_plus_state_conditioned_retained"] = True
@@ -145,6 +165,8 @@ def install(v24, bi2, bi3_cache, cache_status):
             ob["bi3_interactive_historical_replay"] = False
             ob["full_action_sources"] = ["trades", "drafts", "waivers_free_agents", "faab", "drops_cuts"]
             ob["behavioral_intelligence_adjustment"] = round(adj, 4)
+            ob["behavioral_evidence_confidence"] = behavior_confidence
+            ob["behavioral_adjustment_method"] = "confidence_weighted_boundary_shrinkage"
             ob["behavioral_intelligence_signals"] = signals
             ob["behavioral_intelligence_can_override_current_state_utility"] = False
             br["owner_behavior"] = ob

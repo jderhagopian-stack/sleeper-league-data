@@ -62,12 +62,18 @@ def main():
     assert 0 < tiny_comp['post_sim_score_delta_vs_current_offer'] < 1,tiny_comp
     assert tiny_comp['verdict_vs_current_offer']=='BETTER',tiny_comp
 
-    # Continuous focal utility is authoritative for retool/rebuild labels; the
-    # old future-component cliffs must not reappear in the action fallback.
+    # Continuous focal utility is authoritative for an offer already in hand;
+    # counterparty modeled utility cannot veto our acceptance decision.
     clipped=dict(current)
     clipped['focal_current_state_beneficial']=False
     clipped['state_aware_score_components']={'future':-9999,'current':-9999}
-    assert m.current_mutually_viable(clipped) is True
+    clipped['buyer_rationality']={'current_state_viable':False,'buyer_decision_utility_score':-9999}
+    assert m.current_offer_focally_acceptable(clipped) is True
+    action,basis=m.recompute_action(
+        {'current_offer_evaluation':clipped,'suggested_counteroffers':[],'market_sweep_alternatives':[]},
+        'DECLINE',
+    )
+    assert action=='ACCEPT_NOW',(action,basis)
 
     print({
       'status':'PASS',

@@ -13,9 +13,9 @@ from pathlib import Path
 
 MARKET_SWEEP=Path('script/trade_engine.py')
 PDF_RENDERER=Path('script/render_trade_decision_report_v19.py')
-MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.18'
-EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.25'
-REPORT_VERSION='FSFFL-Trade-Decision-Report-1.10'
+MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.19'
+EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.26'
+REPORT_VERSION='FSFFL-Trade-Decision-Report-1.11'
 DEFAULT_ADAPTIVE_CONFIRM_SIMS=50000
 
 

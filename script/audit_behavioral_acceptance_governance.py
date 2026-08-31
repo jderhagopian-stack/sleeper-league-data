@@ -16,10 +16,13 @@ BI3=ROOT/"script"/"behavioral_intelligence_v3.py"
 V24=ROOT/"script"/"run_trade_market_sweep_v24.py"
 V26=ROOT/"script"/"run_trade_market_sweep_v26.py"
 V23=ROOT/"script"/"run_trade_market_sweep_v23.py"
+V16=ROOT/"script"/"run_trade_market_sweep_v16.py"
+INTEGRATION=ROOT/"script"/"trade_decision"/"behavior_integration.py"
+BILATERAL=ROOT/"script"/"trade_bilateral_gate.py"
 RANKER=ROOT/"script"/"negotiation_ranking.py"
 READINESS=OUT/"transaction_evidence_readiness_audit.json"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Behavioral-Acceptance-Governance-1.0"
+MODEL_VERSION="FSFFL-Behavioral-Acceptance-Governance-2.0"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -30,22 +33,34 @@ def main():
     v24=V24.read_text(encoding="utf-8")
     v26=V26.read_text(encoding="utf-8")
     v23=V23.read_text(encoding="utf-8")
+    v16=V16.read_text(encoding="utf-8")
+    integration=INTEGRATION.read_text(encoding="utf-8")
+    bilateral=BILATERAL.read_text(encoding="utf-8")
     ranker=RANKER.read_text(encoding="utf-8")
     readiness=load(READINESS,{}) or {}
     registry=load(REGISTRY,{}) or {}
     params={str(x.get("id")):x for x in (registry.get("parameters") or [])}
 
     behavior_markers=all(x in bi3 for x in [
-        'SOURCE_WEIGHT = {"trade": 1.0, "draft": .58, "acquisition": .22}',
+        'SOURCE_WEIGHT = {"trade": 1.0, "draft": 1.0, "acquisition": 1.0}',
         'OPPORTUNITY_SMOOTHING = 1.0', 'NEED_FLOOR = .30',
-        'sample_conf = 1 - math.exp(-max(0.0, weight) / 7.0)',
-        '* 3.0)', 'production_status": "RESEARCH_NOT_YET_PROMOTED"',
+        'def shrinkage_factor(weight, prior_strength)',
+        'statistics.median(positive_weights)',
+        'prior_strength_basis": "median positive manager weighted context sample in the current build"',
         'leave_one_manager_out_opportunity_prior": True',
     ])
-    behavior_bounded=all(x in v26 for x in [
-        'adj = clamp(adj, -.075, .075)',
-        'behavioral_history_can_override_current_state_utility": False',
-        'w3 = .45 * sf(t3.get("confidence"), 0.0)',
+    behavior_bounded=all(x in integration for x in [
+        'def combine_behavior_signals',
+        'confidence_weighted_boundary_shrinkage',
+        'behavioral_intelligence_can_override_current_state_utility',
+    ])
+    legacy_buyer_state_floors=any(x in v16 for x in [
+        'title_floor = -0.04', 'title_floor = -0.05', 'title_floor = -0.10'
+    ])
+    continuous_buyer_gate=all(x in bilateral for x in [
+        'FSFFL-Bilateral-Buyer-Gate-2.0',
+        'buyer_decision_utility_score',
+        'categorical_state_thresholds_authoritative',
     ])
     acceptance_band_markers=all(x in v24 for x in [
         'return "HIGH" if score >= .68 else "MEDIUM" if score >= .48 else "LOW" if score >= .28 else "VERY_LOW"',
@@ -53,9 +68,9 @@ def main():
     ])
     final_signal_reuse=not (
         'OWNER_BEHAVIOR_WEIGHT = 0.0' in ranker
-        and 'STRATEGIC_WEIGHT = 0.625' in ranker
-        and 'ACCEPTANCE_WEIGHT = 0.375' in ranker
-        and 'behavior_already_in_acceptance_fit": True' in ranker
+        and 'STRATEGIC_WEIGHT = 1.0' in ranker
+        and 'ACCEPTANCE_WEIGHT = 0.0' in ranker
+        and 'arbitrary_strategic_acceptance_exchange_rate_authorized": False' in ranker
     )
     acceptance_ready=False
     for x in readiness.get("findings",[]):
@@ -63,15 +78,15 @@ def main():
             acceptance_ready=bool(x.get("authoritative_empirical_claim_allowed"))
     breg=params.get("BEHAVIOR-001") or {}; areg=params.get("ACCEPTANCE-GATE-001") or {}
     registry_ok=(
-        breg.get("evidence_tier")=="ASSUMPTION_SENSITIVE_PROVISIONAL" and breg.get("authoritative_use") is False
-        and areg.get("evidence_tier")=="ASSUMPTION_SENSITIVE_PROVISIONAL" and areg.get("authoritative_use") is False
+        breg.get("evidence_tier")=="REGULARIZED_OR_SHRINKAGE_ESTIMATE" and breg.get("authoritative_use") is False
+        and areg.get("authoritative_use") is False
     )
 
     findings=[
       {
         "id":"BEHAVIOR-PREFERENCE-001","severity":"HIGH",
         "status":"BOUNDED_RESEARCH_SIGNAL_NOT_PREDICTIVELY_VALIDATED",
-        "observation":"Observed manager actions provide relevant revealed-preference evidence, but source weights, smoothing, need floor, confidence curve and residual scaling remain hand-set. Leave-one-manager-out construction reduces self-benchmark leakage; it does not establish time-ordered predictive validity.",
+        "observation":"Observed manager actions now use adaptive league-sample shrinkage and confidence-weighted Trade Decision integration. Remaining opportunity smoothing/need priors are still provisional; leave-one-manager-out construction controls leakage but does not establish time-ordered predictive validity.",
         "authoritative_predictive_claim_allowed":False,
       },
       {
@@ -83,13 +98,13 @@ def main():
       {
         "id":"BEHAVIOR-ACCEPTANCE-OVERLAP-001","severity":"HIGH",
         "status":"SIGNAL_REUSE_DETECTED" if final_signal_reuse else "RESOLVED_BY_ZERO_INCREMENTAL_BEHAVIOR_WEIGHT",
-        "observation":"The prior negotiation rank reused owner behavior after it had already adjusted acceptance fit. The canonical composer now retains behavior as a diagnostic but assigns it zero incremental ranking weight; the distinct strategic/acceptance ratio is preserved by renormalization.",
+        "observation":"The prior negotiation rank reused owner behavior after it had already adjusted acceptance fit. The canonical composer now retains behavior as a diagnostic but assigns it zero incremental ranking weight. Acceptance itself is also diagnostic-only in ranking until a calibrated offer-choice denominator exists.",
         "authoritative_incremental_adjustment_claim_allowed":False,
       },
     ]
     payload={
       "model_version":MODEL_VERSION,
-      "production_behavior_changed":False,
+      "production_behavior_changed":True,
       "policy":{
         "revealed_preference_is_not_acceptance_probability":True,
         "leave_one_manager_out_is_leakage_control_not_predictive_validation":True,
@@ -97,10 +112,14 @@ def main():
         "heuristic_acceptance_bands_must_not_be_reported_as_calibrated_probabilities":True,
         "behavioral_signal_reuse_requires_final_score_ablation":True,
         "promotion_requires_time_ordered_holdout_improvement":True,
+        "sparse_manager_effects_use_adaptive_shrinkage":True,
+        "categorical_buyer_state_floors_authoritative":False,
       },
       "summary":{
         "behavior_research_markers_detected":behavior_markers,
         "behavior_bounded_secondary_markers_detected":behavior_bounded,
+        "continuous_buyer_utility_gate_detected":continuous_buyer_gate,
+        "legacy_buyer_state_floors_detected":legacy_buyer_state_floors,
         "heuristic_acceptance_band_markers_detected":acceptance_band_markers,
         "acceptance_evidence_ready_for_probability_fit":acceptance_ready,
         "behavior_signal_reused_in_negotiation_ranking":final_signal_reuse,

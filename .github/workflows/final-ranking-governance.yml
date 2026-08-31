@@ -45,6 +45,6 @@ jobs:
           assert r['summary']['behavior_reused_inside_and_outside_acceptance'] is False
           assert r['summary']['trade_score_registry_consistent'] is True
           assert f['FINAL-SCORE-OVERLAP-001']['status']=='STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS'
-          assert f['FINAL-RANK-WEIGHTS-001']['authoritative_empirical_claim_allowed'] is False
+          assert f['FINAL-RANK-SCALING-001']['authoritative_empirical_claim_allowed'] is False
           print(json.dumps(r,indent=2))
           PY

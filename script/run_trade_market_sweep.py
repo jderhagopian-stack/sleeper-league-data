@@ -21,6 +21,7 @@ import functools
 import importlib.util
 import itertools
 import json
+import math
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -226,6 +227,14 @@ def candidate_packages(assets: List[Dict[str, Any]], max_players=2, max_picks=2)
 
 
 def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any]], incoming: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Cheap discovery features with no hand-set cross-signal score.
+
+    The prescreen exists to decide which packages receive expensive simulation,
+    not to estimate trade quality. Market-distance is the primary search key;
+    roster need, protected/core status and redraft deltas are retained as
+    diagnostics for downstream interpretation rather than assigned arbitrary
+    percentage weights.
+    """
     focal_needs = need_map(focus_uid)
     buyer_needs = need_map(buyer_uid)
     buyer_gm = strategic_assets(buyer_uid)
@@ -233,7 +242,6 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
     outgoing_redraft = sum(asset_value(a, focus_uid)["redraft"] for a in outgoing)
     return_market = sum(asset_value(a, buyer_uid)["market"] for a in incoming)
     return_redraft = sum(asset_value(a, buyer_uid)["redraft"] for a in incoming)
-    return_break = sum(asset_value(a, buyer_uid)["break_glass"] for a in incoming)
     need_gain = sum(
         focal_needs.get(str(a.get("position")), 0.0) * asset_value(a, buyer_uid)["redraft"]
         for a in incoming if a.get("asset_type") == "player"
@@ -243,47 +251,30 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
         for a in outgoing if a.get("asset_type") == "player"
     )
 
-    protected_penalty = 0.0
     protected_assets = []
     for a in incoming:
         g = buyer_gm.get(str(a.get("asset_id"))) or {}
-        status = str(g.get("core_status") or "")
-        if status == "franchise_cornerstone":
-            protected_penalty += 0.78
+        if str(g.get("core_status") or "") in {"franchise_cornerstone", "core_high_hold", "core_pick"}:
             protected_assets.append(a.get("name"))
-        elif status == "core_high_hold":
-            protected_penalty += 0.48
-            protected_assets.append(a.get("name"))
-        elif status == "core_pick":
-            protected_penalty += 0.18
 
-    value_ratio = return_market / max(outgoing_market, 1.0)
-    buyer_cost_ratio = return_break / max(outgoing_market, 1.0)
-    plausibility_score = 1.0
-    plausibility_score -= min(0.68, abs(value_ratio - 1.0) * 0.75)
-    plausibility_score -= min(0.50, max(0.0, buyer_cost_ratio - 1.15) * 0.52)
-    plausibility_score -= protected_penalty
-    plausibility_score += min(0.18, buyer_need_solved / 45000.0)
-    plausibility_score = max(0.0, min(1.0, plausibility_score))
-
-    if plausibility_score >= 0.72:
+    out_base = max(outgoing_market, 1.0)
+    in_base = max(return_market, 1.0)
+    value_ratio = in_base / out_base
+    market_balance_distance = abs(math.log(value_ratio))
+    # A monotone, coefficient-free display transform. This is not acceptance
+    # probability and does not determine candidate eligibility.
+    plausibility_score = 1.0 / (1.0 + market_balance_distance)
+    if plausibility_score >= 0.80:
         plaus = "HIGH"
-    elif plausibility_score >= 0.52:
+    elif plausibility_score >= 0.65:
         plaus = "MEDIUM"
-    elif plausibility_score >= 0.35:
+    elif plausibility_score >= 0.50:
         plaus = "LOW"
     else:
         plaus = "THEORETICAL_ONLY"
 
     future_surplus = return_market - outgoing_market
     redraft_replacement = return_redraft - outgoing_redraft
-    raw_utility = future_surplus + 0.42 * redraft_replacement + 0.10 * need_gain
-    plausibility_multiplier = 0.35 + 0.65 * plausibility_score
-    strategic_score = raw_utility * plausibility_multiplier + 1500.0 * plausibility_score - 1800.0 * protected_penalty
-    if plaus == "LOW":
-        strategic_score -= 2200.0
-    elif plaus == "THEORETICAL_ONLY":
-        strategic_score -= 6000.0
 
     return {
         "buyer_user_id": buyer_uid,
@@ -295,13 +286,33 @@ def score_candidate(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any
         "return_asset_names": [a.get("name") for a in incoming],
         "market_dynasty_delta_pre_screen": round(future_surplus, 2),
         "market_redraft_delta_pre_screen": round(redraft_replacement, 2),
+        "market_value_ratio_pre_screen": round(value_ratio, 6),
+        "market_balance_distance_pre_screen": round(market_balance_distance, 6),
         "focal_need_gain_score": round(need_gain, 2),
         "buyer_need_solved_score": round(buyer_need_solved, 2),
         "protected_buyer_assets": protected_assets,
         "plausibility_score": round(plausibility_score, 4),
         "plausibility": plaus,
-        "pre_screen_score": round(strategic_score, 2),
+        "pre_screen_score": round(plausibility_score, 6),
+        "prescreen_score_role": "MARKET_DISTANCE_SEARCH_PRIORITY_NOT_TRADE_QUALITY",
+        "protected_status_affects_prescreen_score": False,
+        "need_affects_prescreen_score": False,
+        "redraft_affects_prescreen_score": False,
     }
+
+
+def prescreen_sort_key(row: Dict[str, Any]):
+    """Coefficient-free search ordering.
+
+    Prefer market-near packages first; at identical distance prefer the package
+    with more focal market surplus, then redraft surplus. All final judgments
+    come from canonical simulation/utility.
+    """
+    return (
+        -float(row.get("market_balance_distance_pre_screen") or 0.0),
+        float(row.get("market_dynasty_delta_pre_screen") or 0.0),
+        float(row.get("market_redraft_delta_pre_screen") or 0.0),
+    )
 
 
 def scenario_actions(focus_uid: str, buyer_uid: str, outgoing: List[Dict[str, Any]], incoming: List[Dict[str, Any]]):
@@ -328,11 +339,32 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
     b, h = bidx[focus_uid], hidx[focus_uid]
     ob, oh = bidx.get(buyer_uid), hidx.get(buyer_uid)
     strategic = dl.strategic_summary(focus_uid, actions)
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
+    buyer_delta = {
+        "expected_wins": dl.delta(ob.get("expected_wins"), oh.get("expected_wins")) if ob and oh else 0.0,
+        "expected_points_for": dl.delta(ob.get("expected_points_for"), oh.get("expected_points_for")) if ob and oh else 0.0,
+        "playoff_probability": dl.delta(ob.get("playoff_probability"), oh.get("playoff_probability")) if ob and oh else 0.0,
+        "bye_probability": dl.delta(ob.get("bye_probability"), oh.get("bye_probability")) if ob and oh else 0.0,
+        "championship_probability": buyer_title_delta,
+    }
+    buyer_strategic = dl.strategic_summary(buyer_uid, actions) if ob and oh else {}
     return {
         "actions": actions,
         "teams_reoptimized": reoptimized,
+        "league_reference": league_reference,
         "focus_before": b,
         "focus_after": h,
         "focus_delta": {
@@ -342,6 +374,10 @@ def simulate_candidate(dl, model_inputs, baseline_lineups, baseline, focus_uid, 
             "bye_probability": dl.delta(b.get("bye_probability"), h.get("bye_probability")),
             "championship_probability": title_delta,
         },
+        "buyer_before": ob,
+        "buyer_after": oh,
+        "buyer_delta": buyer_delta,
+        "buyer_strategic": buyer_strategic,
         "buyer_championship_probability_delta": buyer_title_delta,
         "net_title_equity_swing_against_focus": round(max(0.0, float(buyer_title_delta or 0.0)) - float(title_delta or 0.0), 5),
         "strategic": strategic,
@@ -397,7 +433,24 @@ def diversified_select(raw_candidates, shortlist: int):
             seen.add(key)
             selected.append(item)
 
-    # Slot 1: best same-partner counter.
+    # For an incoming offer, reserve simulation capacity for the
+    # smallest target-preserving concessions first. These are local negotiation
+    # tests around observed willingness, not assumed acceptances.
+    offeror_concessions = [
+        x for x in current
+        if x[0].get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    ]
+    offeror_concessions.sort(
+        key=lambda x: (
+            float(x[0].get("concession_value_vs_current_offer") or 0.0),
+            float(x[0].get("market_balance_distance_pre_screen") or 0.0),
+            package_key(x[2]),
+        )
+    )
+    for item in offeror_concessions[: min(10, shortlist)]:
+        add(item)
+
+    # Preserve at least one best same-partner counter from the broader search.
     if preferred_current:
         add(preferred_current[0])
 
@@ -457,18 +510,77 @@ def main():
     baseline = dl.simulate_from_lineups(simmod, league, rosters, users, raw_schedule, baseline_lineups, args.quick_sims, args.seed)
 
     sent_ids, received_ids, current_partner = incoming_trade_parts(scenario, focus_uid)
+    offer_initiator_uid = str(scenario.get("offer_initiator_user_id") or "")
+    offer_direction = (
+        "INCOMING_OFFER" if offer_initiator_uid == current_partner
+        else "FOCAL_INITIATED" if offer_initiator_uid == focus_uid
+        else "UNKNOWN"
+    )
     player_catalog, pick_catalog = asset_catalog()
     catalog = {**player_catalog, **pick_catalog}
     full_outgoing = [catalog[x] for x in sent_ids if x in catalog]
+    current_incoming = [catalog[x] for x in received_ids if x in catalog]
     if len(full_outgoing) != len(sent_ids):
         missing = [x for x in sent_ids if x not in catalog]
         raise ValueError(f"Outgoing assets missing from FSFFL asset catalog: {missing}")
+    if len(current_incoming) != len(received_ids):
+        missing = [x for x in received_ids if x not in catalog]
+        raise ValueError(f"Incoming assets missing from FSFFL asset catalog: {missing}")
 
     owner_assets = build_owner_assets(rosters)
     idx = franchise_index()
     raw_candidates = []
     variants = outgoing_variants(full_outgoing)
     full_key = package_key(full_outgoing)
+
+    # When the counterparty initiated the offer, their willingness at the
+    # current terms is observed. Explicitly test nearby target-preserving
+    # concessions instead of searching only for entirely different returns.
+    # This does not assume the counter will be accepted; it creates a local
+    # negotiation frontier around an observed willingness point.
+    if offer_direction == "INCOMING_OFFER" and current_incoming:
+        current_outgoing_market = sum(
+            asset_value(a, focus_uid)["market"] for a in full_outgoing
+        )
+        fixed_players = [a for a in full_outgoing if a.get("asset_type") == "player"]
+        current_pick_ids = {
+            str(a.get("asset_id")) for a in full_outgoing
+            if a.get("asset_type") == "pick"
+        }
+        focal_picks = [
+            a for a in (owner_assets.get(focus_uid) or [])
+            if a.get("asset_type") == "pick"
+            and str(a.get("asset_id")) not in current_pick_ids
+        ]
+        current_pick_count = len(current_pick_ids)
+        # A replacement package may use one additional pick to trade a more
+        # valuable near-term pick for multiple smaller assets. The cap never
+        # exceeds the canonical multi-asset search ceiling.
+        replacement_pick_cap = min(4, current_pick_count + 1, len(focal_picks))
+        replacement_combos = [()]
+        for n in range(1, replacement_pick_cap + 1):
+            replacement_combos.extend(itertools.combinations(focal_picks, n))
+        for combo in replacement_combos:
+            outgoing = fixed_players + list(combo)
+            if not outgoing or package_key(outgoing) == full_key:
+                continue
+            outgoing_market = sum(
+                asset_value(a, focus_uid)["market"] for a in outgoing
+            )
+            if outgoing_market >= current_outgoing_market:
+                continue
+            row = score_candidate(
+                focus_uid, current_partner, outgoing, current_incoming
+            )
+            row["outgoing_variant"] = "OFFEROR_CONCESSION"
+            row["candidate_type"] = "SAME_PARTNER_COUNTER"
+            row["counter_strategy"] = "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+            row["offer_initiator_user_id"] = offer_initiator_uid
+            row["current_offer_willingness_observed"] = True
+            row["concession_value_vs_current_offer"] = round(
+                current_outgoing_market - outgoing_market, 2
+            )
+            raw_candidates.append((row, current_incoming, outgoing))
 
     for outgoing in variants:
         variant = "FULL" if package_key(outgoing) == full_key else "SUBSET"
@@ -492,13 +604,37 @@ def main():
             )
             for pkg in candidate_packages(player_pool + pick_pool):
                 row = score_candidate(focus_uid, buyer_uid, outgoing, pkg)
-                if row["plausibility"] == "THEORETICAL_ONLY":
-                    continue
+                # Plausibility is a search/ranking feature, not an eligibility
+                # gate. Low-scoring packages remain available to the diversified
+                # shortlist so an arbitrary prescreen band cannot create a false
+                # negative before canonical simulation.
                 row["outgoing_variant"] = variant
                 row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
+                if (
+                    offer_direction == "INCOMING_OFFER"
+                    and buyer_uid == current_partner
+                    and package_key(pkg) == package_key(current_incoming)
+                    and package_key(outgoing) != full_key
+                ):
+                    row["counter_strategy"] = "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+                    row["offer_initiator_user_id"] = offer_initiator_uid
+                    row["current_offer_willingness_observed"] = True
+                    current_outgoing_market = sum(
+                        asset_value(a, focus_uid)["market"] for a in full_outgoing
+                    )
+                    outgoing_market = sum(
+                        asset_value(a, focus_uid)["market"] for a in outgoing
+                    )
+                    row["concession_value_vs_current_offer"] = round(
+                        max(0.0, current_outgoing_market - outgoing_market), 2
+                    )
                 raw_candidates.append((row, pkg, outgoing))
 
-    raw_candidates.sort(key=lambda x: x[0]["pre_screen_score"], reverse=True)
+    raw_candidates.sort(key=lambda x: prescreen_sort_key(x[0]), reverse=True)
+    offeror_concession_candidates_enumerated = sum(
+        1 for x in raw_candidates
+        if x[0].get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    )
     selected = diversified_select(raw_candidates, args.shortlist)
 
     state = team_state(focus_uid)
@@ -511,6 +647,10 @@ def main():
         row["post_sim_score"] = post_sim_score(row, state)
         simulated.append(row)
     simulated.sort(key=lambda x: x["post_sim_score"], reverse=True)
+    offeror_concession_candidates_simulated = sum(
+        1 for x in simulated
+        if x.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    )
 
     # Overall finalists, while preserving category leaders for negotiation output.
     finalists = simulated[: args.finalists]
@@ -547,6 +687,8 @@ def main():
         "focus_user_id": focus_uid,
         "focus_team_state": state,
         "current_offer_partner_user_id": current_partner,
+        "offer_initiator_user_id": offer_initiator_uid or None,
+        "offer_direction": offer_direction,
         "outgoing_assets": sent_ids,
         "incoming_offer_assets": received_ids,
         "simulation": {
@@ -558,12 +700,15 @@ def main():
             "execution_path": "gm_prescreen_then_diversified_decision_lab_shortlist",
             "candidate_asset_pool": "all_owned_tradeable_assets",
             "candidate_asset_pool_legacy_caps_removed": True,
+            "plausibility_band_is_candidate_eligibility_gate": False,
         },
         "candidate_counts": {
             "enumerated_plausible": len(raw_candidates),
             "outgoing_variants": len(variants),
             "simulated_shortlist": len(simulated),
             "finalists": len(finalists),
+            "offeror_concession_candidates_enumerated": offeror_concession_candidates_enumerated,
+            "offeror_concession_candidates_simulated": offeror_concession_candidates_simulated,
         },
         "pre_screen_top_candidates": prescreen_top,
         "same_partner_counteroffers": [x for x in simulated if x["candidate_type"] == "SAME_PARTNER_COUNTER"][:DEFAULT_REPORT_CANDIDATES],
@@ -580,6 +725,9 @@ def main():
             "low_plausibility_can_drive_action": False,
             "alternate_buyer_shortlist_slot_reserved": True,
             "strict_outgoing_subsets_tested": True,
+            "offer_origin_aware_counter_search": True,
+            "incoming_offer_target_preserving_concessions_tested": offer_direction == "INCOMING_OFFER",
+            "observed_offer_willingness_is_local_counter_anchor_not_acceptance_probability": True,
         },
     }
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}_market_sweep.json"
