@@ -6,6 +6,7 @@ from pathlib import Path
 SCRIPT=Path(__file__).resolve().parent.parent; ROOT=SCRIPT.parent; TEAM_IMPROVEMENT=SCRIPT/'gm3'/'team_improvement.py'
 if str(SCRIPT) not in sys.path:sys.path.insert(0,str(SCRIPT))
 from opportunity_engine import application as v1
+from opportunity_engine import application_v2 as v2
 from opportunity_engine import negotiation_frontier
 from gm3 import team_improvement as gm3_team_improvement
 MODEL_VERSION='FSFFL-Opportunity-Engine-2.1'
@@ -16,34 +17,28 @@ def _execution_plan(rows):
 def _portfolio_result(rows,result):
     out=v1._portfolio_result(rows,result); out['move_count']=len(rows); out['execution_plan']=_execution_plan(rows); return out
 def build_portfolio(source,uid,depth,max_moves,beam,sims,confirm,confirm_top,seed):
-    # Portfolio search uses only candidates not classified as theoretical counterparty failures.
-    frontier=negotiation_frontier.build(source.get('top_cross_channel_options') or [])
-    allowed_ids={id(x) for x in []}; trades=(frontier['actionable_negotiations']+frontier['negotiation_targets']); signatures={(x.get('seller_user_id'),(x.get('target') or {}).get('asset_id'),tuple(sorted(a.get('asset_id') for a in (x.get('outgoing') or [])))) for x in trades}
-    candidates=[]
-    for r in source.get('top_cross_channel_options') or []:
-        if r.get('channel')=='WAIVER':candidates.append(r)
-        elif r.get('channel')=='TRADE' and (r.get('seller_user_id'),(r.get('target') or {}).get('asset_id'),tuple(sorted(a.get('asset_id') for a in (r.get('outgoing') or [])))) in signatures:candidates.append(r)
-    candidates=candidates[:max(0,int(depth))]
-    if len(candidates)<2:return {'best_portfolio':None,'top_portfolios':[],'candidate_bundles_evaluated':0,'authority':'GM3 Team Improvement','adaptive_search':True,'excludes_theoretical_counterparty_failures':True}
-    ev=gm3_team_improvement.portfolio_evaluator(str(uid),simulations=int(sims),seed=int(seed)); screened=[]
-    import itertools
-    for n in range(2,min(int(max_moves),len(candidates))+1):
-        combos=[]
-        for combo in itertools.combinations(candidates,n):
-            if all(v1._compatible(a,b) for a,b in itertools.combinations(combo,2)): combos.append(combo)
-        if n>2 and len(combos)>int(beam)*4: combos=combos[:int(beam)*4]
-        for combo in combos:
-            res=ev.evaluate(combo); row=_portfolio_result(combo,res); row['screen_simulations']=int(sims); screened.append(row)
-    screened.sort(key=lambda x:float(x.get('team_improvement_score') or 0),reverse=True)
-    finalists=screened[:max(1,int(confirm_top))]; cev=gm3_team_improvement.portfolio_evaluator(str(uid),simulations=int(confirm),seed=int(seed)); confirmed=[]
-    for row in finalists:
-        src=row.get('_source_rows') or []; res=cev.evaluate(src); x=_portfolio_result(src,res); x['confirmed']=True; x['confirmation_simulations']=int(confirm); x.pop('_source_rows',None); confirmed.append(x)
-    confirmed.sort(key=lambda x:float(x.get('team_improvement_score') or 0),reverse=True)
-    return {'best_portfolio':confirmed[0] if confirmed else None,'top_portfolios':confirmed[:5],'candidate_bundles_evaluated':len(screened),'authority':'GM3 Team Improvement','adaptive_search':True,'excludes_theoretical_counterparty_failures':True}
+    """Filter theoretical counterparty failures, then delegate bundle search to full OE2."""
+    frontier=negotiation_frontier.build(source.get('trade_price_frontier_candidates') or source.get('top_cross_channel_options') or [])
+    trades=frontier['actionable_negotiations']+frontier['negotiation_targets']
+    signatures={(x.get('seller_user_id'),(x.get('target') or {}).get('asset_id'),tuple(sorted(a.get('asset_id') for a in (x.get('outgoing') or [])))) for x in trades}
+    filtered=copy.deepcopy(source)
+    filtered['top_cross_channel_options']=[
+        copy.deepcopy(r) for r in (source.get('top_cross_channel_options') or [])
+        if r.get('channel')=='WAIVER' or (
+            r.get('channel')=='TRADE' and
+            (r.get('seller_user_id'),(r.get('target') or {}).get('asset_id'),tuple(sorted(a.get('asset_id') for a in (r.get('outgoing') or [])))) in signatures
+        )
+    ]
+    out=v2.build_adaptive_portfolio_view(
+        filtered,str(uid),depth=depth,max_moves=max_moves,beam_width=beam,
+        simulations=sims,confirm_simulations=confirm,confirm_top=confirm_top,seed=seed
+    )
+    out['excludes_theoretical_counterparty_failures']=True
+    return out
 def _prospective(source):
     raw=json.dumps(source,sort_keys=True,separators=(',',':'),default=str).encode(); return {'schema_version':'FSFFL-Opportunity-Prospective-Snapshot-1.0','generated_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'source_revision':os.getenv('GITHUB_SHA'),'source_input_sha256':hashlib.sha256(raw).hexdigest(),'contains_future_outcomes':False}
 def build_board(source,a,reviews):
-    b=v1.build_board(source,focus_user_id=a.focus_user_id,portfolio_depth=0,seed=a.seed,trade_reviews=reviews); frontier_rows=source.get('trade_price_frontier_candidates') or source.get('top_cross_channel_options') or []; frontier=negotiation_frontier.build(frontier_rows); b['model_version']=MODEL_VERSION; b['negotiation_frontier']=frontier; b['best_price_overlap']=frontier.get('best_price_overlap')
+    b=v2.build_board(source,a,reviews); frontier_rows=source.get('trade_price_frontier_candidates') or source.get('top_cross_channel_options') or []; frontier=negotiation_frontier.build(frontier_rows); b['model_version']=MODEL_VERSION; b['negotiation_frontier']=frontier; b['best_price_overlap']=frontier.get('best_price_overlap')
     # Actionable headline is now an executable-opportunity view, not merely the highest cheap hypothetical.
     actionable=frontier.get('best_actionable_trade'); explore=frontier.get('best_negotiation_target'); waiver=next((x for x in source.get('top_cross_channel_options') or [] if x.get('channel')=='WAIVER'),None)
     b['best_actionable_trade']=actionable; b['best_trade_to_explore']=explore; b['best_theoretical_upgrade']=frontier.get('best_theoretical_upgrade')
