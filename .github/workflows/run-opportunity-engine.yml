@@ -96,13 +96,16 @@ jobs:
           python - <<'PY'
           import json
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.4'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-1.5'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['capability_status']['single_step_trade_search'] is True
           assert b['capability_status']['single_step_waiver_search'] is True
           assert b['capability_status']['sell_high_buy_low_specialized_views'] is True
+          assert b['capability_status']['best_plan_selects_between_single_and_portfolio_on_governed_utility'] is True
+          assert b['best_plan_available']['plan_type'] in {'SINGLE_STEP','PORTFOLIO','HOLD'}
+          assert b['search_coverage']['bounded_search_not_exhaustive'] is True
           assert b['capability_status']['draft_intelligence_context'] is True
           assert b['capability_status']['breakout_sleeper_intelligence_context'] is True
           if int('${{ inputs.portfolio_depth }}') >= 2:
