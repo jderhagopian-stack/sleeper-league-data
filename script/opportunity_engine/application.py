@@ -167,15 +167,31 @@ def _specialized_views(source):
     def strategic(row, key):
         return float((((row.get("simulation") or {}).get("strategic") or {}).get(key)) or 0.0)
 
-    buy_low = None
+    model_vs_market = None
     for row in trades:
         focal = float(row.get("target_focal_value") or 0.0)
         market = float(row.get("target_market_dynasty") or 0.0)
         if focal > market > 0:
-            buy_low = _annotate(row)
-            buy_low["descriptive_model_vs_market_gap"] = round(focal - market, 2)
-            buy_low["view_basis"] = "GM3 target focal value exceeds current dynasty market anchor; upstream order preserved"
+            model_vs_market = _annotate(row)
+            model_vs_market["descriptive_model_vs_market_gap"] = round(focal - market, 2)
+            model_vs_market["view_basis"] = "GM3 target focal value exceeds current dynasty market anchor; upstream order preserved"
             break
+
+    buy_low = _first(
+        rows,
+        lambda x: any(
+            str(sig).startswith("BUY_LOW")
+            for sig in (
+                (((x.get("specialist_intelligence") or {}).get("breakout_sleeper_intelligence") or {}).get("signals") or [])
+            )
+        ),
+    )
+    if buy_low:
+        bsi = ((buy_low.get("specialist_intelligence") or {}).get("breakout_sleeper_intelligence") or {})
+        buy_low["view_basis"] = (
+            "Breakout / Sleeper Intelligence carries a BUY_LOW signal; "
+            f"direction={bsi.get('direction') or 'UNKNOWN'}; upstream governed order preserved"
+        )
 
     negotiation = _first(
         trades,
@@ -212,6 +228,7 @@ def _specialized_views(source):
 
     return {
         "best_buy_low_candidate": buy_low,
+        "best_model_vs_market_acquisition": model_vs_market,
         "best_negotiation_ready_trade": negotiation,
         "best_current_season_upgrade": current_upgrade,
         "best_long_term_value_move": long_term,
