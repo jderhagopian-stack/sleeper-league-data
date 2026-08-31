@@ -114,3 +114,12 @@ route generated trades through Trade Decision, and select the best governed plan
 transaction. Search depth remains bounded for runtime reasons and is disclosed in
 the output. Future work can improve search breadth or add new specialist channels
 without changing the authority contract.
+
+## Generated-proposal language
+
+Trade Decision keeps its canonical action labels internally. Because Opportunity
+Engine generates focal-initiated proposals rather than incoming offers, the
+Opportunity Engine also exposes a deterministic semantic translation such as
+`PROPOSAL_FOCALLY_ACCEPTABLE_TO_SEND` or `DO_NOT_SEND_AS_STRUCTURED`.
+The canonical Trade Decision action is retained alongside the translation; no
+decision score or policy is changed.
