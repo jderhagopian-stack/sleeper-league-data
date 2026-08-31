@@ -11,6 +11,10 @@ on:
         default: '846634401482792960'
         type: string
 
+concurrency:
+  group: opportunity-engine-phase2-calibration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   calibrate:
     runs-on: ubuntu-latest
