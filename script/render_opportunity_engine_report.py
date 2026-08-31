@@ -80,9 +80,16 @@ def render(board):
     if best_portfolio:
         lines.append(line_for(best_portfolio))
         lines.append(
-            f"Evaluated {int(portfolio.get('candidate_pairs_evaluated') or 0)} structurally compatible pairs "
-            f"at {int(portfolio.get('simulation_count_per_bundle') or 0):,} simulations each."
+            f"Screened {int(portfolio.get('candidate_pairs_evaluated') or 0)} structurally compatible pairs "
+            f"at {int(portfolio.get('screen_simulation_count_per_bundle') or 0):,} simulations each; "
+            f"deep-confirmed {int(portfolio.get('deep_confirmed_portfolios') or 0)} finalists at "
+            f"{int(portfolio.get('confirmation_simulation_count_per_finalist') or 0):,} simulations each."
         )
+        if best_portfolio.get("incremental_score_vs_best_single_step_same_precision") is not None:
+            lines.append(
+                f"Incremental GM3 score versus the best single step at the same precision: "
+                f"{float(best_portfolio.get('incremental_score_vs_best_single_step_same_precision')):+,.1f}."
+            )
         if best_portfolio.get("trade_steps_require_trade_decision_review"):
             lines.append("Trade steps remain subject to Trade Decision review before execution advice.")
     else:

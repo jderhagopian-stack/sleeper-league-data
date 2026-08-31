@@ -40,7 +40,9 @@ jobs:
             --waiver-screen 6 \
             --confirm-top 3 \
             --portfolio-depth 4 \
-            --portfolio-sims 30 \
+            --portfolio-sims 20 \
+            --portfolio-confirm-sims 40 \
+            --portfolio-confirm-top 2 \
             --trade-review-depth 0 \
             --output /tmp/opportunity-engine/opportunity-board.json
           python script/render_opportunity_engine_report.py \
@@ -52,7 +54,7 @@ jobs:
           import json
           from pathlib import Path
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.3'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-1.4'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['search_heuristics_have_final_decision_authority'] is False
@@ -69,6 +71,9 @@ jobs:
           assert b['capability_status']['multi_step_portfolio_optimization'] is True
           assert b['portfolio_optimization']['candidate_pairs_evaluated'] > 0
           assert b['portfolio_optimization']['authority']=='GM3 Team Improvement'
+          assert b['portfolio_optimization']['deep_confirmed_portfolios'] > 0
+          assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
+          assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
           assert b['trade_decision_reviews']==[]
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 500
           print('Opportunity Engine live governed regression passed')

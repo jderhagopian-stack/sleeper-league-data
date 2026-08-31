@@ -1,5 +1,5 @@
 {
-  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.3",
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.4",
   "application": "Opportunity Engine",
   "layer": "Application",
   "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
@@ -13,7 +13,8 @@
     "no_hidden_rescoring": true,
     "portfolio_search_may_not_create_parallel_utility": true,
     "generated_trade_execution_advice_requires_trade_decision": true,
-    "specialist_intelligence_is_context_not_rescoring": true
+    "specialist_intelligence_is_context_not_rescoring": true,
+    "portfolio_finalists_use_deeper_confirmation_before_recommendation": true
   },
   "authority_map": {
     "projections": "Shared Core projection and uncertainty system",
@@ -48,7 +49,9 @@
     "specialist_intelligence_sources": [
       "Draft Intelligence",
       "Breakout / Sleeper Intelligence"
-    ]
+    ],
+    "portfolio_screen_then_deep_confirmation": true,
+    "portfolio_final_ranking_authority": "GM3 Team Improvement"
   },
   "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
   "forbidden_authority": [

@@ -69,5 +69,6 @@ assert board["capability_status"]["multi_step_portfolio_optimization"] is False
 assert board["policy"]["specialized_views_preserve_upstream_order"] is True
 assert board["provenance"]["portfolio_scores_owned_by_gm3_team_improvement"] is True
 assert board["provenance"]["specialist_intelligence_changes_ranking"] is False
+assert board["model_version"]=="FSFFL-Opportunity-Engine-1.4"
 assert board["policy"]["specialist_intelligence_is_context_not_rescoring"] is True
 print("Opportunity Engine governed composition regression passed")
