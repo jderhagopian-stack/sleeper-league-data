@@ -20,7 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Opportunity-Engine-1.3"
+MODEL_VERSION = "FSFFL-Opportunity-Engine-1.4"
 SCRIPT = Path(__file__).resolve().parent.parent
 ROOT = SCRIPT.parent
 TEAM_IMPROVEMENT = SCRIPT / "gm3" / "team_improvement.py"
@@ -283,8 +283,27 @@ def _portfolio_description(rows):
     return " THEN ".join(str(x.get("description") or x.get("channel") or "MOVE") for x in rows)
 
 
-def build_portfolio_view(source, focus_user_id, depth=6, simulations=500, seed=20260821, limit=5):
-    """Evaluate two-move bundles with GM3's canonical Team Improvement utility."""
+def _portfolio_result(rows, result):
+    return {
+        "description": _portfolio_description(rows),
+        "steps": [_annotate(x) for x in rows],
+        "team_improvement_score": result.get("team_improvement_score"),
+        "simulation": result.get("simulation"),
+        "effective_actions": result.get("actions"),
+        "decision_authority": "GM3_TEAM_IMPROVEMENT",
+        "trade_steps_require_trade_decision_review": any(
+            str(x.get("channel") or "") == "TRADE" for x in rows
+        ),
+        "portfolio_evaluation_source": result.get("authority"),
+        "shared_decision_utility": result.get("shared_decision_utility"),
+        "_source_rows": copy.deepcopy(rows),
+    }
+
+
+def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
+                         confirm_simulations=5000, confirm_top=3,
+                         seed=20260821, limit=5):
+    """Screen compatible two-move bundles, then deep-confirm the leading set with GM3."""
     candidates = [
         copy.deepcopy(x)
         for x in (source.get("top_cross_channel_options") or [])[: max(0, int(depth))]
@@ -299,43 +318,82 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500, seed=2
             "authority": "GM3 Team Improvement",
         }
 
-    evaluator = gm3_team_improvement.portfolio_evaluator(
+    screen_evaluator = gm3_team_improvement.portfolio_evaluator(
         str(focus_user_id), simulations=int(simulations), seed=int(seed)
     )
-    evaluated = []
+    screened = []
     for a, b in pairs:
-        result = evaluator.evaluate([a, b])
-        evaluated.append({
-            "description": _portfolio_description([a, b]),
-            "steps": [_annotate(a), _annotate(b)],
-            "team_improvement_score": result.get("team_improvement_score"),
-            "simulation": result.get("simulation"),
-            "effective_actions": result.get("actions"),
-            "decision_authority": "GM3_TEAM_IMPROVEMENT",
-            "trade_steps_require_trade_decision_review": any(
-                str(x.get("channel") or "") == "TRADE" for x in (a, b)
-            ),
-            "portfolio_evaluation_source": result.get("authority"),
-            "shared_decision_utility": result.get("shared_decision_utility"),
-        })
+        result = screen_evaluator.evaluate([a, b])
+        row = _portfolio_result([a, b], result)
+        row["screen_team_improvement_score"] = row.get("team_improvement_score")
+        row["screen_simulations"] = int(simulations)
+        screened.append(row)
 
-    evaluated.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
-    top = evaluated[: max(1, int(limit))]
-    best_single = float((source.get("recommended_action") or {}).get("team_improvement_score") or 0.0)
-    if top:
-        top[0]["incremental_score_vs_best_single_step"] = round(
-            float(top[0].get("team_improvement_score") or 0.0) - best_single, 2
+    screened.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
+    n_confirm = min(max(1, int(confirm_top)), len(screened))
+    finalists = screened[:n_confirm]
+
+    if int(confirm_simulations) > int(simulations):
+        confirm_evaluator = gm3_team_improvement.portfolio_evaluator(
+            str(focus_user_id), simulations=int(confirm_simulations), seed=int(seed)
         )
+        confirmed = []
+        for row in finalists:
+            source_rows = row.get("_source_rows") or []
+            result = confirm_evaluator.evaluate(source_rows)
+            out = _portfolio_result(source_rows, result)
+            out["screen_team_improvement_score"] = row.get("screen_team_improvement_score")
+            out["screen_simulations"] = int(simulations)
+            out["confirmed"] = True
+            out["confirmation_simulations"] = int(confirm_simulations)
+            confirmed.append(out)
+        confirmed.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
+    else:
+        confirmed = finalists
+        for row in confirmed:
+            row["confirmed"] = True
+            row["confirmation_simulations"] = int(simulations)
+
+    best_single_row = (source.get("top_cross_channel_options") or [None])[0]
+    comparable_single = None
+    if best_single_row:
+        evaluator = gm3_team_improvement.portfolio_evaluator(
+            str(focus_user_id),
+            simulations=int(confirm_simulations if int(confirm_simulations) > 0 else simulations),
+            seed=int(seed),
+        )
+        single_result = evaluator.evaluate([best_single_row])
+        comparable_single = {
+            "description": best_single_row.get("description"),
+            "team_improvement_score": single_result.get("team_improvement_score"),
+            "simulation_count": int(confirm_simulations if int(confirm_simulations) > 0 else simulations),
+            "authority": "GM3 Team Improvement",
+        }
+
+    top = confirmed[: max(1, int(limit))]
+    if top and comparable_single:
+        top[0]["incremental_score_vs_best_single_step_same_precision"] = round(
+            float(top[0].get("team_improvement_score") or 0.0)
+            - float(comparable_single.get("team_improvement_score") or 0.0),
+            2,
+        )
+    for row in top:
+        row.pop("_source_rows", None)
+
     return {
         "best_portfolio": top[0] if top else None,
         "top_portfolios": top,
-        "candidate_pairs_evaluated": len(evaluated),
+        "candidate_pairs_evaluated": len(screened),
+        "screened_portfolios": len(screened),
+        "deep_confirmed_portfolios": len(confirmed),
         "search_depth": int(depth),
-        "simulation_count_per_bundle": int(simulations),
+        "screen_simulation_count_per_bundle": int(simulations),
+        "confirmation_simulation_count_per_finalist": int(confirm_simulations),
+        "best_single_step_same_precision": comparable_single,
         "authority": "GM3 Team Improvement",
         "search_budget_is_computational_not_decision_authority": True,
+        "screening_and_confirmation_use_same_gm3_utility": True,
     }
-
 
 def _trade_scenario(row, focus_user_id, ordinal):
     target = row.get("target") or {}
@@ -453,8 +511,9 @@ def _attach_trade_review(row, reviews):
     return out
 
 
-def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500, seed=20260821,
-                trade_reviews=None):
+def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500,
+                portfolio_confirm_sims=5000, portfolio_confirm_top=3,
+                seed=20260821, trade_reviews=None):
     """Compose a board using authoritative source order and governed downstream APIs."""
     source = _enrich_source(source)
     reviews = list(trade_reviews or [])
@@ -472,7 +531,10 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
     portfolio = (
         build_portfolio_view(
             source, uid, depth=int(portfolio_depth),
-            simulations=int(portfolio_sims), seed=int(seed)
+            simulations=int(portfolio_sims),
+            confirm_simulations=int(portfolio_confirm_sims),
+            confirm_top=int(portfolio_confirm_top),
+            seed=int(seed)
         )
         if int(portfolio_depth) >= 2
         else {
@@ -566,6 +628,8 @@ def main():
     ap.add_argument("--confirm-top", type=int, default=5)
     ap.add_argument("--portfolio-depth", type=int, default=6)
     ap.add_argument("--portfolio-sims", type=int, default=500)
+    ap.add_argument("--portfolio-confirm-sims", type=int, default=5000)
+    ap.add_argument("--portfolio-confirm-top", type=int, default=3)
     ap.add_argument("--trade-review-depth", type=int, default=1)
     ap.add_argument("--trade-review-quick-sims", type=int, default=200)
     ap.add_argument("--trade-review-confirm-sims", type=int, default=50000)
@@ -598,6 +662,8 @@ def main():
         focus_user_id=args.focus_user_id,
         portfolio_depth=args.portfolio_depth,
         portfolio_sims=args.portfolio_sims,
+        portfolio_confirm_sims=args.portfolio_confirm_sims,
+        portfolio_confirm_top=args.portfolio_confirm_top,
         seed=args.seed,
         trade_reviews=trade_reviews,
     )
