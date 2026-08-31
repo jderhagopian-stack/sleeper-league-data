@@ -1,0 +1,40 @@
+name: League Intelligence Architecture
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/league-intelligence-analytics-terminal.md'
+      - 'script/league_intelligence/**'
+      - 'script/test_league_intelligence_contract.py'
+      - '.github/workflows/test-league-intelligence.yml'
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate governed view contracts
+        run: python script/test_league_intelligence_contract.py
+      - name: Verify no new valuation authority is declared
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path('script').resolve()))
+          from league_intelligence.contract import FORBIDDEN_OPERATIONS, first_release_contracts
+          contracts=first_release_contracts()
+          assert contracts
+          for c in contracts:
+              assert 'new_valuation_model' in c.forbidden_operations
+              assert 'new_cross_channel_utility' in c.forbidden_operations
+              assert 'new_trade_acceptance_probability' in c.forbidden_operations
+              assert 'new_simulation_model' in c.forbidden_operations
+              assert set(c.forbidden_operations) == FORBIDDEN_OPERATIONS
+          print('League Intelligence authority boundaries preserved')
+          PY
