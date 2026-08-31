@@ -1,6 +1,20 @@
 name: Trade Negotiation Signal Accounting
 on:
   workflow_call:
+  pull_request:
+    paths:
+      - 'script/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   audit:
     runs-on: ubuntu-latest
