@@ -43,7 +43,10 @@ jobs:
             --portfolio-sims 20 \
             --portfolio-confirm-sims 40 \
             --portfolio-confirm-top 2 \
-            --trade-review-depth 0 \
+            --trade-review-depth 1 \
+            --trade-review-quick-sims 20 \
+            --trade-review-confirm-sims 40 \
+            --trade-review-search-depth 40 \
             --output /tmp/opportunity-engine/opportunity-board.json
           python script/render_opportunity_engine_report.py \
             --input /tmp/opportunity-engine/opportunity-board.json \
@@ -74,7 +77,11 @@ jobs:
           assert b['portfolio_optimization']['deep_confirmed_portfolios'] > 0
           assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
           assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
-          assert b['trade_decision_reviews']==[]
+          assert len(b['trade_decision_reviews'])==1
+          td=b['trade_decision_reviews'][0]['trade_decision']
+          assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
+          assert td['generated_proposal_willingness_observed'] is False
+          assert td['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 500
           print('Opportunity Engine live governed regression passed')
           PY

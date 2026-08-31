@@ -53,6 +53,7 @@ def render(board):
     lines += ["", "## Specialized views"]
     for label, key in [
         ("Buy-low candidate", "best_buy_low_candidate"),
+        ("Model-vs-market acquisition", "best_model_vs_market_acquisition"),
         ("Negotiation-ready trade", "best_negotiation_ready_trade"),
         ("Current-season upgrade", "best_current_season_upgrade"),
         ("Long-term value move", "best_long_term_value_move"),
