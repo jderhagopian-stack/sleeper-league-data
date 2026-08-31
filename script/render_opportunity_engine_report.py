@@ -28,7 +28,10 @@ def render(board):
         f"**Team state:** {board.get('team_state') or 'N/A'}",
         f"**Model:** {board.get('model_version') or 'N/A'}",
         "",
-        "## Best move available",
+        "## Best plan available",
+        line_for(board.get("best_plan_available") or board.get("best_move_available") or {}),
+        "",
+        "## Best single move available",
         line_for(board.get("best_move_available") or {}),
     ]
 
@@ -99,6 +102,25 @@ def render(board):
             lines.append("Trade steps remain subject to Trade Decision review before execution advice.")
     else:
         lines.append("No two-move portfolio was evaluated or no compatible pair was available.")
+
+    revisit = board.get("negotiation_revisit_queue") or []
+    lines += ["", "## Negotiation revisit queue"]
+    if revisit:
+        for row in revisit[:5]:
+            lines.append(f"- {line_for(row)} — {row.get('acceptance_fit') or 'LOW FIT'}")
+    else:
+        lines.append("No positive-utility LOW/VERY_LOW-fit trade is currently queued for revisit.")
+
+    coverage = board.get("search_coverage") or {}
+    lines += [
+        "",
+        "## Search coverage",
+        f"- Trade candidates screened: {int(coverage.get('trade_candidates_screened') or 0)}",
+        f"- Waiver candidates screened: {int(coverage.get('waiver_candidates_screened') or 0)}",
+        f"- Portfolio pairs evaluated: {int(coverage.get('portfolio_pairs_evaluated') or 0)}",
+        f"- Trade Decision reviews completed: {int(coverage.get('trade_decision_reviews_completed') or 0)}",
+        "- Search is bounded for computation and is not represented as exhaustive.",
+    ]
 
     reviews = board.get("trade_decision_reviews") or []
     lines += ["", "## Trade Decision routing"]
