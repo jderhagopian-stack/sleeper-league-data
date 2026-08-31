@@ -1,15 +1,7 @@
 name: Playoff Rule Regression
 
 on:
-  pull_request:
-    paths:
-      - 'script/build_fsffl_season_simulator.py'
-      - 'script/league_rules.py'
-      - 'script/run_roster_decision_lab.py'
-      - 'script/audit_playoff_rules.py'
-      - '.github/workflows/playoff-rule-regression.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   playoff-rules:
     runs-on: ubuntu-latest

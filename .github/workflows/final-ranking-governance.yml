@@ -1,18 +1,7 @@
 name: Final Trade Ranking Governance
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_final_trade_ranking_governance.py'
-      - 'script/audit_final_score_ablation.py'
-      - 'script/run_trade_market_sweep_v20.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/decision_lab_state_aware.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/final-ranking-governance.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   audit:
     runs-on: ubuntu-latest

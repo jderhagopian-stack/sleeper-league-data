@@ -1,17 +1,7 @@
 name: Acceptance Gate Sensitivity
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_acceptance_gate_sensitivity.py'
-      - 'script/run_trade_market_sweep_v16.py'
-      - 'script/run_trade_market_sweep_v18.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/acceptance-gate-sensitivity.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   acceptance-ablation:
     runs-on: ubuntu-latest
