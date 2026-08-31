@@ -21,17 +21,23 @@ jobs:
           python -m py_compile \
             script/opportunity_engine/application.py \
             script/opportunity_engine/application_v2.py \
+            script/opportunity_engine/application_v21.py \
+            script/opportunity_engine/negotiation_frontier.py \
+            script/trade_decision/negotiation_frontier.py \
             script/gm3/team_improvement.py \
             script/run_team_improvement_lab.py \
             script/run_team_improvement_lab_v13.py \
+            script/run_team_improvement_lab_v16.py \
             script/render_opportunity_engine_report.py \
             script/audit_opportunity_engine_phase2_calibration.py \
             script/test_opportunity_engine.py \
-            script/test_opportunity_engine_v2.py
+            script/test_opportunity_engine_v2.py \
+            script/test_negotiation_price_frontier.py
       - name: Run fast architecture/composition regressions
         run: |
           python script/test_opportunity_engine.py
           python script/test_opportunity_engine_v2.py
+          python script/test_negotiation_price_frontier.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run live Opportunity Engine 2.0 vertical slice
