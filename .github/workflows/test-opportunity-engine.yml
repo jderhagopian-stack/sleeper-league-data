@@ -44,8 +44,8 @@ jobs:
             --portfolio-confirm-sims 40 \
             --portfolio-confirm-top 2 \
             --trade-review-depth 1 \
-            --trade-review-quick-sims 20 \
-            --trade-review-confirm-sims 40 \
+            --trade-review-quick-sims 100 \
+            --trade-review-confirm-sims 200 \
             --trade-review-search-depth 40 \
             --output /tmp/opportunity-engine/opportunity-board.json
           python script/render_opportunity_engine_report.py \
