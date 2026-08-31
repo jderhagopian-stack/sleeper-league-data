@@ -157,10 +157,13 @@ def main():
             target=row.get('target') or {}; key=(str(row.get('seller_user_id') or ''),str(target.get('asset_id') or ''),tuple(sorted(str(x.get('asset_id') or '') for x in (row.get('outgoing') or []))))
             prior=frontier.get(key); prior_sims=((prior or {}).get('simulation') or {}).get('simulation_count',0); row_sims=(row.get('simulation') or {}).get('simulation_count',0)
             if prior is None or int(row_sims or 0)>=int(prior_sims or 0): frontier[key]=row
-        report['trade_price_frontier_candidates']=list(frontier.values())
+        report['trade_price_frontier_candidates']=sorted(list(frontier.values()),key=lambda x:base.sf(x.get('team_improvement_score')) if x.get('team_improvement_score') is not None else -1e18,reverse=True)
         report['search_summary']['trade_price_frontier_candidates_evaluated']=len(report['trade_price_frontier_candidates'])
         report['policy']['trade_price_frontier_uses_all_evaluated_trade_candidates']=True
         report['policy']['trade_price_frontier_candidates_preserve_gm3_utility']=True
+        report['policy']['trade_price_frontier_candidates_ordered_by_gm3_utility']=True
+        report['policy']['price_frontier_search_uses_upstream_gm_trade_package_curve']=True
+        report['policy']['price_frontier_search_depth_is_computational_control_only']=True
         report['policy']['price_frontier_search_uses_upstream_gm_trade_package_curve']=True
         report['policy']['price_frontier_search_depth_is_computational_control_only']=True
         out.write_text(json.dumps(report,indent=2,sort_keys=True))
