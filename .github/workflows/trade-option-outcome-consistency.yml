@@ -57,7 +57,9 @@ jobs:
           python -m py_compile \
             script/run_trade_market_sweep_v23.py \
             script/run_trade_market_sweep_v27.py \
+            script/run_trade_market_sweep.py \
             script/run_trade_market_sweep_v31.py \
+            script/trade_report_context.py \
             script/trade_option_governance.py \
             script/roster_interaction_overlay.py \
             script/roster_resolution_governance.py \
@@ -95,11 +97,19 @@ jobs:
           from pathlib import Path
           r=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression.json'))
           s=json.load(open('/tmp/skattebo-regression/Hurts_So_Good_Skattebo_Regression-summary.json'))
-          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18'
+          assert r['model_version']=='FSFFL-Counter-Market-Sweep-1.26'
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19'
           p=r['policy']
           g=r['governance']['option_outcome_consistency']
           assert p['unsupported_numeric_score_cutoff_used_for_better_worse'] is False
+          assert p['offer_origin_aware_counter_search'] is True
+          assert p['offer_origin_context_exposed'] is True
+          assert (r.get('offer_context') or {}).get('direction')=='INCOMING_OFFER'
+          assert (r.get('offer_context') or {}).get('current_terms_willingness_observed') is True
+          assert int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_enumerated') or 0)>0
+          assert int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_simulated') or 0)>0
+          assert r.get('future_pick_outlook')
+          assert (r.get('value_metric_context') or {}).get('incremental_asset_liquidity')
           assert p['acceptance_likelihood_is_separate_from_trade_valuation'] is True
           assert p['low_or_very_low_acceptance_changes_trade_quality_verdict'] is False
           assert p['descriptive_state_labels_create_focal_utility_cliffs'] is False

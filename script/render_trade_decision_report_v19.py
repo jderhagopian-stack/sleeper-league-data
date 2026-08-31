@@ -14,7 +14,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reporting import label, acceptance_fit, action, magnitude_word, competitive_context, roster_change_context, position_need_change_chart, probability_change_chart
 
-MODEL_VERSION='FSFFL-Trade-Decision-Report-1.10'
+MODEL_VERSION='FSFFL-Trade-Decision-Report-1.11'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
 
 def sf(v,d=0.0):
@@ -104,10 +104,14 @@ def why(r,cur):
     elif title <= -.01 or wins <= -.10:
         parts.append("The move weakens the current-season outlook enough that the return must compensate elsewhere.")
 
-    if dyn <= -500 or liq <= -500:
-        parts.append("The price is the central concern: the team is converting a meaningful amount of future asset value and trade flexibility into present production.")
+    if dyn < 0 and liq > 0:
+        parts.append("The long-term market-value and moveability signals point in different directions: the team gives up net dynasty market value, while the incoming assets add more incremental moveability than the non-pick assets being sent.")
+    elif dyn > 0 and liq < 0:
+        parts.append("The deal adds dynasty market value but concentrates it in less movable assets, so long-term value improves while incremental moveability falls.")
+    elif dyn <= -500 or liq <= -500:
+        parts.append("The price is the central concern: the team is giving up meaningful long-term value and/or incremental moveability for present production.")
     elif dyn >= 500 or liq >= 500:
-        parts.append("The deal also improves the franchise's longer-term asset position rather than requiring a pure win-now sacrifice.")
+        parts.append("The deal also improves at least one longer-term asset channel rather than requiring a pure win-now sacrifice.")
 
     if overall <= -75 and (title > 0 or wins > 0):
         parts.append("That creates a real tension between improving the 2026 roster and paying more than the model considers ideal for the upgrade.")
@@ -136,6 +140,10 @@ def what_could_change_answer(r,cur):
     if action_code=='ACCEPT_NOW':
         if cs or ms:
             return "The answer would change if one of the stronger alternatives becomes genuinely available on comparable terms; otherwise the current offer is the best actionable choice the model found."
+        picks=r.get('future_pick_outlook') or []
+        if picks:
+            p=picks[0]
+            return f"The answer would become less attractive if {clean(p.get('name'))} projects earlier than the current {str(p.get('post_trade_projected_tier') or '').upper()} range, if the incoming player's expected role falls, or if a required roster cut becomes more expensive than modeled."
         return "The answer would change if the price increases, a required roster cut becomes more expensive than modeled, or new player information materially changes the short- or long-term outlook."
     if action_code=='SHOP_BEFORE_ACCEPTING':
         return "If the better alternatives are not actually available, the current offer becomes much more attractive. The recommendation is to test the market, not to reject a reasonable deal automatically."
@@ -144,6 +152,55 @@ def what_could_change_answer(r,cur):
     if action_code=='DECLINE':
         return "The answer would change if the return improves enough to close the value or winning-impact gap, or if this team's competitive window changes materially."
     return "A clearer edge in either current-season winning value or long-term roster value could change the recommendation."
+
+def value_metric_explanation(r,cur):
+    ctx=(r.get('value_metric_context') or {})
+    liq=(ctx.get('incremental_asset_liquidity') or {})
+    delta=sf(liq.get('delta'))
+    received=liq.get('received_components') or []
+    sent=liq.get('sent_components') or []
+    rec=max(received,key=lambda x:sf(x.get('incremental_liquidity_contribution')),default={})
+    snd=max(sent,key=lambda x:sf(x.get('incremental_liquidity_contribution')),default={})
+    parts=[
+        "<b>Long-Term Trade Value</b> is the change in league-wide dynasty market value.",
+        "<b>Incremental Asset Liquidity</b> is separate: it measures added moveability that is not already counted in market value."
+    ]
+    if rec or snd:
+        parts.append(
+            f"In this trade the incremental-liquidity change is {delta:+,.0f}; "
+            f"{clean(rec.get('name') or 'incoming assets')} contributes about {sf(rec.get('incremental_liquidity_contribution')):,.0f} "
+            f"versus about {sf(snd.get('incremental_liquidity_contribution')):,.0f} from {clean(snd.get('name') or 'the sent non-pick assets')}."
+        )
+    if any(x.get('basis')=='PICK_LIQUIDITY_ALREADY_EMBEDDED_IN_MARKET_VALUE' for x in sent+received):
+        parts.append("Future picks receive no separate moveability bonus here because their liquidity is already treated as embedded in their dynasty market price; counting it again would double count the same advantage.")
+    return " ".join(parts)
+
+def pick_outlook_text(row):
+    name=clean(row.get('name'))
+    owner=clean(row.get('original_owner_team') or 'original owner')
+    tier=str(row.get('post_trade_projected_tier') or 'unknown').upper()
+    rng=clean(row.get('post_trade_tier_slot_range') or '')
+    ew=sf(row.get('post_trade_expected_wins'))
+    pre=str(row.get('pre_trade_projected_tier') or 'unknown').upper()
+    changed=bool(row.get('trade_changes_original_owner_projection'))
+    movement=(f"The trade moves the directional tier from {pre} to {tier}." if changed and pre!=tier else
+              "The trade changes the owner's simulated outlook but not the directional pick tier." if changed else
+              "The original owner is not directly changed by this trade; the post-trade league ordering leaves the directional tier unchanged.")
+    return (
+        f"<b>{name}</b> - original owner: {owner}. Post-trade outlook: <b>{tier}</b> "
+        f"({rng} directional range), with the original owner at {ew:.2f} expected wins. {movement} "
+        "This is a tier/range estimate from the Simulator ordering, not an exact rookie-draft slot probability."
+    )
+
+def offeror_note(r,cur):
+    oc=r.get('offer_context') or {}
+    if oc.get('direction')!='INCOMING_OFFER':
+        return ''
+    partner=((cur.get('simulation') or {}).get('buyer_before') or {}).get('team_name') or 'The other manager'
+    return (
+        f"<b>Offer origin:</b> {clean(partner)} made the current offer, so willingness to the current terms is observed. "
+        "That does not mean a counter will be accepted, but it is stronger local evidence than an absolute buyer-utility estimate and the model uses it to test modest target-preserving concessions."
+    )
 
 def comparison_sentence(row):
     c=row.get('comparison_to_current_offer') or {}; v=str(c.get('verdict_vs_current_offer') or 'MIXED')
@@ -164,7 +221,12 @@ def option_text(row,i,market=False):
 
 def sequence(r):
     a=str(r.get('recommended_next_action') or ''); cs=r.get('suggested_counteroffers') or []; ms=r.get('market_sweep_alternatives') or []
-    if a=='ACCEPT_NOW':return 'Accept if the offer is still available. Do not add more unless the other manager rejects it.'
+    if a=='ACCEPT_NOW':
+        oc=r.get('offer_context') or {}
+        tested=int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_simulated') or 0)
+        if oc.get('direction')=='INCOMING_OFFER' and tested:
+            return 'Accept the original offer if it is still available. The model also tested whether the offeror could be pressed for a smaller price; no superior counter survived the final decision comparison.'
+        return 'Accept if the offer is still available. Do not add more unless the other manager rejects it.'
     if a=='SHOP_BEFORE_ACCEPTING':return 'Keep this offer alive while checking the strongest alternatives. If none is actually available, coming back to this deal is reasonable.'
     if a=='COUNTER_CURRENT_OFFEROR':return 'Lead with Counter 1. Only move to another structure if the first counter is rejected.'
     if a=='DECLINE' and cs:return 'Decline the current version and send Counter 1 instead.'
@@ -202,10 +264,15 @@ def render(r,out):
       card('CHAMPIONSHIP ODDS',f"{sf(before.get('championship_probability'))*100:.1f}% → {sf(after.get('championship_probability'))*100:.1f}%",sf(after.get('championship_probability'))>=sf(before.get('championship_probability'))),
       card(label('strategic_value_delta').upper(),f"{sf(st.get('strategic_value_delta')):+,.0f}",sf(st.get('strategic_value_delta'))>=0),
       card(label('market_dynasty_delta').upper(),f"{sf(st.get('market_dynasty_delta')):+,.0f}",sf(st.get('market_dynasty_delta'))>=0),
-      card(label('liquidity_value_delta').upper(),f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
+      card('INCREMENTAL ASSET LIQUIDITY',f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
     ]
     grid=Table([cards[:3],cards[3:]],colWidths=[2.47*inch]*3,rowHeights=[.56*inch,.56*inch]);grid.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)]))
-    story += [grid,Spacer(1,2),P("Season-impact figures come from the canonical vectorized Simulator with 50,000-run final confirmation for the current offer and actionable finalists.",'S19'),Spacer(1,5),P('ANALYST VIEW','H19'),P(why(r,cur))]
+    profile=r.get('recommendation_profile') or {}
+    story += [grid,Spacer(1,2),
+              P("Season-impact figures come from the canonical vectorized Simulator with 50,000-run final confirmation for the current offer and actionable finalists.",'S19'),
+              P(f"<b>Decision profile:</b> {clean(profile.get('label') or '')}. {clean(profile.get('basis') or '')}",'S19'),
+              Spacer(1,5),P('ANALYST VIEW','H19'),P(why(r,cur)),
+              P('HOW TO READ THE VALUE SIGNALS','H19'),P(value_metric_explanation(r,cur),'S19')]
     visuals=[x for x in (
         position_need_change_chart(sim.get('roster_diagnosis')),
         probability_change_chart(before,after),
@@ -218,20 +285,34 @@ def render(r,out):
             story += [vt]
         else:
             story += visuals
-    br=cur.get('buyer_rationality') or {}
-    if br.get('heuristic_acceptance_fit'):
-        story += [Spacer(1,2),P(f"<b>Other manager:</b> {acceptance_fit(br.get('heuristic_acceptance_fit'))}. This is a fit estimate, not a literal acceptance probability.",'S19')]
+    on=offeror_note(r,cur)
+    if on:
+        story += [Spacer(1,2),P(on,'S19')]
+    else:
+        br=cur.get('buyer_rationality') or {}
+        if br.get('heuristic_acceptance_fit'):
+            story += [Spacer(1,2),P(f"<b>Other manager:</b> {acceptance_fit(br.get('heuristic_acceptance_fit'))}. This is a fit estimate, not a literal acceptance probability.",'S19')]
+    picks=r.get('future_pick_outlook') or []
+    if picks:
+        story += [P('FUTURE PICK OUTLOOK','H19')]
+        for x in picks:
+            story += [P(pick_outlook_text(x),'S19'),Spacer(1,2)]
     story += [P(f'POSSIBLE COUNTERS ({len(cs)})','H19')]
     if cs:
         for i,x in enumerate(cs,1):story += [P(option_text(x,i)),Spacer(1,2)]
-    else:story += [P('The model did not find a worthwhile counter with this owner.')]
+    else:
+        tested=int((r.get('candidate_counts') or {}).get('offeror_concession_candidates_simulated') or 0)
+        if (r.get('offer_context') or {}).get('direction')=='INCOMING_OFFER' and tested:
+            story += [P(f'The model tested {tested} target-preserving concession structure(s) around the offeror\'s observed terms, but none was clearly better after the final comparison.')]
+        else:
+            story += [P('The model did not find a worthwhile counter with this owner.')]
     story += [P(f'OTHER TRADE OPTIONS ({len(ms)})','H19')]
     if ms:
         for i,x in enumerate(ms,1):story += [P(option_text(x,i,True)),Spacer(1,2)]
     else:story += [P('No outside trade option clearly beat the current choice.')]
     story += [P('WHAT TO DO NEXT','H19'),P(sequence(r)),
               P('WHAT COULD CHANGE THE ANSWER','H19'),P(what_could_change_answer(r,cur)),
-              Spacer(1,3),P("How to read the value numbers: long-term trade value is league-wide dynasty value; overall franchise impact is the model's bottom-line judgment for this specific roster after winning chances, future value, roster fit and flexibility are considered together.",'S19')]
+              Spacer(1,3),P("How to read the value numbers: long-term trade value is league-wide dynasty market value. Incremental asset liquidity is additional moveability not already embedded in that market value. Overall franchise impact is the roster-specific bottom-line judgment after winning chances, future value, roster fit and the governed liquidity/resilience channels are combined.",'S19')]
     doc.build(story,onFirstPage=foot,onLaterPages=foot)
 
 def main():

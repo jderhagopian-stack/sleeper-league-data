@@ -16,7 +16,7 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent
 CURRENT_ENGINE = SCRIPT / "run_trade_market_sweep_v31.py"
-EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.25"
+EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.26"
 FACADE_VERSION = "FSFFL-Trade-Engine-Facade-1.0"
 
 

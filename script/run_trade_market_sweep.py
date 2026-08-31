@@ -433,7 +433,24 @@ def diversified_select(raw_candidates, shortlist: int):
             seen.add(key)
             selected.append(item)
 
-    # Slot 1: best same-partner counter.
+    # For an incoming offer, reserve simulation capacity for the
+    # smallest target-preserving concessions first. These are local negotiation
+    # tests around observed willingness, not assumed acceptances.
+    offeror_concessions = [
+        x for x in current
+        if x[0].get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    ]
+    offeror_concessions.sort(
+        key=lambda x: (
+            float(x[0].get("concession_value_vs_current_offer") or 0.0),
+            float(x[0].get("market_balance_distance_pre_screen") or 0.0),
+            package_key(x[2]),
+        )
+    )
+    for item in offeror_concessions[: min(10, shortlist)]:
+        add(item)
+
+    # Preserve at least one best same-partner counter from the broader search.
     if preferred_current:
         add(preferred_current[0])
 
@@ -493,18 +510,77 @@ def main():
     baseline = dl.simulate_from_lineups(simmod, league, rosters, users, raw_schedule, baseline_lineups, args.quick_sims, args.seed)
 
     sent_ids, received_ids, current_partner = incoming_trade_parts(scenario, focus_uid)
+    offer_initiator_uid = str(scenario.get("offer_initiator_user_id") or "")
+    offer_direction = (
+        "INCOMING_OFFER" if offer_initiator_uid == current_partner
+        else "FOCAL_INITIATED" if offer_initiator_uid == focus_uid
+        else "UNKNOWN"
+    )
     player_catalog, pick_catalog = asset_catalog()
     catalog = {**player_catalog, **pick_catalog}
     full_outgoing = [catalog[x] for x in sent_ids if x in catalog]
+    current_incoming = [catalog[x] for x in received_ids if x in catalog]
     if len(full_outgoing) != len(sent_ids):
         missing = [x for x in sent_ids if x not in catalog]
         raise ValueError(f"Outgoing assets missing from FSFFL asset catalog: {missing}")
+    if len(current_incoming) != len(received_ids):
+        missing = [x for x in received_ids if x not in catalog]
+        raise ValueError(f"Incoming assets missing from FSFFL asset catalog: {missing}")
 
     owner_assets = build_owner_assets(rosters)
     idx = franchise_index()
     raw_candidates = []
     variants = outgoing_variants(full_outgoing)
     full_key = package_key(full_outgoing)
+
+    # When the counterparty initiated the offer, their willingness at the
+    # current terms is observed. Explicitly test nearby target-preserving
+    # concessions instead of searching only for entirely different returns.
+    # This does not assume the counter will be accepted; it creates a local
+    # negotiation frontier around an observed willingness point.
+    if offer_direction == "INCOMING_OFFER" and current_incoming:
+        current_outgoing_market = sum(
+            asset_value(a, focus_uid)["market"] for a in full_outgoing
+        )
+        fixed_players = [a for a in full_outgoing if a.get("asset_type") == "player"]
+        current_pick_ids = {
+            str(a.get("asset_id")) for a in full_outgoing
+            if a.get("asset_type") == "pick"
+        }
+        focal_picks = [
+            a for a in (owner_assets.get(focus_uid) or [])
+            if a.get("asset_type") == "pick"
+            and str(a.get("asset_id")) not in current_pick_ids
+        ]
+        current_pick_count = len(current_pick_ids)
+        # A replacement package may use one additional pick to trade a more
+        # valuable near-term pick for multiple smaller assets. The cap never
+        # exceeds the canonical multi-asset search ceiling.
+        replacement_pick_cap = min(4, current_pick_count + 1, len(focal_picks))
+        replacement_combos = [()]
+        for n in range(1, replacement_pick_cap + 1):
+            replacement_combos.extend(itertools.combinations(focal_picks, n))
+        for combo in replacement_combos:
+            outgoing = fixed_players + list(combo)
+            if not outgoing or package_key(outgoing) == full_key:
+                continue
+            outgoing_market = sum(
+                asset_value(a, focus_uid)["market"] for a in outgoing
+            )
+            if outgoing_market >= current_outgoing_market:
+                continue
+            row = score_candidate(
+                focus_uid, current_partner, outgoing, current_incoming
+            )
+            row["outgoing_variant"] = "OFFEROR_CONCESSION"
+            row["candidate_type"] = "SAME_PARTNER_COUNTER"
+            row["counter_strategy"] = "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+            row["offer_initiator_user_id"] = offer_initiator_uid
+            row["current_offer_willingness_observed"] = True
+            row["concession_value_vs_current_offer"] = round(
+                current_outgoing_market - outgoing_market, 2
+            )
+            raw_candidates.append((row, current_incoming, outgoing))
 
     for outgoing in variants:
         variant = "FULL" if package_key(outgoing) == full_key else "SUBSET"
@@ -534,9 +610,31 @@ def main():
                 # negative before canonical simulation.
                 row["outgoing_variant"] = variant
                 row["candidate_type"] = "SAME_PARTNER_COUNTER" if buyer_uid == current_partner else "ALTERNATE_BUYER"
+                if (
+                    offer_direction == "INCOMING_OFFER"
+                    and buyer_uid == current_partner
+                    and package_key(pkg) == package_key(current_incoming)
+                    and package_key(outgoing) != full_key
+                ):
+                    row["counter_strategy"] = "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+                    row["offer_initiator_user_id"] = offer_initiator_uid
+                    row["current_offer_willingness_observed"] = True
+                    current_outgoing_market = sum(
+                        asset_value(a, focus_uid)["market"] for a in full_outgoing
+                    )
+                    outgoing_market = sum(
+                        asset_value(a, focus_uid)["market"] for a in outgoing
+                    )
+                    row["concession_value_vs_current_offer"] = round(
+                        max(0.0, current_outgoing_market - outgoing_market), 2
+                    )
                 raw_candidates.append((row, pkg, outgoing))
 
     raw_candidates.sort(key=lambda x: prescreen_sort_key(x[0]), reverse=True)
+    offeror_concession_candidates_enumerated = sum(
+        1 for x in raw_candidates
+        if x[0].get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    )
     selected = diversified_select(raw_candidates, args.shortlist)
 
     state = team_state(focus_uid)
@@ -549,6 +647,10 @@ def main():
         row["post_sim_score"] = post_sim_score(row, state)
         simulated.append(row)
     simulated.sort(key=lambda x: x["post_sim_score"], reverse=True)
+    offeror_concession_candidates_simulated = sum(
+        1 for x in simulated
+        if x.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+    )
 
     # Overall finalists, while preserving category leaders for negotiation output.
     finalists = simulated[: args.finalists]
@@ -585,6 +687,8 @@ def main():
         "focus_user_id": focus_uid,
         "focus_team_state": state,
         "current_offer_partner_user_id": current_partner,
+        "offer_initiator_user_id": offer_initiator_uid or None,
+        "offer_direction": offer_direction,
         "outgoing_assets": sent_ids,
         "incoming_offer_assets": received_ids,
         "simulation": {
@@ -603,6 +707,8 @@ def main():
             "outgoing_variants": len(variants),
             "simulated_shortlist": len(simulated),
             "finalists": len(finalists),
+            "offeror_concession_candidates_enumerated": offeror_concession_candidates_enumerated,
+            "offeror_concession_candidates_simulated": offeror_concession_candidates_simulated,
         },
         "pre_screen_top_candidates": prescreen_top,
         "same_partner_counteroffers": [x for x in simulated if x["candidate_type"] == "SAME_PARTNER_COUNTER"][:DEFAULT_REPORT_CANDIDATES],
@@ -619,6 +725,9 @@ def main():
             "low_plausibility_can_drive_action": False,
             "alternate_buyer_shortlist_slot_reserved": True,
             "strict_outgoing_subsets_tested": True,
+            "offer_origin_aware_counter_search": True,
+            "incoming_offer_target_preserving_concessions_tested": offer_direction == "INCOMING_OFFER",
+            "observed_offer_willingness_is_local_counter_anchor_not_acceptance_probability": True,
         },
     }
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}_market_sweep.json"

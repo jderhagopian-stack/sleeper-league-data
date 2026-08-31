@@ -58,8 +58,8 @@ ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
 ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
-OPTION_GOVERNANCE = SCRIPT / "trade_option_governance.py"
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.25"
+OPTION_GOVERNANCE = SCRIPT / "trade_option_governance.py"\nREPORT_CONTEXT = SCRIPT / "trade_report_context.py"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.26"
 
 
 def load(path, name):
@@ -106,7 +106,8 @@ def main():
     overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
     interaction = load(ROSTER_INTERACTION, "roster_interaction_for_125")
     ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
-    gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_125")
+    gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_126")
+    report_context = load(REPORT_CONTEXT, "trade_report_context_for_126")
 
     state_selector_composition.install(
         v20, state_policy, candidate_selector, ranker, negotiation_family
@@ -139,6 +140,15 @@ def main():
     roster_resolution.apply_to_report(report)
     overlay.apply_to_report(report, interaction, ranker)
     action_basis = gov.apply_to_report(report)
+    scenario = {}
+    if "--scenario" in sys.argv:
+        i = sys.argv.index("--scenario")
+        if i + 1 < len(sys.argv):
+            try:
+                scenario = json.loads(Path(sys.argv[i + 1]).read_text(encoding="utf-8"))
+            except Exception:
+                scenario = {}
+    report_context.apply_to_report(report, scenario)
 
     report.setdefault("governance", {})["option_outcome_consistency"] = {
         "categorical_score_threshold_removed": True,
@@ -176,7 +186,7 @@ def main():
         "low_or_very_low_acceptance_changes_trade_quality_verdict": False,
         "descriptive_state_labels_create_action_cliffs": False,
         "mixed_tradeoffs_remain_visible": True,
-        "candidate_generation_unchanged": True,
+        "candidate_generation_unchanged": False,\n        "candidate_generation_change": "offeror_origin_aware_target_preserving_concession_search",
         "simulation_unchanged": True,
         "trade_decision_option_governance_internal_component": True,
         "trade_decision_bilateral_gate_internal_component": True,
@@ -201,7 +211,7 @@ def main():
         "trade_decision_roster_resolution_governance_internal_component": True,
         "historical_v29_executed_in_current_path": False,
         "historical_v28_executed_in_current_path": False,
-        "historical_v30_executed_in_current_path": False,
+        "historical_v30_executed_in_current_path": False,\n        "trade_report_context_internal_component": True,
     })
     report.setdefault("simulation", {})["execution_path"] = (
         str((report.get("simulation") or {}).get("execution_path") or "")

@@ -226,7 +226,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-trade-report');a=json.loads((root/'validation-trade.json').read_text());s=json.loads((root/'validation-trade-summary.json').read_text());pdf=root/'validation-trade.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.25'
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.26'
           p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True;assert p['negotiation_ranking_refreshed_after_post_ranking_interaction_overlay'] is True;assert p['post_overlay_candidate_universe_limit_explicit'] is True;assert p['trade_decision_roster_interaction_overlay_internal_component'] is True;assert p['historical_v21_executed_in_current_path'] is False;assert p['trade_decision_bilateral_gate_internal_component'] is True;assert p['trade_decision_negotiation_family_internal_component'] is True;assert p['historical_v22_executed_in_current_path'] is False;assert p['trade_decision_multi_asset_package_generator_internal_component'] is True;assert p['historical_v23_executed_in_current_path'] is False;assert p['trade_decision_state_policy_internal_component'] is True;assert p['trade_decision_candidate_selector_internal_component'] is True;assert p['historical_v24_executed_in_current_path'] is False;assert p['trade_decision_historical_behavior_internal_component'] is True;assert p['historical_state_intelligence_shared_source_consumed'] is True;assert p['historical_behavior_interpretation_owned_by_trade_decision'] is True;assert p['historical_v26_executed_in_current_path'] is False;assert p['trade_decision_behavior_integration_internal_component'] is True;assert p['behavioral_intelligence_shared_source_consumed'] is True;assert p['trade_behavior_interpretation_owned_by_trade_decision'] is True;assert p['historical_v27_executed_in_current_path'] is False;assert p['trade_decision_candidate_pools_internal_component'] is True;assert p['historical_v28_executed_in_current_path'] is False;assert p['historical_v29_executed_in_current_path'] is False;assert p['historical_v30_executed_in_current_path'] is False;assert p['trade_decision_roster_resolution_governance_internal_component'] is True;assert p['legacy_v30_option_comparison_not_executed_in_current_path'] is True
           g=(a.get('governance') or {}).get('post_ranking_roster_interaction') or {};assert g.get('ranking_refreshed_after_overlay') is True;assert g.get('candidate_universe_rebuilt_after_overlay') is False
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
@@ -254,13 +254,18 @@ jobs:
           assert abs(before['expected_points_for']-canonical['expected_points_for']) <= 1.0, (before,canonical)
           for k in ('playoff_probability','bye_probability','championship_probability'):
               assert abs(before[k]-canonical[k]) <= .005, (k,before[k],canonical[k])
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.11';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
+          assert (a.get('value_metric_context') or {}).get('long_term_trade_value')
+          assert (a.get('value_metric_context') or {}).get('incremental_asset_liquidity')
+          assert (a.get('recommendation_profile') or {}).get('label')
+          assert p['future_pick_outlook_uses_post_trade_simulator_ordering'] is True
+          assert p['long_term_trade_value_and_incremental_liquidity_defined_separately'] is True
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
           text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
           assert '...' not in text and '\u2026' not in text, text
-          print('Market Sweep 1.25 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.10 test passed')
+          print('Market Sweep 1.26 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.11 test passed')
           PY
       - name: Audit downstream cut-plan sensitivity
         run: |

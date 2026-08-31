@@ -13,7 +13,7 @@ and thresholds are intentionally unchanged.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.4"
+MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.5"
 EPS = 1e-9
 DECISION_OUTPUTS = (
     "expected_points_for",
@@ -168,6 +168,11 @@ def recompute_action(report, inherited):
         return "DECLINE", "CURRENT_OFFER_NOT_FOCALLY_ACCEPTABLE_AND_NO_BETTER_ACTIONABLE_OPTION"
 
     if counters:
+        if any(
+            x.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+            for x in counters
+        ):
+            return "COUNTER_CURRENT_OFFEROR", "BETTER_OFFEROR_ANCHORED_CONCESSION_EXISTS_AROUND_OBSERVED_WILLINGNESS"
         return "COUNTER_CURRENT_OFFEROR", "BETTER_SAME_PARTNER_COUNTER_EXISTS_FEASIBILITY_REPORTED_SEPARATELY"
     if markets:
         return "SHOP_BEFORE_ACCEPTING", "BETTER_MARKET_ALTERNATIVE_EXISTS_FEASIBILITY_REPORTED_SEPARATELY"
@@ -183,9 +188,19 @@ def apply_to_report(report):
             row["comparison_to_current_offer"] = comp
             row["why_prefer_over_current_offer"] = comp["reason"]
             row["why_advantageous_for_focus"] = comp["reason"]
+            offeror_anchor = (
+                section == "suggested_counteroffers"
+                and row.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+                and str(report.get("offer_direction") or "") == "INCOMING_OFFER"
+            )
             row["counterparty_feasibility"] = {
                 "acceptance_fit": acceptance(row),
-                "source": "BEHAVIORAL_INTELLIGENCE",
+                "source": (
+                    "OBSERVED_CURRENT_OFFER_PLUS_BEHAVIORAL_DIAGNOSTIC"
+                    if offeror_anchor else "BEHAVIORAL_INTELLIGENCE"
+                ),
+                "observed_current_offer_willingness_anchor": offeror_anchor,
+                "counter_acceptance_itself_observed": False,
                 "affects_trade_valuation": False,
                 "reported_separately": True,
             }

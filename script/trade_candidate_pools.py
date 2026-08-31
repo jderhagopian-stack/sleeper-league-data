@@ -14,7 +14,7 @@ future-value cliff.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.0"
+MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.1"
 
 
 def sf(v, d=0.0):
@@ -102,8 +102,13 @@ def apply_to_report(report):
             continue
         counter_pool.append(row)
 
+    incoming_offer = str(report.get("offer_direction") or "") == "INCOMING_OFFER"
     counter_pool.sort(
         key=lambda x: (
+            1 if (
+                incoming_offer
+                and x.get("counter_strategy") == "OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION"
+            ) else 0,
             1 if ((x.get("buyer_rationality") or {}).get("heuristic_acceptance_fit") in {"HIGH", "MEDIUM"}) else 0,
             sf((x.get("negotiation_ranking") or {}).get("score")),
             sf(x.get("post_sim_score")),
@@ -173,6 +178,9 @@ def apply_to_report(report):
         "counter_and_market_pools_separate": True,
         "descriptive_state_labels_create_candidate_eligibility_cliffs": False,
         "continuous_state_aware_score_controls_focal_option_eligibility": True,
+        "offer_origin_aware_counter_prioritization": True,
+        "incoming_offer_target_preserving_concessions_prioritized": incoming_offer,
+        "observed_current_offer_willingness_not_treated_as_counter_acceptance_probability": True,
     })
     report.setdefault("simulation", {})["execution_path"] = (
         str((report.get("simulation") or {}).get("execution_path") or "")
