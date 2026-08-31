@@ -4,9 +4,10 @@
 Consumes the canonical full fantasy-relevant projection universe produced by
 build_fsffl_full_projection_universe.py. Waiver/free-agent discovery uses a
 scale-free multi-lane search over independent governed signals rather than a
-fixed cross-unit weighted pre-screen. Trade evaluation, roster legalization,
-common-objective ranking, deep confirmation, and HOLD benchmarking remain
-inherited from the stable Team Improvement application.
+fixed cross-unit weighted pre-screen. Trade discovery preserves upstream GM3
+package scores while broadening target/package coverage. Trade evaluation,
+roster legalization, common-objective ranking, deep confirmation, and HOLD
+benchmarking remain inherited from the stable Team Improvement application.
 """
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent / "run_team_improvement_lab.py"
 MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.5"
 PROJECTION_MODEL_VERSION = "FSFFL-Full-Projection-Universe-1.0"
+DEFAULT_TRADE_PACKAGES_PER_TARGET = 5
 
 
 def load_base():
@@ -28,6 +30,17 @@ def load_base():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def _pop_cli_int(name, default):
+    if name not in sys.argv:
+        return int(default)
+    i = sys.argv.index(name)
+    if i + 1 >= len(sys.argv):
+        raise ValueError(f"{name} requires an integer value")
+    value = int(sys.argv[i + 1])
+    del sys.argv[i:i + 2]
+    return value
 
 
 def output_path_from_argv():
@@ -80,6 +93,97 @@ def _round_robin_discovery(lanes, limit):
                 break
         if not progressed:
             break
+    return selected
+
+
+def trade_candidates(base, focus_uid, catalog, limit, packages_per_target):
+    """Broaden GM3 trade discovery while preserving the upstream package score."""
+    doc = base.team_doc(focus_uid, "trade_opportunities")
+    rows = []
+    for opp in doc.get("opportunities") or []:
+        target_id = str(opp.get("target_asset_id") or "")
+        seller = str(opp.get("seller_user_id") or "")
+        target = catalog.get(target_id)
+        if not target or not seller or seller == str(focus_uid):
+            continue
+        packages = list(opp.get("best_candidate_packages") or [])[: max(1, int(packages_per_target))]
+        for package_ordinal, pkg in enumerate(packages, 1):
+            aids = [str(x) for x in (pkg.get("focal_outgoing_asset_ids") or [])]
+            outgoing = [catalog.get(x) for x in aids]
+            if not aids or any(x is None for x in outgoing):
+                continue
+            acceptance = base.sf(pkg.get("acceptance_fit_score"))
+            seller_utility = base.sf(pkg.get("seller_strategic_utility"))
+            rows.append({
+                "channel": "TRADE",
+                "seller_user_id": seller,
+                "seller_team": opp.get("seller_team"),
+                "target": target,
+                "outgoing": outgoing,
+                "pre_screen_score": base.sf(pkg.get("gm30_decision_score"), base.sf(pkg.get("decision_score"))),
+                "acceptance_fit_score": acceptance,
+                "seller_strategic_utility_precomputed": seller_utility,
+                "source_recommendation_band": pkg.get("recommendation_band"),
+                "target_focal_value": base.sf(opp.get("focal_value")),
+                "target_market_dynasty": base.sf(opp.get("market_dynasty")),
+                "target_market_redraft": base.sf(opp.get("market_redraft")),
+                "focal_position_need": base.sf(opp.get("focal_position_need")),
+                "seller_motivation_score": base.sf(opp.get("seller_motivation_score")),
+                "source_package_ordinal_for_target": package_ordinal,
+                "source_package_score_owned_by_gm3": True,
+            })
+
+    rows.sort(key=lambda x: (x["pre_screen_score"], x["acceptance_fit_score"]), reverse=True)
+    deduped = []
+    seen = set()
+    for row in rows:
+        key = (
+            row["seller_user_id"],
+            row["target"]["asset_id"],
+            tuple(sorted(x["asset_id"] for x in row["outgoing"])),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(row)
+
+    # The first pass maximizes unique-target coverage. If budget remains, fill with
+    # additional upstream-ranked packages. This is search coverage, not rescoring.
+    first_for_target = []
+    target_seen = set()
+    for row in deduped:
+        target_id = str((row.get("target") or {}).get("asset_id") or "")
+        if target_id in target_seen:
+            continue
+        target_seen.add(target_id)
+        first_for_target.append(row)
+
+    selected = list(first_for_target[: max(0, int(limit))])
+    selected_keys = {
+        (
+            x["seller_user_id"],
+            x["target"]["asset_id"],
+            tuple(sorted(a["asset_id"] for a in x["outgoing"])),
+        )
+        for x in selected
+    }
+    if len(selected) < int(limit):
+        for row in deduped:
+            key = (
+                row["seller_user_id"],
+                row["target"]["asset_id"],
+                tuple(sorted(x["asset_id"] for x in row["outgoing"])),
+            )
+            if key in selected_keys:
+                continue
+            selected.append(row)
+            selected_keys.add(key)
+            if len(selected) >= int(limit):
+                break
+
+    for i, row in enumerate(selected, 1):
+        row["trade_discovery_rank"] = i
+        row["trade_discovery_target_diversity_pass"] = True
     return selected
 
 
@@ -144,7 +248,7 @@ def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
         }
         row["pre_screen_weighted_score_used"] = False
 
-    selected = _round_robin_discovery(
+    return _round_robin_discovery(
         {
             "projection": projection_lane,
             "preseason_ecr": ecr_lane,
@@ -153,7 +257,6 @@ def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
         },
         max(1, int(limit)),
     )
-    return selected
 
 
 def simulate_actions_protect_add(base, dl, lineupopt, rosteraware, model_inputs,
@@ -203,10 +306,17 @@ def simulate_actions_protect_add(base, dl, lineupopt, rosteraware, model_inputs,
 
 
 def main():
+    trade_packages_per_target = _pop_cli_int(
+        "--trade-packages-per-target", DEFAULT_TRADE_PACKAGES_PER_TARGET
+    )
+    out = output_path_from_argv()
     base = load_base()
     base.MODEL_VERSION = MODEL_VERSION
     saved_evaluate = base.evaluate_row
 
+    base.trade_candidates = lambda focus_uid, catalog, limit: trade_candidates(
+        base, focus_uid, catalog, limit, trade_packages_per_target
+    )
     base.waiver_candidates = lambda focus_uid, players_catalog, model_inputs, limit: waiver_candidates(
         base, focus_uid, players_catalog, model_inputs, limit
     )
@@ -227,7 +337,6 @@ def main():
     base.evaluate_row = evaluate_with_native_projection
     base.main()
 
-    out = output_path_from_argv()
     if out and out.exists():
         report = json.loads(out.read_text(encoding="utf-8"))
         league = base.load_json(base.DATA / "league.json", {}) or {}
@@ -240,9 +349,12 @@ def main():
             "coverage": full.get("coverage") or {},
             "waiver_candidates_use_canonical_full_projection": True,
         }
+        report.setdefault("search_summary", {})["trade_packages_per_target_considered"] = int(trade_packages_per_target)
         report.setdefault("policy", {})["waiver_candidates_use_canonical_full_projection_universe"] = True
         report["policy"]["waiver_pre_screen_uses_fixed_cross_unit_coefficients"] = False
         report["policy"]["waiver_discovery_is_scale_free_multilane"] = True
+        report["policy"]["trade_discovery_prioritizes_unique_target_coverage"] = True
+        report["policy"]["trade_package_pre_screen_score_owned_by_upstream_gm3"] = True
         report["ranking_calibration"] = {
             "version": "shared-decision-utility-2.0",
             "principle": "Team Improvement and Trade Decision use the same continuous primitive utility",
@@ -251,7 +363,7 @@ def main():
             "legacy_championship_diminishing_return_rule_active": False,
             "legacy_dynasty_value_guardrail_authoritative": False,
             "scale_status": "DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS",
-            "notes": "Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. Waiver discovery uses independent-signal lanes rather than a weighted cross-unit pre-screen.",
+            "notes": "Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. Waiver discovery uses independent-signal lanes rather than a weighted cross-unit pre-screen; trade discovery broadens target/package coverage without a new score.",
         }
         out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
