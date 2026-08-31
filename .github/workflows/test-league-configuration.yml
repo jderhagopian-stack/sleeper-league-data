@@ -1,16 +1,7 @@
 name: Non-projection league configuration regression
 
 on:
-  pull_request:
-    paths:
-      - 'script/league_rules.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - 'script/audit_league_configuration.py'
-      - 'data/league.json'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/test-league-configuration.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   validate:
     runs-on: ubuntu-latest

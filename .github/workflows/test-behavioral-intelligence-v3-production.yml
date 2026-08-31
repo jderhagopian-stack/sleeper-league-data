@@ -1,18 +1,7 @@
 name: Test Behavioral Intelligence 3.0 Production Candidate
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_trade_market_sweep_v26.py'
-      - 'script/refresh_behavioral_intelligence_v3.py'
-      - 'script/behavioral_intelligence_v3.py'
-      - 'script/behavioral_intelligence_v3_production.py'
-      - 'script/behavioral_intelligence.py'
-      - 'script/fsffl_historical_state_provider.py'
-      - 'script/build_behavioral_action_context.py'
-      - '.github/workflows/test-behavioral-intelligence-v3-production.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   production-candidate:
     runs-on: ubuntu-latest

@@ -1,15 +1,7 @@
 name: Stats Guy Player Market Decisions
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_statsguy_player_market_decisions.py'
-      - 'script/package_curve_robustness.py'
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'data/market_values_fantasycalc.json'
-      - '.github/workflows/statsguy-player-market-decisions.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   bakeoff:
     runs-on: ubuntu-latest

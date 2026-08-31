@@ -1,14 +1,7 @@
 name: Test Behavioral Intelligence 2.0
 
 on:
-  pull_request:
-    paths:
-      - 'script/behavioral_intelligence.py'
-      - 'script/run_trade_market_sweep_v25.py'
-      - 'script/run_trade_report.py'
-      - '.github/workflows/test-behavioral-intelligence.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   behavioral-intelligence:
     runs-on: ubuntu-latest

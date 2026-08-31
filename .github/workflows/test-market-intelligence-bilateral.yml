@@ -1,14 +1,7 @@
 name: Test Bilateral Market Intelligence
 
 on:
-  pull_request:
-    paths:
-      - 'script/historical_state_behavior.py'
-      - 'script/run_trade_market_sweep_v24.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - '.github/workflows/test-market-intelligence-bilateral.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   historical-state-reconstruction:
     runs-on: ubuntu-latest
