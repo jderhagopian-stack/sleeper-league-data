@@ -90,6 +90,16 @@ findings = [
         ),
         "observation": "Opportunity search coverage must disclose bounded computational search rather than imply exhaustive enumeration.",
     },
+    {
+        "id": "OE-EXECUTION-AUTHORITY-010",
+        "ok": (
+            "BLOCKED_BY_TRADE_DECISION" in source
+            and "PENDING_TRADE_DECISION_REVIEW" in source
+            and "TRADE_DECISION_REFINEMENT_RECOMMENDED" in source
+            and '"authority": "Trade Decision"' in source
+        ),
+        "observation": "Strategic plan selection may remain with GM3, but execution status for trade steps must preserve Trade Decision authority rather than invent an Opportunity Engine override.",
+    },
 ]
 
 failed = [x for x in findings if not x["ok"]]
