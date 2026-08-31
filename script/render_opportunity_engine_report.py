@@ -56,6 +56,8 @@ def render(board):
         ("Negotiation-ready trade", "best_negotiation_ready_trade"),
         ("Current-season upgrade", "best_current_season_upgrade"),
         ("Long-term value move", "best_long_term_value_move"),
+        ("Emerging-value opportunity", "best_emerging_value_opportunity"),
+        ("Draft-intelligence opportunity", "best_draft_intelligence_opportunity"),
     ]:
         lines.append(f"- **{label}:** {line_for(views.get(key) or {})}")
 

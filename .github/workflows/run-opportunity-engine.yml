@@ -89,13 +89,15 @@ jobs:
           python - <<'PY'
           import json
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.2'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-1.3'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['capability_status']['single_step_trade_search'] is True
           assert b['capability_status']['single_step_waiver_search'] is True
           assert b['capability_status']['sell_high_buy_low_specialized_views'] is True
+          assert b['capability_status']['draft_intelligence_context'] is True
+          assert b['capability_status']['breakout_sleeper_intelligence_context'] is True
           if int('${{ inputs.portfolio_depth }}') >= 2:
               assert b['capability_status']['multi_step_portfolio_optimization'] is True
           if int('${{ inputs.trade_review_depth }}') > 0 and b.get('best_trade_opportunity'):
