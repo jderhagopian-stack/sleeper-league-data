@@ -43,9 +43,11 @@ findings = [
         "id": "OE-TRADE-AUTHORITY-004",
         "ok": (
             declared.get("authoritative_consumers", {}).get("trade_execution_review") == "script/trade_engine.py"
+            and 'TRADE_ENGINE = SCRIPT / "trade_engine.py"' in source
             and "CANDIDATE_REQUIRES_TRADE_DECISION_REVIEW" in source
+            and "review_trade_candidates" in source
         ),
-        "observation": "Trade discovery does not replace Trade Decision execution/recommendation authority.",
+        "observation": "Trade discovery must route generated proposals through the stable Trade Decision facade rather than replacing Trade Decision authority.",
     },
     {
         "id": "OE-NO-LEGACY-005",

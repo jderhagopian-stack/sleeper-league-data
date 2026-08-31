@@ -1,5 +1,5 @@
 {
-  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.1",
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.2",
   "application": "Opportunity Engine",
   "layer": "Application",
   "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
@@ -11,7 +11,8 @@
     "search_heuristics_are_non_authoritative": true,
     "final_outputs_preserve_source_provenance": true,
     "no_hidden_rescoring": true,
-    "portfolio_search_may_not_create_parallel_utility": true
+    "portfolio_search_may_not_create_parallel_utility": true,
+    "generated_trade_execution_advice_requires_trade_decision": true
   },
   "authority_map": {
     "projections": "Shared Core projection and uncertainty system",
@@ -38,7 +39,10 @@
     "specialized_views_use_existing_governed_signals_without_rescoring": true,
     "two_step_portfolio_optimization_enabled": true,
     "portfolio_evaluation_authority": "GM3 Team Improvement",
-    "portfolio_search_budget_is_computational_only": true
+    "portfolio_search_budget_is_computational_only": true,
+    "trade_decision_routing_enabled": true,
+    "trade_decision_facade": "script/trade_engine.py",
+    "routed_trade_confirmation_default": 50000
   },
   "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
   "forbidden_authority": [
