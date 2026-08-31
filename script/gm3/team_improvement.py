@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Stable GM3 Team Improvement application-area entry point.
 
-The current authoritative implementation is Team Improvement Lab 1.4. Historical
-v11-v13 wrapper files remain for reproducibility; production callers use this
-stable entry point so implementation filenames do not become application
-authority.
+The current authoritative implementation is Team Improvement Lab 1.5. Historical
+wrapper files remain for reproducibility; production callers use this stable
+entry point so implementation filenames do not become application authority.
 """
 from __future__ import annotations
 
@@ -14,7 +13,7 @@ import sys
 from pathlib import Path
 
 MODEL_VERSION = "FSFFL-GM-Team-Improvement-Application-1.0"
-EXPECTED_IMPLEMENTATION_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.4"
+EXPECTED_IMPLEMENTATION_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.5"
 SCRIPT = Path(__file__).resolve().parent.parent
 IMPLEMENTATION = SCRIPT / "run_team_improvement_lab_v13.py"
 
@@ -34,8 +33,6 @@ def _load_current():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
-
-
 
 
 class PortfolioEvaluator:
