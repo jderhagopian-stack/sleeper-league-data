@@ -108,7 +108,9 @@ def main():
             "behavioral_intelligence_informs_counterparty_feasibility_not_trade_value",
         ))
         and '"affects_trade_valuation": False' in option_governance
-        and '"source": "BEHAVIORAL_INTELLIGENCE"' in option_governance
+        and '"BEHAVIORAL_INTELLIGENCE"' in option_governance
+        and '"OBSERVED_CURRENT_OFFER_PLUS_BEHAVIORAL_DIAGNOSTIC"' in option_governance
+        and '"counter_acceptance_itself_observed": False' in option_governance
     )
     acceptance_band_ranking_only = (
         all(x in state_selector_composition for x in (

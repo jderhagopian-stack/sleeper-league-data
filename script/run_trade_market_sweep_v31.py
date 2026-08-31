@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FSFFL Counter & Market Sweep 1.25 - evidence-consistent option governance.
+"""FSFFL Counter & Market Sweep 1.26 - evidence-consistent option governance.
 
 Current production composition:
 - v1.14 supplies the retained continuous state-aware GM reprofiling/ranking engine;
@@ -58,7 +58,8 @@ ROSTER_RESOLUTION_GOVERNANCE = SCRIPT / "roster_resolution_governance.py"
 ROSTER_OVERLAY = SCRIPT / "roster_interaction_overlay.py"
 ROSTER_INTERACTION = SCRIPT / "roster_interaction.py"
 NEGOTIATION_RANKING = SCRIPT / "negotiation_ranking.py"
-OPTION_GOVERNANCE = SCRIPT / "trade_option_governance.py"\nREPORT_CONTEXT = SCRIPT / "trade_report_context.py"
+OPTION_GOVERNANCE = SCRIPT / "trade_option_governance.py"
+REPORT_CONTEXT = SCRIPT / "trade_report_context.py"
 MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.26"
 
 
@@ -78,34 +79,34 @@ def out_path():
 
 
 def main():
-    v20 = load(V20, "market_v20_for_125")
+    v20 = load(V20, "market_v20_for_126")
     negotiation_family = load(
-        TRADE_NEGOTIATION_FAMILY, "trade_negotiation_family_for_125"
+        TRADE_NEGOTIATION_FAMILY, "trade_negotiation_family_for_126"
     )
-    bilateral_gate = load(TRADE_BILATERAL_GATE, "trade_bilateral_gate_for_125")
+    bilateral_gate = load(TRADE_BILATERAL_GATE, "trade_bilateral_gate_for_126")
     bilateral_composition = load(
-        TRADE_BILATERAL_COMPOSITION, "trade_bilateral_composition_for_125"
+        TRADE_BILATERAL_COMPOSITION, "trade_bilateral_composition_for_126"
     )
     multi_asset_packages = load(
-        TRADE_MULTI_ASSET_PACKAGES, "trade_multi_asset_packages_for_125"
+        TRADE_MULTI_ASSET_PACKAGES, "trade_multi_asset_packages_for_126"
     )
     multi_asset_composition = load(
-        TRADE_MULTI_ASSET_COMPOSITION, "trade_multi_asset_composition_for_125"
+        TRADE_MULTI_ASSET_COMPOSITION, "trade_multi_asset_composition_for_126"
     )
-    state_policy = load(TRADE_STATE_POLICY, "trade_state_policy_for_125")
-    candidate_selector = load(TRADE_CANDIDATE_SELECTOR, "trade_candidate_selector_for_125")
+    state_policy = load(TRADE_STATE_POLICY, "trade_state_policy_for_126")
+    candidate_selector = load(TRADE_CANDIDATE_SELECTOR, "trade_candidate_selector_for_126")
     state_selector_composition = load(
-        TRADE_STATE_SELECTOR_COMPOSITION, "trade_state_selector_composition_for_125"
+        TRADE_STATE_SELECTOR_COMPOSITION, "trade_state_selector_composition_for_126"
     )
-    historical_state = load(HISTORICAL_STATE, "historical_state_behavior_for_125")
-    historical_behavior = load(TRADE_HISTORICAL_BEHAVIOR, "trade_historical_behavior_for_125")
-    bi2 = load(BI2, "behavioral_intelligence_for_125")
-    trade_behavior = load(TRADE_BEHAVIOR, "trade_behavioral_intelligence_for_125")
-    candidate_pools = load(TRADE_CANDIDATE_POOLS, "trade_candidate_pools_for_125")
-    roster_resolution = load(ROSTER_RESOLUTION_GOVERNANCE, "roster_resolution_governance_for_125")
-    overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_125")
-    interaction = load(ROSTER_INTERACTION, "roster_interaction_for_125")
-    ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_125")
+    historical_state = load(HISTORICAL_STATE, "historical_state_behavior_for_126")
+    historical_behavior = load(TRADE_HISTORICAL_BEHAVIOR, "trade_historical_behavior_for_126")
+    bi2 = load(BI2, "behavioral_intelligence_for_126")
+    trade_behavior = load(TRADE_BEHAVIOR, "trade_behavioral_intelligence_for_126")
+    candidate_pools = load(TRADE_CANDIDATE_POOLS, "trade_candidate_pools_for_126")
+    roster_resolution = load(ROSTER_RESOLUTION_GOVERNANCE, "roster_resolution_governance_for_126")
+    overlay = load(ROSTER_OVERLAY, "roster_interaction_overlay_for_126")
+    interaction = load(ROSTER_INTERACTION, "roster_interaction_for_126")
+    ranker = load(NEGOTIATION_RANKING, "negotiation_ranking_for_126")
     gov = load(OPTION_GOVERNANCE, "trade_option_governance_for_126")
     report_context = load(REPORT_CONTEXT, "trade_report_context_for_126")
 
@@ -186,7 +187,8 @@ def main():
         "low_or_very_low_acceptance_changes_trade_quality_verdict": False,
         "descriptive_state_labels_create_action_cliffs": False,
         "mixed_tradeoffs_remain_visible": True,
-        "candidate_generation_unchanged": False,\n        "candidate_generation_change": "offeror_origin_aware_target_preserving_concession_search",
+        "candidate_generation_unchanged": False,
+        "candidate_generation_change": "offeror_origin_aware_target_preserving_concession_search",
         "simulation_unchanged": True,
         "trade_decision_option_governance_internal_component": True,
         "trade_decision_bilateral_gate_internal_component": True,
@@ -211,7 +213,8 @@ def main():
         "trade_decision_roster_resolution_governance_internal_component": True,
         "historical_v29_executed_in_current_path": False,
         "historical_v28_executed_in_current_path": False,
-        "historical_v30_executed_in_current_path": False,\n        "trade_report_context_internal_component": True,
+        "historical_v30_executed_in_current_path": False,
+        "trade_report_context_internal_component": True,
     })
     report.setdefault("simulation", {})["execution_path"] = (
         str((report.get("simulation") or {}).get("execution_path") or "")
