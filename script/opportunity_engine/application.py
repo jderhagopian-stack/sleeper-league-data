@@ -20,7 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Opportunity-Engine-1.4"
+MODEL_VERSION = "FSFFL-Opportunity-Engine-1.5"
 SCRIPT = Path(__file__).resolve().parent.parent
 ROOT = SCRIPT.parent
 TEAM_IMPROVEMENT = SCRIPT / "gm3" / "team_improvement.py"
@@ -478,14 +478,31 @@ def _summarize_trade_decision(report):
 
 
 def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
-                            confirm_sims=50000, search_depth=60, seed=20260821):
-    """Route leading generated trade candidates through authoritative Trade Decision."""
-    if int(depth) <= 0:
-        return []
-    trades = [
+                            confirm_sims=50000, search_depth=60, seed=20260821,
+                            extra_rows=None):
+    """Route leading generated trades and selected portfolio trade steps through Trade Decision."""
+    primary = [
         x for x in (source.get("top_cross_channel_options") or [])
         if str(x.get("channel") or "") == "TRADE"
-    ][: int(depth)]
+    ][: max(0, int(depth))]
+    extra = [
+        x for x in (extra_rows or [])
+        if str(x.get("channel") or "") == "TRADE"
+    ]
+
+    trades = []
+    seen = set()
+    for row in primary + extra:
+        key = (
+            str(row.get("seller_user_id") or ""),
+            str(((row.get("target") or {}).get("asset_id")) or ""),
+            tuple(sorted(str(x.get("asset_id") or "") for x in (row.get("outgoing") or []))),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        trades.append(row)
+
     reviews = []
     for ordinal, row in enumerate(trades, 1):
         scenario = _trade_scenario(row, focus_user_id, ordinal)
@@ -532,9 +549,65 @@ def _attach_trade_review(row, reviews):
     return out
 
 
+def _negotiation_revisit_queue(source, limit=5):
+    """Surface positive-utility trades whose current behavioral fit is weak.
+
+    This is a descriptive queue, not a new feasibility model. It reuses GM3's
+    existing acceptance-fit labels and preserves upstream governed order.
+    """
+    rows = []
+    for row in source.get("top_cross_channel_options") or []:
+        if str(row.get("channel") or "") != "TRADE":
+            continue
+        if float(row.get("team_improvement_score") or 0.0) <= 0:
+            continue
+        if str(row.get("acceptance_fit") or "") not in {"LOW", "VERY_LOW"}:
+            continue
+        out = _annotate(row)
+        out["revisit_basis"] = (
+            "Positive GM3 franchise-improvement utility but LOW/VERY_LOW current "
+            "Behavioral Intelligence fit; revisit if circumstances or counterpart incentives change."
+        )
+        out["acceptance_fit_is_not_probability"] = True
+        rows.append(out)
+        if len(rows) >= int(limit):
+            break
+    return rows
+
+
+def _attach_reviews_to_portfolio(portfolio, reviews):
+    out = copy.deepcopy(portfolio or {})
+    for key in ("best_portfolio",):
+        row = out.get(key)
+        if not row:
+            continue
+        row["steps"] = [_attach_trade_review(x, reviews) for x in (row.get("steps") or [])]
+    for row in out.get("top_portfolios") or []:
+        row["steps"] = [_attach_trade_review(x, reviews) for x in (row.get("steps") or [])]
+    return out
+
+
+def _best_plan(single, portfolio):
+    best_portfolio = (portfolio or {}).get("best_portfolio") or {}
+    preferred = bool((portfolio or {}).get("best_portfolio_preferred_to_best_single_step"))
+    if preferred and best_portfolio:
+        plan = copy.deepcopy(best_portfolio)
+        plan["plan_type"] = "PORTFOLIO"
+        plan["selection_basis"] = (
+            "Higher GM3 Team Improvement utility than the best single step at equal confirmation precision."
+        )
+        plan["selection_authority"] = "GM3 Team Improvement"
+        return plan
+    plan = copy.deepcopy(single or {})
+    plan["plan_type"] = "SINGLE_STEP" if plan else "HOLD"
+    plan["selection_basis"] = "Best governed single-step action from GM3 Team Improvement."
+    plan["selection_authority"] = "GM3 Team Improvement"
+    return plan
+
+
 def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500,
                 portfolio_confirm_sims=5000, portfolio_confirm_top=3,
-                seed=20260821, trade_reviews=None):
+                seed=20260821, trade_reviews=None, portfolio_override=None):
     """Compose a board using authoritative source order and governed downstream APIs."""
     source = _enrich_source(source)
     reviews = list(trade_reviews or [])
@@ -549,7 +622,7 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
 
     specialized = _specialized_views(source)
     market_test = _market_test_view(uid)
-    portfolio = (
+    portfolio = copy.deepcopy(portfolio_override) if portfolio_override is not None else (
         build_portfolio_view(
             source, uid, depth=int(portfolio_depth),
             simulations=int(portfolio_sims),
@@ -566,6 +639,18 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "disabled": True,
         }
     )
+    portfolio = _attach_reviews_to_portfolio(portfolio, reviews)
+    revisit_queue = _negotiation_revisit_queue(source)
+    best_plan = _best_plan(recommended, portfolio)
+    search_summary = copy.deepcopy(source.get("search_summary") or {})
+    search_coverage = {
+        "trade_candidates_screened": int(search_summary.get("trade_candidates_screened") or 0),
+        "waiver_candidates_screened": int(search_summary.get("waiver_candidates_screened") or 0),
+        "portfolio_pairs_evaluated": int(portfolio.get("candidate_pairs_evaluated") or 0),
+        "trade_decision_reviews_completed": len(reviews),
+        "bounded_search_not_exhaustive": True,
+        "search_budget_controls_compute_not_decision_semantics": True,
+    }
 
     return {
         "model_version": MODEL_VERSION,
@@ -573,15 +658,18 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
         "team_name": source.get("team_name"),
         "team_state": source.get("team_state"),
         "best_move_available": recommended,
+        "best_plan_available": best_plan,
         "best_trade_opportunity": best_trade,
         "best_waiver_opportunity": best_waiver,
         "ranked_single_step_opportunities": ranked,
         "specialized_views": specialized,
         "market_test_sell_high_candidates": market_test,
+        "negotiation_revisit_queue": revisit_queue,
         "portfolio_optimization": portfolio,
         "trade_decision_reviews": reviews,
         "hold_benchmark": _annotate(source.get("hold_benchmark") or {}),
-        "search_summary": copy.deepcopy(source.get("search_summary") or {}),
+        "search_summary": search_summary,
+        "search_coverage": search_coverage,
         "provenance": {
             "source_application": "GM3 Team Improvement",
             "source_model_version": source.get("model_version"),
@@ -603,6 +691,14 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "multi_step_portfolio_optimization": int(portfolio_depth) >= 2,
             "sell_high_buy_low_specialized_views": True,
             "negotiation_revisit_queue": True,
+            "portfolio_trade_steps_routed_to_trade_decision": bool(
+                any(
+                    str(step.get("channel") or "") == "TRADE"
+                    and step.get("trade_decision_review")
+                    for step in (((portfolio.get("best_portfolio") or {}).get("steps")) or [])
+                )
+            ),
+            "best_plan_selects_between_single_and_portfolio_on_governed_utility": True,
             "league_wide_trade_target_scan_for_focus_team": True,
             "free_agent_waiver_scan_for_focus_team": True,
             "draft_intelligence_context": True,
@@ -669,6 +765,29 @@ def main():
     if str(source.get("generated_for_user_id")) != str(args.focus_user_id):
         raise RuntimeError("Team Improvement output does not match requested focus user")
 
+    portfolio = (
+        build_portfolio_view(
+            _enrich_source(source),
+            args.focus_user_id,
+            depth=args.portfolio_depth,
+            simulations=args.portfolio_sims,
+            confirm_simulations=args.portfolio_confirm_sims,
+            confirm_top=args.portfolio_confirm_top,
+            seed=args.seed,
+        )
+        if int(args.portfolio_depth) >= 2
+        else {
+            "best_portfolio": None,
+            "top_portfolios": [],
+            "candidate_pairs_evaluated": 0,
+            "authority": "GM3 Team Improvement",
+            "disabled": True,
+        }
+    )
+    portfolio_trade_steps = [
+        x for x in (((portfolio.get("best_portfolio") or {}).get("steps")) or [])
+        if str(x.get("channel") or "") == "TRADE"
+    ]
     trade_reviews = review_trade_candidates(
         source,
         args.focus_user_id,
@@ -677,6 +796,7 @@ def main():
         confirm_sims=args.trade_review_confirm_sims,
         search_depth=args.trade_review_search_depth,
         seed=args.seed,
+        extra_rows=portfolio_trade_steps,
     )
     board = build_board(
         source,
@@ -687,12 +807,14 @@ def main():
         portfolio_confirm_top=args.portfolio_confirm_top,
         seed=args.seed,
         trade_reviews=trade_reviews,
+        portfolio_override=portfolio,
     )
     write_json(output, board)
     print(json.dumps({
         "model_version": MODEL_VERSION,
         "team": board.get("team_name"),
         "best_move": (board.get("best_move_available") or {}).get("description"),
+        "best_plan": (board.get("best_plan_available") or {}).get("description"),
         "ranked_opportunities": len(board.get("ranked_single_step_opportunities") or []),
         "portfolio_pairs_evaluated": (board.get("portfolio_optimization") or {}).get("candidate_pairs_evaluated"),
         "trade_decision_reviews": len(board.get("trade_decision_reviews") or []),
