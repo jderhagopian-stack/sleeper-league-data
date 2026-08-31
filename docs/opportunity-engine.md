@@ -42,9 +42,10 @@ It does not create a second valuation model.
 13. Trade Decision routing for trade steps inside the preferred portfolio.
 14. A governed **best plan available** that chooses between the best single step and the best confirmed two-move portfolio using equal-precision GM3 utility.
 15. Negotiation revisit queue for positive-utility trades with currently LOW/VERY_LOW behavioral fit.
-16. Explicit search-coverage disclosure so bounded computational search is never presented as exhaustive.
-17. Presentation-only Markdown report.
-18. On-demand GitHub Actions workflow.
+16. Authority-aware execution status: GM3 selects the strategic plan, while Trade Decision can mark trade steps as acceptable, refinement-needed, pending review, or blocked without Opportunity Engine inventing a new score.
+17. Explicit search-coverage disclosure so bounded computational search is never presented as exhaustive.
+18. Presentation-only Markdown report.
+19. On-demand GitHub Actions workflow.
 
 ## Search vs judgment
 
