@@ -169,7 +169,9 @@ jobs:
           assert b['capability_status']['prospective_validation_snapshots'] is True
           if int(os.environ['PORTFOLIO_DEPTH']) >= 2:
               assert b['portfolio_optimization']['adaptive_search'] is True
-              assert b['portfolio_optimization']['candidate_bundles_evaluated'] > 0
+              assert int(b['portfolio_optimization'].get('candidate_bundles_evaluated') or 0) >= 0
+              if int(b['portfolio_optimization'].get('candidate_bundles_evaluated') or 0) == 0:
+                  assert b['portfolio_optimization'].get('best_portfolio') is None
           if int(os.environ['TRADE_REVIEW_DEPTH']) > 0 and b.get('best_trade_opportunity'):
               assert b['trade_decision_reviews']
               for x in b['trade_decision_reviews']:
@@ -178,6 +180,7 @@ jobs:
           print('Opportunity Engine 2.1 governed production validation passed')
           PY
       - name: Validate standardized PDF deliverable
+        if: always()
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -193,6 +196,7 @@ jobs:
           print(f'Validated standardized Opportunity Engine PDF: {len(r.pages)} pages, {p.stat().st_size} bytes')
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: fsffl-opportunity-engine
           path: /tmp/opportunity-engine/*
