@@ -63,6 +63,25 @@ def render(board):
         lines.append(f"- **{label}:** {line_for(views.get(key) or {})}")
     lines.append("These are filtered views of the governed upstream order; they are not separate specialist rankings.")
 
+    frontier = board.get("negotiation_frontier") or {}
+    price_frontiers = frontier.get("target_price_frontiers") or []
+    lines += ["", "## Negotiation price frontier"]
+    if price_frontiers:
+        for pf in price_frontiers[:5]:
+            target = pf.get("target") or {}
+            opener = pf.get("opening_package") or {}
+            floor = pf.get("seller_clearing_floor") or {}
+            ceiling = pf.get("rational_focal_ceiling") or {}
+            lines.append(
+                f"- **{target.get('name') or target.get('asset_id') or 'Target'}:** {pf.get('status') or 'UNKNOWN'}; "
+                f"opening package: {opener.get('description') or 'none found'}; "
+                f"seller clearing floor: {floor.get('description') or 'not found in evaluated packages'}; "
+                f"rational focal ceiling: {ceiling.get('description') or 'none'}."
+            )
+        lines.append("These are discrete frontiers over packages actually evaluated by GM3; they are not continuous acceptance probabilities or invented player premiums.")
+    else:
+        lines.append("No evaluated trade-package frontier was available for this run.")
+
     market = board.get("market_test_sell_high_candidates") or []
     lines += ["", "## Market-test / sell-high candidates"]
     if market:
