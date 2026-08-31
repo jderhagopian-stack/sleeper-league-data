@@ -32,12 +32,14 @@ jobs:
             script/audit_opportunity_engine_phase2_calibration.py \
             script/test_opportunity_engine.py \
             script/test_opportunity_engine_v2.py \
-            script/test_negotiation_price_frontier.py
+            script/test_negotiation_price_frontier.py \
+            script/test_opportunity_engine_price_search.py
       - name: Run fast architecture/composition regressions
         run: |
           python script/test_opportunity_engine.py
           python script/test_opportunity_engine_v2.py
           python script/test_negotiation_price_frontier.py
+          python script/test_opportunity_engine_price_search.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run live Opportunity Engine 2.0 vertical slice
@@ -104,7 +106,9 @@ jobs:
           td=b['trade_decision_reviews'][0]['trade_decision']
           assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
           assert td['generated_proposal_willingness_observed'] is False
-          assert td['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
+          assert td['recommended_next_action'] in {'OPEN_NEGOTIATION','EXPLORE_PRICE','DO_NOT_PURSUE_AT_EXPECTED_COST'}
+          assert td['generated_proposal_semantics_applied'] is True
+          assert td['underlying_trade_decision_action'] in {'ACCEPT_NOW','ACCEPT','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
           print('Opportunity Engine 2.0 live governed regression passed')
           PY
