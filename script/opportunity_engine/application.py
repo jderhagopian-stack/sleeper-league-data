@@ -17,12 +17,14 @@ import itertools
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Opportunity-Engine-1.1"
+MODEL_VERSION = "FSFFL-Opportunity-Engine-1.2"
 SCRIPT = Path(__file__).resolve().parent.parent
 ROOT = SCRIPT.parent
 TEAM_IMPROVEMENT = SCRIPT / "gm3" / "team_improvement.py"
+TRADE_ENGINE = SCRIPT / "trade_engine.py"
 if str(SCRIPT) not in sys.path:
     sys.path.insert(0, str(SCRIPT))
 from gm3 import team_improvement as gm3_team_improvement
@@ -237,12 +239,133 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500, seed=2
     }
 
 
-def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500, seed=20260821):
+def _trade_scenario(row, focus_user_id, ordinal):
+    target = row.get("target") or {}
+    outgoing = list(row.get("outgoing") or [])
+    seller = str(row.get("seller_user_id") or "")
+    if not seller or not target.get("player_id"):
+        raise ValueError("Trade candidate is missing seller or target player")
+    return {
+        "scenario_id": f"opportunity-engine-{focus_user_id}-{ordinal}",
+        "description": str(row.get("description") or "Opportunity Engine generated trade"),
+        "transaction_status": "proposed",
+        "offer_initiator_user_id": str(focus_user_id),
+        "focus_user_id": str(focus_user_id),
+        "participant_user_ids": [str(focus_user_id), seller],
+        "actions": [
+            {
+                "type": "trade",
+                "from_user_id": str(focus_user_id),
+                "to_user_id": seller,
+                "players": [
+                    str(x.get("player_id"))
+                    for x in outgoing
+                    if x.get("asset_type") == "player" and x.get("player_id") is not None
+                ],
+                "picks": [
+                    str(x.get("asset_id"))
+                    for x in outgoing
+                    if x.get("asset_type") == "pick" and x.get("asset_id")
+                ],
+            },
+            {
+                "type": "trade",
+                "from_user_id": seller,
+                "to_user_id": str(focus_user_id),
+                "players": [str(target.get("player_id"))],
+                "picks": [],
+            },
+        ],
+    }
+
+
+def _summarize_trade_decision(report):
+    cur = report.get("current_offer_evaluation") or {}
+    sim = cur.get("simulation") or {}
+    return {
+        "trade_decision_model_version": report.get("model_version"),
+        "recommended_next_action": report.get("recommended_next_action"),
+        "action_basis": (((report.get("governance") or {}).get("option_outcome_consistency") or {}).get("action_basis")),
+        "offer_context": copy.deepcopy(report.get("offer_context") or {}),
+        "recommendation_profile": copy.deepcopy(report.get("recommendation_profile") or {}),
+        "current_trade_impact": {
+            "focus_delta": copy.deepcopy(sim.get("focus_delta") or {}),
+            "strategic": copy.deepcopy(sim.get("strategic") or {}),
+        },
+        "suggested_counteroffers": copy.deepcopy((report.get("suggested_counteroffers") or [])[:2]),
+        "market_sweep_alternatives": copy.deepcopy((report.get("market_sweep_alternatives") or [])[:3]),
+        "candidate_counts": copy.deepcopy(report.get("candidate_counts") or {}),
+        "behavioral_feasibility_is_not_acceptance_probability": True,
+        "generated_proposal_willingness_observed": False,
+    }
+
+
+def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
+                            confirm_sims=50000, search_depth=60, seed=20260821):
+    """Route leading generated trade candidates through authoritative Trade Decision."""
+    if int(depth) <= 0:
+        return []
+    trades = [
+        x for x in (source.get("top_cross_channel_options") or [])
+        if str(x.get("channel") or "") == "TRADE"
+    ][: int(depth)]
+    reviews = []
+    for ordinal, row in enumerate(trades, 1):
+        scenario = _trade_scenario(row, focus_user_id, ordinal)
+        with tempfile.TemporaryDirectory(prefix="fsffl-opportunity-trade-") as td:
+            td = Path(td)
+            scenario_path = td / "scenario.json"
+            result_path = td / "trade-decision.json"
+            write_json(scenario_path, scenario)
+            cmd = [
+                sys.executable,
+                str(TRADE_ENGINE),
+                "--scenario", str(scenario_path),
+                "--quick-sims", str(int(quick_sims)),
+                "--confirm-sims", str(int(confirm_sims)),
+                "--search-depth", str(int(search_depth)),
+                "--seed", str(int(seed)),
+                "--output", str(result_path),
+            ]
+            subprocess.run(cmd, cwd=ROOT, check=True)
+            report = load_json(result_path)
+        reviews.append({
+            "source_opportunity_description": row.get("description"),
+            "source_team_improvement_score": row.get("team_improvement_score"),
+            "source_order_preserved": True,
+            "scenario": scenario,
+            "trade_decision": _summarize_trade_decision(report),
+            "authority": "Trade Decision",
+        })
+    return reviews
+
+
+def _attach_trade_review(row, reviews):
+    out = copy.deepcopy(row)
+    if str(out.get("channel") or "") != "TRADE":
+        return out
+    desc = str(out.get("description") or "")
+    review = next(
+        (x for x in reviews if str(x.get("source_opportunity_description") or "") == desc),
+        None,
+    )
+    if review:
+        out["trade_decision_review"] = copy.deepcopy(review.get("trade_decision") or {})
+        out["opportunity_engine_status"] = "TRADE_DECISION_REVIEWED"
+    return out
+
+
+def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500, seed=20260821,
+                trade_reviews=None):
     """Compose a board using authoritative source order and governed downstream APIs."""
-    ranked = [_annotate(x) for x in (source.get("top_cross_channel_options") or [])]
-    best_trade = next((_annotate(x) for x in (source.get("best_trade_options") or [])), None)
+    reviews = list(trade_reviews or [])
+    ranked = [_attach_trade_review(_annotate(x), reviews) for x in (source.get("top_cross_channel_options") or [])]
+    best_trade = next((_attach_trade_review(_annotate(x), reviews) for x in (source.get("best_trade_options") or [])), None)
     best_waiver = next((_annotate(x) for x in (source.get("best_waiver_options") or [])), None)
-    recommended = _annotate(source.get("recommended_action") or source.get("hold_benchmark") or {})
+    recommended = _attach_trade_review(
+        _annotate(source.get("recommended_action") or source.get("hold_benchmark") or {}),
+        reviews,
+    )
     uid = str(focus_user_id or source.get("generated_for_user_id") or "")
 
     specialized = _specialized_views(source)
@@ -274,6 +397,7 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
         "specialized_views": specialized,
         "market_test_sell_high_candidates": market_test,
         "portfolio_optimization": portfolio,
+        "trade_decision_reviews": reviews,
         "hold_benchmark": _annotate(source.get("hold_benchmark") or {}),
         "search_summary": copy.deepcopy(source.get("search_summary") or {}),
         "provenance": {
@@ -284,6 +408,7 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "opportunity_engine_reranking_applied": False,
             "portfolio_scores_owned_by_gm3_team_improvement": True,
             "trade_decision_review_required_before_execution_advice": True,
+            "trade_decision_reviews_routed_through_stable_trade_engine": bool(reviews),
             "waiver_decision_authority": "GM3 Team Improvement",
             "market_test_view_source": "GM3 sell_leverage.market_should_be_tested",
         },
@@ -297,6 +422,7 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "league_wide_trade_target_scan_for_focus_team": True,
             "free_agent_waiver_scan_for_focus_team": True,
             "league_wide_continuous_monitoring": False,
+            "authoritative_trade_decision_routing": bool(reviews),
         },
         "policy": {
             "application_layer_orchestrator": True,
@@ -318,6 +444,7 @@ def architecture():
         "source_application": "GM3 Team Improvement",
         "rescoring_authority": False,
         "trade_execution_review": "Trade Decision",
+        "trade_decision_facade": "script/trade_engine.py",
         "portfolio_evaluation_authority": "GM3 Team Improvement",
         "shared_core_additions_phase_1": [],
     }
@@ -335,6 +462,10 @@ def main():
     ap.add_argument("--confirm-top", type=int, default=5)
     ap.add_argument("--portfolio-depth", type=int, default=6)
     ap.add_argument("--portfolio-sims", type=int, default=500)
+    ap.add_argument("--trade-review-depth", type=int, default=1)
+    ap.add_argument("--trade-review-quick-sims", type=int, default=200)
+    ap.add_argument("--trade-review-confirm-sims", type=int, default=50000)
+    ap.add_argument("--trade-review-search-depth", type=int, default=60)
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
 
@@ -349,12 +480,22 @@ def main():
     if str(source.get("generated_for_user_id")) != str(args.focus_user_id):
         raise RuntimeError("Team Improvement output does not match requested focus user")
 
+    trade_reviews = review_trade_candidates(
+        source,
+        args.focus_user_id,
+        depth=args.trade_review_depth,
+        quick_sims=args.trade_review_quick_sims,
+        confirm_sims=args.trade_review_confirm_sims,
+        search_depth=args.trade_review_search_depth,
+        seed=args.seed,
+    )
     board = build_board(
         source,
         focus_user_id=args.focus_user_id,
         portfolio_depth=args.portfolio_depth,
         portfolio_sims=args.portfolio_sims,
         seed=args.seed,
+        trade_reviews=trade_reviews,
     )
     write_json(output, board)
     print(json.dumps({
@@ -363,6 +504,7 @@ def main():
         "best_move": (board.get("best_move_available") or {}).get("description"),
         "ranked_opportunities": len(board.get("ranked_single_step_opportunities") or []),
         "portfolio_pairs_evaluated": (board.get("portfolio_optimization") or {}).get("candidate_pairs_evaluated"),
+        "trade_decision_reviews": len(board.get("trade_decision_reviews") or []),
         "output": str(output),
     }, indent=2))
 
