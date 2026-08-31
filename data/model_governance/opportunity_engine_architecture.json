@@ -1,0 +1,44 @@
+{
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.0",
+  "application": "Opportunity Engine",
+  "layer": "Application",
+  "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
+  "governing_principles": {
+    "search_and_judgment_are_separate": true,
+    "shared_core_owns_only_reusable_concepts": true,
+    "application_specific_orchestration_stays_in_application_layer": true,
+    "existing_authoritative_modules_retain_authority": true,
+    "search_heuristics_are_non_authoritative": true,
+    "final_outputs_preserve_source_provenance": true,
+    "no_hidden_rescoring": true
+  },
+  "authority_map": {
+    "projections": "Shared Core projection and uncertainty system",
+    "competitive_outcomes": "Simulator",
+    "franchise_strategy_and_cross_channel_improvement": "GM3 / Team Improvement",
+    "trade_evaluation_and_negotiation_policy": "Trade Decision",
+    "behavioral_evidence": "Behavioral Intelligence",
+    "prospect_evaluation": "Draft Intelligence",
+    "breakout_and_emerging_value": "Breakout / Sleeper Intelligence",
+    "opportunity_engine": "Candidate search orchestration, coverage accounting, and governed output composition only"
+  },
+  "phase_1_vertical_slice": {
+    "channels": ["TRADE", "WAIVER", "HOLD"],
+    "single_step_only": true,
+    "candidate_source": "GM3 Team Improvement",
+    "cross_channel_order_source": "GM3 Team Improvement",
+    "trade_candidates_require_trade_decision_review_before_execution": true,
+    "waiver_candidates_use_team_improvement_authority": true,
+    "multi_step_portfolio_optimization_enabled": false
+  },
+  "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
+  "forbidden_authority": [
+    "new player-value formula",
+    "new pick-value formula",
+    "new contender thresholds",
+    "new simulation weights",
+    "new acceptance probability",
+    "new trade recommendation rule",
+    "new cross-channel utility weights"
+  ]
+}

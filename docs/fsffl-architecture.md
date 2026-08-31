@@ -47,6 +47,13 @@ One Counterfactual application family with two modes:
 - Forward What-If starts from current state and simulates changed decisions forward.
 - Historical Alternate History reconstructs point-in-time state and applies strict historical information firewalls before branching/replay.
 
+### Opportunity Engine
+Owns proactive opportunity-search orchestration and governed cross-channel opportunity-board composition.
+
+The Opportunity Engine is an Application-layer orchestrator, not a new valuation engine. It may search, prune, route, and compose, but it may not create competing player values, pick values, competitive-state rules, trade recommendation policy, acceptance probabilities, or cross-channel utility weights.
+
+Phase 1 consumes GM3 Team Improvement for single-step trade/waiver/HOLD discovery and preserves its governed ordering. Trade opportunities remain candidates until reviewed through Trade Decision before execution advice. New code is promoted to Shared Core only when it is genuinely domain-generic or has a real second application consumer.
+
 ### Simulator
 Owns season-forecast orchestration and published simulator outputs while consuming shared simulation mechanics.
 

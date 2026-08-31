@@ -168,6 +168,36 @@
       "current_engine": "script/run_fsffl_season_simulator_preproduction.py",
       "current_engine_role": "implementation behind stable application facade",
       "historical_or_experimental_runners_may_remain": true
+    },
+    "opportunity_engine": {
+      "entrypoint": "script/opportunity_engine/application.py",
+      "application_boundary": "script/opportunity_engine/application.py",
+      "role": "application-layer search and orchestration for proactive franchise opportunities",
+      "phase": "single-step trade and waiver vertical slice",
+      "owns": [
+        "opportunity search orchestration",
+        "cross-channel opportunity-board composition",
+        "provenance and search-coverage reporting"
+      ],
+      "does_not_own": [
+        "player projections",
+        "player or pick valuation",
+        "competitive simulation",
+        "trade recommendation policy",
+        "behavioral acceptance probability",
+        "GM3 franchise objective utility"
+      ],
+      "authoritative_consumers": {
+        "team_improvement": "script/gm3/team_improvement.py",
+        "trade_execution_review": "script/trade_engine.py",
+        "simulator": "script/run_fsffl_season_simulator.py"
+      },
+      "trade_candidate_policy": "Team Improvement may discover/rank trade candidates for franchise improvement; proposed trades require Trade Decision review before execution advice.",
+      "waiver_policy": "GM3 Team Improvement remains authoritative for waiver/add-drop opportunity evaluation.",
+      "shared_core_policy": "No new Shared Core primitive is promoted in phase 1; reusable primitives are added only when domain-generic or consumed by a second application.",
+      "rescoring_authority": false,
+      "duplicate_valuation_authority": false,
+      "search_heuristics_may_be_final_decision_authority": false
     }
   },
   "analytics_derived_products": {
