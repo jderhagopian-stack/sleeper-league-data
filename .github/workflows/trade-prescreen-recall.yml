@@ -1,14 +1,7 @@
 name: Trade Prescreen Recall
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_trade_prescreen_recall.py'
-      - 'script/run_trade_market_sweep.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/trade-prescreen-recall.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   prescreen-recall:
     runs-on: ubuntu-latest

@@ -1,46 +1,7 @@
 name: Trade Option Outcome Consistency
 
 on:
-  push:
-    paths:
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/run_trade_market_sweep_v27.py'
-      - 'script/run_trade_market_sweep_v31.py'
-      - 'script/trade_option_governance.py'
-      - 'script/roster_interaction_overlay.py'
-      - 'script/roster_resolution_governance.py'
-      - 'script/trade_candidate_pools.py'
-      - 'script/trade_decision/behavior_integration.py'
-      - 'script/trade_decision/historical_behavior_policy.py'
-      - 'script/trade_state_selector_composition.py'
-      - 'script/trade_candidate_selector.py'
-      - 'script/trade_negotiation_family.py'
-      - 'script/trade_bilateral_gate.py'
-      - 'script/trade_bilateral_composition.py'
-      - 'script/trade_multi_asset_packages.py'
-      - 'script/trade_multi_asset_composition.py'
-      - 'script/trade_state_policy.py'
-      - 'script/run_trade_report.py'
-      - 'script/audit_trade_option_outcome_consistency.py'
-      - 'data/audit/skattebo_stevenson_option_regression.json'
-      - '.github/workflows/trade-option-outcome-consistency.yml'
-  pull_request:
-    paths:
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/run_trade_market_sweep_v27.py'
-      - 'script/run_trade_market_sweep_v31.py'
-      - 'script/trade_option_governance.py'
-      - 'script/roster_interaction_overlay.py'
-      - 'script/roster_resolution_governance.py'
-      - 'script/trade_candidate_pools.py'
-      - 'script/trade_decision/behavior_integration.py'
-      - 'script/trade_decision/historical_behavior_policy.py'
-      - 'script/run_trade_report.py'
-      - 'script/audit_trade_option_outcome_consistency.py'
-      - 'data/audit/skattebo_stevenson_option_regression.json'
-      - '.github/workflows/trade-option-outcome-consistency.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   audit:
     runs-on: ubuntu-latest

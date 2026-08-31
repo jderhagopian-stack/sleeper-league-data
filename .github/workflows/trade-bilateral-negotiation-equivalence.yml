@@ -1,22 +1,7 @@
 name: Trade Bilateral Negotiation Equivalence
 
 on:
-  push:
-    paths:
-      - 'script/trade_negotiation_family.py'
-      - 'script/trade_bilateral_gate.py'
-      - 'script/audit_trade_bilateral_negotiation_equivalence.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - '.github/workflows/trade-bilateral-negotiation-equivalence.yml'
-  pull_request:
-    paths:
-      - 'script/trade_negotiation_family.py'
-      - 'script/trade_bilateral_gate.py'
-      - 'script/audit_trade_bilateral_negotiation_equivalence.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - '.github/workflows/trade-bilateral-negotiation-equivalence.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   equivalence:
     runs-on: ubuntu-latest
