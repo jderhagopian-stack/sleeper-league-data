@@ -148,6 +148,10 @@ def what_could_change_answer(r,cur):
     if action_code=='SHOP_BEFORE_ACCEPTING':
         return "If the better alternatives are not actually available, the current offer becomes much more attractive. The recommendation is to test the market, not to reject a reasonable deal automatically."
     if action_code=='COUNTER_CURRENT_OFFEROR':
+        if (r.get('offer_context') or {}).get('direction')=='INCOMING_OFFER':
+            if ms:
+                return "If the counter is rejected, keep the original incoming offer as the fallback if it is still available, then compare that fallback with any stronger outside option rather than countering indefinitely."
+            return "If the counter is rejected, the original incoming offer remains the fallback if it is still available. The recommendation is to try for better terms once, not to lose a beneficial deal by countering indefinitely."
         return "If the other manager will not improve the return, compare the original offer directly with the strongest outside option rather than countering indefinitely."
     if action_code=='DECLINE':
         return "The answer would change if the return improves enough to close the value or winning-impact gap, or if this team's competitive window changes materially."
