@@ -130,7 +130,7 @@ def render(board):
             td = review.get("trade_decision") or {}
             lines.append(
                 f"- {review.get('source_opportunity_description')}: "
-                f"{td.get('recommended_next_action') or 'REVIEW'}"
+                f"{td.get('generated_proposal_guidance') or td.get('recommended_next_action') or 'REVIEW'}"
             )
     else:
         lines.append("Trade Decision routing was disabled for this run.")
