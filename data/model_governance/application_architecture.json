@@ -290,6 +290,13 @@
       "decision_authority": false,
       "rescoring_authority": false,
       "workflow_specific_renderers_remain_thin_consumers": true
+    },
+    "opportunity_engine_report": {
+      "renderer": "script/render_opportunity_engine_report.py",
+      "consumes": "Opportunity Engine output",
+      "presentation_only": true,
+      "decision_authority": false,
+      "rescoring_authority": false
     }
   },
   "competitive_state_governance": {

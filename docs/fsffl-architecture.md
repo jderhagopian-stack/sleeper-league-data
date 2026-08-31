@@ -98,6 +98,7 @@ Examples:
 - GM Franchise report
 - Simulator season outlook
 - Trade Decision report
+- Opportunity Engine report
 - Alternate History publication
 
 ## Migration rule
