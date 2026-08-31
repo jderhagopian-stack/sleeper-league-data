@@ -456,12 +456,26 @@ def _trade_scenario(row, focus_user_id, ordinal):
     }
 
 
+def _generated_proposal_guidance(action):
+    """Translate Trade Decision's canonical action into focal-initiated proposal language."""
+    mapping = {
+        "ACCEPT_NOW": "PROPOSAL_FOCALLY_ACCEPTABLE_TO_SEND",
+        "COUNTER_CURRENT_OFFEROR": "REFINE_TO_PREFERRED_COUNTER_STRUCTURE_BEFORE_SENDING",
+        "SHOP_BEFORE_ACCEPTING": "COMPARE_WITH_BETTER_MARKET_ALTERNATIVES_BEFORE_SENDING",
+        "DECLINE": "DO_NOT_SEND_AS_STRUCTURED",
+    }
+    return mapping.get(str(action or ""), "REVIEW_TRADE_DECISION_OUTPUT")
+
+
 def _summarize_trade_decision(report):
     cur = report.get("current_offer_evaluation") or {}
     sim = cur.get("simulation") or {}
+    action = report.get("recommended_next_action")
     return {
         "trade_decision_model_version": report.get("model_version"),
-        "recommended_next_action": report.get("recommended_next_action"),
+        "recommended_next_action": action,
+        "generated_proposal_guidance": _generated_proposal_guidance(action),
+        "generated_proposal_guidance_is_semantic_translation_only": True,
         "action_basis": (((report.get("governance") or {}).get("option_outcome_consistency") or {}).get("action_basis")),
         "offer_context": copy.deepcopy(report.get("offer_context") or {}),
         "recommendation_profile": copy.deepcopy(report.get("recommendation_profile") or {}),
