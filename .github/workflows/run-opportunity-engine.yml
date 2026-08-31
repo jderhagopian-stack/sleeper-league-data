@@ -11,32 +11,32 @@ on:
       quick_sims:
         description: 'Single-step screening simulations'
         required: false
-        default: '200'
+        default: '500'
         type: string
       confirm_sims:
         description: 'Single-step deep confirmation simulations'
         required: false
-        default: '1000'
+        default: '2500'
         type: string
       trade_screen:
         description: 'Trade candidates to screen'
         required: false
-        default: '30'
+        default: '50'
         type: string
       waiver_screen:
         description: 'Waiver candidates to screen'
         required: false
-        default: '30'
+        default: '50'
         type: string
       trade_packages_per_target:
         description: 'Upstream GM3 packages considered per trade target'
         required: false
-        default: '5'
+        default: '8'
         type: string
       portfolio_depth:
         description: 'Top governed single-step moves eligible for adaptive bundle search'
         required: false
-        default: '8'
+        default: '10'
         type: string
       portfolio_max_moves:
         description: 'Maximum moves in an adaptive portfolio'
@@ -46,12 +46,12 @@ on:
       portfolio_beam_width:
         description: 'Leading bundles retained between adaptive-search levels'
         required: false
-        default: '8'
+        default: '10'
         type: string
       portfolio_sims:
         description: 'Screening simulations per portfolio bundle'
         required: false
-        default: '500'
+        default: '1000'
         type: string
       portfolio_confirm_sims:
         description: 'Deep confirmation simulations per portfolio finalist'
@@ -103,7 +103,7 @@ jobs:
             --trade-screen '${{ inputs.trade_screen }}' \
             --waiver-screen '${{ inputs.waiver_screen }}' \
             --trade-packages-per-target '${{ inputs.trade_packages_per_target }}' \
-            --confirm-top '5' \
+            --confirm-top '10' \
             --portfolio-depth '${{ inputs.portfolio_depth }}' \
             --portfolio-max-moves '${{ inputs.portfolio_max_moves }}' \
             --portfolio-beam-width '${{ inputs.portfolio_beam_width }}' \
