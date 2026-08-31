@@ -54,7 +54,8 @@
     "portfolio_final_ranking_authority": "GM3 Team Improvement",
     "ci_end_to_end_trade_decision_routing_regression": true,
     "buy_low_definition_source": "Breakout / Sleeper Intelligence BUY_LOW signals",
-    "model_vs_market_acquisition_view_is_separate_from_buy_low": true
+    "model_vs_market_acquisition_view_is_separate_from_buy_low": true,
+    "portfolio_vs_single_step_comparison_uses_same_gm3_utility_and_precision": true
   },
   "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
   "forbidden_authority": [

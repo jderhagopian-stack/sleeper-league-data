@@ -91,6 +91,10 @@ def render(board):
                 f"Incremental GM3 score versus the best single step at the same precision: "
                 f"{float(best_portfolio.get('incremental_score_vs_best_single_step_same_precision')):+,.1f}."
             )
+            lines.append(
+                "Portfolio preference on the same GM3 utility: "
+                + ("PREFERRED" if best_portfolio.get("preferred_to_best_single_step_on_same_gm3_utility") else "NOT PREFERRED")
+            )
         if best_portfolio.get("trade_steps_require_trade_decision_review"):
             lines.append("Trade steps remain subject to Trade Decision review before execution advice.")
     else:
