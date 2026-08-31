@@ -63,7 +63,9 @@ summary=mod._summarize_trade_decision({
     "current_offer_evaluation":{"simulation":{"focus_delta":{"expected_wins":0.1},"strategic":{"market_dynasty_delta":10}}},
     "governance":{"option_outcome_consistency":{"action_basis":"TEST"}},
 })
-assert summary["recommended_next_action"]=="ACCEPT_NOW"
+assert summary["recommended_next_action"]=="OPEN_NEGOTIATION"
+assert summary["underlying_trade_decision_action"]=="ACCEPT_NOW"
+assert summary["generated_proposal_semantics_applied"] is True
 assert summary["generated_proposal_willingness_observed"] is False
 assert board["capability_status"]["multi_step_portfolio_optimization"] is False
 assert board["policy"]["specialized_views_preserve_upstream_order"] is True
