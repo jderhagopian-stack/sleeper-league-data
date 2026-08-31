@@ -215,9 +215,35 @@ jobs:
         run: python script/refresh_behavioral_intelligence_v3.py > /tmp/bi3-refresh.log
       - name: Run trade query pipeline
         run: |
+          cat > /tmp/skattebo-ballknower-v2.json <<'JSON'
+          {
+            "scenario_id":"2026-08-30-skattebo-ballknower-2027-2nd-v2",
+            "description":"Chef Niners offers Cam Skattebo to Hurts So Good for Rhamondre Stevenson and the 2027 2nd originally belonging to Ball Knower.",
+            "transaction_status":"proposed",
+            "offer_initiator_user_id":"709546576091090944",
+            "focus_user_id":"846634401482792960",
+            "participant_user_ids":["846634401482792960","709546576091090944"],
+            "actions":[
+              {
+                "type":"trade",
+                "from_user_id":"846634401482792960",
+                "to_user_id":"709546576091090944",
+                "players":["7611"],
+                "picks":["pick:2027:R2:orig5"]
+              },
+              {
+                "type":"trade",
+                "from_user_id":"709546576091090944",
+                "to_user_id":"846634401482792960",
+                "players":["12481"],
+                "picks":[]
+              }
+            ]
+          }
+          JSON
           mkdir -p /tmp/fsffl-trade-report
           SECONDS=0
-          python script/run_trade_report.py --scenario data/decision_lab/full_validation_scenario.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 100 --adaptive-confirm-sims 1000 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
+          python script/run_trade_report.py --scenario /tmp/skattebo-ballknower-v2.json --out-dir /tmp/fsffl-trade-report --basename validation-trade --quick-sims 200 --adaptive-confirm-sims 1000 --search-depth 60 > /tmp/fsffl-trade-report/pipeline.log
           test "$SECONDS" -le 300
       - name: Validate JSON PDF roster comparison and confirmation policy
         run: |
