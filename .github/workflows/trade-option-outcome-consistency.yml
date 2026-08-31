@@ -168,6 +168,16 @@ jobs:
           assert focal_viable is True
           assert p['current_offer_is_evaluated_on_focal_utility_not_counterparty_willingness'] is True
           assert g['current_offer_counterparty_utility_can_veto_acceptance'] is False
+          assert g['shared_option_governance_model_version']=='FSFFL-Option-Outcome-Consistency-1.6'
+          for row in r.get('suggested_counteroffers') or []:
+              if row.get('counter_strategy')=='OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION':
+                  sim=row.get('simulation') or {}
+                  assert sim.get('competitive_outcomes_reused_from_equivalent_player_transaction') is True
+                  cd=(row.get('comparison_to_current_offer') or {}).get('decision_metric_deltas_vs_current_offer') or {}
+                  assert abs(float(cd.get('expected_points_for') or 0))<1e-9
+                  assert abs(float(cd.get('expected_wins') or 0))<1e-9
+                  assert abs(float(cd.get('playoff_probability') or 0))<1e-9
+                  assert abs(float(cd.get('championship_probability') or 0))<1e-9
           assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
           print({
             'recommended_next_action':r.get('recommended_next_action'),

@@ -75,6 +75,25 @@ def main():
     )
     assert action=='ACCEPT_NOW',(action,basis)
 
+    # Pick-only price changes around the same player swap cannot change
+    # current-season football outcomes. Separate quick simulations may differ by
+    # Monte Carlo noise; normalize them to the confirmed current-offer football
+    # state before judging the economic concession.
+    current_eq=row(900,30,.30,.04,.03,dynasty=-900,liquidity=100,strategic=-30,accept='MEDIUM')
+    current_eq['outgoing_assets']=['player:7611','pick:2027:R2:orig5']
+    current_eq['return_assets']=['player:12481']
+    current_eq['simulation']['roster_resolution']={'focus':{'required_cuts':0,'selected_cuts':[]},'buyer':{'required_cuts':0,'selected_cuts':[]}}
+    counter_eq=row(100,8,.10,.01,-.02,dynasty=-500,liquidity=100,strategic=180,accept='LOW')
+    counter_eq['outgoing_assets']=['player:7611','pick:2028:R2:orig1','pick:2029:R3:orig1']
+    counter_eq['return_assets']=['player:12481']
+    counter_eq['simulation']['roster_resolution']={'focus':{'required_cuts':0,'selected_cuts':[]},'buyer':{'required_cuts':0,'selected_cuts':[]}}
+    assert m.normalize_equivalent_competitive_outcomes(counter_eq,current_eq) is True
+    assert counter_eq['simulation']['focus_delta']==current_eq['simulation']['focus_delta']
+    eq_comp=m.compare(counter_eq,current_eq)
+    assert eq_comp['competitive_relation_vs_current_offer']=='EQUIVALENT_TO_CURRENT_OFFER',eq_comp
+    assert eq_comp['verdict_vs_current_offer']=='BETTER',eq_comp
+    assert counter_eq['simulation']['competitive_outcomes_reused_from_equivalent_player_transaction'] is True
+
     print({
       'status':'PASS',
       'unsupported_750_threshold_removed':True,

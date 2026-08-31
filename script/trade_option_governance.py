@@ -13,7 +13,7 @@ and thresholds are intentionally unchanged.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.5"
+MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.6"
 EPS = 1e-9
 DECISION_OUTPUTS = (
     "expected_points_for",
@@ -41,6 +41,60 @@ def metric(row, key):
         return sf(sim.get(key))
     return sf(st.get(key))
 
+
+
+def _player_trade_signature(row):
+    return (
+        tuple(sorted(x for x in map(str, row.get("outgoing_assets") or []) if x.startswith("player:"))),
+        tuple(sorted(x for x in map(str, row.get("return_assets") or []) if x.startswith("player:"))),
+    )
+
+
+def _roster_cut_signature(row):
+    rr = ((row.get("simulation") or {}).get("roster_resolution") or {})
+    out = []
+    for uid, payload in sorted(rr.items(), key=lambda x: str(x[0])):
+        cuts = []
+        for cut in payload.get("selected_cuts") or []:
+            if isinstance(cut, dict):
+                cuts.append(str(cut.get("player_id") or cut.get("asset_id") or cut.get("name") or ""))
+            else:
+                cuts.append(str(cut))
+        out.append((str(uid), int(payload.get("required_cuts") or 0), tuple(sorted(cuts))))
+    return tuple(out)
+
+
+def current_season_football_equivalent(row, current):
+    """Whether two offers produce the same current-season football state.
+
+    Future picks do not occupy active roster slots or score current-season
+    fantasy points. If the player movements and resulting forced cuts are the
+    same, current-season Simulator outputs are structurally identical; any
+    difference from separate low-cost Monte Carlo screens is sampling noise.
+    """
+    return (
+        _player_trade_signature(row) == _player_trade_signature(current)
+        and _roster_cut_signature(row) == _roster_cut_signature(current)
+    )
+
+
+def normalize_equivalent_competitive_outcomes(row, current):
+    if not current_season_football_equivalent(row, current):
+        return False
+    sim = row.get("simulation") or {}
+    cur_sim = current.get("simulation") or {}
+    for key in ("focus_before", "focus_after", "focus_delta", "buyer_before", "buyer_after", "buyer_delta"):
+        if key in cur_sim:
+            sim[key] = cur_sim[key]
+    for key in ("buyer_championship_probability_delta", "net_title_equity_swing_against_focus"):
+        if key in cur_sim:
+            sim[key] = cur_sim[key]
+    sim["competitive_outcomes_reused_from_equivalent_player_transaction"] = True
+    sim["competitive_outcome_reuse_basis"] = (
+        "same_player_movements_and_same_forced_roster_cuts; future picks do not affect current-season lineup simulation"
+    )
+    row["simulation"] = sim
+    return True
 
 def objective_state(row):
     sim = row.get("simulation") or {}
@@ -98,7 +152,7 @@ def compare(row, current):
     if abs(deltas["market_dynasty_delta"]) >= 500:
         drivers.append(f"{deltas['market_dynasty_delta']:+,.0f} dynasty value")
     if abs(deltas["liquidity_value_delta"]) >= 500:
-        drivers.append(f"{deltas['liquidity_value_delta']:+,.0f} trade flexibility")
+        drivers.append(f"{deltas['liquidity_value_delta']:+,.0f} incremental asset liquidity")
     if not drivers:
         drivers.append(f"{score_delta:+,.0f} composite-score diagnostic")
 
@@ -184,6 +238,7 @@ def apply_to_report(report):
     current = report.get("current_offer_evaluation") or {}
     for section in ("suggested_counteroffers", "market_sweep_alternatives"):
         for row in report.get(section) or []:
+            normalize_equivalent_competitive_outcomes(row, current)
             comp = compare(row, current)
             row["comparison_to_current_offer"] = comp
             row["why_prefer_over_current_offer"] = comp["reason"]
