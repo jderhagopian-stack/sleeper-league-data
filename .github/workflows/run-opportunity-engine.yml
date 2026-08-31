@@ -73,6 +73,10 @@ on:
         required: false
         default: '1'
         type: string
+  push:
+    branches: [main]
+    paths:
+      - '.oe-run-request.json'
 
 jobs:
   opportunity-engine:
@@ -80,6 +84,21 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
+    env:
+      FOCUS_USER_ID: ${{ inputs.focus_user_id || '846634401482792960' }}
+      QUICK_SIMS: ${{ inputs.quick_sims || '500' }}
+      CONFIRM_SIMS: ${{ inputs.confirm_sims || '2500' }}
+      TRADE_SCREEN: ${{ inputs.trade_screen || '50' }}
+      WAIVER_SCREEN: ${{ inputs.waiver_screen || '50' }}
+      TRADE_PACKAGES_PER_TARGET: ${{ inputs.trade_packages_per_target || '8' }}
+      PORTFOLIO_DEPTH: ${{ inputs.portfolio_depth || '10' }}
+      PORTFOLIO_MAX_MOVES: ${{ inputs.portfolio_max_moves || '3' }}
+      PORTFOLIO_BEAM_WIDTH: ${{ inputs.portfolio_beam_width || '10' }}
+      PORTFOLIO_SIMS: ${{ inputs.portfolio_sims || '1000' }}
+      PORTFOLIO_CONFIRM_SIMS: ${{ inputs.portfolio_confirm_sims || '5000' }}
+      ROBUSTNESS_SEEDS: ${{ inputs.robustness_seeds || '0' }}
+      ROBUSTNESS_SIMS: ${{ inputs.robustness_sims || '500' }}
+      TRADE_REVIEW_DEPTH: ${{ inputs.trade_review_depth || '1' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -97,22 +116,22 @@ jobs:
         run: |
           mkdir -p /tmp/opportunity-engine
           python script/opportunity_engine/application_v2.py \
-            --focus-user-id '${{ inputs.focus_user_id }}' \
-            --quick-sims '${{ inputs.quick_sims }}' \
-            --confirm-sims '${{ inputs.confirm_sims }}' \
-            --trade-screen '${{ inputs.trade_screen }}' \
-            --waiver-screen '${{ inputs.waiver_screen }}' \
-            --trade-packages-per-target '${{ inputs.trade_packages_per_target }}' \
+            --focus-user-id "$FOCUS_USER_ID" \
+            --quick-sims "$QUICK_SIMS" \
+            --confirm-sims "$CONFIRM_SIMS" \
+            --trade-screen "$TRADE_SCREEN" \
+            --waiver-screen "$WAIVER_SCREEN" \
+            --trade-packages-per-target "$TRADE_PACKAGES_PER_TARGET" \
             --confirm-top '10' \
-            --portfolio-depth '${{ inputs.portfolio_depth }}' \
-            --portfolio-max-moves '${{ inputs.portfolio_max_moves }}' \
-            --portfolio-beam-width '${{ inputs.portfolio_beam_width }}' \
-            --portfolio-sims '${{ inputs.portfolio_sims }}' \
-            --portfolio-confirm-sims '${{ inputs.portfolio_confirm_sims }}' \
+            --portfolio-depth "$PORTFOLIO_DEPTH" \
+            --portfolio-max-moves "$PORTFOLIO_MAX_MOVES" \
+            --portfolio-beam-width "$PORTFOLIO_BEAM_WIDTH" \
+            --portfolio-sims "$PORTFOLIO_SIMS" \
+            --portfolio-confirm-sims "$PORTFOLIO_CONFIRM_SIMS" \
             --portfolio-confirm-top '3' \
-            --robustness-seeds '${{ inputs.robustness_seeds }}' \
-            --robustness-sims '${{ inputs.robustness_sims }}' \
-            --trade-review-depth '${{ inputs.trade_review_depth }}' \
+            --robustness-seeds "$ROBUSTNESS_SEEDS" \
+            --robustness-sims "$ROBUSTNESS_SIMS" \
+            --trade-review-depth "$TRADE_REVIEW_DEPTH" \
             --trade-review-confirm-sims '50000' \
             --output /tmp/opportunity-engine/opportunity-board.json \
             | tee /tmp/opportunity-engine/summary.log
@@ -124,7 +143,7 @@ jobs:
       - name: Validate governed output
         run: |
           python - <<'PY'
-          import json
+          import json, os
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
           assert b['model_version']=='FSFFL-Opportunity-Engine-2.0'
           assert b['policy']['creates_new_valuation_model'] is False
@@ -137,10 +156,10 @@ jobs:
           assert b['capability_status']['single_step_waiver_search'] is True
           assert b['capability_status']['adaptive_multi_step_portfolio_optimization'] is True
           assert b['capability_status']['prospective_validation_snapshots'] is True
-          if int('${{ inputs.portfolio_depth }}') >= 2:
+          if int(os.environ['PORTFOLIO_DEPTH']) >= 2:
               assert b['portfolio_optimization']['adaptive_search'] is True
               assert b['portfolio_optimization']['candidate_bundles_evaluated'] > 0
-          if int('${{ inputs.trade_review_depth }}') > 0 and b.get('best_trade_opportunity'):
+          if int(os.environ['TRADE_REVIEW_DEPTH']) > 0 and b.get('best_trade_opportunity'):
               assert b['trade_decision_reviews']
               for x in b['trade_decision_reviews']:
                   assert x['authority']=='Trade Decision'
