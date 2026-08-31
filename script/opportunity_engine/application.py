@@ -388,12 +388,15 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
         }
 
     top = confirmed[: max(1, int(limit))]
+    portfolio_beats_single = False
     if top and comparable_single:
-        top[0]["incremental_score_vs_best_single_step_same_precision"] = round(
+        incremental = (
             float(top[0].get("team_improvement_score") or 0.0)
-            - float(comparable_single.get("team_improvement_score") or 0.0),
-            2,
+            - float(comparable_single.get("team_improvement_score") or 0.0)
         )
+        top[0]["incremental_score_vs_best_single_step_same_precision"] = round(incremental, 2)
+        top[0]["preferred_to_best_single_step_on_same_gm3_utility"] = incremental > 0
+        portfolio_beats_single = incremental > 0
     for row in top:
         row.pop("_source_rows", None)
 
@@ -407,6 +410,7 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
         "screen_simulation_count_per_bundle": int(simulations),
         "confirmation_simulation_count_per_finalist": int(confirm_simulations),
         "best_single_step_same_precision": comparable_single,
+        "best_portfolio_preferred_to_best_single_step": portfolio_beats_single,
         "authority": "GM3 Team Improvement",
         "search_budget_is_computational_not_decision_authority": True,
         "screening_and_confirmation_use_same_gm3_utility": True,
