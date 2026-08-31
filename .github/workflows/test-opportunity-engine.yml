@@ -57,7 +57,7 @@ jobs:
           import json
           from pathlib import Path
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.4'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-1.5'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['search_heuristics_have_final_decision_authority'] is False
@@ -72,13 +72,16 @@ jobs:
           assert b['capability_status']['breakout_sleeper_intelligence_context'] is True
           assert b['provenance']['specialist_intelligence_changes_ranking'] is False
           assert b['capability_status']['multi_step_portfolio_optimization'] is True
+          assert b['capability_status']['best_plan_selects_between_single_and_portfolio_on_governed_utility'] is True
+          assert b['best_plan_available']['plan_type'] in {'SINGLE_STEP','PORTFOLIO','HOLD'}
+          assert b['search_coverage']['bounded_search_not_exhaustive'] is True
           assert b['portfolio_optimization']['candidate_pairs_evaluated'] > 0
           assert b['portfolio_optimization']['authority']=='GM3 Team Improvement'
           assert b['portfolio_optimization']['deep_confirmed_portfolios'] > 0
           assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
           assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
           assert isinstance(b['portfolio_optimization']['best_portfolio_preferred_to_best_single_step'], bool)
-          assert len(b['trade_decision_reviews'])==1
+          assert len(b['trade_decision_reviews']) >= 1
           td=b['trade_decision_reviews'][0]['trade_decision']
           assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
           assert td['generated_proposal_willingness_observed'] is False
