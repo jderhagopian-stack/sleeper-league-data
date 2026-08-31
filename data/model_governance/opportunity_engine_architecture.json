@@ -1,5 +1,5 @@
 {
-  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.4",
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.5",
   "application": "Opportunity Engine",
   "layer": "Application",
   "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
@@ -14,7 +14,10 @@
     "portfolio_search_may_not_create_parallel_utility": true,
     "generated_trade_execution_advice_requires_trade_decision": true,
     "specialist_intelligence_is_context_not_rescoring": true,
-    "portfolio_finalists_use_deeper_confirmation_before_recommendation": true
+    "portfolio_finalists_use_deeper_confirmation_before_recommendation": true,
+    "best_plan_selection_uses_authoritative_equal_precision_utility": true,
+    "negotiation_revisit_queue_reuses_existing_behavioral_fit_labels": true,
+    "bounded_search_coverage_is_disclosed": true
   },
   "authority_map": {
     "projections": "Shared Core projection and uncertainty system",
@@ -55,7 +58,11 @@
     "ci_end_to_end_trade_decision_routing_regression": true,
     "buy_low_definition_source": "Breakout / Sleeper Intelligence BUY_LOW signals",
     "model_vs_market_acquisition_view_is_separate_from_buy_low": true,
-    "portfolio_vs_single_step_comparison_uses_same_gm3_utility_and_precision": true
+    "portfolio_vs_single_step_comparison_uses_same_gm3_utility_and_precision": true,
+    "best_plan_selects_single_vs_portfolio_from_gm3_equal_precision_comparison": true,
+    "portfolio_trade_steps_route_through_trade_decision": true,
+    "negotiation_revisit_queue_uses_existing_low_fit_labels_only": true,
+    "search_coverage_discloses_bounded_non_exhaustive_search": true
   },
   "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
   "forbidden_authority": [
