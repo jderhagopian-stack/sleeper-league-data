@@ -1,18 +1,7 @@
 name: Test Behavioral Intelligence 3.0 Context
 
 on:
-  pull_request:
-    paths:
-      - 'script/fsffl_historical_state_provider.py'
-      - 'script/build_behavioral_action_context.py'
-      - 'script/behavioral_intelligence_v3.py'
-      - 'script/behavioral_intelligence.py'
-      - 'script/update_sleeper.py'
-      - 'data/alternate_history/source_history/**'
-      - 'data/stats/fsffl/**'
-      - '.github/workflows/test-behavioral-intelligence-v3.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   context-reconstruction-audit:
     runs-on: ubuntu-latest

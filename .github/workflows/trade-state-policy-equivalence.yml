@@ -1,22 +1,7 @@
 name: Trade State Policy Equivalence
 
 on:
-  push:
-    paths:
-      - 'script/trade_state_policy.py'
-      - 'script/audit_trade_state_policy_equivalence.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/negotiation_ranking.py'
-      - '.github/workflows/trade-state-policy-equivalence.yml'
-  pull_request:
-    paths:
-      - 'script/trade_state_policy.py'
-      - 'script/audit_trade_state_policy_equivalence.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/negotiation_ranking.py'
-      - '.github/workflows/trade-state-policy-equivalence.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   equivalence:
     runs-on: ubuntu-latest

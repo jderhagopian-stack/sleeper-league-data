@@ -1,15 +1,7 @@
 name: Market Momentum De-duplication
 
 on:
-  pull_request:
-    paths:
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'script/audit_market_value_adjustments.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/market-momentum-dedup.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   validate:
     runs-on: ubuntu-latest

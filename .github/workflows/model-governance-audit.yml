@@ -1,35 +1,7 @@
 name: Model Governance Audit
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_model_governance.py'
-      - 'script/audit_model_sensitivity.py'
-      - 'script/audit_empirical_readiness.py'
-      - 'script/audit_pick_outcome_readiness.py'
-      - 'script/audit_decision_path_integrity.py'
-      - 'script/audit_transaction_evidence_readiness.py'
-      - 'script/audit_projection_calibration_readiness.py'
-      - 'script/audit_market_value_adjustments.py'
-      - 'script/audit_future_pick_economics.py'
-      - 'script/audit_competitive_state_utility.py'
-      - 'script/audit_package_economics.py'
-      - 'script/audit_behavioral_acceptance.py'
-      - 'script/audit_roster_interaction_cut_governance.py'
-      - 'script/audit_behavioral_acceptance_governance.py'
-      - 'script/audit_final_trade_ranking.py'
-      - 'script/audit_legacy_governance_bypass.py'
-      - 'script/audit_heuristic_refinement_first_pass.py'
-      - 'data/model_governance/heuristic_refinement_backlog.json'
-      - 'script/negotiation_ranking.py'
-      - 'script/validate_model_parameter_registry.py'
-      - 'script/**/*.py'
-      - 'data/model_parameter_registry.json'
-      - 'data/model_validation/**'
-      - 'data/gm/**'
-      - '.github/workflows/model-governance-audit.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   audit:
     runs-on: ubuntu-latest

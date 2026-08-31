@@ -1,0 +1,33 @@
+name: CI Suite - GM3 and Decision Applications
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  roster-decision-lab:
+    uses: ./.github/workflows/test-roster-decision-lab.yml
+  team-improvement-lab:
+    uses: ./.github/workflows/test-team-improvement-lab.yml
+  gm3-governed-smoke:
+    uses: ./.github/workflows/gm30-governed-smoke.yml
+  gm3-nonprojection:
+    uses: ./.github/workflows/gm30-nonprojection-governance.yml
+  statsguy-market-decisions:
+    uses: ./.github/workflows/statsguy-player-market-decisions.yml

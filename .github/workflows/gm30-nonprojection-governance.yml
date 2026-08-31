@@ -1,21 +1,7 @@
 name: GM3 Non-Projection Governance
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_fsffl_gm30_counterfactual_governed.py'
-      - 'script/gm3/**'
-      - 'script/draft_intelligence/**'
-      - 'script/breakout_intelligence/**'
-      - 'script/gm30_nonprojection_governance.py'
-      - 'script/package_curve_robustness.py'
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'script/run_gm300_production_pipeline.sh'
-      - 'script/build_fsffl_gm30.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - '.github/workflows/gm30-nonprojection-governance.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   wiring:
     runs-on: ubuntu-latest

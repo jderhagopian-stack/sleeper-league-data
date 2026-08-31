@@ -1,16 +1,7 @@
 name: State Weight Sensitivity
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_state_weight_sensitivity.py'
-      - 'script/gm_state_weighting.py'
-      - 'script/run_trade_market_sweep_v20.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'data/gm/state_weight_calibration.json'
-      - '.github/workflows/state-weight-sensitivity.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   state-weight-ablation:
     runs-on: ubuntu-latest

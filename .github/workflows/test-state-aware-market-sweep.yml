@@ -1,18 +1,7 @@
 name: Test State-Aware Market Sweep
 
 on:
-  pull_request:
-    paths:
-      - 'script/decision_lab_state_aware.py'
-      - 'script/gm_state_weighting.py'
-      - 'script/calibrate_gm_state_weights.py'
-      - 'script/run_trade_market_sweep_v20.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/negotiation_ranking.py'
-      - 'data/gm/state_weight_calibration.json'
-      - '.github/workflows/test-state-aware-market-sweep.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   test:
     runs-on: ubuntu-latest

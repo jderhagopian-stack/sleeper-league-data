@@ -1,0 +1,39 @@
+name: CI Suite - Governance and Architecture
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  model-governance:
+    uses: ./.github/workflows/model-governance-audit.yml
+  nonprojection-governance:
+    uses: ./.github/workflows/nonprojection-95-governance.yml
+  architecture-authority:
+    uses: ./.github/workflows/production-architecture-authority.yml
+  final-ranking:
+    uses: ./.github/workflows/final-ranking-governance.yml
+  league-configuration:
+    uses: ./.github/workflows/test-league-configuration.yml
+  playoff-rules:
+    uses: ./.github/workflows/playoff-rule-regression.yml
+  scarcity-replacement:
+    uses: ./.github/workflows/test-scarcity-replacement-dedup.yml
+  market-momentum:
+    uses: ./.github/workflows/market-momentum-dedup.yml

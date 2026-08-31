@@ -1,0 +1,39 @@
+name: CI Suite - Trade Decision Contracts
+on:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - 'data/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bilateral-negotiation:
+    uses: ./.github/workflows/trade-bilateral-negotiation-equivalence.yml
+  candidate-selector:
+    uses: ./.github/workflows/trade-candidate-selector-equivalence.yml
+  state-policy:
+    uses: ./.github/workflows/trade-state-policy-equivalence.yml
+  option-outcome:
+    uses: ./.github/workflows/trade-option-outcome-consistency.yml
+  prescreen-recall:
+    uses: ./.github/workflows/trade-prescreen-recall.yml
+  acceptance-sensitivity:
+    uses: ./.github/workflows/acceptance-gate-sensitivity.yml
+  package-curve:
+    uses: ./.github/workflows/package-curve-leverage.yml
+  state-weight:
+    uses: ./.github/workflows/state-weight-sensitivity.yml

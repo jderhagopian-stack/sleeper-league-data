@@ -1,20 +1,7 @@
 name: Test Team Improvement Lab
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_team_improvement_lab.py'
-      - 'script/run_team_improvement_lab_v13.py'
-      - 'script/gm3/team_improvement.py'
-      - 'script/build_fsffl_full_projection_universe.py'
-      - 'script/render_gm_action_report_v10.py'
-      - 'script/roster_aware_trade.py'
-      - 'script/run_roster_decision_lab.py'
-      - 'script/run_trade_market_sweep_v13.py'
-      - '.github/workflows/test-team-improvement-lab.yml'
-      - '.github/workflows/run-team-improvement-lab.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   smoke-test:
     runs-on: ubuntu-latest

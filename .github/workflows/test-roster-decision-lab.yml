@@ -1,21 +1,7 @@
 name: Test Roster Decision Lab
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_roster_decision_lab.py'
-      - 'data/roster_decision_lab_architecture.json'
-      - 'data/decision_lab/**'
-      - '.github/workflows/test-roster-decision-lab.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'script/run_roster_decision_lab.py'
-      - 'data/roster_decision_lab_architecture.json'
-      - 'data/decision_lab/**'
-      - '.github/workflows/test-roster-decision-lab.yml'
-  workflow_dispatch:
-
+  workflow_call:
 permissions:
   contents: read
 

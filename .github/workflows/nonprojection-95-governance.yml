@@ -1,27 +1,7 @@
 name: Non-Projection 95% Governance Gate
 
 on:
-  pull_request:
-    paths:
-      - 'script/league_rules.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - 'script/build_fsffl_season_simulator.py'
-      - 'script/decision_lab_state_aware.py'
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'script/run_trade_market_sweep_v20.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/audit_league_configuration.py'
-      - 'script/audit_market_value_adjustments.py'
-      - 'script/audit_scarcity_replacement_dedup.py'
-      - 'script/audit_future_pick_economics.py'
-      - 'script/audit_package_economics.py'
-      - 'script/audit_decision_path_integrity.py'
-      - 'script/audit_final_trade_ranking_governance.py'
-      - 'script/audit_playoff_rules.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/nonprojection-95-governance.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   validate:
     runs-on: ubuntu-latest

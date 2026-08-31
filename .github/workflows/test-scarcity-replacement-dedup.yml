@@ -1,14 +1,7 @@
 name: Scarcity and replacement de-duplication
 
 on:
-  pull_request:
-    paths:
-      - 'script/build_fsffl_gm_engine.py'
-      - 'script/audit_scarcity_replacement_dedup.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/test-scarcity-replacement-dedup.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   validate:
     runs-on: ubuntu-latest

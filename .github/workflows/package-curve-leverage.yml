@@ -1,15 +1,7 @@
 name: Package Curve Leverage
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_package_curve_leverage.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/package-curve-leverage.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   sensitivity:
     runs-on: ubuntu-latest

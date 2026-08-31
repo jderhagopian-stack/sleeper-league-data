@@ -1,26 +1,7 @@
 name: Trade Candidate Selector Equivalence
 
 on:
-  push:
-    paths:
-      - 'script/trade_candidate_selector.py'
-      - 'script/audit_trade_candidate_selector_equivalence.py'
-      - 'script/trade_state_policy.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - 'script/negotiation_ranking.py'
-      - '.github/workflows/trade-candidate-selector-equivalence.yml'
-  pull_request:
-    paths:
-      - 'script/trade_candidate_selector.py'
-      - 'script/audit_trade_candidate_selector_equivalence.py'
-      - 'script/trade_state_policy.py'
-      - 'script/run_trade_market_sweep_v23.py'
-      - 'script/run_trade_market_sweep_v21.py'
-      - 'script/negotiation_ranking.py'
-      - '.github/workflows/trade-candidate-selector-equivalence.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   equivalence:
     runs-on: ubuntu-latest

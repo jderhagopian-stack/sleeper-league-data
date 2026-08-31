@@ -1,19 +1,7 @@
 name: Test Historical Trade Analysis
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_historical_trade_analysis.py'
-      - 'script/historical_trade_gm3_adapter.py'
-      - 'script/build_historical_gm3_bundle.py'
-      - 'data/historical_gm3/sources/**'
-      - 'script/render_historical_trade_report.py'
-      - 'script/run_roster_decision_lab.py'
-      - 'script/fsffl_historical_state_provider.py'
-      - 'script/build_behavioral_action_context.py'
-      - '.github/workflows/test-historical-trade-analysis.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   historical-trade-audit:
     runs-on: ubuntu-latest

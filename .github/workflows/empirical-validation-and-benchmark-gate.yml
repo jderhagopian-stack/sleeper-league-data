@@ -1,22 +1,7 @@
 name: Empirical Validation and Benchmark Gate
 
 on:
-  pull_request:
-    paths:
-      - 'script/audit_empirical_validation_readiness.py'
-      - 'script/audit_final_trade_ranking_governance.py'
-      - 'script/audit_final_score_ablation.py'
-      - 'script/audit_historical_reconstruction_governance.py'
-      - 'script/audit_historical_reconstruction_sensitivity.py'
-      - 'script/run_historical_trade_analysis.py'
-      - 'script/historical_trade_gm3_adapter.py'
-      - 'script/build_historical_gm3_bundle.py'
-      - 'data/historical_gm3/sources/**'
-      - 'data/historical_gm3/reconstruction_parameter_registry.json'
-      - 'data/model_parameter_registry.json'
-      - '.github/workflows/empirical-validation-and-benchmark-gate.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   final-audit-gate:
     runs-on: ubuntu-latest

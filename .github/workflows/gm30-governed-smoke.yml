@@ -1,19 +1,7 @@
 name: Governed GM3 Smoke
 
 on:
-  pull_request:
-    paths:
-      - 'script/run_fsffl_gm30_counterfactual_governed.py'
-      - 'script/gm3/**'
-      - 'script/gm30_nonprojection_governance.py'
-      - 'script/package_curve_robustness.py'
-      - 'script/nonprojection_high_priority_overrides.py'
-      - 'script/run_fsffl_gm30_counterfactual.py'
-      - 'script/build_fsffl_gm30.py'
-      - 'script/build_fsffl_gm_engine.py'
-      - '.github/workflows/gm30-governed-smoke.yml'
-  workflow_dispatch:
-
+  workflow_call:
 jobs:
   smoke:
     runs-on: ubuntu-latest
