@@ -33,6 +33,11 @@ on:
         required: false
         default: '12'
         type: string
+      price_frontier_targets:
+        description: 'Attractive trade targets receiving expanded price-frontier search'
+        required: false
+        default: '16'
+        type: string
       portfolio_depth:
         description: 'Top governed single-step moves eligible for adaptive bundle search'
         required: false
@@ -91,6 +96,7 @@ jobs:
       TRADE_SCREEN: ${{ inputs.trade_screen || '75' }}
       WAIVER_SCREEN: ${{ inputs.waiver_screen || '50' }}
       TRADE_PACKAGES_PER_TARGET: ${{ inputs.trade_packages_per_target || '12' }}
+      PRICE_FRONTIER_TARGETS: ${{ inputs.price_frontier_targets || '16' }}
       PORTFOLIO_DEPTH: ${{ inputs.portfolio_depth || '15' }}
       PORTFOLIO_MAX_MOVES: ${{ inputs.portfolio_max_moves || '3' }}
       PORTFOLIO_BEAM_WIDTH: ${{ inputs.portfolio_beam_width || '10' }}
@@ -122,6 +128,7 @@ jobs:
             --trade-screen "$TRADE_SCREEN" \
             --waiver-screen "$WAIVER_SCREEN" \
             --trade-packages-per-target "$TRADE_PACKAGES_PER_TARGET" \
+            --price-frontier-targets "$PRICE_FRONTIER_TARGETS" \
             --confirm-top '15' \
             --portfolio-depth "$PORTFOLIO_DEPTH" \
             --portfolio-max-moves "$PORTFOLIO_MAX_MOVES" \
@@ -150,7 +157,7 @@ jobs:
           python - <<'PY'
           import json, os
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-2.1'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['adaptive_search_creates_new_utility'] is False
@@ -158,6 +165,9 @@ jobs:
           assert b['policy']['negotiation_frontier_creates_new_utility'] is False
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['capability_status']['discrete_price_frontier'] is True
+          assert b['capability_status']['progressive_price_frontier_search'] is True
+          assert b['policy']['theoretical_packages_can_occupy_actionable_ranking'] is False
+          assert b['policy']['non_positive_focal_utility_can_occupy_actionable_ranking'] is False
           nf=b.get('negotiation_frontier') or {}
           assert nf.get('authority')=='Trade Decision'
           assert nf.get('policy',{}).get('price_frontier_uses_discrete_evaluated_packages') is True
