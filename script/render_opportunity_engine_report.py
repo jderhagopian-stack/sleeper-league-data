@@ -30,6 +30,7 @@ def render(board):
         "",
         "## Best plan available",
         line_for(board.get("best_plan_available") or board.get("best_move_available") or {}),
+        f"**Execution status:** {((board.get('best_plan_available') or {}).get('execution_status') or {}).get('status') or 'N/A'}",
         "",
         "## Best single move available",
         line_for(board.get("best_move_available") or {}),
