@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""FSFFL GM 3.0 Team Improvement Lab 1.4.
+"""FSFFL GM 3.0 Team Improvement Lab 1.5.
 
 Consumes the canonical full fantasy-relevant projection universe produced by
-build_fsffl_full_projection_universe.py. Waiver/free-agent candidates therefore
-use stable season-scoped player projections rather than per-query synthetic
-projection generation. Trade evaluation, roster legalization, common-objective
-ranking, deep confirmation, and HOLD benchmarking remain inherited from 1.0.
+build_fsffl_full_projection_universe.py. Waiver/free-agent discovery uses a
+scale-free multi-lane search over independent governed signals rather than a
+fixed cross-unit weighted pre-screen. Trade evaluation, roster legalization,
+common-objective ranking, deep confirmation, and HOLD benchmarking remain
+inherited from the stable Team Improvement application.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ import sys
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent / "run_team_improvement_lab.py"
-MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.4"
+MODEL_VERSION = "FSFFL-GM-Team-Improvement-Lab-1.5"
 PROJECTION_MODEL_VERSION = "FSFFL-Full-Projection-Universe-1.0"
 
 
@@ -44,6 +45,42 @@ def full_projection_doc(base, season):
     if not (doc.get("players") or {}):
         raise RuntimeError(f"Full projection universe is empty: {path}")
     return doc, path
+
+
+def _rank_map(rows, key, reverse=True, eligible=None):
+    eligible = eligible or (lambda _: True)
+    ordered = sorted((x for x in rows if eligible(x)), key=key, reverse=reverse)
+    return {str(((x.get("target") or {}).get("asset_id"))): i + 1 for i, x in enumerate(ordered)}, ordered
+
+
+def _round_robin_discovery(lanes, limit):
+    """Select a diverse candidate set without creating a cross-unit utility score."""
+    selected = []
+    seen = set()
+    cursors = {name: 0 for name in lanes}
+    while len(selected) < int(limit):
+        progressed = False
+        for name, lane in lanes.items():
+            cursor = cursors[name]
+            while cursor < len(lane):
+                row = lane[cursor]
+                cursor += 1
+                aid = str(((row.get("target") or {}).get("asset_id")) or "")
+                if aid and aid not in seen:
+                    out = copy.deepcopy(row)
+                    out["discovery_lane"] = name
+                    out["pre_screen_rank"] = len(selected) + 1
+                    out["pre_screen_score"] = None
+                    selected.append(out)
+                    seen.add(aid)
+                    progressed = True
+                    break
+            cursors[name] = cursor
+            if len(selected) >= int(limit):
+                break
+        if not progressed:
+            break
+    return selected
 
 
 def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
@@ -77,20 +114,46 @@ def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
         }
         provenance = profile.get("projection_provenance") or {}
         target_ecr = base.sf(provenance.get("target_ecr"), 9999)
-        ecr_signal = max(0.0, 350.0 - min(350.0, target_ecr)) if target_ecr < 9999 else 0.0
-        screen = projected * 250 + ecr_signal * 2.5 + base.sf(asset.get("market_dynasty")) * .25
         rows.append({
             "channel": "WAIVER",
             "target": asset,
             "projected_weekly_mean": round(projected, 3),
             "preseason_ecr": None if target_ecr >= 9999 else target_ecr,
-            "pre_screen_score": round(screen, 2),
-            "waiver_discovery_source": "canonical_full_projection_universe",
+            "waiver_discovery_source": "canonical_full_projection_universe_scale_free_multilane",
             "projection_source_model": full.get("model_version"),
             "native_full_projection": copy.deepcopy(profile),
         })
-    rows.sort(key=lambda x: x["pre_screen_score"], reverse=True)
-    return rows[:limit]
+
+    projection_ranks, projection_lane = _rank_map(rows, lambda x: float(x.get("projected_weekly_mean") or 0.0), reverse=True)
+    ecr_ranks, ecr_lane = _rank_map(
+        rows,
+        lambda x: float(x.get("preseason_ecr") or 9999.0),
+        reverse=False,
+        eligible=lambda x: x.get("preseason_ecr") is not None,
+    )
+    market_ranks, market_lane = _rank_map(rows, lambda x: float(((x.get("target") or {}).get("market_dynasty")) or 0.0), reverse=True)
+    fsffl_ranks, fsffl_lane = _rank_map(rows, lambda x: float(((x.get("target") or {}).get("fsffl_value")) or 0.0), reverse=True)
+
+    for row in rows:
+        aid = str(((row.get("target") or {}).get("asset_id")) or "")
+        row["discovery_signal_ranks"] = {
+            "projected_weekly_mean": projection_ranks.get(aid),
+            "preseason_ecr": ecr_ranks.get(aid),
+            "market_dynasty": market_ranks.get(aid),
+            "fsffl_value": fsffl_ranks.get(aid),
+        }
+        row["pre_screen_weighted_score_used"] = False
+
+    selected = _round_robin_discovery(
+        {
+            "projection": projection_lane,
+            "preseason_ecr": ecr_lane,
+            "market_dynasty": market_lane,
+            "fsffl_value": fsffl_lane,
+        },
+        max(1, int(limit)),
+    )
+    return selected
 
 
 def simulate_actions_protect_add(base, dl, lineupopt, rosteraware, model_inputs,
@@ -178,6 +241,8 @@ def main():
             "waiver_candidates_use_canonical_full_projection": True,
         }
         report.setdefault("policy", {})["waiver_candidates_use_canonical_full_projection_universe"] = True
+        report["policy"]["waiver_pre_screen_uses_fixed_cross_unit_coefficients"] = False
+        report["policy"]["waiver_discovery_is_scale_free_multilane"] = True
         report["ranking_calibration"] = {
             "version": "shared-decision-utility-2.0",
             "principle": "Team Improvement and Trade Decision use the same continuous primitive utility",
@@ -186,7 +251,7 @@ def main():
             "legacy_championship_diminishing_return_rule_active": False,
             "legacy_dynasty_value_guardrail_authoritative": False,
             "scale_status": "DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS",
-            "notes": "Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate.",
+            "notes": "Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. Waiver discovery uses independent-signal lanes rather than a weighted cross-unit pre-screen.",
         }
         out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
