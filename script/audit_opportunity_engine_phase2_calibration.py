@@ -2,8 +2,8 @@
 """Compare Opportunity Engine search/simulation configurations against a deep reference.
 
 This is an empirical search-budget diagnostic. It does not tune valuation weights or
-change any owning model. Candidate identity/rank stability and score error are measured
-relative to a deliberately deeper reference run produced from the same model state.
+change any owning model. Candidate identity/rank stability, portfolio stability, score
+error, and runtime are measured relative to a deliberately deeper same-state run.
 """
 from __future__ import annotations
 
@@ -55,6 +55,16 @@ def rank_map(doc, n=20):
     return {candidate: i + 1 for i, candidate in enumerate(ranked(doc, n))}
 
 
+def best_portfolio(doc):
+    return ((doc.get("portfolio_optimization") or {}).get("best_portfolio") or {})
+
+
+def portfolio_key(doc):
+    p = best_portfolio(doc)
+    steps = p.get("steps") or []
+    return " || ".join(key(x) for x in steps) if steps else "NONE"
+
+
 def compare(reference, candidate):
     rr = ranked(reference, 10)
     cr = ranked(candidate, 10)
@@ -70,6 +80,9 @@ def compare(reference, candidate):
         sum(abs(rranks[x] - cranks[x]) for x in rank_common) / len(rank_common)
         if rank_common else None
     )
+    rp, cp = best_portfolio(reference), best_portfolio(candidate)
+    ref_portfolio_score = float(rp.get("team_improvement_score") or 0.0)
+    cand_portfolio_score = float(cp.get("team_improvement_score") or 0.0)
     return {
         "best_action_match": cand_best == ref_best,
         "reference_best": ref_best,
@@ -79,7 +92,15 @@ def compare(reference, candidate):
         "top_3_overlap": len(set(rr[:3]) & set(cr[:3])),
         "common_candidate_score_mae": None if mae is None else round(mae, 6),
         "common_candidate_rank_mae": None if rank_mae is None else round(rank_mae, 4),
+        "best_portfolio_match": portfolio_key(reference) == portfolio_key(candidate),
+        "reference_best_portfolio": portfolio_key(reference),
+        "candidate_best_portfolio": portfolio_key(candidate),
+        "reference_best_portfolio_move_count": int(rp.get("move_count") or 0),
+        "candidate_best_portfolio_move_count": int(cp.get("move_count") or 0),
+        "best_portfolio_score_absolute_error": round(abs(cand_portfolio_score - ref_portfolio_score), 6),
+        "candidate_bundles_evaluated": int(((candidate.get("portfolio_optimization") or {}).get("candidate_bundles_evaluated")) or 0),
         "candidate_search_summary": candidate.get("search_summary") or (candidate.get("source_team_improvement") or {}).get("search_summary") or {},
+        "candidate_search_configuration": candidate.get("search_configuration") or {},
     }
 
 
@@ -109,7 +130,7 @@ def main():
                 runtime[label] / max(1, runtime.get("prod", runtime[label])), 3
             )
     out = {
-        "purpose": "Opportunity Engine search-depth and Monte Carlo stability calibration",
+        "purpose": "Opportunity Engine search-depth, package-depth, adaptive-portfolio and Monte Carlo stability calibration",
         "coefficient_tuning": False,
         "reference_is_ground_truth": False,
         "reference_role": "deeper same-state computational benchmark",
@@ -117,7 +138,9 @@ def main():
         "results": results,
         "interpretation_policy": {
             "prefer_smallest_budget_that_preserves_best_action_and_high_top_10_recall": True,
+            "prefer_smallest_portfolio_budget_that_preserves_leading_bundle_when_practical": True,
             "runtime_is_part_of_budget_selection": True,
+            "package_depth_and_beam_width_are_search_budgets_not_value_weights": True,
             "do_not_change_valuation_coefficients_from_this_audit": True,
         },
     }
