@@ -67,6 +67,8 @@ summary=mod._summarize_trade_decision({
     "governance":{"option_outcome_consistency":{"action_basis":"TEST"}},
 })
 assert summary["recommended_next_action"]=="ACCEPT_NOW"
+assert summary["generated_proposal_guidance"]=="PROPOSAL_FOCALLY_ACCEPTABLE_TO_SEND"
+assert summary["generated_proposal_guidance_is_semantic_translation_only"] is True
 assert summary["generated_proposal_willingness_observed"] is False
 assert board["capability_status"]["multi_step_portfolio_optimization"] is False
 assert board["capability_status"]["best_plan_selects_between_single_and_portfolio_on_governed_utility"] is True
