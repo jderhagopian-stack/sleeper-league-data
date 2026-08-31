@@ -130,88 +130,27 @@ class PortfolioEvaluator:
             }
 
         mi = self._inputs_with_waiver_projections(rows)
-        simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = mi
-        hypothetical, _ = self.dl.apply_actions(canonical_rosters, actions)
-        touched = self.dl.touched_users(self.focus_user_id, actions)
-
-        protected = {}
-        for action in actions:
-            if str(action.get("type") or "").lower() != "add":
-                continue
-            uid = str(action.get("user_id") or "")
-            ids = action.get("players") or (
-                [action.get("player_id")] if action.get("player_id") is not None else []
-            )
-            protected.setdefault(uid, set()).update(str(x) for x in ids)
-
-        legal, resolutions, cut_actions = self.rosteraware.legalize_trade_rosters(
+        sim = self.current.simulate_actions_protect_add(
+            self.base,
             self.dl,
-            canonical_rosters,
-            hypothetical,
-            touched,
-            league,
-            players,
-            protected_player_ids_by_uid=protected,
-        )
-        effective_actions = list(actions) + list(cut_actions)
-        lineups, reoptimized = self.base.fast_reoptimize(
             self.lineupopt,
-            self.dl,
-            simmod,
+            self.rosteraware,
+            mi,
             self.baseline_lineups,
-            legal,
-            touched,
-            league,
-            users,
-            players,
-            projections,
+            self.baseline,
+            self.focus_user_id,
+            actions,
+            self.simulations,
+            self.seed,
         )
-        hyp = self.dl.simulate_from_lineups(
-            simmod, league, legal, users, raw_schedule, lineups,
-            self.simulations, self.seed
-        )
-        bidx = self.base.team_index(self.baseline)
-        hidx = self.base.team_index(hyp)
-        before = bidx[self.focus_user_id]
-        after = hidx[self.focus_user_id]
-        strategic = self.dl.strategic_summary(self.focus_user_id, effective_actions)
-
-        baseline_teams = list((self.baseline or {}).get("teams") or [])
-        def mean_metric(key):
-            vals = [float(x.get(key) or 0.0) for x in baseline_teams]
-            return (sum(vals) / len(vals)) if vals else 0.0
-
-        sim = {
-            "focus_before": before,
-            "focus_after": after,
-            "league_reference": {
-                "team_count": len(baseline_teams),
-                "expected_wins_mean": mean_metric("expected_wins"),
-                "expected_points_for_mean": mean_metric("expected_points_for"),
-                "playoff_probability_mean": mean_metric("playoff_probability"),
-                "championship_probability_mean": mean_metric("championship_probability"),
-                "source": "canonical_baseline_simulator_league_mean",
-            },
-            "focus_delta": {
-                "expected_wins": self.base.delta(before.get("expected_wins"), after.get("expected_wins")),
-                "expected_points_for": self.base.delta(before.get("expected_points_for"), after.get("expected_points_for")),
-                "playoff_probability": self.base.delta(before.get("playoff_probability"), after.get("playoff_probability")),
-                "bye_probability": self.base.delta(before.get("bye_probability"), after.get("bye_probability")),
-                "championship_probability": self.base.delta(before.get("championship_probability"), after.get("championship_probability")),
-            },
-            "strategic": strategic,
-            "roster_resolution": resolutions,
-            "effective_actions": effective_actions,
-            "teams_reoptimized": reoptimized,
-            "simulation_count": self.simulations,
-        }
         return {
             "team_improvement_score": self.base.unified_score(self.focus_user_id, sim),
             "simulation": sim,
-            "actions": effective_actions,
+            "actions": sim.get("effective_actions") or actions,
             "source_rows": rows,
             "authority": "GM3 Team Improvement",
             "shared_decision_utility": "FSFFL-Shared-Decision-Utility-2.0",
+            "bundle_simulation_source": "current Team Improvement implementation via stable GM3 facade",
         }
 
 
