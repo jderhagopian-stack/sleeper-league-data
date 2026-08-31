@@ -20,7 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Opportunity-Engine-1.2"
+MODEL_VERSION = "FSFFL-Opportunity-Engine-1.3"
 SCRIPT = Path(__file__).resolve().parent.parent
 ROOT = SCRIPT.parent
 TEAM_IMPROVEMENT = SCRIPT / "gm3" / "team_improvement.py"
@@ -74,6 +74,88 @@ def _first(rows, predicate):
     return next((_annotate(x) for x in rows if predicate(x)), None)
 
 
+def _specialist_maps():
+    emerging = {}
+    prospects = {}
+    epath = ROOT / "data" / "gm" / "emerging_value.json"
+    ppath = ROOT / "data" / "gm" / "gm30_prospect_radar.json"
+    if epath.exists():
+        doc = load_json(epath)
+        emerging = {
+            str(x.get("player_id")): x
+            for x in (doc.get("candidates") or [])
+            if x.get("player_id") is not None
+        }
+    if ppath.exists():
+        doc = load_json(ppath)
+        prospects = {
+            str(x.get("player_id")): x
+            for x in (doc.get("prospects") or [])
+            if x.get("player_id") is not None
+        }
+    return emerging, prospects
+
+
+def _with_specialist_intelligence(row, maps):
+    out = copy.deepcopy(row)
+    target = out.get("target") or {}
+    pid = str(target.get("player_id") or "")
+    emerging, prospects = maps
+    specialist = {}
+    if pid and pid in emerging:
+        x = emerging[pid]
+        specialist["breakout_sleeper_intelligence"] = {
+            "source_model": "Breakout / Sleeper Intelligence",
+            "signals": copy.deepcopy(x.get("signals") or []),
+            "direction": x.get("direction"),
+            "confidence_grade": x.get("confidence_grade"),
+            "credible_path_to_relevance": x.get("credible_path_to_relevance"),
+            "developmental_trajectory_score": x.get("developmental_trajectory_score"),
+            "market_mispricing_score": x.get("market_mispricing_score"),
+        }
+    if pid and pid in prospects:
+        x = prospects[pid]
+        specialist["draft_intelligence"] = {
+            "source_model": "Draft Intelligence",
+            "signals": copy.deepcopy(x.get("signals") or []),
+            "prospect_score": x.get("prospect_score"),
+            "feature_coverage": x.get("feature_coverage"),
+            "model_rookie_rank": x.get("model_rookie_rank"),
+            "market_rookie_rank": x.get("market_rookie_rank"),
+        }
+    if specialist:
+        out["specialist_intelligence"] = specialist
+
+    if str(out.get("channel") or "") in {"TRADE", "WAIVER"}:
+        sim = out.get("simulation") or {}
+        evidence = {
+            "focal_position_need": out.get("focal_position_need"),
+            "seller_motivation_score": out.get("seller_motivation_score"),
+            "acceptance_fit": out.get("acceptance_fit"),
+            "expected_wins_delta": ((sim.get("focus_delta") or {}).get("expected_wins")),
+            "championship_probability_delta": ((sim.get("focus_delta") or {}).get("championship_probability")),
+            "market_dynasty_delta": ((sim.get("strategic") or {}).get("market_dynasty_delta")),
+            "specialist_sources": sorted(specialist),
+        }
+        focal = out.get("target_focal_value")
+        market = out.get("target_market_dynasty")
+        if focal is not None and market is not None:
+            evidence["target_model_vs_market_gap"] = round(float(focal or 0) - float(market or 0), 2)
+        out["opportunity_evidence"] = evidence
+    return out
+
+
+def _enrich_source(source):
+    maps = _specialist_maps()
+    out = copy.deepcopy(source)
+    for key in ("top_cross_channel_options", "best_trade_options", "best_waiver_options"):
+        out[key] = [_with_specialist_intelligence(x, maps) for x in (out.get(key) or [])]
+    for key in ("recommended_action", "hold_benchmark"):
+        if out.get(key):
+            out[key] = _with_specialist_intelligence(out[key], maps)
+    return out
+
+
 def _specialized_views(source):
     """Expose existing governed signals without creating a parallel score."""
     rows = list(source.get("top_cross_channel_options") or [])
@@ -114,11 +196,27 @@ def _specialized_views(source):
     if long_term:
         long_term["view_basis"] = "positive governed long-term market dynasty delta"
 
+    emerging = _first(
+        rows,
+        lambda x: bool((x.get("specialist_intelligence") or {}).get("breakout_sleeper_intelligence")),
+    )
+    if emerging:
+        emerging["view_basis"] = "target has current Breakout / Sleeper Intelligence evidence; upstream governed order preserved"
+
+    prospect = _first(
+        rows,
+        lambda x: bool((x.get("specialist_intelligence") or {}).get("draft_intelligence")),
+    )
+    if prospect:
+        prospect["view_basis"] = "target has current Draft Intelligence evidence; upstream governed order preserved"
+
     return {
         "best_buy_low_candidate": buy_low,
         "best_negotiation_ready_trade": negotiation,
         "best_current_season_upgrade": current_upgrade,
         "best_long_term_value_move": long_term,
+        "best_emerging_value_opportunity": emerging,
+        "best_draft_intelligence_opportunity": prospect,
     }
 
 
@@ -358,6 +456,7 @@ def _attach_trade_review(row, reviews):
 def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500, seed=20260821,
                 trade_reviews=None):
     """Compose a board using authoritative source order and governed downstream APIs."""
+    source = _enrich_source(source)
     reviews = list(trade_reviews or [])
     ranked = [_attach_trade_review(_annotate(x), reviews) for x in (source.get("top_cross_channel_options") or [])]
     best_trade = next((_attach_trade_review(_annotate(x), reviews) for x in (source.get("best_trade_options") or [])), None)
@@ -411,6 +510,8 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "trade_decision_reviews_routed_through_stable_trade_engine": bool(reviews),
             "waiver_decision_authority": "GM3 Team Improvement",
             "market_test_view_source": "GM3 sell_leverage.market_should_be_tested",
+            "specialist_intelligence_sources": ["Draft Intelligence", "Breakout / Sleeper Intelligence"],
+            "specialist_intelligence_changes_ranking": False,
         },
         "capability_status": {
             "single_step_trade_search": True,
@@ -421,6 +522,8 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "negotiation_revisit_queue": True,
             "league_wide_trade_target_scan_for_focus_team": True,
             "free_agent_waiver_scan_for_focus_team": True,
+            "draft_intelligence_context": True,
+            "breakout_sleeper_intelligence_context": True,
             "league_wide_continuous_monitoring": False,
             "authoritative_trade_decision_routing": bool(reviews),
         },
@@ -430,6 +533,7 @@ def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=50
             "creates_new_cross_channel_utility": False,
             "search_heuristics_have_final_decision_authority": False,
             "specialized_views_preserve_upstream_order": True,
+            "specialist_intelligence_is_context_not_rescoring": True,
             "portfolio_search_budget_is_computational_only": True,
             "shared_core_promotion_requires_second_consumer_or_domain_generic_behavior": True,
         },
