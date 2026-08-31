@@ -459,9 +459,20 @@ def _trade_scenario(row, focus_user_id, ordinal):
 def _summarize_trade_decision(report):
     cur = report.get("current_offer_evaluation") or {}
     sim = cur.get("simulation") or {}
+    raw_action = str(report.get("recommended_next_action") or "").upper()
+    generated_action = {
+        "ACCEPT_NOW": "OPEN_NEGOTIATION",
+        "ACCEPT": "OPEN_NEGOTIATION",
+        "OFFER_IN_HAND": "OPEN_NEGOTIATION",
+        "COUNTER_CURRENT_OFFEROR": "OPEN_NEGOTIATION",
+        "SHOP_BEFORE_ACCEPTING": "EXPLORE_PRICE",
+        "DECLINE": "DO_NOT_PURSUE_AT_EXPECTED_COST",
+    }.get(raw_action, raw_action or "EXPLORE_PRICE")
     return {
         "trade_decision_model_version": report.get("model_version"),
-        "recommended_next_action": report.get("recommended_next_action"),
+        "recommended_next_action": generated_action,
+        "underlying_trade_decision_action": raw_action,
+        "generated_proposal_semantics_applied": True,
         "action_basis": (((report.get("governance") or {}).get("option_outcome_consistency") or {}).get("action_basis")),
         "offer_context": copy.deepcopy(report.get("offer_context") or {}),
         "recommendation_profile": copy.deepcopy(report.get("recommendation_profile") or {}),
