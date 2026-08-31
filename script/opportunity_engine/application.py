@@ -3,26 +3,29 @@
 
 Application-layer orchestrator for proactive franchise improvement.
 
-Phase 1 intentionally does not create a new valuation or recommendation model.
-It invokes the stable GM3 Team Improvement application, preserves that governed
-cross-channel ordering, and emits an opportunity board with explicit provenance.
-
-Trades discovered here are candidates for Trade Decision review before execution
-advice. Waiver/add-drop evaluation remains owned by GM3 Team Improvement.
+The Opportunity Engine searches and composes. It does not create a competing
+valuation, simulation, or recommendation model. Single-step discovery and
+cross-channel utility come from GM3 Team Improvement; trade execution advice is
+routed to Trade Decision; portfolio bundles are evaluated by the stable GM3 Team
+Improvement API with the same shared decision utility.
 """
 from __future__ import annotations
 
 import argparse
 import copy
+import itertools
 import json
 import subprocess
 import sys
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Opportunity-Engine-1.0"
+MODEL_VERSION = "FSFFL-Opportunity-Engine-1.1"
 SCRIPT = Path(__file__).resolve().parent.parent
 ROOT = SCRIPT.parent
 TEAM_IMPROVEMENT = SCRIPT / "gm3" / "team_improvement.py"
+if str(SCRIPT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT))
+from gm3 import team_improvement as gm3_team_improvement
 
 
 def load_json(path: Path):
@@ -65,12 +68,199 @@ def _annotate(row):
     return out
 
 
-def build_board(source):
-    """Compose a board without rescoring, reranking, or inventing authority."""
+def _first(rows, predicate):
+    return next((_annotate(x) for x in rows if predicate(x)), None)
+
+
+def _specialized_views(source):
+    """Expose existing governed signals without creating a parallel score."""
+    rows = list(source.get("top_cross_channel_options") or [])
+    trades = [x for x in rows if str(x.get("channel") or "") == "TRADE"]
+
+    def sim_delta(row, key):
+        return float((((row.get("simulation") or {}).get("focus_delta") or {}).get(key)) or 0.0)
+
+    def strategic(row, key):
+        return float((((row.get("simulation") or {}).get("strategic") or {}).get(key)) or 0.0)
+
+    buy_low = None
+    for row in trades:
+        focal = float(row.get("target_focal_value") or 0.0)
+        market = float(row.get("target_market_dynasty") or 0.0)
+        if focal > market > 0:
+            buy_low = _annotate(row)
+            buy_low["descriptive_model_vs_market_gap"] = round(focal - market, 2)
+            buy_low["view_basis"] = "GM3 target focal value exceeds current dynasty market anchor; upstream order preserved"
+            break
+
+    negotiation = _first(
+        trades,
+        lambda x: str(x.get("acceptance_fit") or "") in {"HIGH", "MEDIUM"},
+    )
+    if negotiation:
+        negotiation["view_basis"] = "GM3/Behavioral Intelligence acceptance fit is HIGH or MEDIUM; not a probability"
+
+    current_upgrade = _first(
+        rows,
+        lambda x: sim_delta(x, "championship_probability") > 0
+        or sim_delta(x, "expected_wins") > 0,
+    )
+    if current_upgrade:
+        current_upgrade["view_basis"] = "positive canonical Simulator current-season outcome delta"
+
+    long_term = _first(rows, lambda x: strategic(x, "market_dynasty_delta") > 0)
+    if long_term:
+        long_term["view_basis"] = "positive governed long-term market dynasty delta"
+
+    return {
+        "best_buy_low_candidate": buy_low,
+        "best_negotiation_ready_trade": negotiation,
+        "best_current_season_upgrade": current_upgrade,
+        "best_long_term_value_move": long_term,
+    }
+
+
+def _load_sell_leverage(focus_user_id):
+    root = ROOT / "data" / "gm" / "teams"
+    if not root.exists():
+        return {}
+    for path in sorted(root.glob("*/sell_leverage.json")):
+        try:
+            doc = load_json(path)
+        except Exception:
+            continue
+        if str(doc.get("focal_user_id") or "") == str(focus_user_id):
+            return doc
+    return {}
+
+
+def _market_test_view(focus_user_id, limit=5):
+    """Use GM3's existing market_should_be_tested signal; do not invent a sell score."""
+    doc = _load_sell_leverage(focus_user_id)
+    rows = []
+    for asset in doc.get("assets") or []:
+        buyer = asset.get("best_buyer") or {}
+        premium = float(buyer.get("premium_vs_break_glass") or 0.0)
+        if asset.get("market_should_be_tested") is not True or premium <= 0:
+            continue
+        row = copy.deepcopy(asset)
+        row["view_basis"] = "GM3 market_should_be_tested with positive best-buyer premium versus break-glass value"
+        row["decision_authority"] = "GM3_PORTFOLIO_ASSET_MANAGEMENT"
+        rows.append(row)
+        if len(rows) >= int(limit):
+            break
+    return rows
+
+
+def _asset_ids(row):
+    outgoing = {
+        str(x.get("asset_id"))
+        for x in (row.get("outgoing") or [])
+        if x.get("asset_id")
+    }
+    target = str(((row.get("target") or {}).get("asset_id")) or "")
+    return outgoing, target
+
+
+def _compatible(a, b):
+    """Structural compatibility only; final bundle value is evaluated by GM3."""
+    if str(a.get("channel") or "") == "HOLD" or str(b.get("channel") or "") == "HOLD":
+        return False
+    a_out, a_target = _asset_ids(a)
+    b_out, b_target = _asset_ids(b)
+    if a_target and b_target and a_target == b_target:
+        return False
+    if a_out & b_out:
+        return False
+    if a_target and a_target in b_out:
+        return False
+    if b_target and b_target in a_out:
+        return False
+    return True
+
+
+def _portfolio_description(rows):
+    return " THEN ".join(str(x.get("description") or x.get("channel") or "MOVE") for x in rows)
+
+
+def build_portfolio_view(source, focus_user_id, depth=6, simulations=500, seed=20260821, limit=5):
+    """Evaluate two-move bundles with GM3's canonical Team Improvement utility."""
+    candidates = [
+        copy.deepcopy(x)
+        for x in (source.get("top_cross_channel_options") or [])[: max(0, int(depth))]
+        if str(x.get("channel") or "") in {"TRADE", "WAIVER"}
+    ]
+    pairs = [(a, b) for a, b in itertools.combinations(candidates, 2) if _compatible(a, b)]
+    if not pairs:
+        return {
+            "best_portfolio": None,
+            "top_portfolios": [],
+            "candidate_pairs_evaluated": 0,
+            "authority": "GM3 Team Improvement",
+        }
+
+    evaluator = gm3_team_improvement.portfolio_evaluator(
+        str(focus_user_id), simulations=int(simulations), seed=int(seed)
+    )
+    evaluated = []
+    for a, b in pairs:
+        result = evaluator.evaluate([a, b])
+        evaluated.append({
+            "description": _portfolio_description([a, b]),
+            "steps": [_annotate(a), _annotate(b)],
+            "team_improvement_score": result.get("team_improvement_score"),
+            "simulation": result.get("simulation"),
+            "effective_actions": result.get("actions"),
+            "decision_authority": "GM3_TEAM_IMPROVEMENT",
+            "trade_steps_require_trade_decision_review": any(
+                str(x.get("channel") or "") == "TRADE" for x in (a, b)
+            ),
+            "portfolio_evaluation_source": result.get("authority"),
+            "shared_decision_utility": result.get("shared_decision_utility"),
+        })
+
+    evaluated.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
+    top = evaluated[: max(1, int(limit))]
+    best_single = float((source.get("recommended_action") or {}).get("team_improvement_score") or 0.0)
+    if top:
+        top[0]["incremental_score_vs_best_single_step"] = round(
+            float(top[0].get("team_improvement_score") or 0.0) - best_single, 2
+        )
+    return {
+        "best_portfolio": top[0] if top else None,
+        "top_portfolios": top,
+        "candidate_pairs_evaluated": len(evaluated),
+        "search_depth": int(depth),
+        "simulation_count_per_bundle": int(simulations),
+        "authority": "GM3 Team Improvement",
+        "search_budget_is_computational_not_decision_authority": True,
+    }
+
+
+def build_board(source, focus_user_id=None, portfolio_depth=0, portfolio_sims=500, seed=20260821):
+    """Compose a board using authoritative source order and governed downstream APIs."""
     ranked = [_annotate(x) for x in (source.get("top_cross_channel_options") or [])]
     best_trade = next((_annotate(x) for x in (source.get("best_trade_options") or [])), None)
     best_waiver = next((_annotate(x) for x in (source.get("best_waiver_options") or [])), None)
     recommended = _annotate(source.get("recommended_action") or source.get("hold_benchmark") or {})
+    uid = str(focus_user_id or source.get("generated_for_user_id") or "")
+
+    specialized = _specialized_views(source)
+    market_test = _market_test_view(uid)
+    portfolio = (
+        build_portfolio_view(
+            source, uid, depth=int(portfolio_depth),
+            simulations=int(portfolio_sims), seed=int(seed)
+        )
+        if int(portfolio_depth) >= 2
+        else {
+            "best_portfolio": None,
+            "top_portfolios": [],
+            "candidate_pairs_evaluated": 0,
+            "authority": "GM3 Team Improvement",
+            "disabled": True,
+        }
+    )
 
     return {
         "model_version": MODEL_VERSION,
@@ -81,6 +271,9 @@ def build_board(source):
         "best_trade_opportunity": best_trade,
         "best_waiver_opportunity": best_waiver,
         "ranked_single_step_opportunities": ranked,
+        "specialized_views": specialized,
+        "market_test_sell_high_candidates": market_test,
+        "portfolio_optimization": portfolio,
         "hold_benchmark": _annotate(source.get("hold_benchmark") or {}),
         "search_summary": copy.deepcopy(source.get("search_summary") or {}),
         "provenance": {
@@ -89,16 +282,20 @@ def build_board(source):
             "cross_channel_order_preserved_from_source": True,
             "opportunity_engine_rescoring_applied": False,
             "opportunity_engine_reranking_applied": False,
+            "portfolio_scores_owned_by_gm3_team_improvement": True,
             "trade_decision_review_required_before_execution_advice": True,
             "waiver_decision_authority": "GM3 Team Improvement",
+            "market_test_view_source": "GM3 sell_leverage.market_should_be_tested",
         },
         "capability_status": {
             "single_step_trade_search": True,
             "single_step_waiver_search": True,
             "explicit_hold_baseline": True,
-            "multi_step_portfolio_optimization": False,
-            "sell_high_buy_low_specialized_views": False,
-            "negotiation_revisit_queue": False,
+            "multi_step_portfolio_optimization": int(portfolio_depth) >= 2,
+            "sell_high_buy_low_specialized_views": True,
+            "negotiation_revisit_queue": True,
+            "league_wide_trade_target_scan_for_focus_team": True,
+            "free_agent_waiver_scan_for_focus_team": True,
             "league_wide_continuous_monitoring": False,
         },
         "policy": {
@@ -106,6 +303,8 @@ def build_board(source):
             "creates_new_valuation_model": False,
             "creates_new_cross_channel_utility": False,
             "search_heuristics_have_final_decision_authority": False,
+            "specialized_views_preserve_upstream_order": True,
+            "portfolio_search_budget_is_computational_only": True,
             "shared_core_promotion_requires_second_consumer_or_domain_generic_behavior": True,
         },
     }
@@ -119,6 +318,7 @@ def architecture():
         "source_application": "GM3 Team Improvement",
         "rescoring_authority": False,
         "trade_execution_review": "Trade Decision",
+        "portfolio_evaluation_authority": "GM3 Team Improvement",
         "shared_core_additions_phase_1": [],
     }
 
@@ -133,6 +333,8 @@ def main():
     ap.add_argument("--trade-screen", type=int, default=20)
     ap.add_argument("--waiver-screen", type=int, default=20)
     ap.add_argument("--confirm-top", type=int, default=5)
+    ap.add_argument("--portfolio-depth", type=int, default=6)
+    ap.add_argument("--portfolio-sims", type=int, default=500)
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
 
@@ -147,13 +349,20 @@ def main():
     if str(source.get("generated_for_user_id")) != str(args.focus_user_id):
         raise RuntimeError("Team Improvement output does not match requested focus user")
 
-    board = build_board(source)
+    board = build_board(
+        source,
+        focus_user_id=args.focus_user_id,
+        portfolio_depth=args.portfolio_depth,
+        portfolio_sims=args.portfolio_sims,
+        seed=args.seed,
+    )
     write_json(output, board)
     print(json.dumps({
         "model_version": MODEL_VERSION,
         "team": board.get("team_name"),
         "best_move": (board.get("best_move_available") or {}).get("description"),
         "ranked_opportunities": len(board.get("ranked_single_step_opportunities") or []),
+        "portfolio_pairs_evaluated": (board.get("portfolio_optimization") or {}).get("candidate_pairs_evaluated"),
         "output": str(output),
     }, indent=2))
 
