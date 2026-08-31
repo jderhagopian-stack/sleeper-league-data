@@ -173,13 +173,14 @@
       "entrypoint": "script/opportunity_engine/application.py",
       "application_boundary": "script/opportunity_engine/application.py",
       "role": "application-layer search and orchestration for proactive franchise opportunities",
-      "phase": "v1 proactive discovery, specialist context, governed specialized views, two-step portfolio optimization, and Trade Decision routing",
+      "phase": "complete v1 on-demand proactive discovery: single-step trade/waiver/HOLD search, specialist views, governed two-step portfolio optimization, best-plan selection, and Trade Decision routing",
       "owns": [
         "opportunity search orchestration",
         "cross-channel opportunity-board composition",
         "specialized opportunity views from governed source signals",
         "portfolio search orchestration using GM3 Team Improvement evaluation",
-        "provenance and search-coverage reporting"
+        "selection between single-step and portfolio plans using authoritative equal-precision GM3 comparison",
+        "provenance and bounded search-coverage reporting"
       ],
       "does_not_own": [
         "player projections",
@@ -205,7 +206,10 @@
       "search_heuristics_may_be_final_decision_authority": false,
       "portfolio_policy": "Opportunity Engine may enumerate structurally compatible action bundles, but GM3 Team Improvement owns bundle simulation and shared decision utility; search depth is a computational budget, not decision authority.",
       "trade_review_policy": "Default production routing confirms the leading generated trade through Trade Decision at its canonical high-precision simulation depth; review depth is a computational budget, not a valuation weight.",
-      "specialist_context_policy": "Draft Intelligence and Breakout / Sleeper Intelligence may explain or surface existing candidates but may not alter Opportunity Engine ranking outside their owning authoritative models."
+      "specialist_context_policy": "Draft Intelligence and Breakout / Sleeper Intelligence may explain or surface existing candidates but may not alter Opportunity Engine ranking outside their owning authoritative models.",
+      "best_plan_policy": "Opportunity Engine may select the preferred plan only from the explicit GM3 equal-precision single-vs-portfolio comparison; it may not create or transform the underlying score.",
+      "negotiation_revisit_policy": "Revisit queue may reuse existing GM3/Behavioral Intelligence LOW/VERY_LOW fit labels for positive-utility trades; it may not introduce a new feasibility score or probability.",
+      "search_coverage_policy": "Search budgets are computational limits and must be disclosed as bounded/non-exhaustive."
     }
   },
   "analytics_derived_products": {
