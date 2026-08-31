@@ -168,6 +168,44 @@
       "current_engine": "script/run_fsffl_season_simulator_preproduction.py",
       "current_engine_role": "implementation behind stable application facade",
       "historical_or_experimental_runners_may_remain": true
+    },
+    "opportunity_engine": {
+      "entrypoint": "script/opportunity_engine/application.py",
+      "application_boundary": "script/opportunity_engine/application.py",
+      "role": "application-layer search and orchestration for proactive franchise opportunities",
+      "phase": "v1 proactive discovery, specialist context, governed specialized views, two-step portfolio optimization, and Trade Decision routing",
+      "owns": [
+        "opportunity search orchestration",
+        "cross-channel opportunity-board composition",
+        "specialized opportunity views from governed source signals",
+        "portfolio search orchestration using GM3 Team Improvement evaluation",
+        "provenance and search-coverage reporting"
+      ],
+      "does_not_own": [
+        "player projections",
+        "player or pick valuation",
+        "competitive simulation",
+        "trade recommendation policy",
+        "behavioral acceptance probability",
+        "GM3 franchise objective utility"
+      ],
+      "authoritative_consumers": {
+        "team_improvement": "script/gm3/team_improvement.py",
+        "trade_execution_review": "script/trade_engine.py",
+        "simulator": "script/run_fsffl_season_simulator.py",
+        "portfolio_evaluation": "script/gm3/team_improvement.py",
+        "draft_intelligence": "script/draft_intelligence/application.py",
+        "breakout_sleeper_intelligence": "script/breakout_intelligence/application.py"
+      },
+      "trade_candidate_policy": "GM3 Team Improvement discovers/ranks franchise-improvement trade candidates; Opportunity Engine routes leading generated proposals through the stable Trade Decision facade before execution advice.",
+      "waiver_policy": "GM3 Team Improvement remains authoritative for waiver/add-drop opportunity evaluation.",
+      "shared_core_policy": "No new Shared Core primitive is promoted in Opportunity Engine v1; reusable primitives are added only when domain-generic or consumed by a second application.",
+      "rescoring_authority": false,
+      "duplicate_valuation_authority": false,
+      "search_heuristics_may_be_final_decision_authority": false,
+      "portfolio_policy": "Opportunity Engine may enumerate structurally compatible action bundles, but GM3 Team Improvement owns bundle simulation and shared decision utility; search depth is a computational budget, not decision authority.",
+      "trade_review_policy": "Default production routing confirms the leading generated trade through Trade Decision at its canonical high-precision simulation depth; review depth is a computational budget, not a valuation weight.",
+      "specialist_context_policy": "Draft Intelligence and Breakout / Sleeper Intelligence may explain or surface existing candidates but may not alter Opportunity Engine ranking outside their owning authoritative models."
     }
   },
   "analytics_derived_products": {
@@ -252,6 +290,13 @@
       "decision_authority": false,
       "rescoring_authority": false,
       "workflow_specific_renderers_remain_thin_consumers": true
+    },
+    "opportunity_engine_report": {
+      "renderer": "script/render_opportunity_engine_report.py",
+      "consumes": "Opportunity Engine output",
+      "presentation_only": true,
+      "decision_authority": false,
+      "rescoring_authority": false
     }
   },
   "competitive_state_governance": {

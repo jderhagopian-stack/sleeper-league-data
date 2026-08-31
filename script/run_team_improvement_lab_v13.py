@@ -93,6 +93,52 @@ def waiver_candidates(base, focus_uid, players_catalog, model_inputs, limit):
     return rows[:limit]
 
 
+def simulate_actions_protect_add(base, dl, lineupopt, rosteraware, model_inputs,
+                                 baseline_lineups, baseline, focus_uid, actions, sims, seed):
+    """Current Team Improvement action-bundle simulation with protected adds."""
+    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
+    hypothetical, _ = dl.apply_actions(canonical_rosters, actions)
+    touched = dl.touched_users(focus_uid, actions)
+    protected = {}
+    for action in actions:
+        if str(action.get("type") or "").lower() == "add":
+            uid = str(action.get("user_id"))
+            ids = action.get("players") or (
+                [action.get("player_id")] if action.get("player_id") is not None else []
+            )
+            protected.setdefault(uid, set()).update(str(x) for x in ids)
+    legal, resolutions, cut_actions = rosteraware.legalize_trade_rosters(
+        dl, canonical_rosters, hypothetical, touched, league, players,
+        protected_player_ids_by_uid=protected,
+    )
+    effective_actions = list(actions) + list(cut_actions)
+    lineups, reoptimized = base.fast_reoptimize(
+        lineupopt, dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
+    )
+    hyp = dl.simulate_from_lineups(
+        simmod, league, legal, users, raw_schedule, lineups, sims, seed
+    )
+    bidx, hidx = base.team_index(baseline), base.team_index(hyp)
+    b, h = bidx[str(focus_uid)], hidx[str(focus_uid)]
+    st = dl.strategic_summary(str(focus_uid), effective_actions)
+    return {
+        "focus_before": b,
+        "focus_after": h,
+        "focus_delta": {
+            "expected_wins": base.delta(b.get("expected_wins"), h.get("expected_wins")),
+            "expected_points_for": base.delta(b.get("expected_points_for"), h.get("expected_points_for")),
+            "playoff_probability": base.delta(b.get("playoff_probability"), h.get("playoff_probability")),
+            "bye_probability": base.delta(b.get("bye_probability"), h.get("bye_probability")),
+            "championship_probability": base.delta(b.get("championship_probability"), h.get("championship_probability")),
+        },
+        "strategic": st,
+        "roster_resolution": resolutions,
+        "effective_actions": effective_actions,
+        "teams_reoptimized": reoptimized,
+        "simulation_count": sims,
+    }
+
+
 def main():
     base = load_base()
     base.MODEL_VERSION = MODEL_VERSION
@@ -101,48 +147,10 @@ def main():
     base.waiver_candidates = lambda focus_uid, players_catalog, model_inputs, limit: waiver_candidates(
         base, focus_uid, players_catalog, model_inputs, limit
     )
-
-    def simulate_actions_protect_add(dl, v13, rosteraware, model_inputs, baseline_lineups, baseline,
-                                     focus_uid, actions, sims, seed):
-        simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = model_inputs
-        hypothetical, _ = dl.apply_actions(canonical_rosters, actions)
-        touched = dl.touched_users(focus_uid, actions)
-        protected = {}
-        for action in actions:
-            if str(action.get("type") or "").lower() == "add":
-                uid = str(action.get("user_id"))
-                ids = action.get("players") or ([action.get("player_id")] if action.get("player_id") is not None else [])
-                protected.setdefault(uid, set()).update(str(x) for x in ids)
-        legal, resolutions, cut_actions = rosteraware.legalize_trade_rosters(
-            dl, canonical_rosters, hypothetical, touched, league, players,
-            protected_player_ids_by_uid=protected,
-        )
-        effective_actions = list(actions) + list(cut_actions)
-        lineups, reoptimized = base.fast_reoptimize(
-            v13, dl, simmod, baseline_lineups, legal, touched, league, users, players, projections
-        )
-        hyp = dl.simulate_from_lineups(simmod, league, legal, users, raw_schedule, lineups, sims, seed)
-        bidx, hidx = base.team_index(baseline), base.team_index(hyp)
-        b, h = bidx[str(focus_uid)], hidx[str(focus_uid)]
-        st = dl.strategic_summary(str(focus_uid), effective_actions)
-        return {
-            "focus_before": b,
-            "focus_after": h,
-            "focus_delta": {
-                "expected_wins": base.delta(b.get("expected_wins"), h.get("expected_wins")),
-                "expected_points_for": base.delta(b.get("expected_points_for"), h.get("expected_points_for")),
-                "playoff_probability": base.delta(b.get("playoff_probability"), h.get("playoff_probability")),
-                "bye_probability": base.delta(b.get("bye_probability"), h.get("bye_probability")),
-                "championship_probability": base.delta(b.get("championship_probability"), h.get("championship_probability")),
-            },
-            "strategic": st,
-            "roster_resolution": resolutions,
-            "effective_actions": effective_actions,
-            "teams_reoptimized": reoptimized,
-            "simulation_count": sims,
-        }
-
-    base.simulate_actions = simulate_actions_protect_add
+    base.simulate_actions = lambda dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline, focus_uid, actions, sims, seed: simulate_actions_protect_add(
+        base, dl, lineupopt, rosteraware, model_inputs, baseline_lineups, baseline,
+        focus_uid, actions, sims, seed
+    )
 
     def evaluate_with_native_projection(row, focus_uid, dl, v13, rosteraware, model_inputs, baseline_lineups, baseline, sims, seed):
         if row.get("channel") != "WAIVER" or not row.get("native_full_projection"):

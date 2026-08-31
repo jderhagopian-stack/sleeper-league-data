@@ -1,0 +1,70 @@
+{
+  "model_version": "FSFFL-Opportunity-Engine-Architecture-1.4",
+  "application": "Opportunity Engine",
+  "layer": "Application",
+  "purpose": "Discover and organize proactive roster-improvement actions without creating a competing valuation or decision model.",
+  "governing_principles": {
+    "search_and_judgment_are_separate": true,
+    "shared_core_owns_only_reusable_concepts": true,
+    "application_specific_orchestration_stays_in_application_layer": true,
+    "existing_authoritative_modules_retain_authority": true,
+    "search_heuristics_are_non_authoritative": true,
+    "final_outputs_preserve_source_provenance": true,
+    "no_hidden_rescoring": true,
+    "portfolio_search_may_not_create_parallel_utility": true,
+    "generated_trade_execution_advice_requires_trade_decision": true,
+    "specialist_intelligence_is_context_not_rescoring": true,
+    "portfolio_finalists_use_deeper_confirmation_before_recommendation": true
+  },
+  "authority_map": {
+    "projections": "Shared Core projection and uncertainty system",
+    "competitive_outcomes": "Simulator",
+    "franchise_strategy_and_cross_channel_improvement": "GM3 / Team Improvement",
+    "trade_evaluation_and_negotiation_policy": "Trade Decision",
+    "behavioral_evidence": "Behavioral Intelligence",
+    "prospect_evaluation": "Draft Intelligence",
+    "breakout_and_emerging_value": "Breakout / Sleeper Intelligence",
+    "opportunity_engine": "Candidate search orchestration, specialized governed views, portfolio candidate enumeration, coverage accounting, and output composition only",
+    "portfolio_evaluation": "GM3 / Team Improvement with Shared Decision Utility"
+  },
+  "phase_1_vertical_slice": {
+    "channels": [
+      "TRADE",
+      "WAIVER",
+      "HOLD"
+    ],
+    "single_step_discovery": true,
+    "candidate_source": "GM3 Team Improvement",
+    "cross_channel_order_source": "GM3 Team Improvement",
+    "trade_candidates_require_trade_decision_review_before_execution": true,
+    "waiver_candidates_use_team_improvement_authority": true,
+    "specialized_views_use_existing_governed_signals_without_rescoring": true,
+    "two_step_portfolio_optimization_enabled": true,
+    "portfolio_evaluation_authority": "GM3 Team Improvement",
+    "portfolio_search_budget_is_computational_only": true,
+    "trade_decision_routing_enabled": true,
+    "trade_decision_facade": "script/trade_engine.py",
+    "routed_trade_confirmation_default": 50000,
+    "specialist_intelligence_context_enabled": true,
+    "specialist_intelligence_sources": [
+      "Draft Intelligence",
+      "Breakout / Sleeper Intelligence"
+    ],
+    "portfolio_screen_then_deep_confirmation": true,
+    "portfolio_final_ranking_authority": "GM3 Team Improvement",
+    "ci_end_to_end_trade_decision_routing_regression": true,
+    "buy_low_definition_source": "Breakout / Sleeper Intelligence BUY_LOW signals",
+    "model_vs_market_acquisition_view_is_separate_from_buy_low": true,
+    "portfolio_vs_single_step_comparison_uses_same_gm3_utility_and_precision": true
+  },
+  "shared_core_promotion_rule": "Do not move Opportunity Engine code into Shared Core merely because it is reusable-looking. Promotion requires genuinely domain-generic behavior or a real second application consumer.",
+  "forbidden_authority": [
+    "new player-value formula",
+    "new pick-value formula",
+    "new contender thresholds",
+    "new simulation weights",
+    "new acceptance probability",
+    "new trade recommendation rule",
+    "new cross-channel utility weights"
+  ]
+}

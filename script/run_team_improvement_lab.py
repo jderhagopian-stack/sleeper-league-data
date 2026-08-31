@@ -231,6 +231,14 @@ def trade_candidates(focus_uid: str, catalog: Dict[str, Dict[str, Any]], limit: 
                 "acceptance_fit_score": acceptance,
                 "seller_strategic_utility_precomputed": seller_utility,
                 "source_recommendation_band": pkg.get("recommendation_band"),
+                # Preserve authoritative GM3 discovery context for downstream
+                # orchestration. These are descriptive source signals only;
+                # Opportunity Engine may expose them but may not rescore them.
+                "target_focal_value": sf(opp.get("focal_value")),
+                "target_market_dynasty": sf(opp.get("market_dynasty")),
+                "target_market_redraft": sf(opp.get("market_redraft")),
+                "focal_position_need": sf(opp.get("focal_position_need")),
+                "seller_motivation_score": sf(opp.get("seller_motivation_score")),
             })
     rows.sort(key=lambda x: (x["pre_screen_score"], x["acceptance_fit_score"]), reverse=True)
     # Deduplicate exact transaction structures.
