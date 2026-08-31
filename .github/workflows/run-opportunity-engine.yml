@@ -118,6 +118,8 @@ jobs:
         run: python script/build_fsffl_full_projection_universe.py
       - name: Refresh Behavioral Intelligence cache
         run: python script/refresh_behavioral_intelligence_v3.py
+      - name: Rebuild governed GM3 trade opportunity curves
+        run: python script/build_fsffl_gm30.py
       - name: Run Opportunity Engine
         run: |
           mkdir -p /tmp/opportunity-engine
