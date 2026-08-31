@@ -46,6 +46,7 @@ assert [x["description"] for x in board["ranked_single_step_opportunities"]] == 
 assert board["best_move_available"]["description"] == "Trade A for B"
 assert board["best_plan_available"]["description"] == "Trade A for B"
 assert board["best_plan_available"]["plan_type"] == "SINGLE_STEP"
+assert board["best_plan_available"]["execution_status"]["status"] == "PENDING_TRADE_DECISION_REVIEW"
 assert board["best_trade_opportunity"]["opportunity_engine_status"] == "CANDIDATE_REQUIRES_TRADE_DECISION_REVIEW"
 assert board["best_waiver_opportunity"]["opportunity_engine_status"] == "GOVERNED_SINGLE_STEP_OPPORTUNITY"
 assert board["provenance"]["opportunity_engine_rescoring_applied"] is False
@@ -96,3 +97,17 @@ plan_board = mod.build_board(source, portfolio_depth=2, portfolio_override=synth
 assert plan_board["best_plan_available"]["plan_type"] == "PORTFOLIO"
 assert plan_board["best_plan_available"]["description"] == "Trade A for B THEN Add E"
 print("Opportunity Engine governed best-plan selection regression passed")
+
+hold_source = dict(source)
+hold_source["recommended_action"] = {"channel":"HOLD","description":"Hold current roster","team_improvement_score":0.0}
+hold_board = mod.build_board(hold_source)
+assert hold_board["best_plan_available"]["plan_type"] == "HOLD"
+assert hold_board["best_plan_available"]["execution_status"]["status"] == "GOVERNED_NO_TRADE_REVIEW_REQUIRED"
+
+reviewed_trade = {
+    "channel":"TRADE","description":"Trade A for B",
+    "trade_decision_review":{"recommended_next_action":"DECLINE"},
+}
+status = mod._execution_status(reviewed_trade)
+assert status["status"] == "BLOCKED_BY_TRADE_DECISION"
+print("Opportunity Engine authority-aware execution-status regression passed")
