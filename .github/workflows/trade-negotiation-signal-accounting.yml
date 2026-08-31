@@ -1,0 +1,50 @@
+name: Trade Negotiation Signal Accounting
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - 'script/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'script/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit negotiation signal ownership and double counting
+        run: python script/audit_trade_negotiation_signal_accounting.py
+      - name: Validate accounting artifact
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('data/audit/trade_negotiation_signal_accounting_audit.json'))
+          assert r['summary']['passed'] is True
+          assert r['policy']['same_signal_may_not_receive_positive_incremental_weight_twice'] is True
+          assert r['policy']['search_signals_may_change_coverage_but_not_candidate_utility'] is True
+          assert r['policy']['behavioral_evidence_may_change_negotiation_interpretation_but_not_economic_value'] is True
+          assert r['policy']['market_price_evidence_may_locate_clearing_region_but_must_not_be_readded_to_focal_utility'] is True
+          assert r['signal_domains']['seller_motivation']['role']=='SEARCH_SIGNAL'
+          assert r['signal_domains']['behavioral_intelligence']['role']=='DESCRIPTIVE_NEGOTIATION_EVIDENCE'
+          assert r['signal_domains']['negotiation_frontier']['owner']=='Trade Decision'
+          print(json.dumps(r['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trade-negotiation-signal-accounting
+          path: data/audit/trade_negotiation_signal_accounting_audit.json
+          retention-days: 30

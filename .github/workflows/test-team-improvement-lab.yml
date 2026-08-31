@@ -16,7 +16,7 @@ jobs:
       - name: Install report dependencies
         run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile Team Improvement Lab
-        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/gm3/team_improvement.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/run_team_improvement_lab_v16.py script/gm3/team_improvement.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
       - name: Unit test shared decision utility
         run: |
           python - <<'PY'
@@ -66,7 +66,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.5'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.6'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['projection_universe']['coverage']['final_projection_players'] > r['projection_universe']['coverage']['native_projection_players']
           assert r['hold_benchmark']['team_improvement_score']==0
@@ -75,6 +75,10 @@ jobs:
           assert r['policy']['waiver_candidates_use_canonical_full_projection_universe'] is True
           assert r['policy']['waiver_pre_screen_uses_fixed_cross_unit_coefficients'] is False
           assert r['policy']['waiver_discovery_is_scale_free_multilane'] is True
+          assert r['policy']['trade_discovery_is_governed_multilane'] is True
+          assert r['policy']['trade_discovery_preserves_bilateral_utility_lane'] is True
+          assert r['policy']['trade_discovery_preserves_negotiation_fit_lane'] is True
+          assert r['policy']['trade_discovery_preserves_target_diversity_lane'] is True
           assert r['policy']['trade_package_pre_screen_score_owned_by_upstream_gm3'] is True
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['competitive_state_tilts_but_does_not_dominate'] is True
@@ -97,7 +101,7 @@ jobs:
           text=' '.join((p.extract_text() or '') for p in reader.pages)
           assert 'FSFFL GM ACTION REPORT' in text
           assert '...' not in text and '\u2026' not in text, text
-          print('Team Improvement Lab 1.5 shared utility + scale-free discovery validation passed')
+          print('Team Improvement Lab 1.6 governed multi-lane discovery validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()

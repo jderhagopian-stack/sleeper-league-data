@@ -52,6 +52,16 @@ def render(board_path, output):
         buyer=x.get('best_buyer') or {}; sr.append([P(s,str(x.get('asset') or ''),'FS_Body'),P(s,str(buyer.get('buyer_team') or ''),'FS_Body'),P(s,f"+{safe_float(buyer.get('premium_vs_break_glass')):,.0f}",'FS_Body')])
     if sells: story += [P(s,'MARKET-TEST / SELL-HIGH CANDIDATES','FS_Section'),row_table(s,sr,[3.5*inch,2.45*inch,1.49*inch])]
     story += [PageBreak(),P(s,'EXECUTION, UNCERTAINTY & GOVERNANCE','FS_Title'),P(s,'Decision-support controls for interpreting this board correctly.','FS_Sub'),Spacer(1,6)]
+    pfs=((b.get('negotiation_frontier') or {}).get('target_price_frontiers') or [])[:4]
+    story += [P(s,'NEGOTIATION PRICE FRONTIER','FS_Section')]
+    if pfs:
+        pr=[[P(s,'TARGET','FS_CardLabel'),P(s,'STATUS','FS_CardLabel'),P(s,'OPEN','FS_CardLabel'),P(s,'SELLER FLOOR','FS_CardLabel'),P(s,'OUR CEILING','FS_CardLabel')]]
+        for pf in pfs:
+            target=pf.get('target') or {}; op=pf.get('opening_package') or {}; fl=pf.get('seller_clearing_floor') or {}; ce=pf.get('rational_focal_ceiling') or {}
+            pr.append([P(s,str(target.get('name') or target.get('asset_id') or 'Target'),'FS_Small'),P(s,str(pf.get('status') or 'UNKNOWN').replace('_',' '),'FS_Small'),P(s,str(op.get('description') or 'none'),'FS_Small'),P(s,str(fl.get('description') or 'not found'),'FS_Small'),P(s,str(ce.get('description') or 'none'),'FS_Small')])
+        story += [row_table(s,pr,[1.05*inch,1.25*inch,1.75*inch,1.75*inch,1.64*inch]),Spacer(1,4),P(s,'Discrete frontier over packages actually evaluated by GM3. Seller floor uses governed counterparty utility; our ceiling uses GM3 franchise-improvement utility. This is not an acceptance probability or an invented elite-player premium.','FS_Small'),Spacer(1,6)]
+    else:
+        story += [P(s,'No evaluated trade-package frontier was available for this run.','FS_Body'),Spacer(1,6)]
     rob=b.get('robustness') or {}; enabled=bool((rob.get('best_single_step') or {}).get('enabled'))
     story += [P(s,'UNCERTAINTY / ROBUSTNESS','FS_Section'),P(s,'Independent-seed robustness diagnostics were enabled for this run.' if enabled else 'Independent-seed robustness diagnostics were disabled for this production run. The ranking is therefore the governed point estimate from the configured search/simulation budget, not a claim that the top option dominates under every plausible simulation seed.','FS_Body'),Spacer(1,6)]
     sc=b.get('search_configuration') or {}; story += [P(s,'SEARCH & SIMULATION BUDGET','FS_Section'),P(s,f"Trade screen: {sc.get('trade_candidates',50)} | Waiver screen: {sc.get('waiver_candidates',50)} | Packages/target: {sc.get('trade_packages_per_target',8)} | Single-step sims: {sc.get('quick_sims',500)} screen / {sc.get('confirm_sims',2500)} confirm | Portfolio max moves: {sc.get('portfolio_max_moves',3)} | Beam width: {sc.get('portfolio_beam_width',10)}. These are computational search budgets, not valuation weights.",'FS_Body'),Spacer(1,6)]

@@ -21,7 +21,7 @@ on:
       trade_screen:
         description: 'Trade candidates to screen'
         required: false
-        default: '50'
+        default: '75'
         type: string
       waiver_screen:
         description: 'Waiver candidates to screen'
@@ -31,12 +31,12 @@ on:
       trade_packages_per_target:
         description: 'Upstream GM3 packages considered per trade target'
         required: false
-        default: '8'
+        default: '12'
         type: string
       portfolio_depth:
         description: 'Top governed single-step moves eligible for adaptive bundle search'
         required: false
-        default: '10'
+        default: '15'
         type: string
       portfolio_max_moves:
         description: 'Maximum moves in an adaptive portfolio'
@@ -71,7 +71,7 @@ on:
       trade_review_depth:
         description: 'Leading generated trades routed through Trade Decision'
         required: false
-        default: '1'
+        default: '3'
         type: string
   push:
     branches: [main]
@@ -88,17 +88,17 @@ jobs:
       FOCUS_USER_ID: ${{ inputs.focus_user_id || '846634401482792960' }}
       QUICK_SIMS: ${{ inputs.quick_sims || '500' }}
       CONFIRM_SIMS: ${{ inputs.confirm_sims || '2500' }}
-      TRADE_SCREEN: ${{ inputs.trade_screen || '50' }}
+      TRADE_SCREEN: ${{ inputs.trade_screen || '75' }}
       WAIVER_SCREEN: ${{ inputs.waiver_screen || '50' }}
-      TRADE_PACKAGES_PER_TARGET: ${{ inputs.trade_packages_per_target || '8' }}
-      PORTFOLIO_DEPTH: ${{ inputs.portfolio_depth || '10' }}
+      TRADE_PACKAGES_PER_TARGET: ${{ inputs.trade_packages_per_target || '12' }}
+      PORTFOLIO_DEPTH: ${{ inputs.portfolio_depth || '15' }}
       PORTFOLIO_MAX_MOVES: ${{ inputs.portfolio_max_moves || '3' }}
       PORTFOLIO_BEAM_WIDTH: ${{ inputs.portfolio_beam_width || '10' }}
       PORTFOLIO_SIMS: ${{ inputs.portfolio_sims || '1000' }}
       PORTFOLIO_CONFIRM_SIMS: ${{ inputs.portfolio_confirm_sims || '5000' }}
       ROBUSTNESS_SEEDS: ${{ inputs.robustness_seeds || '0' }}
       ROBUSTNESS_SIMS: ${{ inputs.robustness_sims || '500' }}
-      TRADE_REVIEW_DEPTH: ${{ inputs.trade_review_depth || '1' }}
+      TRADE_REVIEW_DEPTH: ${{ inputs.trade_review_depth || '3' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -115,14 +115,14 @@ jobs:
       - name: Run Opportunity Engine
         run: |
           mkdir -p /tmp/opportunity-engine
-          python script/opportunity_engine/application_v2.py \
+          python script/opportunity_engine/application_v21.py \
             --focus-user-id "$FOCUS_USER_ID" \
             --quick-sims "$QUICK_SIMS" \
             --confirm-sims "$CONFIRM_SIMS" \
             --trade-screen "$TRADE_SCREEN" \
             --waiver-screen "$WAIVER_SCREEN" \
             --trade-packages-per-target "$TRADE_PACKAGES_PER_TARGET" \
-            --confirm-top '10' \
+            --confirm-top '15' \
             --portfolio-depth "$PORTFOLIO_DEPTH" \
             --portfolio-max-moves "$PORTFOLIO_MAX_MOVES" \
             --portfolio-beam-width "$PORTFOLIO_BEAM_WIDTH" \
@@ -150,11 +150,17 @@ jobs:
           python - <<'PY'
           import json, os
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-2.0'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.1'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['adaptive_search_creates_new_utility'] is False
           assert b['policy']['waiver_discovery_fixed_cross_unit_coefficients_active'] is False
+          assert b['policy']['negotiation_frontier_creates_new_utility'] is False
+          assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
+          assert b['capability_status']['discrete_price_frontier'] is True
+          nf=b.get('negotiation_frontier') or {}
+          assert nf.get('authority')=='Trade Decision'
+          assert nf.get('policy',{}).get('price_frontier_uses_discrete_evaluated_packages') is True
           assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['provenance']['adaptive_portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['capability_status']['single_step_trade_search'] is True
@@ -169,7 +175,7 @@ jobs:
               for x in b['trade_decision_reviews']:
                   assert x['authority']=='Trade Decision'
                   assert x['trade_decision']['generated_proposal_willingness_observed'] is False
-          print('Opportunity Engine 2.0 governed production validation passed')
+          print('Opportunity Engine 2.1 governed production validation passed')
           PY
       - name: Validate standardized PDF deliverable
         run: |
