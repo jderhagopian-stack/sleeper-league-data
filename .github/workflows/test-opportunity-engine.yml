@@ -6,7 +6,7 @@ on:
 jobs:
   opportunity-engine:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -20,29 +20,39 @@ jobs:
         run: |
           python -m py_compile \
             script/opportunity_engine/application.py \
+            script/opportunity_engine/application_v2.py \
             script/gm3/team_improvement.py \
             script/run_team_improvement_lab.py \
             script/run_team_improvement_lab_v13.py \
             script/render_opportunity_engine_report.py \
-            script/test_opportunity_engine.py
-      - name: Run fast architecture/composition regression
-        run: python script/test_opportunity_engine.py
+            script/audit_opportunity_engine_phase2_calibration.py \
+            script/test_opportunity_engine.py \
+            script/test_opportunity_engine_v2.py
+      - name: Run fast architecture/composition regressions
+        run: |
+          python script/test_opportunity_engine.py
+          python script/test_opportunity_engine_v2.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
-      - name: Run live Opportunity Engine vertical slice
+      - name: Run live Opportunity Engine 2.0 vertical slice
         run: |
           mkdir -p /tmp/opportunity-engine
-          python script/opportunity_engine/application.py \
+          python script/opportunity_engine/application_v2.py \
             --focus-user-id 846634401482792960 \
             --quick-sims 30 \
             --confirm-sims 60 \
-            --trade-screen 6 \
-            --waiver-screen 6 \
+            --trade-screen 8 \
+            --waiver-screen 8 \
+            --trade-packages-per-target 4 \
             --confirm-top 3 \
-            --portfolio-depth 4 \
+            --portfolio-depth 5 \
+            --portfolio-max-moves 3 \
+            --portfolio-beam-width 4 \
             --portfolio-sims 20 \
             --portfolio-confirm-sims 40 \
             --portfolio-confirm-top 2 \
+            --robustness-seeds 2 \
+            --robustness-sims 20 \
             --trade-review-depth 1 \
             --trade-review-quick-sims 100 \
             --trade-review-confirm-sims 200 \
@@ -57,34 +67,40 @@ jobs:
           import json
           from pathlib import Path
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.4'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.0'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['search_heuristics_have_final_decision_authority'] is False
+          assert b['policy']['adaptive_search_creates_new_utility'] is False
+          assert b['policy']['waiver_discovery_fixed_cross_unit_coefficients_active'] is False
           assert b['provenance']['cross_channel_order_preserved_from_source'] is True
           assert b['provenance']['opportunity_engine_rescoring_applied'] is False
           assert b['provenance']['opportunity_engine_reranking_applied'] is False
           assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
+          assert b['provenance']['adaptive_portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['capability_status']['single_step_trade_search'] is True
           assert b['capability_status']['single_step_waiver_search'] is True
-          assert b['capability_status']['sell_high_buy_low_specialized_views'] is True
-          assert b['capability_status']['draft_intelligence_context'] is True
-          assert b['capability_status']['breakout_sleeper_intelligence_context'] is True
-          assert b['provenance']['specialist_intelligence_changes_ranking'] is False
-          assert b['capability_status']['multi_step_portfolio_optimization'] is True
-          assert b['portfolio_optimization']['candidate_pairs_evaluated'] > 0
+          assert b['capability_status']['adaptive_multi_step_portfolio_optimization'] is True
+          assert b['capability_status']['portfolio_search_up_to_three_or_more_moves'] is True
+          assert b['capability_status']['prospective_validation_snapshots'] is True
+          assert b['capability_status']['recommendation_robustness_diagnostics'] is True
+          assert b['portfolio_optimization']['candidate_bundles_evaluated'] > 0
           assert b['portfolio_optimization']['authority']=='GM3 Team Improvement'
           assert b['portfolio_optimization']['deep_confirmed_portfolios'] > 0
           assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
           assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
           assert isinstance(b['portfolio_optimization']['best_portfolio_preferred_to_best_single_step'], bool)
+          assert b['robustness']['used_for_primary_ranking'] is False
+          assert b['robustness']['best_single_step']['enabled'] is True
+          assert b['prospective_validation']['contains_future_outcomes'] is False
+          assert len(b['prospective_validation']['source_input_sha256'])==64
           assert len(b['trade_decision_reviews'])==1
           td=b['trade_decision_reviews'][0]['trade_decision']
           assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
           assert td['generated_proposal_willingness_observed'] is False
           assert td['recommended_next_action'] in {'ACCEPT_NOW','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
-          assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 500
-          print('Opportunity Engine live governed regression passed')
+          assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
+          print('Opportunity Engine 2.0 live governed regression passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()

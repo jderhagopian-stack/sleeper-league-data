@@ -1,0 +1,90 @@
+name: Opportunity Engine Phase 2 Calibration
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      focus_user_id:
+        description: 'Sleeper user id of franchise to calibrate'
+        required: true
+        default: '846634401482792960'
+        type: string
+
+concurrency:
+  group: opportunity-engine-phase2-calibration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - run: python script/build_fsffl_full_projection_universe.py
+      - run: python script/refresh_behavioral_intelligence_v3.py
+      - name: Resolve focal user id
+        id: focal
+        shell: bash
+        run: |
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            echo "user_id=${{ inputs.focus_user_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "user_id=846634401482792960" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run calibration matrix
+        run: |
+          mkdir -p /tmp/oe-cal
+          run_oe () {
+            label=$1; quick=$2; confirm=$3; trade=$4; waiver=$5; top=$6; packages=$7; pdepth=$8; maxmoves=$9
+            shift 9
+            beam=$1; psims=$2; pconfirm=$3
+            start=$(date +%s)
+            python script/opportunity_engine/application_v2.py \
+              --focus-user-id '${{ steps.focal.outputs.user_id }}' \
+              --quick-sims "$quick" --confirm-sims "$confirm" \
+              --trade-screen "$trade" --waiver-screen "$waiver" --confirm-top "$top" \
+              --trade-packages-per-target "$packages" \
+              --portfolio-depth "$pdepth" --portfolio-max-moves "$maxmoves" --portfolio-beam-width "$beam" \
+              --portfolio-sims "$psims" --portfolio-confirm-sims "$pconfirm" \
+              --portfolio-confirm-top 3 --robustness-seeds 0 --trade-review-depth 0 \
+              --output "/tmp/oe-cal/${label}.json"
+            end=$(date +%s)
+            printf '%s,%s\n' "$label" "$((end-start))" >> /tmp/oe-cal/runtime_seconds.csv
+          }
+          printf 'configuration,runtime_seconds\n' > /tmp/oe-cal/runtime_seconds.csv
+          # Phase-2 provisional production budget.
+          run_oe prod 200 1000 30 30 5 5 8 3 8 500 5000
+          # Simulation-only sensitivity, holding discovery/search depth constant.
+          run_oe sims_500 500 2500 30 30 5 5 8 3 8 1000 5000
+          run_oe sims_1000 1000 5000 30 30 5 5 8 3 8 2000 7500
+          # Search-depth sensitivity with moderate precision.
+          run_oe search_50 500 2500 50 50 10 5 10 3 10 1000 5000
+          # Package-depth sensitivity at the same candidate/search budget.
+          run_oe packages_8 500 2500 50 50 10 8 10 3 10 1000 5000
+          # Value of allowing a third move versus pair-only optimization.
+          run_oe pairs_only 500 2500 50 50 10 8 10 2 10 1000 5000
+          # Deep same-state reference; diagnostic, not ground truth.
+          run_oe reference 1000 7500 100 100 20 10 15 3 15 2000 10000
+      - name: Compare configurations
+        run: |
+          python script/audit_opportunity_engine_phase2_calibration.py \
+            --reference /tmp/oe-cal/reference.json \
+            --candidate prod=/tmp/oe-cal/prod.json \
+            --candidate sims_500=/tmp/oe-cal/sims_500.json \
+            --candidate sims_1000=/tmp/oe-cal/sims_1000.json \
+            --candidate search_50=/tmp/oe-cal/search_50.json \
+            --candidate packages_8=/tmp/oe-cal/packages_8.json \
+            --candidate pairs_only=/tmp/oe-cal/pairs_only.json \
+            --runtime-csv /tmp/oe-cal/runtime_seconds.csv \
+            --output /tmp/oe-cal/calibration.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-engine-phase2-calibration
+          path: /tmp/oe-cal/*
+          if-no-files-found: error
+          retention-days: 30

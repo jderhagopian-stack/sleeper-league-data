@@ -23,9 +23,6 @@ jobs:
           import importlib.util
           spec=importlib.util.spec_from_file_location('lab','script/run_team_improvement_lab.py')
           lab=importlib.util.module_from_spec(spec); spec.loader.exec_module(lab)
-
-          # Team Improvement no longer owns a separate categorical weighting
-          # system. The shared utility requires continuous objective weights.
           sim={
             'focus_delta':{
               'expected_wins':.35,'expected_points_for':35,
@@ -42,8 +39,6 @@ jobs:
           }
           score=lab.unified_score('x',sim)
           assert isinstance(score,float)
-
-          # Legacy categorical guardrails remain diagnostic only.
           original=lab.state_weights
           try:
               lab.state_weights=lambda uid: ('descriptive_state',{'current':.5,'future':.3,'liquidity':.08,'resilience':.12})
@@ -71,13 +66,16 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.4'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.5'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['projection_universe']['coverage']['final_projection_players'] > r['projection_universe']['coverage']['native_projection_players']
           assert r['hold_benchmark']['team_improvement_score']==0
           assert r['policy']['roster_aware_trade_resolution'] is True
           assert r['policy']['waiver_adds_include_endogenous_optimal_drop'] is True
           assert r['policy']['waiver_candidates_use_canonical_full_projection_universe'] is True
+          assert r['policy']['waiver_pre_screen_uses_fixed_cross_unit_coefficients'] is False
+          assert r['policy']['waiver_discovery_is_scale_free_multilane'] is True
+          assert r['policy']['trade_package_pre_screen_score_owned_by_upstream_gm3'] is True
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['competitive_state_tilts_but_does_not_dominate'] is True
           assert r['policy']['championship_probability_uses_diminishing_returns'] is False
@@ -89,7 +87,8 @@ jobs:
               assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
               if row.get('channel')=='TRADE': assert row.get('acceptance_fit') in {'HIGH','MEDIUM','LOW','VERY_LOW'}
           for row in r.get('best_waiver_options') or []:
-              assert row.get('waiver_discovery_source')=='canonical_full_projection_universe'
+              assert row.get('waiver_discovery_source')=='canonical_full_projection_universe_scale_free_multilane'
+              assert row.get('pre_screen_weighted_score_used') is False
               assert row.get('projection_source_model')=='FSFFL-Full-Projection-Universe-1.0'
           pdf=Path('/tmp/team-improvement/GM_Action_Report.pdf')
           assert pdf.exists() and pdf.stat().st_size > 2500
@@ -98,7 +97,7 @@ jobs:
           text=' '.join((p.extract_text() or '') for p in reader.pages)
           assert 'FSFFL GM ACTION REPORT' in text
           assert '...' not in text and '\u2026' not in text, text
-          print('Team Improvement Lab shared utility + GM Action Report validation passed')
+          print('Team Improvement Lab 1.5 shared utility + scale-free discovery validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()

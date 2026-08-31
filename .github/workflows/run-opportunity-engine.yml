@@ -11,37 +11,62 @@ on:
       quick_sims:
         description: 'Single-step screening simulations'
         required: false
-        default: '200'
+        default: '500'
         type: string
       confirm_sims:
         description: 'Single-step deep confirmation simulations'
         required: false
-        default: '1000'
+        default: '2500'
         type: string
       trade_screen:
         description: 'Trade candidates to screen'
         required: false
-        default: '30'
+        default: '50'
         type: string
       waiver_screen:
         description: 'Waiver candidates to screen'
         required: false
-        default: '30'
+        default: '50'
+        type: string
+      trade_packages_per_target:
+        description: 'Upstream GM3 packages considered per trade target'
+        required: false
+        default: '8'
         type: string
       portfolio_depth:
-        description: 'Top governed single-step moves eligible for pair enumeration'
+        description: 'Top governed single-step moves eligible for adaptive bundle search'
         required: false
-        default: '6'
+        default: '10'
+        type: string
+      portfolio_max_moves:
+        description: 'Maximum moves in an adaptive portfolio'
+        required: false
+        default: '3'
+        type: string
+      portfolio_beam_width:
+        description: 'Leading bundles retained between adaptive-search levels'
+        required: false
+        default: '10'
         type: string
       portfolio_sims:
-        description: 'Screening simulations per two-move portfolio'
+        description: 'Screening simulations per portfolio bundle'
         required: false
-        default: '500'
+        default: '1000'
         type: string
       portfolio_confirm_sims:
         description: 'Deep confirmation simulations per portfolio finalist'
         required: false
         default: '5000'
+        type: string
+      robustness_seeds:
+        description: 'Additional independent seed diagnostics for leading options; 0 disables'
+        required: false
+        default: '0'
+        type: string
+      robustness_sims:
+        description: 'Simulations per robustness seed'
+        required: false
+        default: '500'
         type: string
       trade_review_depth:
         description: 'Leading generated trades routed through Trade Decision'
@@ -52,7 +77,7 @@ on:
 jobs:
   opportunity-engine:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       contents: read
     steps:
@@ -71,17 +96,22 @@ jobs:
       - name: Run Opportunity Engine
         run: |
           mkdir -p /tmp/opportunity-engine
-          python script/opportunity_engine/application.py \
+          python script/opportunity_engine/application_v2.py \
             --focus-user-id '${{ inputs.focus_user_id }}' \
             --quick-sims '${{ inputs.quick_sims }}' \
             --confirm-sims '${{ inputs.confirm_sims }}' \
             --trade-screen '${{ inputs.trade_screen }}' \
             --waiver-screen '${{ inputs.waiver_screen }}' \
-            --confirm-top '5' \
+            --trade-packages-per-target '${{ inputs.trade_packages_per_target }}' \
+            --confirm-top '10' \
             --portfolio-depth '${{ inputs.portfolio_depth }}' \
+            --portfolio-max-moves '${{ inputs.portfolio_max_moves }}' \
+            --portfolio-beam-width '${{ inputs.portfolio_beam_width }}' \
             --portfolio-sims '${{ inputs.portfolio_sims }}' \
             --portfolio-confirm-sims '${{ inputs.portfolio_confirm_sims }}' \
             --portfolio-confirm-top '3' \
+            --robustness-seeds '${{ inputs.robustness_seeds }}' \
+            --robustness-sims '${{ inputs.robustness_sims }}' \
             --trade-review-depth '${{ inputs.trade_review_depth }}' \
             --trade-review-confirm-sims '50000' \
             --output /tmp/opportunity-engine/opportunity-board.json \
@@ -96,27 +126,30 @@ jobs:
           python - <<'PY'
           import json
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-1.4'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.0'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
+          assert b['policy']['adaptive_search_creates_new_utility'] is False
+          assert b['policy']['waiver_discovery_fixed_cross_unit_coefficients_active'] is False
           assert b['provenance']['portfolio_scores_owned_by_gm3_team_improvement'] is True
+          assert b['provenance']['adaptive_portfolio_scores_owned_by_gm3_team_improvement'] is True
           assert b['capability_status']['single_step_trade_search'] is True
           assert b['capability_status']['single_step_waiver_search'] is True
-          assert b['capability_status']['sell_high_buy_low_specialized_views'] is True
-          assert b['capability_status']['draft_intelligence_context'] is True
-          assert b['capability_status']['breakout_sleeper_intelligence_context'] is True
+          assert b['capability_status']['adaptive_multi_step_portfolio_optimization'] is True
+          assert b['capability_status']['prospective_validation_snapshots'] is True
           if int('${{ inputs.portfolio_depth }}') >= 2:
-              assert b['capability_status']['multi_step_portfolio_optimization'] is True
+              assert b['portfolio_optimization']['adaptive_search'] is True
+              assert b['portfolio_optimization']['candidate_bundles_evaluated'] > 0
           if int('${{ inputs.trade_review_depth }}') > 0 and b.get('best_trade_opportunity'):
               assert b['trade_decision_reviews']
               for x in b['trade_decision_reviews']:
                   assert x['authority']=='Trade Decision'
                   assert x['trade_decision']['generated_proposal_willingness_observed'] is False
-          print('Opportunity Engine governed production validation passed')
+          print('Opportunity Engine 2.0 governed production validation passed')
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: fsffl-opportunity-engine
           path: /tmp/opportunity-engine/*
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
