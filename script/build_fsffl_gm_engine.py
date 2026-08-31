@@ -4577,7 +4577,11 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
                 focal_static_surplus = focal_value - safe_float(focal_exit.get("adjusted_exit_cost"))
 
                 # Broader screen retained for replacement-rich packages.
-                if static_ratio < 0.68 or static_ratio > 1.35:
+                # Price discovery must be able to walk beyond the legacy balanced-package
+                # window. Keep the lower sanity bound so empty/non-credible returns do
+                # not explode the search, but do not discard stronger packages merely
+                # because they exceed the old 1.35 static-ratio discovery window.
+                if static_ratio < 0.68:
                     continue
                 fairness = 1.0 - min(abs(1.0-static_ratio),0.40)/0.40
                 prelim_score = (
@@ -4598,7 +4602,7 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
         prelim.sort(key=lambda x:(x["focal_static_surplus"]>=0,x["prelim_score"]), reverse=True)
         packages = []
 
-        for row in prelim[:28]:
+        for row in prelim:
             combo = list(row["combo"])
             focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
             seller_exit = _u_adjusted_exit_cost(seller_uid, [target_aid], combo, ctx, profile_by_uid)
@@ -4667,6 +4671,10 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             packages.append({
                 "focal_outgoing_asset_ids": combo,
                 "focal_outgoing_assets": [(ctx["asset_meta"].get(a) or {}).get("name") for a in combo],
+                "package_market_value_coordinate": round(sum(
+                    safe_float((ctx["asset_meta"].get(a) or {}).get("market_dynasty"))
+                    for a in combo
+                ), 1),
                 "target_asset_id": target_aid,
                 "target_player": target.get("name"),
                 "focal_receive_effective_value": round(focal_receive_eff,1),
@@ -4702,6 +4710,32 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             key=lambda x:(rank.get(x["recommendation_band"],0),x["decision_score"],x["focal_surplus_after_wait_benchmark"]),
             reverse=True
         )
+        # Preserve the legacy recommendation shortlist while also publishing a
+        # price-ordered, economically governed package curve for downstream GM3
+        # evaluation. This is search coverage, not a second valuation model.
+        price_frontier_packages = [
+            {
+                "focal_outgoing_asset_ids": list(p.get("focal_outgoing_asset_ids") or []),
+                "focal_outgoing_assets": list(p.get("focal_outgoing_assets") or []),
+                "package_market_value_coordinate": p.get("package_market_value_coordinate"),
+                "target_asset_id": p.get("target_asset_id"),
+                "target_player": p.get("target_player"),
+                "focal_strategic_utility": p.get("focal_strategic_utility"),
+                "seller_strategic_utility": p.get("seller_strategic_utility"),
+                "seller_motivation_score": p.get("seller_motivation_score"),
+                "acceptance_fit_score": p.get("acceptance_fit_score"),
+                "decision_score": p.get("decision_score"),
+                "recommendation_band": p.get("recommendation_band"),
+            }
+            for p in sorted(
+                packages,
+                key=lambda x: (
+                    safe_float(x.get("package_market_value_coordinate")),
+                    -safe_float(x.get("focal_strategic_utility")),
+                ),
+            )
+        ]
+
         opportunities.append({
             "target_asset_id": target_aid,
             "target_player_id": target_aid.split(":",1)[1],
@@ -4718,6 +4752,9 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
             "focal_position_need": round(need,3),
             "seller_motivation_score": round(motivation,3),
             "best_candidate_packages": packages[:10],
+            "price_frontier_candidate_packages": price_frontier_packages,
+            "price_frontier_package_count": len(price_frontier_packages),
+            "price_frontier_search_uses_existing_gm_trade_economics": True,
             "best_package_recommendation_band": packages[0]["recommendation_band"] if packages else None,
             "best_package_decision_score": packages[0]["decision_score"] if packages else None,
         })
