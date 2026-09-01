@@ -321,6 +321,21 @@ def load_model_inputs():
     players = load_json(DATA / "players.json", {}) or {}
     season = str(league.get("season"))
     projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
+    full_path = DATA / "simulator" / season / "inputs" / "player_weekly_projections_full.json"
+    full = load_json(full_path, {}) or {}
+    if (full.get("players") or {}):
+        projections = copy.deepcopy(projections)
+        projections.setdefault("players", {})
+        for pid, profile in (full.get("players") or {}).items():
+            projections["players"].setdefault(str(pid), copy.deepcopy(profile))
+        projections["_decision_lab_full_projection_merge"] = {
+            "model_version": full.get("model_version"),
+            "path": str(full_path),
+            "native_players_preserved": True,
+            "full_only_players_added": max(
+                0, len(projections.get("players") or {}) - len((load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}).get("players") or {})
+            ),
+        }
     raw_schedule = load_json(resolve_schedule_path(season), {}) or {}
     validation = simmod.core.validate_inputs(league, rosters, users, players, raw_schedule, projections)
     if not validation.get("validation_passed"):
@@ -434,6 +449,38 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     }
 
 
+def required_incoming_projection_ids(actions, focus_uid=None):
+    required = set()
+    focus_uid = str(focus_uid) if focus_uid is not None else None
+    for action in actions:
+        typ = str(action.get("type") or "").lower().strip()
+        if typ == "add":
+            required.update(iter_player_ids(action))
+        elif typ == "add_drop":
+            required.update(str(x) for x in (action.get("add_players") or []))
+        elif typ == "trade":
+            # Every transferred player can affect a touched team's lineup.
+            required.update(iter_player_ids(action))
+    return sorted(required)
+
+
+def assert_projection_coverage(actions, projections, focus_uid=None):
+    available = {str(x) for x in ((projections or {}).get("players") or {})}
+    required = required_incoming_projection_ids(actions, focus_uid)
+    missing = [pid for pid in required if pid not in available]
+    if missing:
+        raise RuntimeError(
+            "Decision scenario contains incoming/transferred players without canonical "
+            f"Simulator projection coverage: {missing}"
+        )
+    return {
+        "required_player_count": len(required),
+        "missing_player_ids": missing,
+        "coverage_complete": True,
+        "full_projection_merge": (projections or {}).get("_decision_lab_full_projection_merge"),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scenario", required=True)
@@ -452,6 +499,7 @@ def main():
         raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
     simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = load_model_inputs()
+    projection_coverage = assert_projection_coverage(actions, projections, focus_uid)
     globals_module = types.SimpleNamespace(
         roster_maps=roster_maps,
         gm_asset_map=gm_asset_map,
@@ -595,6 +643,7 @@ def main():
         "ephemeral_state": True,
         "canonical_state_mutated": False,
         "pick_transfers": pick_transfers,
+        "projection_input_coverage": projection_coverage,
         "team_comparisons": comparisons,
         "competitive_externality": {
             "focus_championship_probability_delta": round(focus_title_delta, 5),
