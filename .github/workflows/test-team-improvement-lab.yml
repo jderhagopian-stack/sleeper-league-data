@@ -121,6 +121,17 @@ jobs:
           text=' '.join((p.extract_text() or '') for p in reader.pages)
           assert 'FSFFL GM ACTION REPORT' in text
           assert '...' not in text and '\u2026' not in text, text
+          samples=[]
+          for row in (r.get('top_cross_channel_options') or [])[:3]:
+              samples.append({
+                  'description':row.get('description'),
+                  'channel':row.get('channel'),
+                  'team_improvement_score':row.get('team_improvement_score'),
+                  'attribution':row.get('decision_attribution'),
+                  'counterparty_shared_decision_utility_score':row.get('counterparty_shared_decision_utility_score'),
+                  'counterparty_attribution':row.get('counterparty_decision_attribution'),
+              })
+          print(json.dumps({'decision_path_reconciliation_samples':samples},indent=2))
           print('Team Improvement Lab 1.6 governed multi-lane discovery validation passed')
           PY
       - uses: actions/upload-artifact@v4
