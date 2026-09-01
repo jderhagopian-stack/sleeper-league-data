@@ -178,13 +178,18 @@ def render(board):
             opener = pf.get("opening_package") or {}
             floor = pf.get("seller_clearing_floor") or {}
             ceiling = pf.get("rational_focal_ceiling") or {}
+            trade_decision_status=pf.get('trade_decision_price_frontier_status') or pf.get('status') or 'UNKNOWN'
+            oe_status=pf.get('opportunity_engine_price_frontier_status') or trade_decision_status
+            routing=pf.get('opportunity_routing_status')
+            route_suffix=f"; Opportunity routing: {routing}" if routing else ""
             lines.append(
-                f"- **{target.get('name') or target.get('asset_id') or 'Target'}:** {pf.get('status') or 'UNKNOWN'}; "
+                f"- **{target.get('name') or target.get('asset_id') or 'Target'}:** {oe_status}; "
+                f"Trade Decision frontier: {trade_decision_status}{route_suffix}; "
                 f"opening package: {opener.get('description') or 'none found'}; "
                 f"seller clearing floor: {floor.get('description') or 'not found in evaluated packages'}; "
                 f"rational focal ceiling: {ceiling.get('description') or 'none'}."
             )
-        lines.append("These are discrete frontiers over packages actually evaluated by GM3; they are not continuous acceptance probabilities or invented player premiums.")
+        lines.append("These are discrete Trade Decision frontiers over packages actually evaluated by GM3. Opportunity routing overlays repeated-seed actionability without changing the underlying frontier authority; they are not continuous acceptance probabilities or invented player premiums.")
     else:
         lines.append("No evaluated trade-package frontier was available for this run.")
 
