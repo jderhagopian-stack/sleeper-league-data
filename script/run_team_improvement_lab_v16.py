@@ -139,6 +139,8 @@ def _outbound_future_value_rows(base, focus_uid, catalog, packages_per_target):
     are recomputed downstream from the actual inverted trade.
     """
     focus_uid=str(focus_uid)
+    if not hasattr(base,'load_json') or not hasattr(base,'DATA'):
+        return []
     idx=base.load_json(base.DATA/'gm'/'franchise_index.json',{}) or {}
     rows=[]
     for team in (idx.get('teams') or []):
