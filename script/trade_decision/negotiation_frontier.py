@@ -44,22 +44,39 @@ def _asset_price(asset):
 
 
 def _package_price(row):
-    """Market-value coordinate used only to order evaluated packages by cost."""
-    return round(sum(_asset_price(x) for x in (row.get("outgoing") or [])), 4)
+    """Market coordinate used only to order evaluated packages.
+
+    Acquisition frontiers order by focal outgoing cost. Outbound/future-value
+    frontiers order by the value of the incoming return because the focal asset
+    being shopped is fixed while the requested return varies.
+    """
+    assets = (
+        row.get("incoming") or []
+        if str(row.get("trade_direction") or "").upper() == "OUTBOUND_FUTURE_VALUE"
+        else row.get("outgoing") or []
+    )
+    return round(sum(_asset_price(x) for x in assets), 4)
 
 
 def _target_key(row):
     target = row.get("target") or {}
-    return (str(row.get("seller_user_id") or ""), str(target.get("asset_id") or target.get("player_id") or ""))
+    return (
+        str(row.get("trade_direction") or "ACQUIRE"),
+        str(row.get("counterparty_user_id") or row.get("seller_user_id") or ""),
+        str(target.get("asset_id") or target.get("player_id") or ""),
+    )
 
 
 def _package_view(row):
     return {
         "description": row.get("description"),
         "seller_user_id": row.get("seller_user_id"),
+        "counterparty_user_id": row.get("counterparty_user_id") or row.get("seller_user_id"),
         "seller_team": row.get("seller_team"),
+        "trade_direction": row.get("trade_direction") or "ACQUIRE",
         "target": copy.deepcopy(row.get("target")),
         "outgoing": copy.deepcopy(row.get("outgoing") or []),
+        "incoming": copy.deepcopy(row.get("incoming") or []),
         "package_market_value_coordinate": _package_price(row),
         "focal_team_improvement_utility": _focal_utility(row),
         "counterparty_shared_utility": _counterparty_utility(row),
@@ -173,7 +190,9 @@ def build_target_price_frontier(rows):
         "authority": AUTHORITY,
         "target": copy.deepcopy((packages[0].get("target") if packages else None)),
         "seller_user_id": packages[0].get("seller_user_id") if packages else None,
+        "counterparty_user_id": (packages[0].get("counterparty_user_id") or packages[0].get("seller_user_id")) if packages else None,
         "seller_team": packages[0].get("seller_team") if packages else None,
+        "trade_direction": packages[0].get("trade_direction") if packages else "ACQUIRE",
         "evaluated_package_count": len(packages),
         "status": status,
         "price_overlap_exists": overlap,

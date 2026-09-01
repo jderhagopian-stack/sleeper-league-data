@@ -15,6 +15,7 @@ import argparse
 import copy
 import itertools
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -275,23 +276,30 @@ def _asset_ids(row):
         for x in (row.get("outgoing") or [])
         if x.get("asset_id")
     }
-    target = str(((row.get("target") or {}).get("asset_id")) or "")
-    return outgoing, target
+    incoming_rows = list(row.get("incoming") or [])
+    if not incoming_rows and row.get("target"):
+        incoming_rows = [row.get("target") or {}]
+    incoming = {
+        str(x.get("asset_id"))
+        for x in incoming_rows
+        if x.get("asset_id")
+    }
+    return outgoing, incoming
 
 
 def _compatible(a, b):
     """Structural compatibility only; final bundle value is evaluated by GM3."""
     if str(a.get("channel") or "") == "HOLD" or str(b.get("channel") or "") == "HOLD":
         return False
-    a_out, a_target = _asset_ids(a)
-    b_out, b_target = _asset_ids(b)
-    if a_target and b_target and a_target == b_target:
+    a_out, a_in = _asset_ids(a)
+    b_out, b_in = _asset_ids(b)
+    if a_in & b_in:
         return False
     if a_out & b_out:
         return False
-    if a_target and a_target in b_out:
+    if a_in & b_out:
         return False
-    if b_target and b_target in a_out:
+    if b_in & a_out:
         return False
     return True
 
@@ -419,23 +427,25 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
     }
 
 def _trade_scenario(row, focus_user_id, ordinal):
-    target = row.get("target") or {}
     outgoing = list(row.get("outgoing") or [])
-    seller = str(row.get("seller_user_id") or "")
-    if not seller or not target.get("player_id"):
-        raise ValueError("Trade candidate is missing seller or target player")
+    incoming = list(row.get("incoming") or [])
+    if not incoming and row.get("target"):
+        incoming = [row.get("target") or {}]
+    counterparty = str(row.get("counterparty_user_id") or row.get("seller_user_id") or "")
+    if not counterparty or not outgoing or not incoming:
+        raise ValueError("Trade candidate is missing counterparty, outgoing, or incoming assets")
     return {
         "scenario_id": f"opportunity-engine-{focus_user_id}-{ordinal}",
         "description": str(row.get("description") or "Opportunity Engine generated trade"),
         "transaction_status": "proposed",
         "offer_initiator_user_id": str(focus_user_id),
         "focus_user_id": str(focus_user_id),
-        "participant_user_ids": [str(focus_user_id), seller],
+        "participant_user_ids": [str(focus_user_id), counterparty],
         "actions": [
             {
                 "type": "trade",
                 "from_user_id": str(focus_user_id),
-                "to_user_id": seller,
+                "to_user_id": counterparty,
                 "players": [
                     str(x.get("player_id"))
                     for x in outgoing
@@ -449,10 +459,18 @@ def _trade_scenario(row, focus_user_id, ordinal):
             },
             {
                 "type": "trade",
-                "from_user_id": seller,
+                "from_user_id": counterparty,
                 "to_user_id": str(focus_user_id),
-                "players": [str(target.get("player_id"))],
-                "picks": [],
+                "players": [
+                    str(x.get("player_id"))
+                    for x in incoming
+                    if x.get("asset_type") == "player" and x.get("player_id") is not None
+                ],
+                "picks": [
+                    str(x.get("asset_id"))
+                    for x in incoming
+                    if x.get("asset_type") == "pick" and x.get("asset_id")
+                ],
             },
         ],
     }
@@ -491,7 +509,8 @@ def _summarize_trade_decision(report):
 
 
 def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
-                            confirm_sims=50000, search_depth=60, seed=20260821):
+                            confirm_sims=50000, search_depth=60, seed=20260821,
+                            strategic_posture="AUTO"):
     """Route leading generated trade candidates through authoritative Trade Decision."""
     if int(depth) <= 0:
         return []
@@ -517,7 +536,10 @@ def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
                 "--seed", str(int(seed)),
                 "--output", str(result_path),
             ]
-            subprocess.run(cmd, cwd=ROOT, check=True)
+            env = dict(os.environ)
+            env["FSFFL_STRATEGIC_POSTURE"] = str(strategic_posture or "AUTO")
+            env["FSFFL_STRATEGIC_POSTURE_USER_ID"] = str(focus_user_id)
+            subprocess.run(cmd, cwd=ROOT, check=True, env=env)
             report = load_json(result_path)
         reviews.append({
             "source_opportunity_description": row.get("description"),

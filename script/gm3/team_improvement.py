@@ -10,10 +10,10 @@ if str(SCRIPT) not in sys.path: sys.path.insert(0,str(SCRIPT))
 def _load_current():
     spec=importlib.util.spec_from_file_location('fsffl_gm3_team_improvement_current',IMPLEMENTATION); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
 class PortfolioEvaluator:
-    def __init__(self,focus_user_id,simulations=1000,seed=20260821):
+    def __init__(self,focus_user_id,simulations=1000,seed=20260821,strategic_posture='AUTO'):
         current=_load_current()
         if current.MODEL_VERSION!=EXPECTED_IMPLEMENTATION_VERSION: raise RuntimeError(f'Unexpected Team Improvement implementation: {current.MODEL_VERSION}')
-        base=current.load_base(); base.MODEL_VERSION=current.MODEL_VERSION; dl=base.load_module(SCRIPT/'run_roster_decision_lab.py','gm3_portfolio_dl'); state=base.load_module(SCRIPT/'decision_lab_state_aware.py','gm3_portfolio_state_aware'); self.dl=state.install(dl); self.lineupopt=base.load_module(SCRIPT/'lineup_optimizer.py','gm3_portfolio_lineup'); self.rosteraware=base.load_module(SCRIPT/'roster_aware_trade.py','gm3_portfolio_roster'); self.base=base; self.current=current; self.focus_user_id=str(focus_user_id); self.simulations=int(simulations); self.seed=int(seed); self.model_inputs=self.dl.load_model_inputs(); simmod,league,rosters,users,players,season,projections,raw_schedule=self.model_inputs; self.full_projection_doc,self.full_projection_path=current.full_projection_doc(base,season); self.baseline_lineups=self.dl.load_cached_lineups(season); self.baseline=self.dl.simulate_from_lineups(simmod,league,rosters,users,raw_schedule,self.baseline_lineups,self.simulations,self.seed)
+        base=current.load_base(); base.MODEL_VERSION=current.MODEL_VERSION; self.focus_user_id=str(focus_user_id); dl=base.load_module(SCRIPT/'run_roster_decision_lab.py','gm3_portfolio_dl'); state=base.load_module(SCRIPT/'decision_lab_state_aware.py','gm3_portfolio_state_aware'); self.strategic_posture=str(strategic_posture or 'AUTO'); self.dl=state.install(dl,strategic_posture=self.strategic_posture,owner_override_user_id=self.focus_user_id); self.lineupopt=base.load_module(SCRIPT/'lineup_optimizer.py','gm3_portfolio_lineup'); self.rosteraware=base.load_module(SCRIPT/'roster_aware_trade.py','gm3_portfolio_roster'); self.base=base; self.current=current; self.simulations=int(simulations); self.seed=int(seed); self.model_inputs=self.dl.load_model_inputs(); simmod,league,rosters,users,players,season,projections,raw_schedule=self.model_inputs; self.full_projection_doc,self.full_projection_path=current.full_projection_doc(base,season); self.baseline_lineups=self.dl.load_cached_lineups(season); self.baseline=self.dl.simulate_from_lineups(simmod,league,rosters,users,raw_schedule,self.baseline_lineups,self.simulations,self.seed)
     def _actions_for_row(self,row):
         c=str(row.get('channel') or '')
         if c=='TRADE':return self.base.trade_actions(self.focus_user_id,row)
@@ -46,7 +46,7 @@ class PortfolioEvaluator:
         sim=self.current.simulate_actions_protect_add(self.base,self.dl,self.lineupopt,self.rosteraware,self._inputs_with_waiver_projections(rows),self.baseline_lineups,self.baseline,self.focus_user_id,actions,self.simulations,self.seed)
         attribution=self.base.load_module(SCRIPT/'decision_attribution.py','gm3_portfolio_decision_attribution').reconcile(sim)
         return {'team_improvement_score':self.base.unified_score(self.focus_user_id,sim),'simulation':sim,'decision_attribution':attribution,'actions':sim.get('effective_actions') or actions,'source_rows':rows,'authority':'GM3 Team Improvement','shared_decision_utility':'FSFFL-Shared-Decision-Utility-2.0','bundle_simulation_source':'current Team Improvement implementation via stable GM3 facade'}
-def portfolio_evaluator(focus_user_id,simulations=1000,seed=20260821):return PortfolioEvaluator(focus_user_id,simulations,seed)
+def portfolio_evaluator(focus_user_id,simulations=1000,seed=20260821,strategic_posture='AUTO'):return PortfolioEvaluator(focus_user_id,simulations,seed,strategic_posture)
 def main():
     current=_load_current()
     if current.MODEL_VERSION!=EXPECTED_IMPLEMENTATION_VERSION:raise RuntimeError(f'Unexpected Team Improvement implementation: {current.MODEL_VERSION}')

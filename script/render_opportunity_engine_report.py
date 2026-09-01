@@ -22,10 +22,13 @@ def line_for(row):
 
 
 def render(board):
+    posture = board.get("strategic_posture") or {}
     lines = [
         f"# FSFFL Opportunity Engine — {board.get('team_name') or 'Franchise'}",
         "",
-        f"**Team state:** {board.get('team_state') or 'N/A'}",
+        f"**Competitive state:** {board.get('competitive_state') or board.get('team_state') or posture.get('competitive_state') or 'N/A'}",
+        f"**Strategic posture:** {posture.get('selected_posture') or 'AUTO'}",
+        f"**Posture source:** {posture.get('posture_source') or 'MODEL_DEFAULT'}",
         f"**Model:** {board.get('model_version') or 'N/A'}",
         "",
         "## Best move available",
@@ -35,6 +38,7 @@ def render(board):
     best = board.get("best_move_available") or {}
     actionable = board.get("best_actionable_trade") or {}
     explore = board.get("best_trade_to_explore") or {}
+    outbound = board.get("outbound_future_value_opportunities") or []
     price_gaps = board.get("high_impact_price_gap_targets") or []
     lines += [
         "",
@@ -47,6 +51,21 @@ def render(board):
                 else ""
             )
         ) if actionable else "No trade currently clears both sides of the governed price frontier.",
+        "",
+        "## OUTBOUND / FUTURE VALUE",
+    ]
+    if outbound:
+        for row in outbound[:6]:
+            incoming = " + ".join(x.get("name") or x.get("asset_id") or "asset" for x in (row.get("incoming") or []))
+            outgoing = " + ".join(x.get("name") or x.get("asset_id") or "asset" for x in (row.get("outgoing") or []))
+            lines.append(
+                f"- **Shop {outgoing}:** modeled return {incoming}; "
+                f"GM3 improvement {float(row.get('team_improvement_score') or 0):+,.1f}; "
+                f"counterparty utility {float(row.get('counterparty_shared_decision_utility_score') or 0):+,.1f}."
+            )
+    else:
+        lines.append("No outbound future-value package currently clears both sides of the governed utility check.")
+    lines += [
         "",
         "## EXPLORE PRICE",
         line_for(explore) if explore else "No incomplete-but-economically-viable negotiation frontier is currently promoted.",

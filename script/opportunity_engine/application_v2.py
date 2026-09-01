@@ -12,6 +12,7 @@ import argparse
 import copy
 import datetime as dt
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -42,11 +43,24 @@ def _run_team_improvement(args, raw_output: Path):
         "--waiver-screen", str(args.waiver_screen),
         "--confirm-top", str(args.confirm_top),
         "--trade-packages-per-target", str(args.trade_packages_per_target),
+        "--strategic-posture", str(getattr(args, "strategic_posture", "AUTO")),
         "--seed", str(args.seed),
         "--output", str(raw_output),
     ]
     subprocess.run(cmd, cwd=ROOT, check=True)
 
+
+def _portfolio_evaluator(focus_user_id, simulations, seed, strategic_posture="AUTO"):
+    """Call the stable GM3 evaluator while preserving compatibility test doubles."""
+    fn = gm3_team_improvement.portfolio_evaluator
+    if "strategic_posture" in inspect.signature(fn).parameters:
+        return fn(
+            str(focus_user_id),
+            simulations=int(simulations),
+            seed=int(seed),
+            strategic_posture=strategic_posture,
+        )
+    return fn(str(focus_user_id), simulations=int(simulations), seed=int(seed))
 
 def _bundle_key(indices):
     return tuple(sorted(int(x) for x in indices))
@@ -62,13 +76,16 @@ def _execution_plan(rows):
         channel = str(row.get("channel") or "")
         target = row.get("target") or {}
         if channel == "TRADE":
+            incoming=list(row.get("incoming") or [])
+            if not incoming and target:
+                incoming=[target]
             steps.append({
                 "step": ordinal,
                 "channel": channel,
                 "description": row.get("description"),
                 "preconditions": {
-                    "target_asset_id": target.get("asset_id"),
-                    "target_must_remain_with_seller_user_id": row.get("seller_user_id"),
+                    "counterparty_user_id": row.get("counterparty_user_id") or row.get("seller_user_id"),
+                    "incoming_asset_ids_must_remain_with_counterparty": [x.get("asset_id") for x in incoming],
                     "focal_outgoing_assets_must_remain_owned": [x.get("asset_id") for x in (row.get("outgoing") or [])],
                     "counterparty_willingness_observed": False,
                 },
@@ -115,7 +132,7 @@ def _evaluate_bundle(evaluator, candidates, indices, screen_sims):
 def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
                                   beam_width=8, simulations=500,
                                   confirm_simulations=5000, confirm_top=3,
-                                  seed=20260821, limit=5):
+                                  seed=20260821, limit=5, strategic_posture="AUTO"):
     """Beam-search compatible 2..N move bundles; GM3 evaluates every bundle."""
     candidates = [
         copy.deepcopy(x)
@@ -132,8 +149,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
             "adaptive_search": True,
         }
 
-    screen_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=int(simulations), seed=int(seed)
+    screen_evaluator = _portfolio_evaluator(
+        focus_user_id, simulations, seed, strategic_posture
     )
     all_screened = []
     current_level = []
@@ -186,8 +203,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
     all_screened.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
     finalists = all_screened[: min(max(1, int(confirm_top)), len(all_screened))]
     confirm_count = int(confirm_simulations) if int(confirm_simulations) > int(simulations) else int(simulations)
-    confirm_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=confirm_count, seed=int(seed)
+    confirm_evaluator = _portfolio_evaluator(
+        focus_user_id, confirm_count, seed, strategic_posture
     )
     confirmed = []
     for row in finalists:
@@ -251,15 +268,15 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
     }
 
 
-def _robustness(rows, focus_user_id, simulations, seeds):
+def _robustness(rows, focus_user_id, simulations, seeds, strategic_posture='AUTO'):
     rows = list(rows or [])
     seeds = list(seeds or [])
     if not rows or not seeds or int(simulations) <= 0:
         return {"enabled": False}
     samples = []
     for seed in seeds:
-        evaluator = gm3_team_improvement.portfolio_evaluator(
-            str(focus_user_id), simulations=int(simulations), seed=int(seed)
+        evaluator = _portfolio_evaluator(
+            focus_user_id, simulations, seed, strategic_posture
         )
         result = evaluator.evaluate(rows)
         sim = result.get("simulation") or {}
@@ -317,15 +334,17 @@ def build_board(source, args, trade_reviews):
         confirm_simulations=args.portfolio_confirm_sims,
         confirm_top=args.portfolio_confirm_top,
         seed=args.seed,
+        strategic_posture=getattr(args, "strategic_posture", "AUTO"),
     )
     best_portfolio_rows = portfolio.pop("_best_source_rows", [])
     best_single = (source.get("top_cross_channel_options") or [None])[0]
     robustness_seeds = [args.seed + i * 1009 for i in range(max(0, int(args.robustness_seeds)))]
     board["model_version"] = MODEL_VERSION
+    board["strategic_posture"] = copy.deepcopy(source.get("strategic_posture") or {})
     board["portfolio_optimization"] = portfolio
     board["robustness"] = {
-        "best_single_step": _robustness([best_single] if best_single else [], args.focus_user_id, args.robustness_sims, robustness_seeds),
-        "best_portfolio": _robustness(best_portfolio_rows, args.focus_user_id, args.robustness_sims, robustness_seeds),
+        "best_single_step": _robustness([best_single] if best_single else [], args.focus_user_id, args.robustness_sims, robustness_seeds, getattr(args, "strategic_posture", "AUTO")),
+        "best_portfolio": _robustness(best_portfolio_rows, args.focus_user_id, args.robustness_sims, robustness_seeds, getattr(args, "strategic_posture", "AUTO")),
         "common_random_number_seed_family": robustness_seeds,
         "used_for_primary_ranking": False,
     }
@@ -344,12 +363,16 @@ def build_board(source, args, trade_reviews):
         "portfolio_confirm_sims": int(args.portfolio_confirm_sims),
         "robustness_seeds": int(args.robustness_seeds),
         "robustness_sims_per_seed": int(args.robustness_sims),
+        "strategic_posture": str(getattr(args, "strategic_posture", "AUTO")),
     }
     board.setdefault("capability_status", {})["adaptive_multi_step_portfolio_optimization"] = True
     board["capability_status"]["portfolio_search_up_to_three_or_more_moves"] = int(args.portfolio_max_moves) >= 3
     board["capability_status"]["prospective_validation_snapshots"] = True
     board["capability_status"]["recommendation_robustness_diagnostics"] = int(args.robustness_seeds) > 0
     board.setdefault("policy", {})["adaptive_search_creates_new_utility"] = False
+    board["policy"]["strategic_posture_changes_competitive_state"] = False
+    board["policy"]["strategic_posture_search_guidance_creates_new_utility"] = False
+    board["policy"]["strategic_posture_uses_existing_governed_weight_curve"] = True
     board["policy"]["robustness_diagnostics_change_primary_ranking"] = False
     board["policy"]["portfolio_execution_rechecks_live_preconditions"] = True
     board["policy"]["waiver_discovery_fixed_cross_unit_coefficients_active"] = False
@@ -382,6 +405,7 @@ def main():
     ap.add_argument("--trade-review-search-depth", type=int, default=60)
     ap.add_argument("--robustness-seeds", type=int, default=0)
     ap.add_argument("--robustness-sims", type=int, default=500)
+    ap.add_argument("--strategic-posture", default="AUTO")
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
 
@@ -403,6 +427,7 @@ def main():
         confirm_sims=args.trade_review_confirm_sims,
         search_depth=args.trade_review_search_depth,
         seed=args.seed,
+        strategic_posture=args.strategic_posture,
     )
     board = build_board(source, args, trade_reviews)
     v1.write_json(output, board)

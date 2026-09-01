@@ -12,6 +12,7 @@ calibration never runs in an interactive Decision Lab / Market Sweep request.
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -163,10 +164,22 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
     return total
 
 
-def install(base_dl):
-    """Patch a loaded Decision Lab module in-place and return it."""
+def install(base_dl, strategic_posture=None, owner_override_user_id=None):
+    """Patch a loaded Decision Lab module in-place and return it.
+
+    Owner strategic posture is applied only to owner_override_user_id. Other
+    teams retain AUTO/model-derived preferences so bilateral utility remains
+    symmetric and does not project the focal owner's intent onto counterparties.
+    """
     core = _gm_core()
     weighting = core._state_weighting_runtime
+    posture_mod = _load(SCRIPT / "strategic_posture.py", "strategic_posture_for_overlay")
+    selected_posture = strategic_posture or os.getenv("FSFFL_STRATEGIC_POSTURE") or "AUTO"
+    override_uid = str(
+        owner_override_user_id
+        if owner_override_user_id is not None
+        else (os.getenv("FSFFL_STRATEGIC_POSTURE_USER_ID") or "")
+    )
     base_ctx = core._u_load_context()
     original_summary = base_dl.strategic_summary
 
@@ -178,6 +191,8 @@ def install(base_dl):
         post_map, post_payload = _profile_map(core, uid, post_ctx)
         team = (base_ctx.get("teams") or {}).get(uid, {})
         weight_resolution = weighting.resolve(team)
+        effective_selection = selected_posture if (override_uid and uid == override_uid) else "AUTO"
+        posture_resolution = posture_mod.resolve(weight_resolution, effective_selection, weighting)
 
         # Retain the legacy summary only as a fallback for any asset the GM core
         # cannot profile (e.g. malformed external scenario input).
@@ -210,8 +225,10 @@ def install(base_dl):
                 "resilience_incremental_value_authorized": p.get("resilience_incremental_value_authorized"),
                 "future_distribution": p.get("future_distribution"),
                 "pick_profile": p.get("pick_profile"),
-                "objective_state": p.get("objective_state") or weight_resolution["state"],
-                "objective_weights": p.get("objective_weights") or weight_resolution["weights"],
+                "objective_state": weight_resolution["state"],
+                "competitive_state": weight_resolution["state"],
+                "strategic_posture": posture_resolution["selected_posture"],
+                "objective_weights": posture_resolution["active_weights"],
                 "profile_source": source,
             }
 
@@ -269,8 +286,13 @@ def install(base_dl):
             ),
             "composite_channels_diagnostic_only": ["strategic_value_delta", "break_glass_delta"],
             "objective_state": weight_resolution["state"],
-            "objective_weights": weight_resolution["weights"],
+            "competitive_state": weight_resolution["state"],
+            "strategic_posture": posture_resolution["selected_posture"],
+            "strategic_posture_source": posture_resolution["posture_source"],
+            "objective_weights": posture_resolution["active_weights"],
+            "calculated_state_objective_weights": posture_resolution["calculated_state_weights"],
             "weight_resolution": weight_resolution,
+            "strategic_posture_resolution": posture_resolution,
             "hypothetical_profiles_recomputed": True,
             "hypothetical_profile_model": "FSFFL-GM-3.0 continuous state-aware strategic core",
         }

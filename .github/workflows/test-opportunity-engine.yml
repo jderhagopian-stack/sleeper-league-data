@@ -36,13 +36,15 @@ jobs:
             script/test_opportunity_engine.py \
             script/test_opportunity_engine_v2.py \
             script/test_negotiation_price_frontier.py \
-            script/test_opportunity_engine_price_search.py
+            script/test_opportunity_engine_price_search.py \
+            script/test_opportunity_engine_outbound.py
       - name: Run fast architecture/composition regressions
         run: |
           python script/test_opportunity_engine.py
           python script/test_opportunity_engine_v2.py
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
+          python script/test_opportunity_engine_outbound.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run live Opportunity Engine 2.2 executable-opportunity slice
@@ -99,9 +101,13 @@ jobs:
           assert b['capability_status']['negotiation_frontier'] is True
           assert b['capability_status']['discrete_price_frontier'] is True
           assert b['capability_status']['actionable_vs_explore_vs_theoretical_trade_separation'] is True
+          assert b['capability_status']['outbound_future_value_trade_search'] is True
+          assert b['capability_status']['multi_asset_incoming_trade_packages'] is True
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['policy']['theoretical_packages_can_occupy_actionable_ranking'] is False
           assert b['policy']['portfolio_search_excludes_theoretical_counterparty_failures'] is True
+          assert b['policy']['outbound_future_value_search_creates_new_utility'] is False
+          assert b['policy']['outbound_future_value_candidates_require_shared_utility_recheck'] is True
           po=b['portfolio_optimization']
           assert po['authority']=='GM3 Team Improvement'
           assert po['excludes_theoretical_counterparty_failures'] is True

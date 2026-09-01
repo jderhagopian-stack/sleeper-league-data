@@ -82,6 +82,13 @@ def state_weights(focus_uid: str):
     return resolved["state"], resolved["weights"]
 
 
+def strategic_posture_context(focus_uid: str, selected: str = "AUTO"):
+    weighting = load_module(SCRIPT / "gm_state_weighting.py", "team_improvement_posture_weighting")
+    posture = load_module(SCRIPT / "strategic_posture.py", "team_improvement_strategic_posture")
+    resolved = weighting.resolve(franchise_row(focus_uid))
+    return posture.resolve(resolved, selected, weighting)
+
+
 def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
     """Rank Team Improvement moves with the shared Trade/GM decision utility."""
     utility = load_module(SCRIPT / "decision_utility.py", "team_improvement_decision_utility")
@@ -254,15 +261,30 @@ def trade_candidates(focus_uid: str, catalog: Dict[str, Dict[str, Any]], limit: 
 
 
 def trade_actions(focus_uid: str, row: Dict[str, Any]):
-    seller = row["seller_user_id"]
-    outgoing = row["outgoing"]
-    target = row["target"]
+    """Translate a governed trade row into canonical actions.
+
+    Legacy acquisition rows use one target plus an outgoing package. Generalized
+    rows may instead expose an explicit incoming package, which supports
+    outbound/future-value discovery without creating a second trade contract.
+    """
+    counterparty = str(row.get("counterparty_user_id") or row.get("seller_user_id") or "")
+    if not counterparty:
+        raise ValueError("Trade candidate missing counterparty")
+    outgoing = list(row.get("outgoing") or [])
+    incoming = list(row.get("incoming") or [])
+    if not incoming:
+        target = row.get("target") or {}
+        if target:
+            incoming = [target]
+    if not outgoing or not incoming:
+        raise ValueError("Trade candidate must include outgoing and incoming assets")
     return [
-        {"type": "trade", "from_user_id": str(focus_uid), "to_user_id": seller,
-         "players": [x["player_id"] for x in outgoing if x.get("asset_type") == "player"],
-         "picks": [x["asset_id"] for x in outgoing if x.get("asset_type") == "pick"]},
-        {"type": "trade", "from_user_id": seller, "to_user_id": str(focus_uid),
-         "players": [target["player_id"]], "picks": []},
+        {"type": "trade", "from_user_id": str(focus_uid), "to_user_id": counterparty,
+         "players": [x["player_id"] for x in outgoing if x.get("asset_type") == "player" and x.get("player_id") is not None],
+         "picks": [x["asset_id"] for x in outgoing if x.get("asset_type") == "pick" and x.get("asset_id")]},
+        {"type": "trade", "from_user_id": counterparty, "to_user_id": str(focus_uid),
+         "players": [x["player_id"] for x in incoming if x.get("asset_type") == "player" and x.get("player_id") is not None],
+         "picks": [x["asset_id"] for x in incoming if x.get("asset_type") == "pick" and x.get("asset_id")]},
     ]
 
 
@@ -298,8 +320,12 @@ def waiver_actions(focus_uid: str, row: Dict[str, Any]):
 
 def describe(row):
     if row["channel"] == "TRADE":
-        sent = " + ".join(x["name"] for x in row["outgoing"])
-        return f"Trade {sent} for {row['target']['name']}"
+        sent = " + ".join(x["name"] for x in (row.get("outgoing") or []))
+        incoming = list(row.get("incoming") or [])
+        if not incoming and row.get("target"):
+            incoming = [row["target"]]
+        received = " + ".join(x["name"] for x in incoming)
+        return f"Trade {sent} for {received}"
     if row["channel"] == "WAIVER":
         sim = row.get("simulation") or {}; res = (sim.get("roster_resolution") or {}).get(str(row.get("focus_user_id"))) or {}
         cuts = [x.get("name") for x in res.get("selected_cuts") or []]
@@ -342,10 +368,16 @@ def main():
     ap.add_argument("--output", required=True)
     a = ap.parse_args()
     focus_uid = str(a.focus_user_id)
+    selected_posture = str(globals().get("_strategic_posture_override", "AUTO"))
+    posture_context = strategic_posture_context(focus_uid, selected_posture)
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "team_improvement_dl")
     stateaware = load_module(SCRIPT / "decision_lab_state_aware.py", "team_improvement_state_aware")
-    dl = stateaware.install(dl)
+    dl = stateaware.install(
+        dl,
+        strategic_posture=selected_posture,
+        owner_override_user_id=focus_uid,
+    )
     lineupopt = load_module(SCRIPT / "lineup_optimizer.py", "team_improvement_lineup_optimizer")
     rosteraware = load_module(SCRIPT / "roster_aware_trade.py", "team_improvement_roster")
     model_inputs = dl.load_model_inputs()
@@ -382,6 +414,8 @@ def main():
         "generated_for_user_id": focus_uid,
         "team_name": cc.get("focal_team") or franchise_row(focus_uid).get("team_name"),
         "team_state": state_weights(focus_uid)[0],
+        "competitive_state": state_weights(focus_uid)[0],
+        "strategic_posture": posture_context,
         "recommended_action": recommendation,
         "hold_benchmark": hold,
         "best_trade_options": trade_recs,
@@ -408,6 +442,10 @@ def main():
             "trade_acceptance_is_heuristic_not_probability": True,
             "top_candidates_deep_confirmed": True,
             "competitive_state_tilts_but_does_not_dominate": True,
+            "competitive_state_is_model_owned": True,
+            "strategic_posture_is_separate_from_competitive_state": True,
+            "owner_posture_override_changes_competitive_state": False,
+            "strategic_posture_uses_existing_governed_weight_curve": True,
             "championship_probability_uses_diminishing_returns": False,
             "dynasty_value_destruction_guardrail": False,
             "canonical_state_mutated": False,
