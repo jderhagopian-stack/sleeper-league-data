@@ -209,7 +209,19 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
     simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs; hypothetical,_=dl.apply_actions(canonical_rosters,actions); touched=dl.touched_users(focus_uid,actions); protected={}
     for a in actions:
         if str(a.get('type') or '').lower()=='add': protected.setdefault(str(a.get('user_id')),set()).update(str(x) for x in (a.get('players') or []))
-    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups,legal,touched,league,users,players,projections); hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed,projections_override=projections); bidx,hidx=base.team_index(baseline),base.team_index(hyp)
+    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups,legal,touched,league,users,players,projections)
+    metadata_expected=0; metadata_missing=[]
+    for rid in reopt:
+        for week,rows in (lineups.get(rid) or {}).items():
+            for row in rows or []:
+                pid=str(row.get('player_id') or '')
+                if not pid: continue
+                meta=(players or {}).get(pid) or {}
+                team=meta.get('team') or meta.get('team_abbr')
+                if team:
+                    metadata_expected+=1
+                    if not row.get('nfl_team'): metadata_missing.append({'roster_id':rid,'week':week,'player_id':pid})
+    hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed,projections_override=projections); bidx,hidx=base.team_index(baseline),base.team_index(hyp)
     baseline_teams=list((baseline or {}).get('teams') or [])
     def mean_metric(key):
         vals=[float(x.get(key) or 0.0) for x in baseline_teams]
@@ -236,7 +248,12 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
             },
             'strategic':dl.strategic_summary(uid,effective),'roster_resolution':resolutions,
             'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims,
-            'simulator_features':copy.deepcopy(hyp.get('features') or {})
+            'simulator_features':{
+                **copy.deepcopy(hyp.get('features') or {}),
+                'reoptimized_lineup_nfl_team_metadata_expected_rows':metadata_expected,
+                'reoptimized_lineup_nfl_team_metadata_missing_rows':len(metadata_missing),
+                'reoptimized_lineup_nfl_team_metadata_complete':len(metadata_missing)==0,
+            }
         }
     result=perspective(str(focus_uid))
     counterparties=[str(x) for x in touched if str(x)!=str(focus_uid)]
