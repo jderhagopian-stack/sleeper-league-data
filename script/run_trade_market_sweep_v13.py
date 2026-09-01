@@ -269,7 +269,7 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         "eligible_plan_count": len(plans),
         "max_exact_plan_count": FINAL_CUT_PLAN_MAX_COMBINATIONS,
         "screen_simulations": FINAL_CUT_PLAN_SCREEN_SIMS,
-        "selection_objective": "canonical_downstream_trade_score",
+        "selection_objective": "canonical_shared_decision_utility",
         "retention_cost_is_final_authority": False,
     }
     if not plans or len(plans) > FINAL_CUT_PLAN_MAX_COMBINATIONS:
@@ -294,7 +294,7 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         pres = plan_resolution.get(str(focus_uid)) or {}
         selected = [profile_by_id[x] for x in plan if x in profile_by_id]
         pres["selected_cuts"] = selected
-        pres["cut_selection_method"] = "downstream_trade_score_exact_plan_search"
+        pres["cut_selection_method"] = "shared_decision_utility_exact_plan_search"
         pres["cut_base_franchise_value"] = round(sum(float(x.get("base_franchise_value") or 0.0) for x in selected), 2)
         pres["cut_market_dynasty_value"] = round(sum(float(x.get("market_dynasty") or 0.0) for x in selected), 2)
         plan_resolution[str(focus_uid)] = pres
@@ -323,9 +323,10 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         "default_retention_plan": list(default_plan),
         "selected_plan": list(best_plan),
         "selected_plan_differs_from_retention_prescreen": tuple(best_plan) != default_plan,
-        "screen_post_sim_score": round(best_score, 2),
+        "screen_shared_decision_utility_score": round(best_score, 2),
+        "screen_post_sim_score_compatibility_alias": round(best_score, 2),
         "all_plan_scores": [
-            {"cut_player_ids": list(plan), "post_sim_score": round(score, 2)}
+            {"cut_player_ids": list(plan), "shared_decision_utility_score": round(score, 2), "post_sim_score_compatibility_alias": round(score, 2)}
             for score, plan, *_ in scored
         ],
     }
