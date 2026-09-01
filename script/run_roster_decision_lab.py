@@ -22,6 +22,7 @@ import importlib.util
 import json
 import random
 import sys
+import types
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
@@ -36,6 +37,15 @@ def load_json(path: Path, default=None):
     if not path.exists():
         return default
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to import {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def write_json(path: Path, obj: Any):
@@ -456,6 +466,29 @@ def main():
                                          hypothetical_lineups, args.sims, args.seed)
     base_by_uid, hyp_by_uid = team_index(baseline), team_index(hypothetical)
 
+    # Standalone roster/multi-move decisions must consume the same governed
+    # state-aware GM3 strategic summary used by Trade Decision and Team
+    # Improvement. The base module functions remain available for compatibility.
+    state_aware = load_module(Path("script/decision_lab_state_aware.py"), "roster_decision_state_aware")
+    strategic_runtime = types.SimpleNamespace(
+        strategic_summary=strategic_summary,
+        action_assets_for_user=action_assets_for_user,
+    )
+    state_aware.install(strategic_runtime)
+
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
+
     comparisons = {}
     for uid in touched:
         b, h = base_by_uid.get(uid), hyp_by_uid.get(uid)
@@ -474,7 +507,7 @@ def main():
                 "division_probability": delta(b.get("division_probability"), h.get("division_probability")),
                 "championship_probability": delta(b.get("championship_probability"), h.get("championship_probability")),
             },
-            "strategic": strategic_summary(uid, actions),
+            "strategic": strategic_runtime.strategic_summary(uid, actions),
         }
 
     focus_cmp = comparisons.get(focus_uid) or {}
@@ -484,6 +517,44 @@ def main():
         for uid, row in comparisons.items() if uid != focus_uid
     )
     team_state = str((franchise_index().get(focus_uid) or {}).get("team_state") or "unknown")
+
+    attribution_mod = load_module(Path("script/decision_attribution.py"), "roster_decision_attribution")
+    utility_mod = load_module(Path("script/decision_utility.py"), "roster_decision_utility")
+    attribution_by_user = {}
+    for uid, cmp in comparisons.items():
+        own_delta = cmp.get("delta") or {}
+        other_title_gain = sum(
+            max(0.0, float(((other.get("delta") or {}).get("championship_probability")) or 0.0))
+            for other_uid, other in comparisons.items() if str(other_uid) != str(uid)
+        )
+        own_title_delta = float(own_delta.get("championship_probability") or 0.0)
+        sim_view = {
+            "focus_before": cmp.get("before"),
+            "focus_after": cmp.get("after"),
+            "focus_delta": {
+                k: own_delta.get(k)
+                for k in ("expected_wins", "expected_points_for", "playoff_probability", "bye_probability", "championship_probability")
+            },
+            "league_reference": league_reference,
+            "strategic": cmp.get("strategic") or {},
+            "buyer_championship_probability_delta": round(other_title_gain, 5),
+            "net_title_equity_swing_against_focus": round(other_title_gain - own_title_delta, 5),
+            "competitive_externality": {
+                "focus_championship_probability_delta": round(own_title_delta, 5),
+                "opponent_positive_championship_probability_delta_sum": round(other_title_gain, 5),
+                "net_title_equity_swing_against_focus": round(other_title_gain - own_title_delta, 5),
+            },
+        }
+        attribution_by_user[str(uid)] = attribution_mod.reconcile(sim_view)
+
+    focal_attribution = attribution_by_user.get(focus_uid) or {}
+    focal_score = float(focal_attribution.get("final_shared_decision_utility") or 0.0)
+    if focal_score > 0:
+        authoritative_band = "IMPROVES_FRANCHISE"
+    elif focal_score < 0:
+        authoritative_band = "HARMS_FRANCHISE"
+    else:
+        authoritative_band = "NEUTRAL"
 
     report = {
         "model_version": MODEL_VERSION,
@@ -509,7 +580,17 @@ def main():
             "opponent_positive_championship_probability_delta_sum": round(opponent_title_gain, 5),
             "net_title_equity_swing_against_focus": round(opponent_title_gain - focus_title_delta, 5),
         },
-        "recommendation": classify_decision(focus_cmp, team_state),
+        "decision_attribution_by_user": attribution_by_user,
+        "decision_attribution": focal_attribution,
+        "shared_decision_utility_score": focal_score,
+        "shared_decision_utility_model_version": utility_mod.MODEL_VERSION,
+        "recommendation": {
+            "band": authoritative_band,
+            "authority": "Shared Decision Utility / GM3 Team Improvement",
+            "shared_decision_utility_score": focal_score,
+            "pareto_diagnostic": classify_decision(focus_cmp, team_state),
+            "no_independent_roster_decision_score_created": True,
+        },
     }
 
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}.json"
