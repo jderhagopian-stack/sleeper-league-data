@@ -320,27 +320,57 @@ def load_model_inputs():
     users = load_json(DATA / "users.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
     season = str(league.get("season"))
+    # Canonical baseline remains the native Simulator projection input.
     projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
-    full_path = DATA / "simulator" / season / "inputs" / "player_weekly_projections_full.json"
-    full = load_json(full_path, {}) or {}
-    if (full.get("players") or {}):
-        projections = copy.deepcopy(projections)
-        projections.setdefault("players", {})
-        for pid, profile in (full.get("players") or {}).items():
-            projections["players"].setdefault(str(pid), copy.deepcopy(profile))
-        projections["_decision_lab_full_projection_merge"] = {
-            "model_version": full.get("model_version"),
-            "path": str(full_path),
-            "native_players_preserved": True,
-            "full_only_players_added": max(
-                0, len(projections.get("players") or {}) - len((load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}).get("players") or {})
-            ),
-        }
     raw_schedule = load_json(resolve_schedule_path(season), {}) or {}
     validation = simmod.core.validate_inputs(league, rosters, users, players, raw_schedule, projections)
     if not validation.get("validation_passed"):
         raise RuntimeError(f"Decision Lab simulator validation failed: {validation}")
     return simmod, league, rosters, users, players, season, projections, raw_schedule
+
+
+def augment_projections_for_actions(actions, projections, season):
+    """Add only missing transaction-player profiles from the canonical full universe.
+
+    This preserves the native Simulator baseline and avoids changing unrelated
+    rostered players merely because a hypothetical is being evaluated.
+    """
+    required = required_incoming_projection_ids(actions)
+    native_ids = {str(x) for x in ((projections or {}).get("players") or {})}
+    missing = [pid for pid in required if pid not in native_ids]
+    if not missing:
+        out = copy.deepcopy(projections)
+        out["_decision_lab_projection_augmentation"] = {
+            "source_model": None,
+            "added_player_ids": [],
+            "native_player_count": len(native_ids),
+            "final_player_count": len(native_ids),
+        }
+        return out
+
+    full_path = DATA / "simulator" / str(season) / "inputs" / "player_weekly_projections_full.json"
+    full = load_json(full_path, {}) or {}
+    full_players = full.get("players") or {}
+    unavailable = [pid for pid in missing if str(pid) not in full_players]
+    if unavailable:
+        raise RuntimeError(
+            "Decision scenario contains transaction players without native or canonical full "
+            f"Simulator projection coverage: {unavailable}"
+        )
+
+    out = copy.deepcopy(projections)
+    out.setdefault("players", {})
+    for pid in missing:
+        out["players"][str(pid)] = copy.deepcopy(full_players[str(pid)])
+    out["_decision_lab_projection_augmentation"] = {
+        "source_model": full.get("model_version"),
+        "path": str(full_path),
+        "added_player_ids": [str(x) for x in missing],
+        "native_player_count": len(native_ids),
+        "final_player_count": len(out.get("players") or {}),
+        "unrelated_full_universe_players_added": False,
+    }
+    return out
 
 
 def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
@@ -489,7 +519,7 @@ def assert_projection_coverage(actions, projections, focus_uid=None):
         "required_player_count": len(required),
         "missing_player_ids": missing,
         "coverage_complete": True,
-        "full_projection_merge": (projections or {}).get("_decision_lab_full_projection_merge"),
+        "projection_augmentation": (projections or {}).get("_decision_lab_projection_augmentation"),
     }
 
 
@@ -510,7 +540,8 @@ def main():
     if not focus_uid or not actions:
         raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
-    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = load_model_inputs()
+    simmod, league, canonical_rosters, users, players, season, native_projections, raw_schedule = load_model_inputs()
+    projections = augment_projections_for_actions(actions, native_projections, season)
     projection_coverage = assert_projection_coverage(actions, projections, focus_uid)
     globals_module = types.SimpleNamespace(
         roster_maps=roster_maps,
