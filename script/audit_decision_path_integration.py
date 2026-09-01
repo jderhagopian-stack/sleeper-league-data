@@ -82,7 +82,12 @@ def main():
     facade = text(SCRIPT / "gm3" / "team_improvement.py")
     trade_v20 = text(SCRIPT / "run_trade_market_sweep_v20.py")
     trade_gov = text(SCRIPT / "trade_option_governance.py")
+    negotiation = text(SCRIPT / "negotiation_ranking.py")
+    behavior = text(SCRIPT / "trade_decision" / "behavior_integration.py")
+    trade_facade = text(SCRIPT / "trade_engine.py")
+    trade_current = text(SCRIPT / "run_trade_market_sweep_v31.py")
     roster = text(SCRIPT / "run_roster_decision_lab.py")
+    oe_base = text(SCRIPT / "opportunity_engine" / "application.py")
     oe = text(SCRIPT / "opportunity_engine" / "application_v21.py")
     architecture = json.loads(text(DATA / "model_governance" / "application_architecture.json"))
 
@@ -150,6 +155,20 @@ def main():
             and '"strategic_value_delta",' not in trade_gov.split("DECISION_OUTPUTS =", 1)[1].split(")", 1)[0]
             and 'metric(current, "shared_decision_utility_score")' in trade_gov
         ),
+        "behavioral_intelligence_has_zero_trade_value_weight": (
+            "ACCEPTANCE_WEIGHT = 0.0" in negotiation
+            and "OWNER_BEHAVIOR_WEIGHT = 0.0" in negotiation
+            and '"acceptance_fit": 0.0' in negotiation
+            and '"owner_behavior_match": 0.0' in negotiation
+            and "behavioral_intelligence_can_override_current_state_utility" in behavior
+            and '["behavioral_intelligence_can_override_current_state_utility"] = False' in behavior
+        ),
+        "stable_trade_facade_fails_closed_on_version_mismatch": (
+            'CURRENT_ENGINE = SCRIPT / "run_trade_market_sweep_v31.py"' in trade_facade
+            and 'EXPECTED_MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.26"' in trade_facade
+            and "raise RuntimeError" in trade_facade
+            and '"historical_v30_executed_in_current_path": False' in trade_current
+        ),
         "roster_direct_path_uses_state_aware_shared_utility": (
             "decision_lab_state_aware.py" in roster
             and "decision_attribution_by_user" in roster
@@ -171,7 +190,15 @@ def main():
         "opportunity_engine_does_not_create_valuation_authority": (
             "team_improvement" in oe
             and "team_improvement_score" in oe
-            and "shared_decision_utility" not in oe.lower().replace("shared_decision_utility_score", "")
+            and "ranked_candidates.sort(key=lambda x:float(x.get('team_improvement_score') or 0),reverse=True)" in oe
+            and "The Opportunity Engine searches and composes" in oe_base
+            and "It does not create a competing" in oe_base
+        ),
+        "opportunity_search_heuristics_do_not_create_final_utility": (
+            "'seller_motivation_is_search_coverage_only':True" in ti
+            and "'negotiation_fit_is_search_coverage_only':True" in ti
+            and "'targeted_price_discovery_creates_new_trade_value':False" in ti
+            and "'actionable_routing_orders_only_by_existing_gm3_utility':True" in oe
         ),
         "architecture_team_improvement_version_current": (
             (((architecture.get("applications") or {}).get("gm3") or {}).get("application_areas") or {})
@@ -204,6 +231,9 @@ def main():
             "report_decision_value_reconciliation": True,
             "unauthorized_duplicate_channel_weight": True,
             "superseded_trade_composite_final_authority": True,
+            "behavioral_evidence_leaking_into_trade_value": True,
+            "silent_trade_facade_fallback": True,
+            "opportunity_search_heuristic_final_authority": True,
             "standalone_roster_shared_authority_bypass": True,
             "standalone_roster_legality_bypass": True,
             "standalone_roster_projection_coverage_bypass": True,
