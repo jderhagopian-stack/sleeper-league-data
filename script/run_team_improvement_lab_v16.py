@@ -131,8 +131,82 @@ def _targeted_price_curves(base,focus_uid,target_asset_ids,package_budget):
     _TARGETED_GM_CACHE[key]=copy.deepcopy(curves)
     return curves
 
+def _outbound_future_value_rows(base, focus_uid, catalog, packages_per_target):
+    """Invert existing universal GM3 acquisition packages that target focal assets.
+
+    This is discovery only. Opponent-side GM3 package economics identify
+    plausible interest/packages; authoritative focal and counterparty utility
+    are recomputed downstream from the actual inverted trade.
+    """
+    focus_uid=str(focus_uid)
+    idx=base.load_json(base.DATA/'gm'/'franchise_index.json',{}) or {}
+    rows=[]
+    for team in (idx.get('teams') or []):
+        buyer_uid=str(team.get('user_id') or '')
+        if not buyer_uid or buyer_uid==focus_uid:
+            continue
+        path=((team.get('paths') or {}).get('trade_opportunities'))
+        if not path:
+            continue
+        doc=base.load_json(Path(path),{}) or {}
+        for opp in (doc.get('opportunities') or []):
+            focal_asset_id=str(opp.get('target_asset_id') or '')
+            focal_asset=catalog.get(focal_asset_id)
+            if not focal_asset or str(focal_asset.get('owner_user_id') or '')!=focus_uid:
+                continue
+            for ordinal,pkg in enumerate(
+                list(opp.get('best_candidate_packages') or [])[:max(1,int(packages_per_target))],
+                1,
+            ):
+                incoming_ids=[str(x) for x in (pkg.get('focal_outgoing_asset_ids') or [])]
+                incoming=[catalog.get(x) for x in incoming_ids]
+                if not incoming_ids or any(x is None for x in incoming):
+                    continue
+                # Validate that the inverted package is actually controlled by
+                # the modeled buyer. Stale ownership must fail closed.
+                if any(str(x.get('owner_user_id') or '')!=buyer_uid for x in incoming):
+                    continue
+                outgoing=[focal_asset]
+                dynasty_delta=sum(base.sf(x.get('market_dynasty')) for x in incoming)-base.sf(focal_asset.get('market_dynasty'))
+                redraft_delta=sum(base.sf(x.get('market_redraft')) for x in incoming)-base.sf(focal_asset.get('market_redraft'))
+                rows.append({
+                    'channel':'TRADE',
+                    'trade_direction':'OUTBOUND_FUTURE_VALUE',
+                    'counterparty_user_id':buyer_uid,
+                    # Compatibility field: downstream historically calls the
+                    # other participant seller_user_id.
+                    'seller_user_id':buyer_uid,
+                    'seller_team':team.get('team_name'),
+                    'target':focal_asset,
+                    'outgoing':outgoing,
+                    'incoming':incoming,
+                    'pre_screen_score':None,
+                    'acceptance_fit_score':base.sf(pkg.get('acceptance_fit_score')),
+                    'seller_strategic_utility_precomputed':base.sf(pkg.get('focal_strategic_utility')),
+                    'counterparty_interest_utility_precomputed':base.sf(pkg.get('focal_strategic_utility')),
+                    'focal_legacy_utility_precomputed':base.sf(pkg.get('seller_strategic_utility')),
+                    'source_recommendation_band':pkg.get('recommendation_band'),
+                    'source_package_ordinal_for_target':ordinal,
+                    'source_package_score_owned_by_gm3':True,
+                    'source_inverted_from_counterparty_gm3_acquisition_search':True,
+                    'outbound_search_creates_new_trade_value':False,
+                    'package_market_value_coordinate':round(sum(base.sf(x.get('market_dynasty')) for x in incoming),2),
+                    'package_market_dynasty_delta':round(dynasty_delta,2),
+                    'package_market_redraft_delta':round(redraft_delta,2),
+                })
+    rows.sort(
+        key=lambda x:(
+            x.get('package_market_dynasty_delta',-1e18),
+            x.get('counterparty_interest_utility_precomputed',-1e18),
+            x.get('acceptance_fit_score',0.0),
+        ),
+        reverse=True,
+    )
+    return rows
+
 def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_targets,frontier_packages_per_target,posture='AUTO'):
     doc=base.team_doc(focus_uid,'trade_opportunities'); rows=[]; frontier_rows=[]
+    outbound_rows=_outbound_future_value_rows(base,focus_uid,catalog,packages_per_target)
     opportunities=list(doc.get('opportunities') or [])
     def existing_curve_has_overlap(opp):
         for pkg in (opp.get('price_frontier_candidate_packages') or []):
@@ -181,7 +255,13 @@ def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_t
                     row['targeted_adaptive_price_discovery_used']=bool(targeted)
                     row['targeted_adaptive_price_discovery_package_economics_owned_by_gm3']=bool(targeted)
                     frontier_rows.append(row)
-    key=lambda r:(r['seller_user_id'],r['target']['asset_id'],tuple(sorted(x['asset_id'] for x in r['outgoing'])))
+    key=lambda r:(
+        str(r.get('trade_direction') or 'ACQUIRE'),
+        str(r.get('counterparty_user_id') or r.get('seller_user_id') or ''),
+        str((r.get('target') or {}).get('asset_id') or ''),
+        tuple(sorted(str(x.get('asset_id') or '') for x in (r.get('outgoing') or []))),
+        tuple(sorted(str(x.get('asset_id') or '') for x in (r.get('incoming') or []))),
+    )
     dedup={}
     for r in rows:dedup.setdefault(key(r),r)
     rows=list(dedup.values())
@@ -193,8 +273,9 @@ def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_t
     for r in focal:
         tid=r['target']['asset_id']
         if tid not in seen_targets:target_best.append(r); seen_targets.add(tid)
-    future_value=sorted(rows,key=lambda x:(x.get('package_market_dynasty_delta',-1e18),x['pre_screen_score']),reverse=True)
-    immediate=sorted(rows,key=lambda x:(x.get('package_market_redraft_delta',-1e18),x['pre_screen_score']),reverse=True)
+    future_value=sorted(rows,key=lambda x:(x.get('package_market_dynasty_delta',-1e18),base.sf(x.get('pre_screen_score'),-1e18)),reverse=True)
+    immediate=sorted(rows,key=lambda x:(x.get('package_market_redraft_delta',-1e18),base.sf(x.get('pre_screen_score'),-1e18)),reverse=True)
+    outbound_future=outbound_rows
     posture_mod=load_posture()
     normalized_posture=posture_mod.normalize_selection(posture)
     available={
@@ -205,6 +286,7 @@ def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_t
         'target_diversity':target_best,
         'future_value_preservation':future_value,
         'immediate_current_value':immediate,
+        'outbound_future_value':outbound_future,
     }
     lane_order=posture_mod.SEARCH_LANE_ORDERS[normalized_posture]
     lanes={name:available[name] for name in lane_order if name in available}
