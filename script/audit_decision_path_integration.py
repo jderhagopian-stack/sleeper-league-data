@@ -162,6 +162,12 @@ def main():
             and '"roster_resolution": roster_resolution' in roster
             and '"automatic_roster_cut_actions": cut_actions' in roster
         ),
+        "roster_direct_path_cannot_silently_drop_projection_inputs": (
+            "player_weekly_projections_full.json" in roster
+            and "native_players_preserved" in roster
+            and "assert_projection_coverage" in roster
+            and "without canonical Simulator projection coverage" in roster
+        ),
         "opportunity_engine_does_not_create_valuation_authority": (
             "team_improvement" in oe
             and "team_improvement_score" in oe
@@ -200,6 +206,7 @@ def main():
             "superseded_trade_composite_final_authority": True,
             "standalone_roster_shared_authority_bypass": True,
             "standalone_roster_legality_bypass": True,
+            "standalone_roster_projection_coverage_bypass": True,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
