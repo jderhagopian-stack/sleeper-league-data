@@ -23,6 +23,12 @@ on:
       - 'script/opportunity_engine/application_v21.py'
       - 'script/render_opportunity_engine_report.py'
       - 'script/audit_contender_state_utility_calibration.py'
+      - 'script/strategic_posture.py'
+      - 'script/decision_lab_state_aware.py'
+      - 'script/run_team_improvement_lab.py'
+      - 'script/run_team_improvement_lab_v16.py'
+      - 'script/gm3/team_improvement.py'
+      - 'script/test_strategic_posture.py'
       - '.github/workflows/opportunity-engine-full-production-validation.yml'
   workflow_dispatch:
 
