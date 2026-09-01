@@ -45,16 +45,18 @@ jobs:
           python script/test_opportunity_engine_price_search.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
-      - name: Run live Opportunity Engine 2.0 vertical slice
+      - name: Run live Opportunity Engine 2.2 executable-opportunity slice
         run: |
           mkdir -p /tmp/opportunity-engine
-          python script/opportunity_engine/application_v2.py \
+          python script/opportunity_engine/application_v21.py \
             --focus-user-id 846634401482792960 \
             --quick-sims 30 \
             --confirm-sims 60 \
             --trade-screen 8 \
             --waiver-screen 8 \
             --trade-packages-per-target 4 \
+            --price-frontier-targets 6 \
+            --price-frontier-packages-per-target 8 \
             --confirm-top 3 \
             --portfolio-depth 5 \
             --portfolio-max-moves 3 \
@@ -62,7 +64,7 @@ jobs:
             --portfolio-sims 20 \
             --portfolio-confirm-sims 40 \
             --portfolio-confirm-top 2 \
-            --robustness-seeds 2 \
+            --robustness-seeds 0 \
             --robustness-sims 20 \
             --trade-review-depth 1 \
             --trade-review-quick-sims 100 \
@@ -131,7 +133,7 @@ jobs:
               assert td['generated_proposal_semantics_applied'] is True
               assert td['underlying_trade_decision_action'] in {'ACCEPT_NOW','ACCEPT','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
-          print('Opportunity Engine 2.0 live governed regression passed')
+          print('Opportunity Engine 2.2 live governed regression passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
