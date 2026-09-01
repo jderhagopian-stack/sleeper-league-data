@@ -313,6 +313,7 @@ def _portfolio_result(rows, result):
         ),
         "portfolio_evaluation_source": result.get("authority"),
         "shared_decision_utility": result.get("shared_decision_utility"),
+        "decision_attribution": result.get("decision_attribution"),
         "_source_rows": copy.deepcopy(rows),
     }
 
@@ -383,6 +384,7 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
         comparable_single = {
             "description": best_single_row.get("description"),
             "team_improvement_score": single_result.get("team_improvement_score"),
+            "decision_attribution": single_result.get("decision_attribution"),
             "simulation_count": int(confirm_simulations if int(confirm_simulations) > 0 else simulations),
             "authority": "GM3 Team Improvement",
         }
