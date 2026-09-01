@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install Simulator dependency
+        run: python -m pip install --disable-pip-version-check numpy
       - name: Validate governed view contracts
         run: python script/test_league_intelligence_contract.py
       - name: Validate read-only application and Player Value rankings
