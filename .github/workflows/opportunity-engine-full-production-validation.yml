@@ -7,6 +7,15 @@ on:
       - 'script/trade_decision/negotiation_frontier.py'
       - 'script/opportunity_engine/application_v21.py'
       - 'script/render_opportunity_engine_report.py'
+      - 'script/audit_contender_state_utility_calibration.py'
+      - '.github/workflows/opportunity-engine-full-production-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'script/trade_decision/negotiation_frontier.py'
+      - 'script/opportunity_engine/application_v21.py'
+      - 'script/render_opportunity_engine_report.py'
+      - 'script/audit_contender_state_utility_calibration.py'
       - '.github/workflows/opportunity-engine-full-production-validation.yml'
   workflow_dispatch:
 
