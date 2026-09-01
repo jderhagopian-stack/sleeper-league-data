@@ -198,6 +198,11 @@ jobs:
                   assert abs(float(da.get('final_shared_decision_utility') or 0)-float(x.get('shared_decision_utility_score') or 0)) <= .03
               sim=x.get('simulation') or {};rr=sim.get('roster_resolution') or {};assert rr
               assert all(v.get('roster_legal') is True for v in rr.values())
+              br=x.get('buyer_rationality') or {}
+              if br and br.get('buyer_decision_utility_score') is not None:
+                  assert br.get('buyer_utility_uses_symmetric_opponent_title_externality') is True
+                  sim_focus_title=float(((sim.get('focus_delta') or {}).get('championship_probability')) or 0.0)
+                  assert abs(float(br.get('buyer_opponent_title_gain') or 0.0)-max(0.0,sim_focus_title)) < 1e-6
               nr=x.get('negotiation_ranking') or {}
               if nr:
                   assert abs(float(nr['state_aware_post_sim_score'])-float(x['post_sim_score']))<1e-6
