@@ -373,7 +373,7 @@ def augment_projections_for_actions(actions, projections, season):
     return out
 
 
-def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
+def load_cached_lineups(season: str, projections_override=None) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
     """Compatibility facade that rebuilds the canonical baseline lineups fresh.
 
     Historical Decision Lab versions reused weekly_optimized_lineups.json.
@@ -386,10 +386,12 @@ def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]
     league = load_json(DATA / "league.json", {}) or {}
     rosters = load_json(DATA / "rosters.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
-    projections = load_json(
-        DATA / "simulator" / season / "inputs" / "player_weekly_projections.json",
-        {},
-    ) or {}
+    projections = projections_override
+    if projections is None:
+        projections = load_json(
+            DATA / "simulator" / season / "inputs" / "player_weekly_projections.json",
+            {},
+        ) or {}
     reg_weeks = simmod.core.regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
     all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
@@ -546,8 +548,17 @@ def main():
         raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
     simmod, league, canonical_rosters, users, players, season, native_projections, raw_schedule = load_model_inputs()
+    trade_actions_only = [
+        a for a in actions if str(a.get("type") or "").lower().strip() == "trade"
+    ]
+    baseline_projections = augment_projections_for_actions(
+        trade_actions_only, native_projections, season
+    )
     projections = augment_projections_for_actions(actions, native_projections, season)
     projection_coverage = assert_projection_coverage(actions, projections, focus_uid)
+    projection_coverage["baseline_trade_projection_augmentation"] = (
+        baseline_projections.get("_decision_lab_projection_augmentation") or {}
+    )
     globals_module = types.SimpleNamespace(
         roster_maps=roster_maps,
         gm_asset_map=gm_asset_map,
@@ -568,13 +579,22 @@ def main():
     )
     actions = requested_actions + list(cut_actions)
 
-    baseline_lineups = load_cached_lineups(season)
+    baseline_trade_added = list(
+        (baseline_projections.get("_decision_lab_projection_augmentation") or {}).get("added_player_ids") or []
+    )
+    baseline_lineups = load_cached_lineups(
+        season,
+        projections_override=baseline_projections if baseline_trade_added else None,
+    )
     hypothetical_lineups, reoptimized_rids = reoptimize_touched_lineups(
         simmod, baseline_lineups, hypothetical_rosters, touched, league, users, players, projections
     )
 
-    baseline = simulate_from_lineups(simmod, league, canonical_rosters, users, raw_schedule,
-                                     baseline_lineups, args.sims, args.seed)
+    baseline = simulate_from_lineups(
+        simmod, league, canonical_rosters, users, raw_schedule,
+        baseline_lineups, args.sims, args.seed,
+        projections_override=baseline_projections if baseline_trade_added else None,
+    )
     hypothetical = simulate_from_lineups(simmod, league, hypothetical_rosters, users, raw_schedule,
                                          hypothetical_lineups, args.sims, args.seed,
                                          projections_override=projections)
