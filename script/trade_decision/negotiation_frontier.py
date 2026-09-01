@@ -9,7 +9,7 @@ acceptance probability, or an exchange rate between feasibility and focal value.
 from __future__ import annotations
 import copy
 
-MODEL_VERSION = "FSFFL-Trade-Decision-Negotiation-Frontier-1.2"
+MODEL_VERSION = "FSFFL-Trade-Decision-Negotiation-Frontier-1.3"
 AUTHORITY = "Trade Decision"
 
 
@@ -137,6 +137,24 @@ def build_target_price_frontier(rows):
     seller_floor = min(seller_viable, key=_package_price) if seller_viable else None
     focal_ceiling = max(focal_viable, key=_package_price) if focal_viable else None
     opener = min(deal_zone, key=_package_price) if deal_zone else None
+    best_focal_positive_for_counterparty = None
+    focal_positive_with_counterparty = [
+        x for x in focal_viable if _counterparty_utility(x) is not None
+    ]
+    if focal_positive_with_counterparty:
+        best_focal_positive_for_counterparty = max(
+            focal_positive_with_counterparty,
+            key=lambda x: _counterparty_utility(x),
+        )
+    best_counterparty_viable_for_focal = None
+    seller_viable_with_focal = [
+        x for x in seller_viable if _focal_utility(x) is not None
+    ]
+    if seller_viable_with_focal:
+        best_counterparty_viable_for_focal = max(
+            seller_viable_with_focal,
+            key=lambda x: _focal_utility(x),
+        )
     overlap = bool(deal_zone)
     if overlap:
         status = "ACTIONABLE_PRICE_OVERLAP"
@@ -163,6 +181,37 @@ def build_target_price_frontier(rows):
         "seller_clearing_floor": _package_view(seller_floor) if seller_floor else None,
         "rational_focal_ceiling": _package_view(focal_ceiling) if focal_ceiling else None,
         "mutually_beneficial_deal_zone": [_package_view(x) for x in deal_zone],
+        "near_frontier_evidence": {
+            "watchlist_eligible": bool(
+                (not overlap)
+                and focal_viable
+                and best_focal_positive_for_counterparty is not None
+            ),
+            "best_focal_positive_package_for_counterparty": (
+                _package_view(best_focal_positive_for_counterparty)
+                if best_focal_positive_for_counterparty else None
+            ),
+            "counterparty_utility_shortfall_at_best_focal_positive_package": (
+                round(max(0.0, -sf(_counterparty_utility(best_focal_positive_for_counterparty))), 4)
+                if best_focal_positive_for_counterparty else None
+            ),
+            "best_counterparty_viable_package_for_focal": (
+                _package_view(best_counterparty_viable_for_focal)
+                if best_counterparty_viable_for_focal else None
+            ),
+            "focal_utility_shortfall_at_best_counterparty_viable_package": (
+                round(max(0.0, -sf(_focal_utility(best_counterparty_viable_for_focal))), 4)
+                if best_counterparty_viable_for_focal else None
+            ),
+            "market_coordinate_gap_between_focal_ceiling_and_seller_floor": (
+                round(max(0.0, _package_price(seller_floor) - _package_price(focal_ceiling)), 4)
+                if seller_floor and focal_ceiling else None
+            ),
+            "interpretation": (
+                "Negotiation watchlist evidence only. No fixed utility cutoff is used; "
+                "smaller observed shortfalls indicate closer modeled bilateral alignment."
+            ),
+        },
         "reason": reason,
         "coverage_note": "Discrete frontier over evaluated packages only; absence of overlap may reflect search coverage and should trigger broader package generation before a target is abandoned.",
         "policy": {
@@ -196,6 +245,21 @@ def build(rows):
         x.get("status") == "ACTIONABLE_PRICE_OVERLAP",
         len(x.get("mutually_beneficial_deal_zone") or []),
     ), reverse=True)
+    near_frontier = [
+        x for x in price_frontiers
+        if ((x.get("near_frontier_evidence") or {}).get("watchlist_eligible") is True)
+    ]
+    near_frontier.sort(key=lambda x: (
+        sf((x.get("near_frontier_evidence") or {}).get(
+            "counterparty_utility_shortfall_at_best_focal_positive_package"
+        ), 1e18),
+        sf((x.get("near_frontier_evidence") or {}).get(
+            "market_coordinate_gap_between_focal_ceiling_and_seller_floor"
+        ), 1e18),
+        sf((x.get("near_frontier_evidence") or {}).get(
+            "focal_utility_shortfall_at_best_counterparty_viable_package"
+        ), 1e18),
+    ))
     return {
         "model_version": MODEL_VERSION,
         "authority": AUTHORITY,
@@ -208,6 +272,8 @@ def build(rows):
         "focal_overpay_packages": focal_overpay,
         "best_focal_overpay_package": focal_overpay[0] if focal_overpay else None,
         "high_impact_price_gap_targets": [x for x in price_frontiers if not x.get("price_overlap_exists")],
+        "near_frontier_watchlist": near_frontier,
+        "best_near_frontier_target": near_frontier[0] if near_frontier else None,
         "target_price_frontiers": price_frontiers,
         "best_price_overlap": next((x for x in price_frontiers if x.get("price_overlap_exists")), None),
         "policy": {
@@ -219,5 +285,7 @@ def build(rows):
             "no_arbitrary_utility_acceptance_exchange_rate": True,
             "behavioral_intelligence_supplies_evidence_not_decision_authority": True,
             "opportunity_engine_may_route_and_present_but_not_reclassify": True,
+            "near_frontier_watchlist_uses_no_fixed_utility_cutoff": True,
+            "near_frontier_watchlist_is_negotiation_context_not_actionable_trade_authority": True,
         },
     }
