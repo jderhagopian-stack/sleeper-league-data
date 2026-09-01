@@ -4518,11 +4518,24 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
 
     top_value = [x[0] for x in sorted(scored_holdings, key=lambda z:z[1], reverse=True)[:10]]
     top_movable = [x[0] for x in sorted(scored_holdings, key=lambda z:z[2], reverse=True)[:14]]
-    outgoing_candidates = []
+
+    # Keep the prior player search cap as a computational control, but always
+    # include every owned draft pick with a positive governed value. Picks are
+    # the natural fine-adjustment instruments in dynasty negotiation; omitting
+    # them can create artificial jumps from a single pick directly to a core
+    # player even when intermediate pick combinations exist.
+    player_candidates = []
     for aid in top_value + top_movable:
-        if aid not in outgoing_candidates:
-            outgoing_candidates.append(aid)
-    outgoing_candidates = outgoing_candidates[:18]
+        if str(aid).startswith("player:") and aid not in player_candidates:
+            player_candidates.append(aid)
+    player_candidates = player_candidates[:18]
+    pick_candidates = [
+        aid for aid in holdings
+        if not str(aid).startswith("player:") and safe_float(vals.get(uid, {}).get(aid)) > 0
+    ]
+    outgoing_candidates = player_candidates + [
+        aid for aid in pick_candidates if aid not in player_candidates
+    ]
 
     target_screen = []
     for aid, meta in ctx["player_meta"].items():
@@ -4672,7 +4685,11 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
                 "focal_outgoing_asset_ids": combo,
                 "focal_outgoing_assets": [(ctx["asset_meta"].get(a) or {}).get("name") for a in combo],
                 "package_market_value_coordinate": round(sum(
-                    safe_float((ctx["asset_meta"].get(a) or {}).get("market_dynasty"))
+                    (
+                        safe_float((ctx["asset_meta"].get(a) or {}).get("market_dynasty"))
+                        or safe_float((ctx["asset_meta"].get(a) or {}).get("market_value"))
+                        or safe_float(vals.get(uid, {}).get(a))
+                    )
                     for a in combo
                 ), 1),
                 "target_asset_id": target_aid,
