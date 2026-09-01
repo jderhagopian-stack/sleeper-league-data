@@ -217,7 +217,16 @@ def main():
     def ev(row,uid,dl,lo,ra,mi,bl,b,s,seed):
         if row.get('channel')!='WAIVER' or not row.get('native_full_projection'):
             result=saved(row,uid,dl,lo,ra,mi,bl,b,s,seed)
-            if result.get('channel')=='TRADE': evaluated_trade_rows.append(copy.deepcopy(result))
+            if result.get('channel')=='TRADE':
+                evaluated_trade_rows.append(copy.deepcopy(result))
+                if row.get('price_frontier_search_candidate'):
+                    # Preserve the real GM3 utility for the dedicated frontier,
+                    # but make this search-only row ineligible for broad Team
+                    # Improvement recommendation/portfolio slots.
+                    routed=copy.deepcopy(result)
+                    routed['actionable']=False
+                    routed['price_frontier_search_excluded_from_broad_ranking']=True
+                    return routed
             return result
         m=list(mi); p=copy.deepcopy(m[6]); p.setdefault('players',{})[str(row['target']['player_id'])]=copy.deepcopy(row['native_full_projection']); m[6]=p; return saved(row,uid,dl,lo,ra,tuple(m),bl,b,s,seed)
     base.evaluate_row=ev; base.main()
