@@ -206,10 +206,19 @@ def waiver_candidates(base,focus_uid,players_catalog,model_inputs,limit):
     return selected
 
 def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,baseline_lineups,baseline,focus_uid,actions,sims,seed):
-    simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs; hypothetical,_=dl.apply_actions(canonical_rosters,actions); touched=dl.touched_users(focus_uid,actions); protected={}
+    simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs
+    trade_actions_only=[a for a in actions if str(a.get('type') or '').lower().strip()=='trade']
+    runtime_projections=dl.augment_projections_for_actions(trade_actions_only,projections,season) if hasattr(dl,'augment_projections_for_actions') else projections
+    trade_added=list(((runtime_projections or {}).get('_decision_lab_projection_augmentation') or {}).get('added_player_ids') or [])
+    baseline_lineups_runtime=baseline_lineups
+    baseline_runtime=baseline
+    if trade_added:
+        baseline_lineups_runtime=dl.load_cached_lineups(season,projections_override=runtime_projections)
+        baseline_runtime=dl.simulate_from_lineups(simmod,league,canonical_rosters,users,raw_schedule,baseline_lineups_runtime,sims,seed,projections_override=runtime_projections)
+    hypothetical,_=dl.apply_actions(canonical_rosters,actions); touched=dl.touched_users(focus_uid,actions); protected={}
     for a in actions:
         if str(a.get('type') or '').lower()=='add': protected.setdefault(str(a.get('user_id')),set()).update(str(x) for x in (a.get('players') or []))
-    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups,legal,touched,league,users,players,projections)
+    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups_runtime,legal,touched,league,users,players,runtime_projections)
     metadata_expected=0; metadata_missing=[]
     for rid in reopt:
         for week,rows in (lineups.get(rid) or {}).items():
@@ -221,8 +230,8 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
                 if team:
                     metadata_expected+=1
                     if not row.get('nfl_team'): metadata_missing.append({'roster_id':rid,'week':week,'player_id':pid})
-    hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed,projections_override=projections); bidx,hidx=base.team_index(baseline),base.team_index(hyp)
-    baseline_teams=list((baseline or {}).get('teams') or [])
+    hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed,projections_override=runtime_projections); bidx,hidx=base.team_index(baseline_runtime),base.team_index(hyp)
+    baseline_teams=list((baseline_runtime or {}).get('teams') or [])
     def mean_metric(key):
         vals=[float(x.get(key) or 0.0) for x in baseline_teams]
         return (sum(vals)/len(vals)) if vals else 0.0
@@ -253,6 +262,8 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
                 'reoptimized_lineup_nfl_team_metadata_expected_rows':metadata_expected,
                 'reoptimized_lineup_nfl_team_metadata_missing_rows':len(metadata_missing),
                 'reoptimized_lineup_nfl_team_metadata_complete':len(metadata_missing)==0,
+                'baseline_trade_projection_augmentation_applied':bool(trade_added),
+                'baseline_trade_projection_added_player_ids':trade_added,
             }
         }
     result=perspective(str(focus_uid))
