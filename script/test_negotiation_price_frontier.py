@@ -66,10 +66,28 @@ assert b['status']=='NO_PRICE_OVERLAP'
 assert b['price_overlap_exists'] is False
 assert b['seller_clearing_floor']['package_market_value_coordinate']==350
 assert b['rational_focal_ceiling']['package_market_value_coordinate']==150
+assert b['near_frontier_evidence']['watchlist_eligible'] is True
+assert b['near_frontier_evidence']['counterparty_utility_shortfall_at_best_focal_positive_package']==30
+assert b['near_frontier_evidence']['focal_utility_shortfall_at_best_counterparty_viable_package']==20
+assert b['near_frontier_evidence']['market_coordinate_gap_between_focal_ceiling_and_seller_floor']==200
 
-board=mod.build(gibbs+bijan)
+closer=[
+    row('close-focal','player:close','s4',180,35,-2),
+    row('close-seller','player:close','s4',200,-1,1),
+]
+close=mod.build_target_price_frontier(closer)
+assert close['price_overlap_exists'] is False
+assert close['near_frontier_evidence']['watchlist_eligible'] is True
+assert close['near_frontier_evidence']['counterparty_utility_shortfall_at_best_focal_positive_package']==2
+assert close['near_frontier_evidence']['focal_utility_shortfall_at_best_counterparty_viable_package']==1
+
+board=mod.build(gibbs+bijan+closer)
 assert board['authority']=='Trade Decision'
-assert len(board['target_price_frontiers'])==2
+assert len(board['target_price_frontiers'])==3
 assert board['best_price_overlap']['target']['asset_id']=='player:gibbs'
+assert board['best_near_frontier_target']['target']['asset_id']=='player:close'
+assert board['near_frontier_watchlist'][0]['target']['asset_id']=='player:close'
+assert board['policy']['near_frontier_watchlist_uses_no_fixed_utility_cutoff'] is True
+assert board['policy']['near_frontier_watchlist_is_negotiation_context_not_actionable_trade_authority'] is True
 assert board['policy']['price_frontier_uses_discrete_evaluated_packages'] is True
 print('Trade Decision discrete price-frontier regression passed')
