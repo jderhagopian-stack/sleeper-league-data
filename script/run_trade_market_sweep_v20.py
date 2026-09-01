@@ -53,6 +53,7 @@ def clamp(x, lo, hi):
 def state_aware_post_sim_score(engine, row, state: str):
     sim = row.get("simulation") or {}
     utility = load_module(DECISION_UTILITY, "shared_decision_utility_for_trade")
+    attribution = load_module(SCRIPT / "decision_attribution.py", "decision_attribution_for_trade")
     resolved = utility.score(sim)
     row["championship_equity_constraint"] = "CONTINUOUS_NO_CATEGORICAL_CAP"
     row["state_aware_objective_weights"] = resolved["objective_weights"]
@@ -63,6 +64,9 @@ def state_aware_post_sim_score(engine, row, state: str):
     }
     row["decision_utility_model_version"] = resolved["model_version"]
     row["decision_utility_scale_status"] = resolved["scale_status"]
+    row["shared_decision_utility_score"] = resolved["score"]
+    row["decision_attribution"] = attribution.reconcile(sim)
+    row["post_sim_score_is_shared_decision_utility_compatibility_alias"] = True
     return resolved["score"]
 
 def state_aware_blended_negotiation_score(row):

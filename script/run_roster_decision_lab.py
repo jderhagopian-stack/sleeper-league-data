@@ -22,6 +22,7 @@ import importlib.util
 import json
 import random
 import sys
+import types
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
@@ -36,6 +37,15 @@ def load_json(path: Path, default=None):
     if not path.exists():
         return default
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to import {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def write_json(path: Path, obj: Any):
@@ -310,6 +320,7 @@ def load_model_inputs():
     users = load_json(DATA / "users.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
     season = str(league.get("season"))
+    # Canonical baseline remains the native Simulator projection input.
     projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
     raw_schedule = load_json(resolve_schedule_path(season), {}) or {}
     validation = simmod.core.validate_inputs(league, rosters, users, players, raw_schedule, projections)
@@ -318,7 +329,51 @@ def load_model_inputs():
     return simmod, league, rosters, users, players, season, projections, raw_schedule
 
 
-def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
+def augment_projections_for_actions(actions, projections, season):
+    """Add only missing transaction-player profiles from the canonical full universe.
+
+    This preserves the native Simulator baseline and avoids changing unrelated
+    rostered players merely because a hypothetical is being evaluated.
+    """
+    required = required_incoming_projection_ids(actions)
+    native_ids = {str(x) for x in ((projections or {}).get("players") or {})}
+    missing = [pid for pid in required if pid not in native_ids]
+    if not missing:
+        out = copy.deepcopy(projections)
+        out["_decision_lab_projection_augmentation"] = {
+            "source_model": None,
+            "added_player_ids": [],
+            "native_player_count": len(native_ids),
+            "final_player_count": len(native_ids),
+        }
+        return out
+
+    full_path = DATA / "simulator" / str(season) / "inputs" / "player_weekly_projections_full.json"
+    full = load_json(full_path, {}) or {}
+    full_players = full.get("players") or {}
+    unavailable = [pid for pid in missing if str(pid) not in full_players]
+    if unavailable:
+        raise RuntimeError(
+            "Decision scenario contains transaction players without native or canonical full "
+            f"Simulator projection coverage: {unavailable}"
+        )
+
+    out = copy.deepcopy(projections)
+    out.setdefault("players", {})
+    for pid in missing:
+        out["players"][str(pid)] = copy.deepcopy(full_players[str(pid)])
+    out["_decision_lab_projection_augmentation"] = {
+        "source_model": full.get("model_version"),
+        "path": str(full_path),
+        "added_player_ids": [str(x) for x in missing],
+        "native_player_count": len(native_ids),
+        "final_player_count": len(out.get("players") or {}),
+        "unrelated_full_universe_players_added": False,
+    }
+    return out
+
+
+def load_cached_lineups(season: str, projections_override=None) -> Dict[int, Dict[int, List[Dict[str, Any]]]]:
     """Compatibility facade that rebuilds the canonical baseline lineups fresh.
 
     Historical Decision Lab versions reused weekly_optimized_lineups.json.
@@ -331,10 +386,12 @@ def load_cached_lineups(season: str) -> Dict[int, Dict[int, List[Dict[str, Any]]
     league = load_json(DATA / "league.json", {}) or {}
     rosters = load_json(DATA / "rosters.json", []) or []
     players = load_json(DATA / "players.json", {}) or {}
-    projections = load_json(
-        DATA / "simulator" / season / "inputs" / "player_weekly_projections.json",
-        {},
-    ) or {}
+    projections = projections_override
+    if projections is None:
+        projections = load_json(
+            DATA / "simulator" / season / "inputs" / "player_weekly_projections.json",
+            {},
+        ) or {}
     reg_weeks = simmod.core.regular_season_weeks(league)
     playoff_start = int((league.get("settings") or {}).get("playoff_week_start") or 15)
     all_weeks = sorted(set(reg_weeks + [playoff_start, playoff_start + 1, playoff_start + 2]))
@@ -369,12 +426,21 @@ def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, t
     return lineups, reoptimized
 
 
-def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed):
-    """Run current vectorized Simulator mechanics from prepared lineups."""
+def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed,
+                          projections_override=None):
+    """Run current vectorized Simulator mechanics from prepared lineups.
+
+    Hypothetical callers may pass the exact projection universe used for lineup
+    optimization. This is required for full-universe waiver/depth candidates so
+    simulation-time backup chains cannot silently fall back to the narrower
+    native projection set.
+    """
     season = str(league.get("season"))
-    projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
+    projections = projections_override
+    if projections is None:
+        projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
     players = load_json(DATA / "players.json", {}) or {}
-    return simmod.run_preproduction_simulation(
+    result = simmod.run_preproduction_simulation(
         league,
         rosters,
         users,
@@ -385,6 +451,14 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
         seed=seed,
         lineups_override=lineups,
     )
+    result.setdefault("features", {})["decision_lab_projection_override_used"] = projections_override is not None
+    result["features"]["decision_lab_projection_player_count"] = len((projections or {}).get("players") or {})
+    aug = (projections or {}).get("_decision_lab_projection_augmentation") or {}
+    result["features"]["decision_lab_projection_added_player_ids"] = list(aug.get("added_player_ids") or [])
+    result["features"]["decision_lab_unrelated_full_universe_players_added"] = bool(
+        aug.get("unrelated_full_universe_players_added", False)
+    )
+    return result
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     """Threshold-free legacy Decision Lab classification.
@@ -424,6 +498,38 @@ def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     }
 
 
+def required_incoming_projection_ids(actions, focus_uid=None):
+    required = set()
+    focus_uid = str(focus_uid) if focus_uid is not None else None
+    for action in actions:
+        typ = str(action.get("type") or "").lower().strip()
+        if typ == "add":
+            required.update(iter_player_ids(action))
+        elif typ == "add_drop":
+            required.update(str(x) for x in (action.get("add_players") or []))
+        elif typ == "trade":
+            # Every transferred player can affect a touched team's lineup.
+            required.update(iter_player_ids(action))
+    return sorted(required)
+
+
+def assert_projection_coverage(actions, projections, focus_uid=None):
+    available = {str(x) for x in ((projections or {}).get("players") or {})}
+    required = required_incoming_projection_ids(actions, focus_uid)
+    missing = [pid for pid in required if pid not in available]
+    if missing:
+        raise RuntimeError(
+            "Decision scenario contains incoming/transferred players without canonical "
+            f"Simulator projection coverage: {missing}"
+        )
+    return {
+        "required_player_count": len(required),
+        "missing_player_ids": missing,
+        "coverage_complete": True,
+        "projection_augmentation": (projections or {}).get("_decision_lab_projection_augmentation"),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scenario", required=True)
@@ -441,20 +547,81 @@ def main():
     if not focus_uid or not actions:
         raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
-    simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = load_model_inputs()
-    hypothetical_rosters, pick_transfers = apply_actions(canonical_rosters, actions)
-    touched = touched_users(focus_uid, actions)
+    simmod, league, canonical_rosters, users, players, season, native_projections, raw_schedule = load_model_inputs()
+    trade_actions_only = [
+        a for a in actions if str(a.get("type") or "").lower().strip() == "trade"
+    ]
+    baseline_projections = augment_projections_for_actions(
+        trade_actions_only, native_projections, season
+    )
+    projections = augment_projections_for_actions(actions, native_projections, season)
+    projection_coverage = assert_projection_coverage(actions, projections, focus_uid)
+    projection_coverage["baseline_trade_projection_augmentation"] = (
+        baseline_projections.get("_decision_lab_projection_augmentation") or {}
+    )
+    globals_module = types.SimpleNamespace(
+        roster_maps=roster_maps,
+        gm_asset_map=gm_asset_map,
+        remove_player=remove_player,
+    )
+    requested_actions = list(actions)
+    pre_resolution_rosters, pick_transfers = apply_actions(canonical_rosters, requested_actions)
+    touched = touched_users(focus_uid, requested_actions)
 
-    baseline_lineups = load_cached_lineups(season)
+    rosteraware = load_module(Path("script/roster_aware_trade.py"), "roster_decision_roster_resolution")
+    hypothetical_rosters, roster_resolution, cut_actions = rosteraware.legalize_trade_rosters(
+        globals_module,
+        canonical_rosters,
+        pre_resolution_rosters,
+        touched,
+        league,
+        players,
+    )
+    actions = requested_actions + list(cut_actions)
+
+    baseline_trade_added = list(
+        (baseline_projections.get("_decision_lab_projection_augmentation") or {}).get("added_player_ids") or []
+    )
+    baseline_lineups = load_cached_lineups(
+        season,
+        projections_override=baseline_projections if baseline_trade_added else None,
+    )
     hypothetical_lineups, reoptimized_rids = reoptimize_touched_lineups(
         simmod, baseline_lineups, hypothetical_rosters, touched, league, users, players, projections
     )
 
-    baseline = simulate_from_lineups(simmod, league, canonical_rosters, users, raw_schedule,
-                                     baseline_lineups, args.sims, args.seed)
+    baseline = simulate_from_lineups(
+        simmod, league, canonical_rosters, users, raw_schedule,
+        baseline_lineups, args.sims, args.seed,
+        projections_override=baseline_projections if baseline_trade_added else None,
+    )
     hypothetical = simulate_from_lineups(simmod, league, hypothetical_rosters, users, raw_schedule,
-                                         hypothetical_lineups, args.sims, args.seed)
+                                         hypothetical_lineups, args.sims, args.seed,
+                                         projections_override=projections)
     base_by_uid, hyp_by_uid = team_index(baseline), team_index(hypothetical)
+
+    # Standalone roster/multi-move decisions must consume the same governed
+    # state-aware GM3 strategic summary used by Trade Decision and Team
+    # Improvement. The base module functions remain available for compatibility.
+    state_aware = load_module(Path("script/decision_lab_state_aware.py"), "roster_decision_state_aware")
+    strategic_runtime = types.SimpleNamespace(
+        strategic_summary=strategic_summary,
+        action_assets_for_user=action_assets_for_user,
+    )
+    state_aware.install(strategic_runtime)
+
+    baseline_teams = list((baseline or {}).get("teams") or [])
+    def mean_metric(key):
+        vals = [float(x.get(key) or 0.0) for x in baseline_teams]
+        return (sum(vals) / len(vals)) if vals else 0.0
+    league_reference = {
+        "team_count": len(baseline_teams),
+        "expected_wins_mean": mean_metric("expected_wins"),
+        "expected_points_for_mean": mean_metric("expected_points_for"),
+        "playoff_probability_mean": mean_metric("playoff_probability"),
+        "championship_probability_mean": mean_metric("championship_probability"),
+        "source": "canonical_baseline_simulator_league_mean",
+    }
 
     comparisons = {}
     for uid in touched:
@@ -474,7 +641,7 @@ def main():
                 "division_probability": delta(b.get("division_probability"), h.get("division_probability")),
                 "championship_probability": delta(b.get("championship_probability"), h.get("championship_probability")),
             },
-            "strategic": strategic_summary(uid, actions),
+            "strategic": strategic_runtime.strategic_summary(uid, actions),
         }
 
     focus_cmp = comparisons.get(focus_uid) or {}
@@ -484,6 +651,44 @@ def main():
         for uid, row in comparisons.items() if uid != focus_uid
     )
     team_state = str((franchise_index().get(focus_uid) or {}).get("team_state") or "unknown")
+
+    attribution_mod = load_module(Path("script/decision_attribution.py"), "roster_decision_attribution")
+    utility_mod = load_module(Path("script/decision_utility.py"), "roster_decision_utility")
+    attribution_by_user = {}
+    for uid, cmp in comparisons.items():
+        own_delta = cmp.get("delta") or {}
+        other_title_gain = sum(
+            max(0.0, float(((other.get("delta") or {}).get("championship_probability")) or 0.0))
+            for other_uid, other in comparisons.items() if str(other_uid) != str(uid)
+        )
+        own_title_delta = float(own_delta.get("championship_probability") or 0.0)
+        sim_view = {
+            "focus_before": cmp.get("before"),
+            "focus_after": cmp.get("after"),
+            "focus_delta": {
+                k: own_delta.get(k)
+                for k in ("expected_wins", "expected_points_for", "playoff_probability", "bye_probability", "championship_probability")
+            },
+            "league_reference": league_reference,
+            "strategic": cmp.get("strategic") or {},
+            "buyer_championship_probability_delta": round(other_title_gain, 5),
+            "net_title_equity_swing_against_focus": round(other_title_gain - own_title_delta, 5),
+            "competitive_externality": {
+                "focus_championship_probability_delta": round(own_title_delta, 5),
+                "opponent_positive_championship_probability_delta_sum": round(other_title_gain, 5),
+                "net_title_equity_swing_against_focus": round(other_title_gain - own_title_delta, 5),
+            },
+        }
+        attribution_by_user[str(uid)] = attribution_mod.reconcile(sim_view)
+
+    focal_attribution = attribution_by_user.get(focus_uid) or {}
+    focal_score = float(focal_attribution.get("final_shared_decision_utility") or 0.0)
+    if focal_score > 0:
+        authoritative_band = "IMPROVES_FRANCHISE"
+    elif focal_score < 0:
+        authoritative_band = "HARMS_FRANCHISE"
+    else:
+        authoritative_band = "NEUTRAL"
 
     report = {
         "model_version": MODEL_VERSION,
@@ -497,19 +702,35 @@ def main():
             "simulator_model_version": baseline.get("model_version"),
             "execution_path": "cached_lineups_plus_touched_team_reoptimization",
             "teams_reoptimized": reoptimized_rids,
+            "hypothetical_simulator_features": copy.deepcopy(hypothetical.get("features") or {}),
             "default_latency_target": "under_2_minutes",
         },
+        "requested_actions": requested_actions,
         "actions": actions,
+        "automatic_roster_cut_actions": cut_actions,
+        "roster_resolution": roster_resolution,
+        "roster_resolution_model_version": getattr(rosteraware, "MODEL_VERSION", None),
         "ephemeral_state": True,
         "canonical_state_mutated": False,
         "pick_transfers": pick_transfers,
+        "projection_input_coverage": projection_coverage,
         "team_comparisons": comparisons,
         "competitive_externality": {
             "focus_championship_probability_delta": round(focus_title_delta, 5),
             "opponent_positive_championship_probability_delta_sum": round(opponent_title_gain, 5),
             "net_title_equity_swing_against_focus": round(opponent_title_gain - focus_title_delta, 5),
         },
-        "recommendation": classify_decision(focus_cmp, team_state),
+        "decision_attribution_by_user": attribution_by_user,
+        "decision_attribution": focal_attribution,
+        "shared_decision_utility_score": focal_score,
+        "shared_decision_utility_model_version": utility_mod.MODEL_VERSION,
+        "recommendation": {
+            "band": authoritative_band,
+            "authority": "Shared Decision Utility / GM3 Team Improvement",
+            "shared_decision_utility_score": focal_score,
+            "pareto_diagnostic": classify_decision(focus_cmp, team_state),
+            "no_independent_roster_decision_score_created": True,
+        },
     }
 
     output = Path(args.output) if args.output else DATA / "decision_lab" / "outputs" / f"{report['scenario_id']}.json"

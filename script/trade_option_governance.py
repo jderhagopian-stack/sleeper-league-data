@@ -4,8 +4,10 @@
 This module owns the evidence-consistent comparison of a proposed option against
 a current offer and the final action recomputation after those comparisons.
 
-Trade quality is determined by simulated competitive outputs plus overall
-franchise impact. Behavioral acceptance fit remains separate feasibility
+Trade quality ordering is determined exactly once by authoritative Shared
+Decision Utility. Simulator competitive outputs remain visible frontier
+diagnostics but do not receive an additional vote after already entering Shared
+Decision Utility. Behavioral acceptance fit remains separate feasibility
 information and never changes BETTER/MIXED/WORSE.
 
 This is a mechanical extraction of the validated v31 logic; decision semantics
@@ -15,12 +17,13 @@ from __future__ import annotations
 
 MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.6"
 EPS = 1e-9
-DECISION_OUTPUTS = (
+DECISION_OUTPUTS = ("shared_decision_utility_score",)
+FRONTIER_DIAGNOSTIC_OUTPUTS = (
     "expected_points_for",
     "expected_wins",
     "playoff_probability",
     "championship_probability",
-    "strategic_value_delta",
+    "market_dynasty_delta",
 )
 
 
@@ -39,6 +42,8 @@ def metric(row, key):
         return sf(d.get(key))
     if key == "net_title_equity_swing_against_focus":
         return sf(sim.get(key))
+    if key == "shared_decision_utility_score":
+        return sf(row.get("shared_decision_utility_score"), sf(row.get("post_sim_score")))
     return sf(st.get(key))
 
 
@@ -124,13 +129,14 @@ def compare(row, current):
     diagnostic_keys = (
         "expected_wins", "expected_points_for", "playoff_probability", "bye_probability",
         "championship_probability", "market_dynasty_delta", "strategic_value_delta",
-        "liquidity_value_delta", "break_glass_delta", "roster_interaction_value_delta",
+        "shared_decision_utility_score", "liquidity_value_delta", "break_glass_delta", "roster_interaction_value_delta",
         "net_title_equity_swing_against_focus",
     )
     deltas = {k: round(metric(row, k) - metric(current, k), 5) for k in diagnostic_keys}
-    score_delta = round(sf(row.get("post_sim_score")) - sf(current.get("post_sim_score")), 2)
+    score_delta = round(metric(row, "shared_decision_utility_score") - metric(current, "shared_decision_utility_score"), 2)
 
     decision_deltas = {k: deltas[k] for k in DECISION_OUTPUTS}
+    frontier_diagnostic_deltas = {k: deltas[k] for k in FRONTIER_DIAGNOSTIC_OUTPUTS}
     decision_relation = relation_from_deltas(decision_deltas)
     verdict = {
         "DOMINATES_CURRENT_OFFER": "BETTER",
@@ -154,25 +160,27 @@ def compare(row, current):
     if abs(deltas["liquidity_value_delta"]) >= 500:
         drivers.append(f"{deltas['liquidity_value_delta']:+,.0f} incremental asset liquidity")
     if not drivers:
-        drivers.append(f"{score_delta:+,.0f} composite-score diagnostic")
+        drivers.append(f"{score_delta:+,.0f} Shared Decision Utility")
 
     lead = (
-        "Clearly better than the current offer across the decision outputs"
+        "Higher authoritative Shared Decision Utility than the current offer"
         if verdict == "BETTER"
-        else "Clearly worse than the current offer across the decision outputs"
+        else "Lower authoritative Shared Decision Utility than the current offer"
         if verdict == "WORSE"
-        else "A mixed tradeoff versus the current offer"
+        else "Equivalent authoritative Shared Decision Utility to the current offer"
     )
     return {
         "verdict_vs_current_offer": verdict,
         "post_sim_score_delta_vs_current_offer": score_delta,
-        "post_sim_score_role": "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE",
+        "post_sim_score_role": "COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE",
         "metric_deltas_vs_current_offer": deltas,
         "decision_metric_deltas_vs_current_offer": decision_deltas,
+        "frontier_diagnostic_metric_deltas_vs_current_offer": frontier_diagnostic_deltas,
         "decision_relation_vs_current_offer": decision_relation,
         "competitive_relation_vs_current_offer": comp_relation,
         "reason": lead + ", driven by " + ", ".join(drivers[:6]) + ".",
-        "comparison_basis": "pareto_dominance_across_core_competitive_outcomes_and_overall_franchise_impact",
+        "comparison_basis": "authoritative_shared_decision_utility_for_economic_ordering_with_simulator_frontier_metrics_diagnostic_only",
+        "raw_simulator_frontier_metrics_have_independent_final_vote": False,
         "unsupported_numeric_score_cutoff_used": False,
     }
 
@@ -193,7 +201,7 @@ def current_offer_focally_acceptable(current):
     remains relevant for generated counters and market alternatives.
     """
     state = objective_state(current)
-    post = sf(current.get("post_sim_score"))
+    post = metric(current, "shared_decision_utility_score")
     focal = post > 0
     if state in {"contender", "elite_contender"} and current.get("championship_equity_constraint") == "FAIL":
         focal = False

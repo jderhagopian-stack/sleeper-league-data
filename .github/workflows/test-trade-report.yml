@@ -13,7 +13,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile report pipeline
-        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/trade_engine.py script/run_trade_market_sweep_v31.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py script/run_trade_market_sweep_v13.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/roster_interaction_overlay.py script/roster_resolution_governance.py script/trade_candidate_pools.py script/trade_decision/behavior_integration.py script/trade_decision/historical_behavior_policy.py script/trade_negotiation_family.py script/trade_bilateral_gate.py script/trade_bilateral_composition.py script/trade_multi_asset_packages.py script/trade_multi_asset_composition.py script/trade_state_policy.py script/trade_candidate_selector.py script/trade_state_selector_composition.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
+        run: python -m py_compile script/render_trade_decision_report_v19.py script/render_trade_decision_report_v18.py script/render_trade_decision_report_v17.py script/render_trade_decision_report_v16.py script/run_trade_report.py script/trade_engine.py script/run_trade_market_sweep_v31.py script/run_trade_market_sweep_v30.py script/run_trade_market_sweep_v29.py script/run_trade_market_sweep_v28.py script/run_trade_market_sweep_v23.py script/negotiation_ranking.py script/run_trade_market_sweep_v13.py script/decision_attribution.py script/decision_utility.py script/audit_roster_cut_sensitivity.py script/roster_aware_trade.py script/roster_interaction.py script/roster_interaction_overlay.py script/roster_resolution_governance.py script/trade_candidate_pools.py script/trade_decision/behavior_integration.py script/trade_decision/historical_behavior_policy.py script/trade_negotiation_family.py script/trade_bilateral_gate.py script/trade_bilateral_composition.py script/trade_multi_asset_packages.py script/trade_multi_asset_composition.py script/trade_state_policy.py script/trade_candidate_selector.py script/trade_state_selector_composition.py script/historical_state_behavior.py script/behavioral_intelligence.py script/behavioral_intelligence_v3.py script/behavioral_intelligence_v3_production.py script/refresh_behavioral_intelligence_v3.py
       - name: Unit test final cut-plan optimizer overrides retention prescreen
         run: |
           python - <<'PY'
@@ -190,8 +190,24 @@ jobs:
           g=(a.get('governance') or {}).get('post_ranking_roster_interaction') or {};assert g.get('ranking_refreshed_after_overlay') is True;assert g.get('candidate_universe_rebuilt_after_overlay') is False
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
+              if x:
+                  br=x.get('buyer_rationality') or {}
+                  if br.get('buyer_decision_utility_status')=='AVAILABLE':
+                      assert br.get('buyer_utility_uses_symmetric_opponent_title_externality') is True
+                  assert abs(float(x.get('shared_decision_utility_score') or 0)-float(x.get('post_sim_score') or 0)) < 1e-6
+                  assert x.get('post_sim_score_is_shared_decision_utility_compatibility_alias') is True
+                  da=x.get('decision_attribution') or {}
+                  assert da.get('reconciles') is True, da
+                  assert abs(float(da.get('final_shared_decision_utility') or 0)-float(x.get('shared_decision_utility_score') or 0)) <= .03
               sim=x.get('simulation') or {};rr=sim.get('roster_resolution') or {};assert rr
               assert all(v.get('roster_legal') is True for v in rr.values())
+              runtime_meta=sim.get('simulator_runtime_metadata') or {}
+              assert runtime_meta.get('reoptimized_lineup_nfl_team_metadata_complete') is True, runtime_meta
+              br=x.get('buyer_rationality') or {}
+              if br and br.get('buyer_decision_utility_score') is not None:
+                  assert br.get('buyer_utility_uses_symmetric_opponent_title_externality') is True
+                  sim_focus_title=float(((sim.get('focus_delta') or {}).get('championship_probability')) or 0.0)
+                  assert abs(float(br.get('buyer_opponent_title_gain') or 0.0)-max(0.0,sim_focus_title)) < 1e-6
               nr=x.get('negotiation_ranking') or {}
               if nr:
                   assert abs(float(nr['state_aware_post_sim_score'])-float(x['post_sim_score']))<1e-6
@@ -200,6 +216,10 @@ jobs:
                   assert nr['behavior_already_in_acceptance_fit'] is True
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
+              assert set((c.get('decision_metric_deltas_vs_current_offer') or {}).keys())=={'shared_decision_utility_score'}
+              assert set((c.get('frontier_diagnostic_metric_deltas_vs_current_offer') or {}).keys())=={'expected_points_for','expected_wins','playoff_probability','championship_probability','market_dynasty_delta'}
+              assert c.get('raw_simulator_frontier_metrics_have_independent_final_vote') is False
+              assert c.get('post_sim_score_role')=='COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE'
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
           assert int((a.get('simulation') or {}).get('final_trade_impact_simulations') or 0)==50000
           # The live 50k trade baseline must remain statistically consistent
@@ -224,6 +244,13 @@ jobs:
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
           assert '...' not in text and '\u2026' not in text, text
+          cur=a.get('current_offer_evaluation') or {}
+          print(json.dumps({'trade_decision_reconciliation_sample':{
+              'description':cur.get('description'),
+              'shared_decision_utility_score':cur.get('shared_decision_utility_score'),
+              'attribution':cur.get('decision_attribution'),
+              'recommended_next_action':a.get('recommended_next_action'),
+          }},indent=2))
           print('Market Sweep 1.26 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.11 test passed')
           PY
       - name: Audit downstream cut-plan sensitivity

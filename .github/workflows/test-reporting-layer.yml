@@ -11,6 +11,9 @@ on:
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
       - 'script/render_roster_decision_report.py'
+      - 'script/run_roster_decision_lab.py'
+      - 'script/decision_attribution.py'
+      - 'script/decision_utility.py'
       - 'script/render_league_power_report.py'
       - 'script/render_player_dossier.py'
       - 'script/render_market_movement_report.py'
@@ -41,7 +44,7 @@ jobs:
         run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
+        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/run_roster_decision_lab.py script/decision_attribution.py script/decision_utility.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
 
       - name: Render standardized reports
         run: |
@@ -64,6 +67,23 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           arch=json.loads(Path('data/reporting/fsffl_reporting_architecture.json').read_text())
+          decision=json.loads(Path('/tmp/fsffl-reports/decision.json').read_text())
+          assert decision['shared_decision_utility_model_version']=='FSFFL-Shared-Decision-Utility-2.0'
+          assert decision['decision_attribution']['reconciles'] is True
+          assert decision['decision_attribution']['creates_independent_score'] is False
+          assert abs(float(decision['decision_attribution']['final_shared_decision_utility'])-float(decision['shared_decision_utility_score'])) <= .03
+          assert decision['recommendation']['authority']=='Shared Decision Utility / GM3 Team Improvement'
+          assert decision['recommendation']['no_independent_roster_decision_score_created'] is True
+          assert decision['recommendation'].get('pareto_diagnostic')
+          assert decision.get('roster_resolution')
+          assert all(x.get('roster_legal') is True for x in decision['roster_resolution'].values())
+          assert decision['projection_input_coverage']['coverage_complete'] is True
+          assert decision['projection_input_coverage']['missing_player_ids']==[]
+          aug=decision['projection_input_coverage'].get('projection_augmentation') or {}
+          assert aug.get('unrelated_full_universe_players_added',False) is False
+          hf=(decision.get('simulation') or {}).get('hypothetical_simulator_features') or {}
+          assert hf.get('decision_lab_projection_override_used') is True
+          assert hf.get('decision_lab_unrelated_full_universe_players_added') is False
           assert arch['principles']['raw_model_output_is_source_of_truth'] is True
           assert arch['principles']['chatgpt_reads_raw_output_not_pdf'] is True
           assert arch['principles']['pdf_is_presentation_only'] is True
@@ -95,6 +115,12 @@ jobs:
               banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
               assert not [x for x in banned if x in text], f"{name}: {text}"
               assert '...' not in text and '\u2026' not in text, f"{name}: {text}"
+          print(json.dumps({'roster_decision_reconciliation_sample':{
+              'scenario_id':decision.get('scenario_id'),
+              'shared_decision_utility_score':decision.get('shared_decision_utility_score'),
+              'attribution':decision.get('decision_attribution'),
+              'recommendation':decision.get('recommendation'),
+          }},indent=2))
           print('FSFFL reporting layer standardized smoke test passed')
           PY
 

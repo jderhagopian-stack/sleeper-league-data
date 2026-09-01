@@ -73,12 +73,13 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/gm-action-report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.4'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.6'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['policy']['canonical_state_mutated'] is False
           assert r['policy']['roster_aware_trade_resolution'] is True
           assert r['policy']['hold_is_explicit_benchmark'] is True
           assert r['policy']['waiver_candidates_use_canonical_full_projection_universe'] is True
+          assert r['policy']['hypothetical_simulator_uses_same_projection_universe_as_lineup_optimizer'] is True
           assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
           for row in r.get('top_cross_channel_options') or []:

@@ -206,18 +206,66 @@ def waiver_candidates(base,focus_uid,players_catalog,model_inputs,limit):
     return selected
 
 def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,baseline_lineups,baseline,focus_uid,actions,sims,seed):
-    simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs; hypothetical,_=dl.apply_actions(canonical_rosters,actions); touched=dl.touched_users(focus_uid,actions); protected={}
+    simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs
+    trade_actions_only=[a for a in actions if str(a.get('type') or '').lower().strip()=='trade']
+    runtime_projections=dl.augment_projections_for_actions(trade_actions_only,projections,season) if hasattr(dl,'augment_projections_for_actions') else projections
+    trade_added=list(((runtime_projections or {}).get('_decision_lab_projection_augmentation') or {}).get('added_player_ids') or [])
+    baseline_lineups_runtime=baseline_lineups
+    baseline_runtime=baseline
+    if trade_added:
+        baseline_lineups_runtime=dl.load_cached_lineups(season,projections_override=runtime_projections)
+        baseline_runtime=dl.simulate_from_lineups(simmod,league,canonical_rosters,users,raw_schedule,baseline_lineups_runtime,sims,seed,projections_override=runtime_projections)
+    hypothetical,_=dl.apply_actions(canonical_rosters,actions); touched=dl.touched_users(focus_uid,actions); protected={}
     for a in actions:
         if str(a.get('type') or '').lower()=='add': protected.setdefault(str(a.get('user_id')),set()).update(str(x) for x in (a.get('players') or []))
-    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups,legal,touched,league,users,players,projections); hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed); bidx,hidx=base.team_index(baseline),base.team_index(hyp)
-    baseline_teams=list((baseline or {}).get('teams') or [])
+    legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups_runtime,legal,touched,league,users,players,runtime_projections)
+    metadata_expected=0; metadata_missing=[]
+    for rid in reopt:
+        for week,rows in (lineups.get(rid) or {}).items():
+            for row in rows or []:
+                pid=str(row.get('player_id') or '')
+                if not pid: continue
+                meta=(players or {}).get(pid) or {}
+                team=meta.get('team') or meta.get('team_abbr')
+                if team:
+                    metadata_expected+=1
+                    if not row.get('nfl_team'): metadata_missing.append({'roster_id':rid,'week':week,'player_id':pid})
+    hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed,projections_override=runtime_projections); bidx,hidx=base.team_index(baseline_runtime),base.team_index(hyp)
+    baseline_teams=list((baseline_runtime or {}).get('teams') or [])
     def mean_metric(key):
         vals=[float(x.get(key) or 0.0) for x in baseline_teams]
         return (sum(vals)/len(vals)) if vals else 0.0
     league_reference={'team_count':len(baseline_teams),'expected_wins_mean':mean_metric('expected_wins'),'expected_points_for_mean':mean_metric('expected_points_for'),'playoff_probability_mean':mean_metric('playoff_probability'),'championship_probability_mean':mean_metric('championship_probability'),'source':'canonical_baseline_simulator_league_mean'}
     def perspective(uid):
-        before,after=bidx[str(uid)],hidx[str(uid)]
-        return {'focus_before':before,'focus_after':after,'league_reference':league_reference,'focus_delta':{k:base.delta(before.get(k),after.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']},'strategic':dl.strategic_summary(str(uid),effective),'roster_resolution':resolutions,'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims}
+        uid=str(uid); before,after=bidx[uid],hidx[uid]
+        focus_delta={k:base.delta(before.get(k),after.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']}
+        opponent_title_gain=sum(
+            max(0.0, base.sf(base.delta(bidx[str(other)].get('championship_probability'),hidx[str(other)].get('championship_probability'))))
+            for other in touched if str(other)!=uid and str(other) in bidx and str(other) in hidx
+        )
+        focus_title_delta=base.sf(focus_delta.get('championship_probability'))
+        net_swing=opponent_title_gain-focus_title_delta
+        return {
+            'focus_before':before,'focus_after':after,'league_reference':league_reference,
+            'focus_delta':focus_delta,
+            'buyer_championship_probability_delta':round(opponent_title_gain,5),
+            'net_title_equity_swing_against_focus':round(net_swing,5),
+            'competitive_externality':{
+                'focus_championship_probability_delta':round(focus_title_delta,5),
+                'opponent_positive_championship_probability_delta_sum':round(opponent_title_gain,5),
+                'net_title_equity_swing_against_focus':round(net_swing,5),
+            },
+            'strategic':dl.strategic_summary(uid,effective),'roster_resolution':resolutions,
+            'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims,
+            'simulator_features':{
+                **copy.deepcopy(hyp.get('features') or {}),
+                'reoptimized_lineup_nfl_team_metadata_expected_rows':metadata_expected,
+                'reoptimized_lineup_nfl_team_metadata_missing_rows':len(metadata_missing),
+                'reoptimized_lineup_nfl_team_metadata_complete':len(metadata_missing)==0,
+                'baseline_trade_projection_augmentation_applied':bool(trade_added),
+                'baseline_trade_projection_added_player_ids':trade_added,
+            }
+        }
     result=perspective(str(focus_uid))
     counterparties=[str(x) for x in touched if str(x)!=str(focus_uid)]
     if counterparties:
@@ -225,14 +273,16 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
         result['counterparty']=perspective(counterparties[0])
     return result
 def main():
-    ppt=_pop_cli_int('--trade-packages-per-target',DEFAULT_TRADE_PACKAGES_PER_TARGET); pft=_pop_cli_int('--price-frontier-targets',DEFAULT_PRICE_FRONTIER_TARGETS); pfpt=_pop_cli_int('--price-frontier-packages-per-target',DEFAULT_PRICE_FRONTIER_PACKAGES_PER_TARGET); out=output_path_from_argv(); base=load_base(); base.MODEL_VERSION=MODEL_VERSION; saved=base.evaluate_row; utility=base.load_module(Path(__file__).resolve().parent/'decision_utility.py','team_improvement_counterparty_decision_utility'); evaluated_trade_rows=[]
+    ppt=_pop_cli_int('--trade-packages-per-target',DEFAULT_TRADE_PACKAGES_PER_TARGET); pft=_pop_cli_int('--price-frontier-targets',DEFAULT_PRICE_FRONTIER_TARGETS); pfpt=_pop_cli_int('--price-frontier-packages-per-target',DEFAULT_PRICE_FRONTIER_PACKAGES_PER_TARGET); out=output_path_from_argv(); base=load_base(); base.MODEL_VERSION=MODEL_VERSION; saved=base.evaluate_row; utility=base.load_module(Path(__file__).resolve().parent/'decision_utility.py','team_improvement_counterparty_decision_utility'); attribution=base.load_module(Path(__file__).resolve().parent/'decision_attribution.py','team_improvement_decision_attribution'); evaluated_trade_rows=[]
     base.trade_candidates=lambda uid,catalog,limit:trade_candidates(base,uid,catalog,limit,ppt,pft,pfpt); base.waiver_candidates=lambda uid,catalog,mi,limit:waiver_candidates(base,uid,catalog,mi,limit); base.simulate_actions=lambda dl,lo,ra,mi,bl,b,uid,a,s,seed:simulate_actions_protect_add(base,dl,lo,ra,mi,bl,b,uid,a,s,seed)
     def ev(row,uid,dl,lo,ra,mi,bl,b,s,seed):
         if row.get('channel')!='WAIVER' or not row.get('native_full_projection'):
             result=saved(row,uid,dl,lo,ra,mi,bl,b,s,seed)
+            result['decision_attribution']=attribution.reconcile(result.get('simulation') or {})
             if result.get('channel')=='TRADE':
                 focal_score=utility.score(result.get('simulation') or {})
                 result['focal_shared_decision_utility']=focal_score
+                result['focal_decision_attribution']=attribution.reconcile(result.get('simulation') or {})
                 result['focal_shared_decision_utility_score']=base.sf(focal_score.get('score'))
                 result['focal_shared_decision_utility_matches_team_improvement_score']=abs(base.sf(focal_score.get('score'))-base.sf(result.get('team_improvement_score')))<0.011
                 cp=(result.get('simulation') or {}).get('counterparty')
@@ -240,6 +290,7 @@ def main():
                     cp_score=utility.score(cp)
                     result['counterparty_shared_decision_utility_score']=base.sf(cp_score.get('score'))
                     result['counterparty_shared_decision_utility']=cp_score
+                    result['counterparty_decision_attribution']=attribution.reconcile(cp)
                     result['counterparty_shared_decision_utility_model_version']=cp_score.get('model_version')
                     result['counterparty_shared_decision_utility_source']='same_simulation_same_shared_utility_as_focal'
                 evaluated_trade_rows.append(copy.deepcopy(result))
@@ -252,10 +303,10 @@ def main():
                     routed['price_frontier_search_excluded_from_broad_ranking']=True
                     return routed
             return result
-        m=list(mi); p=copy.deepcopy(m[6]); p.setdefault('players',{})[str(row['target']['player_id'])]=copy.deepcopy(row['native_full_projection']); m[6]=p; return saved(row,uid,dl,lo,ra,tuple(m),bl,b,s,seed)
+        m=list(mi); p=copy.deepcopy(m[6]); pid=str(row['target']['player_id']); native_ids={str(x) for x in (p.get('players') or {})}; p.setdefault('players',{})[pid]=copy.deepcopy(row['native_full_projection']); p['_decision_lab_projection_augmentation']={'source_model':'FSFFL-Full-Projection-Universe-1.0','added_player_ids':[pid] if pid not in native_ids else [],'native_player_count':len(native_ids),'final_player_count':len(p.get('players') or {}),'unrelated_full_universe_players_added':False}; m[6]=p; result=saved(row,uid,dl,lo,ra,tuple(m),bl,b,s,seed); result['decision_attribution']=attribution.reconcile(result.get('simulation') or {}); return result
     base.evaluate_row=ev; base.main()
     if out and out.exists():
-        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report['search_summary']['price_frontier_packages_per_target_considered']=int(pfpt); report['search_summary']['targeted_adaptive_price_discovery_enabled']=bool(pft and pfpt); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'targeted_price_discovery_package_economics_owned_by_gm3':True,'targeted_price_discovery_target_selection_is_search_orchestration':True,'targeted_price_discovery_creates_new_trade_value':False,'targeted_price_discovery_rows_are_search_only_not_broad_ranking':True,'counterparty_trade_feasibility_uses_same_shared_decision_utility_as_focal':True,'team_improvement_simulation_exposes_league_reference_for_current_utility':True,'trade_rows_expose_shared_utility_attribution':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.0','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.0','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
+        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report['search_summary']['price_frontier_packages_per_target_considered']=int(pfpt); report['search_summary']['targeted_adaptive_price_discovery_enabled']=bool(pft and pfpt); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'hypothetical_simulator_uses_same_projection_universe_as_lineup_optimizer':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'targeted_price_discovery_package_economics_owned_by_gm3':True,'targeted_price_discovery_target_selection_is_search_orchestration':True,'targeted_price_discovery_creates_new_trade_value':False,'targeted_price_discovery_rows_are_search_only_not_broad_ranking':True,'counterparty_trade_feasibility_uses_same_shared_decision_utility_as_focal':True,'team_improvement_simulation_exposes_league_reference_for_current_utility':True,'trade_rows_expose_shared_utility_attribution':True,'decision_attribution_reconciles_authoritative_shared_utility_without_rescoring':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.0','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.0','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
         frontier={}
         for row in evaluated_trade_rows:
             target=row.get('target') or {}; key=(str(row.get('seller_user_id') or ''),str(target.get('asset_id') or ''),tuple(sorted(str(x.get('asset_id') or '') for x in (row.get('outgoing') or []))))

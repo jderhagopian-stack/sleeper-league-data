@@ -49,7 +49,10 @@ def load_module(path: Path, name: str):
 
 
 def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projections):
-    """Exact max-weight legal lineup assignment via slot-mask DP."""
+    """Exact max-weight legal lineup assignment via canonical Simulator when available."""
+    canonical = getattr(simmod, "optimize_fsffl_fast", None)
+    if callable(canonical):
+        return canonical(roster, week, league, players, projections)
     core = getattr(simmod, "core", simmod)
     candidates = []
     taxi = set(roster.get("taxi") or [])
@@ -162,6 +165,20 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         dl, simmod, baseline_lineups, hypothetical_rosters, touched,
         league, users, players, projections
     )
+    metadata_expected = 0
+    metadata_missing = []
+    for rid in reoptimized:
+        for week, rows in (hypothetical_lineups.get(rid) or {}).items():
+            for row in rows or []:
+                pid = str(row.get("player_id") or "")
+                if not pid:
+                    continue
+                meta = (players or {}).get(pid) or {}
+                team = meta.get("team") or meta.get("team_abbr")
+                if team:
+                    metadata_expected += 1
+                    if not row.get("nfl_team"):
+                        metadata_missing.append({"roster_id": rid, "week": week, "player_id": pid})
     hyp = dl.simulate_from_lineups(
         simmod, league, hypothetical_rosters, users, raw_schedule,
         hypothetical_lineups, sims, seed
@@ -201,6 +218,11 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         "roster_resolution": roster_resolution,
         "roster_resolution_model_version": "FSFFL-Roster-Aware-Trade-Resolution-1.4",
         "teams_reoptimized": reoptimized,
+        "simulator_runtime_metadata": {
+            "reoptimized_lineup_nfl_team_metadata_expected_rows": metadata_expected,
+            "reoptimized_lineup_nfl_team_metadata_missing_rows": len(metadata_missing),
+            "reoptimized_lineup_nfl_team_metadata_complete": len(metadata_missing) == 0,
+        },
         "league_reference": league_reference,
         "focus_before": b,
         "focus_after": h,
@@ -269,7 +291,7 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         "eligible_plan_count": len(plans),
         "max_exact_plan_count": FINAL_CUT_PLAN_MAX_COMBINATIONS,
         "screen_simulations": FINAL_CUT_PLAN_SCREEN_SIMS,
-        "selection_objective": "canonical_downstream_trade_score",
+        "selection_objective": "canonical_shared_decision_utility",
         "retention_cost_is_final_authority": False,
     }
     if not plans or len(plans) > FINAL_CUT_PLAN_MAX_COMBINATIONS:
@@ -294,7 +316,7 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         pres = plan_resolution.get(str(focus_uid)) or {}
         selected = [profile_by_id[x] for x in plan if x in profile_by_id]
         pres["selected_cuts"] = selected
-        pres["cut_selection_method"] = "downstream_trade_score_exact_plan_search"
+        pres["cut_selection_method"] = "shared_decision_utility_exact_plan_search"
         pres["cut_base_franchise_value"] = round(sum(float(x.get("base_franchise_value") or 0.0) for x in selected), 2)
         pres["cut_market_dynasty_value"] = round(sum(float(x.get("market_dynasty") or 0.0) for x in selected), 2)
         plan_resolution[str(focus_uid)] = pres
@@ -323,9 +345,10 @@ def _optimize_final_focus_cut_plan(engine, dl, model_inputs, baseline_lineups,
         "default_retention_plan": list(default_plan),
         "selected_plan": list(best_plan),
         "selected_plan_differs_from_retention_prescreen": tuple(best_plan) != default_plan,
-        "screen_post_sim_score": round(best_score, 2),
+        "screen_shared_decision_utility_score": round(best_score, 2),
+        "screen_post_sim_score_compatibility_alias": round(best_score, 2),
         "all_plan_scores": [
-            {"cut_player_ids": list(plan), "post_sim_score": round(score, 2)}
+            {"cut_player_ids": list(plan), "shared_decision_utility_score": round(score, 2), "post_sim_score_compatibility_alias": round(score, 2)}
             for score, plan, *_ in scored
         ],
     }
