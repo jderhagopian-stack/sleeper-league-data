@@ -156,6 +156,12 @@ def main():
             and '"authority": "Shared Decision Utility / GM3 Team Improvement"' in roster
             and '"pareto_diagnostic": classify_decision' in roster
         ),
+        "roster_direct_path_uses_canonical_roster_resolution": (
+            "roster_aware_trade.py" in roster
+            and "legalize_trade_rosters" in roster
+            and '"roster_resolution": roster_resolution' in roster
+            and '"automatic_roster_cut_actions": cut_actions' in roster
+        ),
         "opportunity_engine_does_not_create_valuation_authority": (
             "team_improvement" in oe
             and "team_improvement_score" in oe
@@ -193,6 +199,7 @@ def main():
             "unauthorized_duplicate_channel_weight": True,
             "superseded_trade_composite_final_authority": True,
             "standalone_roster_shared_authority_bypass": True,
+            "standalone_roster_legality_bypass": True,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
