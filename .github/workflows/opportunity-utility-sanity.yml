@@ -71,6 +71,8 @@ jobs:
           assert a['coefficient_change_supported_by_this_audit'] is False
           assert a['owner_intuition_used_as_fitted_target'] is False
           assert a['new_utility_created'] is False
+          assert a['simulator_rerun_per_posture'] is False
+          assert a['posture_reweighting_uses_existing_governed_weights'] is True
           assert len(a['cases'])==7
           assert set(a['postures'])=={
               'AUTO','BALANCED_CONTENDER','PUSH_CHIPS_IN','PRESERVE_FUTURE_VALUE'
