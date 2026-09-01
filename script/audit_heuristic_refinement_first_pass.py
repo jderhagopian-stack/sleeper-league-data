@@ -24,7 +24,7 @@ def main():
       "retention_cost_marked_prescreen":"retention_cost_prescreen_pending_final_plan_optimization" in roster,
       "final_cut_search_only_on_high_precision_candidates":"sims < 50000" in v13,
       "tractable_plan_space_bounded":"FINAL_CUT_PLAN_MAX_COMBINATIONS = 27" in v13,
-      "cut_plan_screen_uses_common_downstream_trade_score":"canonical_downstream_trade_score" in v13 and "engine.post_sim_score" in v13,
+      "cut_plan_screen_uses_authoritative_shared_decision_utility":"canonical_shared_decision_utility" in v13 and "engine.post_sim_score" in v13,
       "selected_cut_plan_reruns_through_final_candidate_path":"_optimize_final_focus_cut_plan" in v13 and "_simulate_resolved_candidate" in v13,
       "retention_formula_not_claimed_final_authority":"retention_cost_is_final_authority" in v13,
       "registry_updated":params.get("ROSTER-CUT-001",{}).get("status")=="FINAL_FOCAL_TRACTABLE_PLAN_SEARCH_ACTIVE_PRESCREEN_FALLBACK",
