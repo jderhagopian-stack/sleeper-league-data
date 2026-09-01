@@ -235,7 +235,8 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
                 'net_title_equity_swing_against_focus':round(net_swing,5),
             },
             'strategic':dl.strategic_summary(uid,effective),'roster_resolution':resolutions,
-            'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims
+            'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims,
+            'simulator_features':copy.deepcopy(hyp.get('features') or {})
         }
     result=perspective(str(focus_uid))
     counterparties=[str(x) for x in touched if str(x)!=str(focus_uid)]
