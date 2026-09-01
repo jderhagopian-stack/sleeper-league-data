@@ -22,10 +22,13 @@ def line_for(row):
 
 
 def render(board):
+    posture = board.get("strategic_posture") or {}
     lines = [
         f"# FSFFL Opportunity Engine — {board.get('team_name') or 'Franchise'}",
         "",
-        f"**Team state:** {board.get('team_state') or 'N/A'}",
+        f"**Competitive state:** {board.get('competitive_state') or board.get('team_state') or posture.get('competitive_state') or 'N/A'}",
+        f"**Strategic posture:** {posture.get('selected_posture') or 'AUTO'}",
+        f"**Posture source:** {posture.get('posture_source') or 'MODEL_DEFAULT'}",
         f"**Model:** {board.get('model_version') or 'N/A'}",
         "",
         "## Best move available",
