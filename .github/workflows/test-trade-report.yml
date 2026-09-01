@@ -214,8 +214,9 @@ jobs:
                   assert nr['behavior_already_in_acceptance_fit'] is True
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
-              assert 'shared_decision_utility_score' in (c.get('decision_metric_deltas_vs_current_offer') or {})
-              assert 'strategic_value_delta' not in (c.get('decision_metric_deltas_vs_current_offer') or {})
+              assert set((c.get('decision_metric_deltas_vs_current_offer') or {}).keys())=={'shared_decision_utility_score'}
+              assert set((c.get('frontier_diagnostic_metric_deltas_vs_current_offer') or {}).keys())=={'expected_points_for','expected_wins','playoff_probability','championship_probability','market_dynasty_delta'}
+              assert c.get('raw_simulator_frontier_metrics_have_independent_final_vote') is False
               assert c.get('post_sim_score_role')=='COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE'
           ac=(a.get('simulation') or {}).get('adaptive_confirmation') or {};assert ac.get('enabled') is True
           assert int((a.get('simulation') or {}).get('final_trade_impact_simulations') or 0)==50000
