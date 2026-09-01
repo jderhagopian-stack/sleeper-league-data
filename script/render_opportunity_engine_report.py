@@ -58,6 +58,29 @@ def render(board):
             )
     else:
         lines.append("No material price-gap target identified.")
+    watchlist = board.get("near_frontier_watchlist") or []
+    lines += ["", "## WORTH DISCUSSING / NEAR FRONTIER"]
+    if watchlist:
+        for pf in watchlist[:6]:
+            target = pf.get("target") or {}
+            near = pf.get("near_frontier_evidence") or {}
+            focal_pkg = near.get("best_focal_positive_package_for_counterparty") or {}
+            seller_pkg = near.get("best_counterparty_viable_package_for_focal") or {}
+            seller_short = near.get("counterparty_utility_shortfall_at_best_focal_positive_package")
+            focal_short = near.get("focal_utility_shortfall_at_best_counterparty_viable_package")
+            gap = near.get("market_coordinate_gap_between_focal_ceiling_and_seller_floor")
+            detail = (
+                f"closest focal-positive package: {focal_pkg.get('description') or 'none'}"
+                + (f"; seller utility shortfall {float(seller_short):,.1f}" if seller_short is not None else "")
+                + (f"; seller-clearing package: {seller_pkg.get('description') or 'not found'}" if seller_pkg else "")
+                + (f"; focal utility shortfall there {float(focal_short):,.1f}" if focal_short is not None else "")
+                + (f"; package-coordinate gap {float(gap):,.0f}" if gap is not None else "")
+            )
+            lines.append(f"- **{target.get('name') or target.get('asset_id') or 'Target'}:** {detail}.")
+        lines.append("These are negotiation watchlist targets, not actionable trades. No fixed utility cutoff is used; the report shows the observed distance to bilateral viability.")
+    else:
+        lines.append("No focal-positive trade target reached the near-frontier watchlist in the evaluated package set.")
+
     lines += ["", "## WHAT TO DO NEXT"]
     if actionable:
         lines.append(f"Open negotiations around {line_for(actionable)}")
