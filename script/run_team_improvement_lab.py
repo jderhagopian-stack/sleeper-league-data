@@ -82,6 +82,13 @@ def state_weights(focus_uid: str):
     return resolved["state"], resolved["weights"]
 
 
+def strategic_posture_context(focus_uid: str, selected: str = "AUTO"):
+    weighting = load_module(SCRIPT / "gm_state_weighting.py", "team_improvement_posture_weighting")
+    posture = load_module(SCRIPT / "strategic_posture.py", "team_improvement_strategic_posture")
+    resolved = weighting.resolve(franchise_row(focus_uid))
+    return posture.resolve(resolved, selected, weighting)
+
+
 def unified_score(focus_uid: str, sim: Dict[str, Any]) -> float:
     """Rank Team Improvement moves with the shared Trade/GM decision utility."""
     utility = load_module(SCRIPT / "decision_utility.py", "team_improvement_decision_utility")
@@ -342,10 +349,16 @@ def main():
     ap.add_argument("--output", required=True)
     a = ap.parse_args()
     focus_uid = str(a.focus_user_id)
+    selected_posture = str(globals().get("_strategic_posture_override", "AUTO"))
+    posture_context = strategic_posture_context(focus_uid, selected_posture)
 
     dl = load_module(SCRIPT / "run_roster_decision_lab.py", "team_improvement_dl")
     stateaware = load_module(SCRIPT / "decision_lab_state_aware.py", "team_improvement_state_aware")
-    dl = stateaware.install(dl)
+    dl = stateaware.install(
+        dl,
+        strategic_posture=selected_posture,
+        owner_override_user_id=focus_uid,
+    )
     lineupopt = load_module(SCRIPT / "lineup_optimizer.py", "team_improvement_lineup_optimizer")
     rosteraware = load_module(SCRIPT / "roster_aware_trade.py", "team_improvement_roster")
     model_inputs = dl.load_model_inputs()
@@ -382,6 +395,8 @@ def main():
         "generated_for_user_id": focus_uid,
         "team_name": cc.get("focal_team") or franchise_row(focus_uid).get("team_name"),
         "team_state": state_weights(focus_uid)[0],
+        "competitive_state": state_weights(focus_uid)[0],
+        "strategic_posture": posture_context,
         "recommended_action": recommendation,
         "hold_benchmark": hold,
         "best_trade_options": trade_recs,
@@ -408,6 +423,10 @@ def main():
             "trade_acceptance_is_heuristic_not_probability": True,
             "top_candidates_deep_confirmed": True,
             "competitive_state_tilts_but_does_not_dominate": True,
+            "competitive_state_is_model_owned": True,
+            "strategic_posture_is_separate_from_competitive_state": True,
+            "owner_posture_override_changes_competitive_state": False,
+            "strategic_posture_uses_existing_governed_weight_curve": True,
             "championship_probability_uses_diminishing_returns": False,
             "dynasty_value_destruction_guardrail": False,
             "canonical_state_mutated": False,
