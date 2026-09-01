@@ -8,8 +8,8 @@ P=Path(__file__).resolve().parent/'trade_decision'/'negotiation_frontier.py'
 spec=importlib.util.spec_from_file_location('frontier_test',P)
 mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
 
-def row(desc,target,seller,price,focal,seller_u,fit='LOW'):
-    return {
+def row(desc,target,seller,price,focal,seller_u,fit='LOW',shared_u=None):
+    out={
         'channel':'TRADE','description':desc,'seller_user_id':seller,'seller_team':'Seller',
         'target':{'asset_id':target,'name':target},
         'outgoing':[{'asset_id':f'asset:{price}','name':f'Package {price}','market_dynasty':price}],
@@ -17,6 +17,9 @@ def row(desc,target,seller,price,focal,seller_u,fit='LOW'):
         'seller_strategic_utility_precomputed':seller_u,
         'acceptance_fit':fit,
     }
+    if shared_u is not None:
+        out['counterparty_shared_decision_utility_score']=shared_u
+    return out
 
 gibbs=[
     row('cheap','player:gibbs','s1',100,100,-20,'HIGH'),
@@ -32,6 +35,18 @@ assert f['rational_focal_ceiling']['package_market_value_coordinate']==200
 assert len(f['mutually_beneficial_deal_zone'])==1
 assert f['policy']['no_arbitrary_elite_player_premium'] is True
 assert f['policy']['behavioral_fit_does_not_change_price_or_utility'] is True
+assert f['policy']['production_counterparty_utility_uses_same_shared_decision_utility_as_focal'] is True
+
+# Full counterparty Shared Decision Utility must outrank the old GM2.2
+# seller strategic heuristic when both are present.
+parity=[
+    row('legacy-false-positive','player:parity','s3',100,50,0.5,'HIGH',shared_u=-10),
+    row('shared-clearing','player:parity','s3',200,25,-0.5,'LOW',shared_u=5),
+]
+p=mod.build_target_price_frontier(parity)
+assert p['seller_clearing_floor']['package_market_value_coordinate']==200
+assert p['seller_clearing_floor']['counterparty_shared_utility']==5
+assert p['seller_clearing_floor']['counterparty_utility_source']=='shared_decision_utility'
 
 # Descriptive behavior evidence cannot move the economic frontier.
 changed=copy.deepcopy(gibbs)
