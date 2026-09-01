@@ -46,7 +46,7 @@ catalog={
     'pick:C':{'asset_id':'pick:C','asset_type':'pick','name':'C','market_dynasty':30.0},
     'pick:D':{'asset_id':'pick:D','asset_type':'pick','name':'D','market_dynasty':40.0},
 }
-rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1)
+rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1,frontier_packages_per_target=4)
 sigs={tuple(x['outgoing'][0]['asset_id'] for _ in [0]) for x in rows}
 assert ('pick:C',) in sigs, 'seller-clearing transition must survive expansion'
 assert ('pick:D',) in sigs, 'focal-zero transition must survive expansion'
@@ -66,3 +66,13 @@ assert summary['generated_proposal_semantics_applied'] is True
 assert summary['generated_proposal_willingness_observed'] is False
 
 print('Opportunity Engine progressive price-search regression passed')
+
+# Frontier sampling must keep local neighbors around economic zero-crossings,
+# not merely endpoints/evenly spaced packages.
+curve=[]
+for i in range(10):
+    curve.append({'focal_outgoing_asset_ids':[f'pick:{i}'],'package_market_value_coordinate':float(i+1),'seller_strategic_utility':float(i-5),'focal_strategic_utility':float(7-i)})
+sample=lab._price_frontier_sample(curve,8,FakeBase.sf)
+coords={int(x['package_market_value_coordinate']) for x in sample}
+assert {5,6,7}.issubset(coords), 'seller zero-crossing neighborhood must receive dense coverage'
+assert {7,8,9}.issubset(coords), 'focal zero-crossing neighborhood must receive dense coverage'
