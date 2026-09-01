@@ -95,7 +95,9 @@ jobs:
           assert p['trade_decision_roster_resolution_governance_internal_component'] is True
           assert p['legacy_v30_option_comparison_not_executed_in_current_path'] is True
           assert g['categorical_score_threshold_removed'] is True
-          assert g['post_sim_score_is_diagnostic_not_categorical_decision_rule'] is True
+          assert g['post_sim_score_is_shared_decision_utility_compatibility_alias'] is True
+          assert g['better_worse_uses_single_authoritative_shared_decision_utility'] is True
+          assert g['raw_simulator_frontier_metrics_have_independent_final_vote'] is False
           assert g['acceptance_fit_affects_trade_valuation'] is False
           assert g['acceptance_fit_hard_gate_on_trade_quality'] is False
 
@@ -103,7 +105,8 @@ jobs:
           for row in (r.get('suggested_counteroffers') or [])+(r.get('market_sweep_alternatives') or []):
               c=row.get('comparison_to_current_offer') or {}
               assert c.get('unsupported_numeric_score_cutoff_used') is False,c
-              assert c.get('post_sim_score_role')=='DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE',c
+              assert c.get('post_sim_score_role')=='COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE',c
+              assert c.get('raw_simulator_frontier_metrics_have_independent_final_vote') is False,c
               if c.get('decision_relation_vs_current_offer')=='DOMINATED_BY_CURRENT_OFFER':
                   assert c.get('verdict_vs_current_offer')=='WORSE',c
               if c.get('decision_relation_vs_current_offer')=='DOMINATES_CURRENT_OFFER':
@@ -134,11 +137,11 @@ jobs:
               if row.get('counter_strategy')=='OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION':
                   sim=row.get('simulation') or {}
                   assert sim.get('competitive_outcomes_reused_from_equivalent_player_transaction') is True
-                  cd=(row.get('comparison_to_current_offer') or {}).get('decision_metric_deltas_vs_current_offer') or {}
-                  assert abs(float(cd.get('expected_points_for') or 0))<1e-9
-                  assert abs(float(cd.get('expected_wins') or 0))<1e-9
-                  assert abs(float(cd.get('playoff_probability') or 0))<1e-9
-                  assert abs(float(cd.get('championship_probability') or 0))<1e-9
+                  fd=(row.get('comparison_to_current_offer') or {}).get('frontier_diagnostic_metric_deltas_vs_current_offer') or {}
+                  assert abs(float(fd.get('expected_points_for') or 0))<1e-9
+                  assert abs(float(fd.get('expected_wins') or 0))<1e-9
+                  assert abs(float(fd.get('playoff_probability') or 0))<1e-9
+                  assert abs(float(fd.get('championship_probability') or 0))<1e-9
           assert r['recommended_next_action']==expected_action,(r['recommended_next_action'],expected_action)
           print({
             'recommended_next_action':r.get('recommended_next_action'),
