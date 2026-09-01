@@ -77,13 +77,25 @@ def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
     utility_status = "UNAVAILABLE_NEUTRAL_SEARCH"
     if bs.get("objective_weights"):
         utility = load_module(DECISION_UTILITY_PATH, "buyer_shared_decision_utility")
+        focal_title_delta = float(
+            ((sim.get("focus_delta") or {}).get("championship_probability")) or 0.0
+        )
+        opponent_title_gain = max(0.0, focal_title_delta)
+        buyer_net_swing = opponent_title_gain - title
         buyer_sim = {
             "focus_delta": buyer_delta,
             "league_reference": sim.get("league_reference") or {},
             "strategic": bs,
-            # Counterparty incentive should not subtract the focal-team externality.
-            # That is a focal strategic consideration, not a cost to the buyer.
-            "net_title_equity_swing_against_focus": 0.0,
+            # Bilateral parity: each franchise uses the same Shared Decision
+            # Utility semantics. From the buyer's perspective, a positive title
+            # gain by the focal franchise is the relevant opponent externality.
+            "buyer_championship_probability_delta": round(opponent_title_gain, 5),
+            "net_title_equity_swing_against_focus": round(buyer_net_swing, 5),
+            "competitive_externality": {
+                "focus_championship_probability_delta": round(title, 5),
+                "opponent_positive_championship_probability_delta_sum": round(opponent_title_gain, 5),
+                "net_title_equity_swing_against_focus": round(buyer_net_swing, 5),
+            },
         }
         resolved = utility.score(buyer_sim)
         utility_score = float(resolved.get("score") or 0.0)
@@ -136,6 +148,8 @@ def buyer_rationality(row: Dict[str, Any], dl) -> Dict[str, Any]:
         "buyer_decision_utility_status": utility_status,
         "buyer_utility_exposure_scale": round(exposure, 2),
         "buyer_title_delta": round(title, 5),
+        "buyer_opponent_title_gain": round(max(0.0, float(((sim.get("focus_delta") or {}).get("championship_probability")) or 0.0)), 5),
+        "buyer_utility_uses_symmetric_opponent_title_externality": True,
         "buyer_market_dynasty_delta": round(dynasty, 2),
         "buyer_market_redraft_delta": round(redraft, 2),
         "buyer_break_glass_delta": round(break_glass, 2),
