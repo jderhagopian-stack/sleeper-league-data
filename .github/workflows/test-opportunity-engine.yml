@@ -23,6 +23,7 @@ jobs:
             script/opportunity_engine/application_v2.py \
             script/opportunity_engine/application_v21.py \
             script/opportunity_engine/negotiation_frontier.py \
+            script/opportunity_engine/focal_utility_stability.py \
             script/trade_decision/negotiation_frontier.py \
             script/gm3/team_improvement.py \
             script/decision_attribution.py \
@@ -37,7 +38,8 @@ jobs:
             script/test_opportunity_engine_v2.py \
             script/test_negotiation_price_frontier.py \
             script/test_opportunity_engine_price_search.py \
-            script/test_opportunity_engine_outbound.py
+            script/test_opportunity_engine_outbound.py \
+            script/test_focal_utility_stability.py
       - name: Run fast architecture/composition regressions
         run: |
           python script/test_opportunity_engine.py
@@ -45,9 +47,10 @@ jobs:
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
           python script/test_opportunity_engine_outbound.py
+          python script/test_focal_utility_stability.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
-      - name: Run live Opportunity Engine 2.2 executable-opportunity slice
+      - name: Run live Opportunity Engine 2.3 executable-opportunity slice
         run: |
           mkdir -p /tmp/opportunity-engine
           python script/opportunity_engine/application_v21.py \
@@ -68,6 +71,8 @@ jobs:
             --portfolio-confirm-top 2 \
             --robustness-seeds 0 \
             --robustness-sims 20 \
+            --actionability-stability-seeds 2 \
+            --actionability-stability-sims 30 \
             --trade-review-depth 1 \
             --trade-review-quick-sims 100 \
             --trade-review-confirm-sims 200 \
@@ -82,7 +87,7 @@ jobs:
           import json
           from pathlib import Path
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.3'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['search_heuristics_have_final_decision_authority'] is False
@@ -108,6 +113,13 @@ jobs:
           assert b['policy']['portfolio_search_excludes_theoretical_counterparty_failures'] is True
           assert b['policy']['outbound_future_value_search_creates_new_utility'] is False
           assert b['policy']['outbound_future_value_candidates_require_shared_utility_recheck'] is True
+          assert b['policy']['focal_utility_sign_stability_creates_new_utility'] is False
+          assert b['policy']['focal_utility_sign_stability_uses_fixed_margin_threshold'] is False
+          assert b['policy']['simulation_sensitive_focal_utility_can_be_headline_action'] is False
+          assert b['policy']['portfolio_search_excludes_simulation_sensitive_focal_utility'] is True
+          assert b['capability_status']['focal_utility_sign_stability_confirmation'] is True
+          assert b['capability_status']['simulation_sensitive_trade_watchlist'] is True
+          assert b['focal_utility_stability_confirmation']['enabled'] is True
           po=b['portfolio_optimization']
           assert po['authority']=='GM3 Team Improvement'
           assert po['excludes_theoretical_counterparty_failures'] is True
@@ -135,6 +147,8 @@ jobs:
                   nf=row.get('negotiation_frontier') or {}
                   assert nf.get('counterparty_bilateral_viable') is True
                   assert float(nf.get('focal_team_improvement_utility') or 0)>0
+                  st=row.get('focal_utility_stability_confirmation') or {}
+                  assert st.get('confirmed_for_headline_action') is True
           for routed in b.get('trade_decision_reviews') or []:
               td=routed['trade_decision']
               assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
@@ -143,7 +157,10 @@ jobs:
               assert td['generated_proposal_semantics_applied'] is True
               assert td['underlying_trade_decision_action'] in {'ACCEPT_NOW','ACCEPT','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
-          print('Opportunity Engine 2.2 live governed regression passed')
+          for row in b.get('simulation_sensitive_trade_watchlist') or []:
+              st=row.get('focal_utility_stability_confirmation') or {}
+              assert st.get('confirmed_for_headline_action') is False
+          print('Opportunity Engine 2.3 live governed regression passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
