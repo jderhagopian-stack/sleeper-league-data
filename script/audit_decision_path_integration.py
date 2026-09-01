@@ -218,9 +218,15 @@ def main():
             and "projections_override=projections" in roster
         ),
         "team_improvement_simulator_uses_same_projection_universe_as_lineup_optimizer": (
-            "projections_override=projections" in ti
+            "projections_override=runtime_projections" in ti
             and "simulator_features" in ti
             and "_decision_lab_projection_augmentation" in ti
+        ),
+        "missing_trade_projection_augmentation_is_baseline_symmetric": (
+            "baseline_trade_projection_augmentation" in roster
+            and "baseline_projections if baseline_trade_added else None" in roster
+            and "baseline_trade_projection_augmentation_applied" in ti
+            and "baseline_runtime=dl.simulate_from_lineups" in ti
         ),
         "touched_lineups_delegate_to_canonical_simulator_optimizer": (
             'canonical = getattr(simmod, "optimize_fsffl_fast", None)' in lineup_optimizer
@@ -282,6 +288,7 @@ def main():
             "standalone_roster_legality_bypass": True,
             "standalone_roster_projection_coverage_bypass": True,
             "lineup_simulator_projection_universe_mismatch": True,
+            "trade_projection_baseline_hypothetical_asymmetry": True,
             "touched_lineup_simulator_metadata_mismatch": True,
         },
     }
