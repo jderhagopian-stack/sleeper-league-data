@@ -16,6 +16,7 @@ def load(path,name):
 lab=load(SCRIPT/'run_team_improvement_lab_v16.py','outbound_lab')
 base_lab=load(SCRIPT/'run_team_improvement_lab.py','outbound_base_lab')
 frontier=load(SCRIPT/'trade_decision'/'negotiation_frontier.py','outbound_frontier')
+oe=load(SCRIPT/'opportunity_engine'/'application.py','outbound_oe')
 
 class FakeBase:
     DATA=Path('/fake/data')
@@ -96,5 +97,21 @@ assert classified['negotiation_frontier']['bucket'] in {'ACTIONABLE_NEGOTIATION'
 # Outbound frontier coordinate must describe the requested return, not the
 # fixed focal asset being shopped: 4000 + 2500 = 6500.
 assert classified['negotiation_frontier']['package_market_value_coordinate']==6500.0
+
+# Portfolio structural compatibility must understand the full incoming package.
+other={
+    'channel':'TRADE','seller_user_id':'other','target':catalog['player:YOUNG'],
+    'outgoing':[catalog['pick:1']],
+}
+assert oe._compatible(row,other) is False
+independent={
+    'channel':'TRADE','seller_user_id':'other','target':{
+        'asset_id':'player:Z','asset_type':'player','player_id':'Z','name':'Z'
+    },
+    'outgoing':[{
+        'asset_id':'pick:2','asset_type':'pick','name':'2029 2nd'
+    }],
+}
+assert oe._compatible(row,independent) is True
 
 print('Opportunity Engine outbound future-value regression passed')
