@@ -7,6 +7,15 @@ on:
       - 'script/trade_decision/negotiation_frontier.py'
       - 'script/opportunity_engine/application_v21.py'
       - 'script/render_opportunity_engine_report.py'
+      - 'script/audit_contender_state_utility_calibration.py'
+      - '.github/workflows/opportunity-engine-full-production-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'script/trade_decision/negotiation_frontier.py'
+      - 'script/opportunity_engine/application_v21.py'
+      - 'script/render_opportunity_engine_report.py'
+      - 'script/audit_contender_state_utility_calibration.py'
       - '.github/workflows/opportunity-engine-full-production-validation.yml'
   workflow_dispatch:
 
@@ -28,7 +37,8 @@ jobs:
           python -m py_compile \
             script/opportunity_engine/application_v21.py \
             script/trade_decision/negotiation_frontier.py \
-            script/render_opportunity_engine_report.py
+            script/render_opportunity_engine_report.py \
+            script/audit_contender_state_utility_calibration.py
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
       - name: Refresh governed inputs
@@ -44,6 +54,10 @@ jobs:
           python script/render_opportunity_engine_report.py \
             --input /tmp/oe-full/opportunity-board.json \
             --output /tmp/oe-full/Opportunity_Engine_Report.md
+          python script/audit_contender_state_utility_calibration.py \
+            --input /tmp/oe-full/opportunity-board.json \
+            --output /tmp/oe-full/contender-state-utility-audit.json \
+            --markdown /tmp/oe-full/Contender_State_Utility_Audit.md
       - name: Validate full production output
         run: |
           python - <<'PY'
@@ -67,6 +81,12 @@ jobs:
                   assert f.get('counterparty_bilateral_viable') is True
                   assert float(f.get('focal_team_improvement_utility') or 0)>0
           assert Path('/tmp/oe-full/Opportunity_Engine_Report.md').stat().st_size > 800
+          audit=json.load(open('/tmp/oe-full/contender-state-utility-audit.json'))
+          assert audit['trade_case_count'] > 0
+          assert audit['conclusion']['coefficient_change_supported_by_this_audit'] is False
+          assert any(x['state_weight_sensitivity']=='ELITE_CONTENDER_DEPENDENT' for x in audit['cases'])
+          assert any(x['state_weight_sensitivity']=='ROBUST_ACROSS_CONTENDER_AND_ELITE' for x in audit['cases'])
+          assert Path('/tmp/oe-full/Contender_State_Utility_Audit.md').stat().st_size > 500
           print(json.dumps({
               'best_move': (b.get('best_move_available') or {}).get('description'),
               'best_actionable_trade': (b.get('best_actionable_trade') or {}).get('description'),
