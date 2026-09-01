@@ -221,6 +221,31 @@ def install(base_dl):
         def total(rows, key):
             return sum(float(x.get(key) or 0.0) for x in rows)
 
+        relevant_rows = sent_rows + rec_rows
+
+        def explicitly_authorized(row, row_key, pick_key=None):
+            value = row.get(row_key)
+            if value is True:
+                return True
+            if value is False:
+                return False
+            if pick_key and row.get("asset_type") == "pick":
+                return (row.get("pick_profile") or {}).get(pick_key) is True
+            return False
+
+        incremental_channel_authorization = {
+            "current": True,
+            "future": True,
+            "liquidity": any(
+                explicitly_authorized(x, "liquidity_incremental_value_authorized", "liquidity_incremental_value_authorized")
+                for x in relevant_rows
+            ),
+            "resilience": any(
+                explicitly_authorized(x, "resilience_incremental_value_authorized")
+                for x in relevant_rows
+            ),
+        }
+
         baseline_team_market_redraft = sum(float((x or {}).get("market_redraft") or 0.0) for x in baseline_map.values())
         post_team_market_redraft = sum(float((x or {}).get("market_redraft") or 0.0) for x in post_map.values())
 
@@ -237,6 +262,11 @@ def install(base_dl):
             "strategic_value_delta": round(_weighted_total(rec_rows, "strategic") - _weighted_total(sent_rows, "strategic"), 2),
             "optionality_value_delta": round(_weighted_total(rec_rows, "optionality") - _weighted_total(sent_rows, "optionality"), 2),
             "resilience_value_delta": round(_weighted_total(rec_rows, "resilience") - _weighted_total(sent_rows, "resilience"), 2),
+            "incremental_channel_authorization": incremental_channel_authorization,
+            "incremental_channel_authorization_policy": (
+                "liquidity/resilience require explicit residual-value authorization; "
+                "unauthorized channels are diagnostic-only and cannot consume final utility weight"
+            ),
             "composite_channels_diagnostic_only": ["strategic_value_delta", "break_glass_delta"],
             "objective_state": weight_resolution["state"],
             "objective_weights": weight_resolution["weights"],
