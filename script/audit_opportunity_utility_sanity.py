@@ -139,6 +139,49 @@ def extract(result):
     }
 
 
+def _production_metrics(row):
+    attr = row.get("decision_attribution") or {}
+    strategic = ((row.get("simulation") or {}).get("strategic") or {})
+    channels = {x.get("channel"): x for x in (attr.get("channels") or [])}
+    current = float((channels.get("current") or {}).get("primitive_value") or 0.0)
+    redraft = float(strategic.get("market_redraft_delta") or 0.0)
+    return {
+        "current_primitive": current,
+        "current_primitive_to_abs_redraft_delta": (
+            current / abs(redraft) if abs(redraft) > 1e-12 else None
+        ),
+    }
+
+
+def _percentile_rank(value, values):
+    vals = sorted(float(x) for x in values if x is not None)
+    if not vals or value is None:
+        return None
+    return sum(1 for x in vals if x <= float(value)) / len(vals)
+
+
+def production_context(rows, selected):
+    viable = [
+        r for r in rows
+        if float(r.get("team_improvement_score") or 0.0) > 0
+        and float(r.get("counterparty_shared_decision_utility_score") or -1e18) >= 0
+    ]
+    universe = [_production_metrics(r) for r in viable]
+    selected_metrics = _production_metrics(selected)
+    return {
+        "mutually_positive_trade_count": len(viable),
+        "current_primitive_percentile_among_mutually_positive": _percentile_rank(
+            selected_metrics["current_primitive"],
+            [x["current_primitive"] for x in universe],
+        ),
+        "current_primitive_to_abs_redraft_delta_percentile_among_mutually_positive": _percentile_rank(
+            selected_metrics["current_primitive_to_abs_redraft_delta"],
+            [x["current_primitive_to_abs_redraft_delta"] for x in universe],
+        ),
+        "production_metrics": selected_metrics,
+    }
+
+
 def apply_posture(extracted, weight_resolution, posture):
     resolved = posture_policy.resolve(weight_resolution, posture, state_weighting)
     raw = resolved.get("active_weights") or {}
@@ -250,6 +293,7 @@ def main():
             "production_description": row.get("description"),
             "production_focal_utility": row.get("team_improvement_score"),
             "production_counterparty_utility": row.get("counterparty_shared_decision_utility_score"),
+            "production_context": production_context(rows, row),
             "postures": {},
         }
         base_seed_runs = []
