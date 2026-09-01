@@ -42,6 +42,7 @@ def _run_team_improvement(args, raw_output: Path):
         "--waiver-screen", str(args.waiver_screen),
         "--confirm-top", str(args.confirm_top),
         "--trade-packages-per-target", str(args.trade_packages_per_target),
+        "--strategic-posture", str(getattr(args, "strategic_posture", "AUTO")),
         "--seed", str(args.seed),
         "--output", str(raw_output),
     ]
@@ -115,7 +116,7 @@ def _evaluate_bundle(evaluator, candidates, indices, screen_sims):
 def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
                                   beam_width=8, simulations=500,
                                   confirm_simulations=5000, confirm_top=3,
-                                  seed=20260821, limit=5):
+                                  seed=20260821, limit=5, strategic_posture="AUTO"):
     """Beam-search compatible 2..N move bundles; GM3 evaluates every bundle."""
     candidates = [
         copy.deepcopy(x)
@@ -133,7 +134,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
         }
 
     screen_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=int(simulations), seed=int(seed)
+        str(focus_user_id), simulations=int(simulations), seed=int(seed),
+        strategic_posture=strategic_posture,
     )
     all_screened = []
     current_level = []
@@ -187,7 +189,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
     finalists = all_screened[: min(max(1, int(confirm_top)), len(all_screened))]
     confirm_count = int(confirm_simulations) if int(confirm_simulations) > int(simulations) else int(simulations)
     confirm_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=confirm_count, seed=int(seed)
+        str(focus_user_id), simulations=confirm_count, seed=int(seed),
+        strategic_posture=strategic_posture,
     )
     confirmed = []
     for row in finalists:
@@ -251,7 +254,7 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
     }
 
 
-def _robustness(rows, focus_user_id, simulations, seeds):
+def _robustness(rows, focus_user_id, simulations, seeds, strategic_posture='AUTO'):
     rows = list(rows or [])
     seeds = list(seeds or [])
     if not rows or not seeds or int(simulations) <= 0:
@@ -259,7 +262,8 @@ def _robustness(rows, focus_user_id, simulations, seeds):
     samples = []
     for seed in seeds:
         evaluator = gm3_team_improvement.portfolio_evaluator(
-            str(focus_user_id), simulations=int(simulations), seed=int(seed)
+            str(focus_user_id), simulations=int(simulations), seed=int(seed),
+            strategic_posture=strategic_posture,
         )
         result = evaluator.evaluate(rows)
         sim = result.get("simulation") or {}
@@ -317,6 +321,7 @@ def build_board(source, args, trade_reviews):
         confirm_simulations=args.portfolio_confirm_sims,
         confirm_top=args.portfolio_confirm_top,
         seed=args.seed,
+        strategic_posture=getattr(args, "strategic_posture", "AUTO"),
     )
     best_portfolio_rows = portfolio.pop("_best_source_rows", [])
     best_single = (source.get("top_cross_channel_options") or [None])[0]
@@ -324,8 +329,8 @@ def build_board(source, args, trade_reviews):
     board["model_version"] = MODEL_VERSION
     board["portfolio_optimization"] = portfolio
     board["robustness"] = {
-        "best_single_step": _robustness([best_single] if best_single else [], args.focus_user_id, args.robustness_sims, robustness_seeds),
-        "best_portfolio": _robustness(best_portfolio_rows, args.focus_user_id, args.robustness_sims, robustness_seeds),
+        "best_single_step": _robustness([best_single] if best_single else [], args.focus_user_id, args.robustness_sims, robustness_seeds, getattr(args, "strategic_posture", "AUTO")),
+        "best_portfolio": _robustness(best_portfolio_rows, args.focus_user_id, args.robustness_sims, robustness_seeds, getattr(args, "strategic_posture", "AUTO")),
         "common_random_number_seed_family": robustness_seeds,
         "used_for_primary_ranking": False,
     }
@@ -382,6 +387,7 @@ def main():
     ap.add_argument("--trade-review-search-depth", type=int, default=60)
     ap.add_argument("--robustness-seeds", type=int, default=0)
     ap.add_argument("--robustness-sims", type=int, default=500)
+    ap.add_argument("--strategic-posture", default="AUTO")
     ap.add_argument("--seed", type=int, default=20260821)
     args = ap.parse_args()
 
