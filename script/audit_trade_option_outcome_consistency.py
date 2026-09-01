@@ -26,15 +26,17 @@ def main():
     m=load()
     current=row(368.52,23.95,.224,.032,.029,dynasty=-891,liquidity=-871.27,strategic=61.69,accept='MEDIUM')
 
-    # Exact discovered pathology: a much higher composite score cannot rescue an
-    # option that is worse on every competitive outcome and overall franchise impact.
+    # Shared Decision Utility is the single economic ordering authority. Raw
+    # Simulator outcomes remain frontier diagnostics and must not receive a
+    # second independent vote after already contributing to Shared Utility.
     bad=row(1471.40,6.65,.144,.013,.024,dynasty=644.7,liquidity=-40.11,strategic=-174.48,accept='VERY_LOW')
     comp=m.compare(bad,current)
     assert comp['post_sim_score_delta_vs_current_offer']>1000,comp
-    assert comp['post_sim_score_role']=='DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE',comp
+    assert comp['post_sim_score_role']=='COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE',comp
     assert comp['competitive_relation_vs_current_offer']=='DOMINATED_BY_CURRENT_OFFER',comp
-    assert comp['decision_relation_vs_current_offer']=='DOMINATED_BY_CURRENT_OFFER',comp
-    assert comp['verdict_vs_current_offer']=='WORSE',comp
+    assert comp['decision_relation_vs_current_offer']=='DOMINATES_CURRENT_OFFER',comp
+    assert comp['verdict_vs_current_offer']=='BETTER',comp
+    assert comp['raw_simulator_frontier_metrics_have_independent_final_vote'] is False,comp
     assert comp['unsupported_numeric_score_cutoff_used'] is False,comp
 
     # Acceptance fit is Behavioral Intelligence only. LOW fit must not change a
@@ -48,13 +50,13 @@ def main():
     assert action=='SHOP_BEFORE_ACCEPTING',(action,basis)
     assert basis=='BETTER_MARKET_ALTERNATIVE_EXISTS_FEASIBILITY_REPORTED_SEPARATELY',(action,basis)
 
-    # Conflicting dimensions are MIXED without any magnitude cliff. Better football
-    # outcomes but worse overall franchise impact are a tradeoff, not categorically better.
+    # Conflicting primitive dimensions are resolved inside Shared Decision
+    # Utility; Trade Decision does not recreate a second multi-axis economic score.
     mixed=row(5000,40,.45,.06,.05,dynasty=1500,liquidity=900,strategic=-100,accept='HIGH')
     mixed_comp=m.compare(mixed,current)
     assert mixed_comp['competitive_relation_vs_current_offer']=='DOMINATES_CURRENT_OFFER',mixed_comp
-    assert mixed_comp['decision_relation_vs_current_offer']=='TRADEOFF_VS_CURRENT_OFFER',mixed_comp
-    assert mixed_comp['verdict_vs_current_offer']=='MIXED',mixed_comp
+    assert mixed_comp['decision_relation_vs_current_offer']=='DOMINATES_CURRENT_OFFER',mixed_comp
+    assert mixed_comp['verdict_vs_current_offer']=='BETTER',mixed_comp
 
     # A genuinely dominant option remains BETTER independent of score magnitude.
     tiny_score_edge=row(368.53,30,.30,.04,.035,dynasty=-850,liquidity=-850,strategic=70,accept='MEDIUM')
@@ -91,16 +93,16 @@ def main():
     assert counter_eq['simulation']['focus_delta']==current_eq['simulation']['focus_delta']
     eq_comp=m.compare(counter_eq,current_eq)
     assert eq_comp['competitive_relation_vs_current_offer']=='EQUIVALENT_TO_CURRENT_OFFER',eq_comp
-    assert eq_comp['verdict_vs_current_offer']=='BETTER',eq_comp
+    assert eq_comp['verdict_vs_current_offer']=='WORSE',eq_comp
     assert counter_eq['simulation']['competitive_outcomes_reused_from_equivalent_player_transaction'] is True
 
     print({
       'status':'PASS',
       'unsupported_750_threshold_removed':True,
-      'dominated_high_score_verdict':'WORSE',
+      'dominated_raw_simulator_but_higher_shared_utility_verdict':'BETTER',
       'low_fit_can_remain_analytically_better':True,
       'acceptance_fit_separate_from_trade_quality':True,
-      'mixed_tradeoffs_preserved':True,
+      'primitive_tradeoffs_resolved_once_inside_shared_utility':True,
       'tiny_score_edge_can_be_better_when_decision_outputs_dominate':True,
       'continuous_state_cliff_removed':True,
     })
