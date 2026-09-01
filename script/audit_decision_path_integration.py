@@ -167,9 +167,14 @@ def main():
             and "post_sim_score_is_shared_decision_utility_compatibility_alias" in trade_v20
         ),
         "trade_final_authority_does_not_use_legacy_strategic_composite": (
-            '"shared_decision_utility_score",' in trade_gov
-            and '"strategic_value_delta",' not in trade_gov.split("DECISION_OUTPUTS =", 1)[1].split(")", 1)[0]
+            'DECISION_OUTPUTS = ("shared_decision_utility_score",)' in trade_gov
+            and '"strategic_value_delta"' not in trade_gov.split("DECISION_OUTPUTS =", 1)[1].split("FRONTIER_DIAGNOSTIC_OUTPUTS", 1)[0]
             and 'metric(current, "shared_decision_utility_score")' in trade_gov
+        ),
+        "trade_simulator_primitives_do_not_receive_second_final_vote": (
+            'DECISION_OUTPUTS = ("shared_decision_utility_score",)' in trade_gov
+            and "FRONTIER_DIAGNOSTIC_OUTPUTS" in trade_gov
+            and '"raw_simulator_frontier_metrics_have_independent_final_vote": False' in trade_gov
         ),
         "roster_interaction_overlay_cannot_reprice_shared_utility": (
             'strategic["roster_interaction_weighted_delta"] = weighted' in roster_interaction_overlay
@@ -268,6 +273,7 @@ def main():
             "roster_interaction_duplicate_value_path": True,
             "independent_age_scarcity_injury_addend": True,
             "superseded_trade_composite_final_authority": True,
+            "shared_utility_primitive_second_vote": True,
             "behavioral_evidence_leaking_into_trade_value": True,
             "silent_trade_facade_fallback": True,
             "opportunity_search_heuristic_final_authority": True,
