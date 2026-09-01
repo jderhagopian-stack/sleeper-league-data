@@ -15,6 +15,7 @@ import argparse
 import copy
 import itertools
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -491,7 +492,8 @@ def _summarize_trade_decision(report):
 
 
 def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
-                            confirm_sims=50000, search_depth=60, seed=20260821):
+                            confirm_sims=50000, search_depth=60, seed=20260821,
+                            strategic_posture="AUTO"):
     """Route leading generated trade candidates through authoritative Trade Decision."""
     if int(depth) <= 0:
         return []
@@ -517,7 +519,10 @@ def review_trade_candidates(source, focus_user_id, depth=1, quick_sims=200,
                 "--seed", str(int(seed)),
                 "--output", str(result_path),
             ]
-            subprocess.run(cmd, cwd=ROOT, check=True)
+            env = dict(os.environ)
+            env["FSFFL_STRATEGIC_POSTURE"] = str(strategic_posture or "AUTO")
+            env["FSFFL_STRATEGIC_POSTURE_USER_ID"] = str(focus_user_id)
+            subprocess.run(cmd, cwd=ROOT, check=True, env=env)
             report = load_json(result_path)
         reviews.append({
             "source_opportunity_description": row.get("description"),
