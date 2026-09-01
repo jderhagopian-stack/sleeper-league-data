@@ -39,7 +39,8 @@ jobs:
             script/test_negotiation_price_frontier.py \
             script/test_opportunity_engine_price_search.py \
             script/test_opportunity_engine_outbound.py \
-            script/test_focal_utility_stability.py
+            script/test_focal_utility_stability.py \
+            script/test_opportunity_specialist_views.py
       - name: Run fast architecture/composition regressions
         run: |
           python script/test_opportunity_engine.py
@@ -48,6 +49,7 @@ jobs:
           python script/test_opportunity_engine_price_search.py
           python script/test_opportunity_engine_outbound.py
           python script/test_focal_utility_stability.py
+          python script/test_opportunity_specialist_views.py
       - name: Build full projection universe
         run: python script/build_fsffl_full_projection_universe.py
       - name: Run live Opportunity Engine 2.3 executable-opportunity slice
@@ -119,6 +121,9 @@ jobs:
           assert b['policy']['portfolio_search_excludes_simulation_sensitive_focal_utility'] is True
           assert b['capability_status']['focal_utility_sign_stability_confirmation'] is True
           assert b['capability_status']['simulation_sensitive_trade_watchlist'] is True
+          assert b['capability_status']['specialist_view_routing_status'] is True
+          assert b['policy']['specialist_views_require_actionability'] is False
+          assert b['policy']['specialist_views_create_recommendation_authority'] is False
           stability=b['focal_utility_stability_confirmation']
           assert stability.get('enabled') in {True,False}
           if stability.get('rows'):
@@ -159,6 +164,11 @@ jobs:
               assert td['recommended_next_action'] in {'OPEN_NEGOTIATION','EXPLORE_PRICE','DO_NOT_PURSUE_AT_EXPECTED_COST'}
               assert td['generated_proposal_semantics_applied'] is True
               assert td['underlying_trade_decision_action'] in {'ACCEPT_NOW','ACCEPT','COUNTER_CURRENT_OFFEROR','SHOP_BEFORE_ACCEPTING','DECLINE'}
+          views=b.get('specialized_views') or {}
+          for row in views.values():
+              if row:
+                  assert row.get('specialist_view_is_recommendation') is False
+                  assert row.get('opportunity_routing_status')
           assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
           for row in b.get('simulation_sensitive_trade_watchlist') or []:
               st=row.get('focal_utility_stability_confirmation') or {}
