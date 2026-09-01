@@ -116,7 +116,11 @@ jobs:
               assert row.get('projection_source_model')=='FSFFL-Full-Projection-Universe-1.0'
               features=((row.get('simulation') or {}).get('simulator_features') or {})
               assert features.get('decision_lab_projection_override_used') is True
-              assert int(features.get('decision_lab_projection_player_count') or 0)==int(r['projection_universe']['coverage']['final_projection_players'])
+              n=int(features.get('decision_lab_projection_player_count') or 0)
+              native=int(r['projection_universe']['coverage']['native_projection_players'])
+              full=int(r['projection_universe']['coverage']['final_projection_players'])
+              assert native <= n <= full
+              assert features.get('decision_lab_unrelated_full_universe_players_added') is False
           pdf=Path('/tmp/team-improvement/GM_Action_Report.pdf')
           assert pdf.exists() and pdf.stat().st_size > 2500
           reader=PdfReader(str(pdf))
