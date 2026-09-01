@@ -147,7 +147,8 @@ synthetic=[{
     'replacement_resilience_score':0.9,
     'fragility_dependency_score':0.9,
     'depth_insurance_score':0.2,
-    'final_shared_utility_resilience_basis':'depth_insurance_only',
+    'final_shared_utility_resilience_basis':'simulator_availability_already_authoritative',
+    'resilience_incremental_value_authorized':False,
 }]
 assert stateaware._weighted_total(synthetic,'liquidity')==0.0
-assert stateaware._weighted_total(synthetic,'resilience')==200.0
+assert stateaware._weighted_total(synthetic,'resilience')==0.0
