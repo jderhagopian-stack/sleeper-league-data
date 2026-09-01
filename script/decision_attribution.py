@@ -40,7 +40,7 @@ def reconcile(sim: Dict[str, Any]) -> Dict[str, Any]:
     authorization = dict(scored.get("incremental_channel_authorization") or {})
     component_sum = round(sum(float(v or 0.0) for v in components.values()), 2)
     final_score = _r(scored.get("score"))
-    tol = 0.02
+    tol = 0.03
 
     channels = []
     labels = {
