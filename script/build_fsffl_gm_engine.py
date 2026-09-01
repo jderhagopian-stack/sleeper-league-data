@@ -4568,7 +4568,7 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
 
         prelim = []
         for n in (1,2,3):
-                for combo in itertools.combinations(outgoing_candidates, n):
+            for combo in itertools.combinations(outgoing_candidates, n):
                 seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
                 if seller_eff <= 0:
                     continue
