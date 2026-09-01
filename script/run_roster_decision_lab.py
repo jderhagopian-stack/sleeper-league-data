@@ -682,6 +682,7 @@ def main():
             "simulator_model_version": baseline.get("model_version"),
             "execution_path": "cached_lineups_plus_touched_team_reoptimization",
             "teams_reoptimized": reoptimized_rids,
+            "hypothetical_simulator_features": copy.deepcopy(hypothetical.get("features") or {}),
             "default_latency_target": "under_2_minutes",
         },
         "requested_actions": requested_actions,
