@@ -4519,50 +4519,11 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
     top_value = [x[0] for x in sorted(scored_holdings, key=lambda z:z[1], reverse=True)[:10]]
     top_movable = [x[0] for x in sorted(scored_holdings, key=lambda z:z[2], reverse=True)[:14]]
 
-    # Preserve the legacy 18-asset package universe exactly as a computational
-    # baseline, then augment it specifically with missing draft-pick geometry.
-    # This avoids the combinatorial explosion of putting every pick into every
-    # possible three-asset combination while still ensuring picks can serve as
-    # the fine-adjustment instruments needed for price discovery.
-    legacy_candidates = []
+    outgoing_candidates = []
     for aid in top_value + top_movable:
-        if aid not in legacy_candidates:
-            legacy_candidates.append(aid)
-    legacy_candidates = legacy_candidates[:18]
-    pick_candidates = [
-        aid for aid in holdings
-        if not str(aid).startswith("player:") and safe_float(vals.get(uid, {}).get(aid)) > 0
-    ]
-    legacy_player_candidates = [
-        aid for aid in legacy_candidates if str(aid).startswith("player:")
-    ]
-
-    candidate_combos = []
-    seen_candidate_combos = set()
-    def add_candidate_combo(combo):
-        key = tuple(sorted(str(x) for x in combo))
-        if not key or key in seen_candidate_combos:
-            return
-        seen_candidate_combos.add(key)
-        candidate_combos.append(tuple(combo))
-
-    # Full legacy package space: behavior retained from the prior production
-    # search so this change cannot silently remove previously reachable deals.
-    for n in (1, 2, 3):
-        for combo in itertools.combinations(legacy_candidates, n):
-            add_candidate_combo(combo)
-
-    # Full pick-only curve and one-player-plus-picks packages provide dense,
-    # realistic negotiation increments without brute-forcing all player triples
-    # against every newly included pick.
-    for n in (1, 2, 3):
-        for combo in itertools.combinations(pick_candidates, n):
-            add_candidate_combo(combo)
-    for player_aid in legacy_player_candidates:
-        for pick_aid in pick_candidates:
-            add_candidate_combo((player_aid, pick_aid))
-        for pick_pair in itertools.combinations(pick_candidates, 2):
-            add_candidate_combo((player_aid,) + pick_pair)
+        if aid not in outgoing_candidates:
+            outgoing_candidates.append(aid)
+    outgoing_candidates = outgoing_candidates[:18]
 
     target_screen = []
     for aid, meta in ctx["player_meta"].items():
@@ -4606,37 +4567,38 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
         motivation = _u_seller_motivation(seller_uid, target_aid, ctx, profile_by_uid)
 
         prelim = []
-        for combo in candidate_combos:
-            seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
-            if seller_eff <= 0:
-                continue
-            static_ratio = seller_eff / max(seller_exit_static,1.0)
+        for n in (1,2,3):
+                for combo in itertools.combinations(outgoing_candidates, n):
+                seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
+                if seller_eff <= 0:
+                    continue
+                static_ratio = seller_eff / max(seller_exit_static,1.0)
 
-            focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
-            focal_static_surplus = focal_value - safe_float(focal_exit.get("adjusted_exit_cost"))
+                focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
+                focal_static_surplus = focal_value - safe_float(focal_exit.get("adjusted_exit_cost"))
 
-            # Broader screen retained for replacement-rich packages.
-            # Price discovery must be able to walk beyond the legacy balanced-package
-            # window. Keep the lower sanity bound so empty/non-credible returns do
-            # not explode the search, but do not discard stronger packages merely
-            # because they exceed the old 1.35 static-ratio discovery window.
-            if static_ratio < 0.68:
-                continue
-            fairness = 1.0 - min(abs(1.0-static_ratio),0.40)/0.40
-            prelim_score = (
-                0.45 * (focal_static_surplus/max(focal_value,1.0))
-                + 0.22 * fairness
-                + 0.18 * need
-                + 0.15 * motivation
-            )
-            prelim.append({
-                "combo": combo,
-                "seller_effective": seller_eff,
-                "seller_pkg": seller_pkg,
-                "static_ratio": static_ratio,
-                "focal_static_surplus": focal_static_surplus,
-                "prelim_score": prelim_score,
-            })
+                # Broader screen retained for replacement-rich packages.
+                # Price discovery must be able to walk beyond the legacy balanced-package
+                # window. Keep the lower sanity bound so empty/non-credible returns do
+                # not explode the search, but do not discard stronger packages merely
+                # because they exceed the old 1.35 static-ratio discovery window.
+                if static_ratio < 0.68:
+                    continue
+                fairness = 1.0 - min(abs(1.0-static_ratio),0.40)/0.40
+                prelim_score = (
+                    0.45 * (focal_static_surplus/max(focal_value,1.0))
+                    + 0.22 * fairness
+                    + 0.18 * need
+                    + 0.15 * motivation
+                )
+                prelim.append({
+                    "combo": combo,
+                    "seller_effective": seller_eff,
+                    "seller_pkg": seller_pkg,
+                    "static_ratio": static_ratio,
+                    "focal_static_surplus": focal_static_surplus,
+                    "prelim_score": prelim_score,
+                })
 
         prelim.sort(key=lambda x:(x["focal_static_surplus"]>=0,x["prelim_score"]), reverse=True)
         packages = []
