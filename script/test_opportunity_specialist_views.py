@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Regression tests for governed specialist-view preservation."""
-from opportunity_engine.application_v21 import _preserve_specialized_views, _trade_signature
+from opportunity_engine.application_v21 import _annotate_price_frontier_routing, _preserve_specialized_views, _trade_signature
 
 base_trade={
     "channel":"TRADE",
@@ -43,3 +43,28 @@ assert w["v"]["opportunity_routing_status"]=="ACTIONABLE"
 assert w["v"]["specialist_view_is_recommendation"] is False
 
 print("Specialist view preservation regressions passed")
+
+
+frontier={
+    "target_price_frontiers":[{
+        "status":"ACTIONABLE_PRICE_OVERLAP",
+        "price_overlap_exists":True,
+        "opening_package":{
+            "description":base_trade["description"],
+            "seller_user_id":base_trade["seller_user_id"],
+            "target":base_trade["target"],
+            "outgoing":base_trade["outgoing"],
+            "incoming":[],
+            "focal_team_improvement_utility":500.0,
+            "counterparty_shared_utility":10.0,
+        },
+    }],
+    "policy":{},
+}
+overlay=_annotate_price_frontier_routing(frontier,set(),{sig})
+pf=overlay["target_price_frontiers"][0]
+assert pf["trade_decision_price_frontier_status"]=="ACTIONABLE_PRICE_OVERLAP"
+assert pf["opportunity_routing_status"]=="SIMULATION_SENSITIVE"
+assert pf["opportunity_engine_price_frontier_status"]=="SIMULATION_SENSITIVE_PRICE_OVERLAP"
+assert overlay["policy"]["opportunity_routing_overlay_changes_trade_decision_price_frontier_authority"] is False
+assert overlay["policy"]["simulation_sensitive_opening_packages_are_not_presented_as_actionable"] is True
