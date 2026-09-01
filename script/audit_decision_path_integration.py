@@ -137,6 +137,12 @@ def main():
             and "same_simulation_same_shared_utility_as_focal" in ti
             and "counterparty_decision_attribution" in ti
         ),
+        "trade_buyer_utility_uses_symmetric_title_externality": (
+            "buyer_utility_uses_symmetric_opponent_title_externality" in trade_v16
+            and '"buyer_championship_probability_delta": round(opponent_title_gain, 5)' in trade_v16
+            and '"net_title_equity_swing_against_focus": round(buyer_net_swing, 5)' in trade_v16
+            and '"net_title_equity_swing_against_focus": 0.0' not in trade_v16
+        ),
         "direct_trade_buyer_uses_symmetric_title_externality": (
             "buyer_utility_uses_symmetric_opponent_title_externality" in trade_v16
             and '"net_title_equity_swing_against_focus": round(buyer_net_swing, 5)' in trade_v16
@@ -234,6 +240,7 @@ def main():
         "ci_guards": {
             "major_authorized_utility_block_always_zero": True,
             "focal_counterparty_authority_mismatch": True,
+            "focal_counterparty_title_semantics_mismatch": True,
             "direct_trade_buyer_title_externality_asymmetry": True,
             "report_decision_value_reconciliation": True,
             "unauthorized_duplicate_channel_weight": True,
