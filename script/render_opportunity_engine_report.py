@@ -33,6 +33,39 @@ def render(board):
     ]
 
     best = board.get("best_move_available") or {}
+    actionable = board.get("best_actionable_trade") or {}
+    explore = board.get("best_trade_to_explore") or {}
+    price_gaps = board.get("high_impact_price_gap_targets") or []
+    lines += [
+        "",
+        "## PURSUE NOW",
+        line_for(actionable) if actionable else "No trade currently clears both sides of the governed price frontier.",
+        "",
+        "## EXPLORE PRICE",
+        line_for(explore) if explore else "No incomplete-but-economically-viable negotiation frontier is currently promoted.",
+        "",
+        "## PRICE GAP TOO WIDE",
+    ]
+    if price_gaps:
+        for pf in price_gaps[:6]:
+            target=pf.get("target") or {}
+            floor=pf.get("seller_clearing_floor") or {}
+            ceiling=pf.get("rational_focal_ceiling") or {}
+            lines.append(
+                f"- **{target.get('name') or target.get('asset_id') or 'Target'}:** "
+                f"our ceiling: {ceiling.get('description') or 'none found'}; "
+                f"seller floor: {floor.get('description') or 'not found'}."
+            )
+    else:
+        lines.append("No material price-gap target identified.")
+    lines += ["", "## WHAT TO DO NEXT"]
+    if actionable:
+        lines.append(f"Open negotiations around {line_for(actionable)}")
+    elif explore:
+        lines.append(f"Continue price discovery on {line_for(explore)}")
+    else:
+        lines.append("Do not force a trade. Continue scanning realistic alternatives and re-run price discovery as values or rosters change.")
+
     review = best.get("trade_decision_review") or {}
     if review:
         lines += [
@@ -159,7 +192,7 @@ def render(board):
                 f"{td.get('recommended_next_action') or 'REVIEW'}"
             )
     else:
-        lines.append("Trade Decision routing was disabled for this run.")
+        lines.append("No actionable generated trade required Trade Decision routing in this run.")
 
     config = board.get("search_configuration") or {}
     if config:
