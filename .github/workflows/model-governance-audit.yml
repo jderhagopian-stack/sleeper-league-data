@@ -22,6 +22,7 @@ jobs:
           python script/audit_empirical_readiness.py
           python script/audit_pick_outcome_readiness.py
           python script/audit_decision_path_integrity.py
+          python script/audit_decision_path_integration.py
           python script/audit_transaction_evidence_readiness.py
           python script/audit_projection_calibration_readiness.py
           python script/audit_market_value_adjustments.py
@@ -77,6 +78,17 @@ jobs:
           assert d['summary']['threshold_free_option_governance'] is True
           assert d['summary']['final_score_overlap_ablation_required'] is True
           assert d['summary']['behavioral_predictive_holdout_detected'] is False
+
+          di=json.load(open('data/audit/decision_path_integration_audit.json'))
+          assert di['summary']['passed'] is True
+          assert di['summary']['failure_count']==0
+          assert all(di['findings'].values())
+          assert di['findings']['unauthorized_channels_cannot_consume_weight'] is True
+          assert di['findings']['opponent_title_externality_changes_current_primitive'] is True
+          assert di['findings']['focal_and_counterparty_use_same_shared_authority'] is True
+          assert di['findings']['trade_final_authority_does_not_use_legacy_strategic_composite'] is True
+          assert di['findings']['roster_direct_path_uses_state_aware_shared_utility'] is True
+          assert di['findings']['attribution_reconciles_exact_authoritative_math'] is True
 
           t=json.load(open('data/audit/transaction_evidence_readiness_audit.json'))
           assert t['policy']['current_market_value_backfill_for_historical_package_fit_forbidden'] is True
@@ -182,6 +194,7 @@ jobs:
           print(json.dumps(p['summary'],indent=2))
           print(json.dumps(p['finding'],indent=2))
           print(json.dumps(d['summary'],indent=2))
+          print(json.dumps(di['summary'],indent=2))
           print(json.dumps(t['summary'],indent=2))
           print(json.dumps(q['finding'],indent=2))
           print(json.dumps(m['findings'],indent=2))
