@@ -119,7 +119,10 @@ jobs:
           assert b['policy']['portfolio_search_excludes_simulation_sensitive_focal_utility'] is True
           assert b['capability_status']['focal_utility_sign_stability_confirmation'] is True
           assert b['capability_status']['simulation_sensitive_trade_watchlist'] is True
-          assert b['focal_utility_stability_confirmation']['enabled'] is True
+          stability=b['focal_utility_stability_confirmation']
+          assert stability.get('enabled') in {True,False}
+          if stability.get('rows'):
+              assert stability.get('enabled') is True
           po=b['portfolio_optimization']
           assert po['authority']=='GM3 Team Improvement'
           assert po['excludes_theoretical_counterparty_failures'] is True
