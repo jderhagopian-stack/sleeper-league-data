@@ -165,6 +165,20 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         dl, simmod, baseline_lineups, hypothetical_rosters, touched,
         league, users, players, projections
     )
+    metadata_expected = 0
+    metadata_missing = []
+    for rid in reoptimized:
+        for week, rows in (hypothetical_lineups.get(rid) or {}).items():
+            for row in rows or []:
+                pid = str(row.get("player_id") or "")
+                if not pid:
+                    continue
+                meta = (players or {}).get(pid) or {}
+                team = meta.get("team") or meta.get("team_abbr")
+                if team:
+                    metadata_expected += 1
+                    if not row.get("nfl_team"):
+                        metadata_missing.append({"roster_id": rid, "week": week, "player_id": pid})
     hyp = dl.simulate_from_lineups(
         simmod, league, hypothetical_rosters, users, raw_schedule,
         hypothetical_lineups, sims, seed
@@ -204,6 +218,11 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         "roster_resolution": roster_resolution,
         "roster_resolution_model_version": "FSFFL-Roster-Aware-Trade-Resolution-1.4",
         "teams_reoptimized": reoptimized,
+        "simulator_runtime_metadata": {
+            "reoptimized_lineup_nfl_team_metadata_expected_rows": metadata_expected,
+            "reoptimized_lineup_nfl_team_metadata_missing_rows": len(metadata_missing),
+            "reoptimized_lineup_nfl_team_metadata_complete": len(metadata_missing) == 0,
+        },
         "league_reference": league_reference,
         "focus_before": b,
         "focus_after": h,
