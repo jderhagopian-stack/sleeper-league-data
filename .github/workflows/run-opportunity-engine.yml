@@ -184,12 +184,12 @@ jobs:
               assert int(b['portfolio_optimization'].get('candidate_bundles_evaluated') or 0) >= 0
               if int(b['portfolio_optimization'].get('candidate_bundles_evaluated') or 0) == 0:
                   assert b['portfolio_optimization'].get('best_portfolio') is None
-          if int(os.environ['TRADE_REVIEW_DEPTH']) > 0 and b.get('best_trade_opportunity'):
+          if int(os.environ['TRADE_REVIEW_DEPTH']) > 0 and (b.get('best_actionable_trade') or b.get('best_trade_to_explore')):
               assert b['trade_decision_reviews']
               for x in b['trade_decision_reviews']:
                   assert x['authority']=='Trade Decision'
                   assert x['trade_decision']['generated_proposal_willingness_observed'] is False
-          print('Opportunity Engine 2.1 governed production validation passed')
+          print('Opportunity Engine 2.2 governed production validation passed')
           PY
       - name: Validate standardized PDF deliverable
         if: always()
