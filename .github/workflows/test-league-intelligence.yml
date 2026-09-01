@@ -1,0 +1,68 @@
+name: League Intelligence Architecture
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/league-intelligence-analytics-terminal.md'
+      - 'script/league_intelligence/**'
+      - 'script/gm3/team_context.py'
+      - 'script/gm3/team_improvement.py'
+      - 'script/test_gm3_team_context.py'
+      - 'script/test_league_intelligence_contract.py'
+      - 'script/test_league_intelligence_terminal.py'
+      - 'reports/league_intelligence/**'
+      - '.github/workflows/test-league-intelligence.yml'
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Simulator dependency
+        run: python -m pip install --disable-pip-version-check numpy
+      - name: Validate governed view contracts
+        run: python script/test_league_intelligence_contract.py
+      - name: Validate read-only application and Player Value rankings
+        run: python script/test_league_intelligence_terminal.py
+      - name: Validate governed GM3 team-context publisher
+        run: python script/test_gm3_team_context.py
+      - name: Render reviewable first slice
+        run: |
+          python script/gm3/team_context.py \
+            --focus-user-id 846634401482792960 \
+            --simulations 50 \
+            --limit 2 \
+            --output /tmp/hurts-so-good-team-context.json
+          python script/league_intelligence/application.py \
+            --focus-user-id 846634401482792960 \
+            --team-context /tmp/hurts-so-good-team-context.json \
+            --output /tmp/league-intelligence-terminal.json \
+            --markdown-output /tmp/player-value-rankings.md
+          grep -q 'FSFFL Player Value & Rankings Terminal' /tmp/player-value-rankings.md
+          grep -q 'Model-versus-market ranking: unavailable' /tmp/player-value-rankings.md
+          grep -q 'Team-relative player context' /tmp/player-value-rankings.md
+          grep -q 'League positional strength heat map' /tmp/player-value-rankings.md
+          grep -q 'Trade-partner intelligence' /tmp/player-value-rankings.md
+      - name: Verify no new valuation authority is declared
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path('script').resolve()))
+          from league_intelligence.contract import FORBIDDEN_OPERATIONS, first_release_contracts
+          contracts=first_release_contracts()
+          assert contracts
+          for c in contracts:
+              assert 'new_valuation_model' in c.forbidden_operations
+              assert 'new_cross_channel_utility' in c.forbidden_operations
+              assert 'new_trade_acceptance_probability' in c.forbidden_operations
+              assert 'new_simulation_model' in c.forbidden_operations
+              assert set(c.forbidden_operations) == FORBIDDEN_OPERATIONS
+          print('League Intelligence authority boundaries preserved')
+          PY
