@@ -114,6 +114,9 @@ jobs:
               assert row.get('waiver_discovery_source')=='canonical_full_projection_universe_scale_free_multilane'
               assert row.get('pre_screen_weighted_score_used') is False
               assert row.get('projection_source_model')=='FSFFL-Full-Projection-Universe-1.0'
+              features=((row.get('simulation') or {}).get('simulator_features') or {})
+              assert features.get('decision_lab_projection_override_used') is True
+              assert int(features.get('decision_lab_projection_player_count') or 0)==int(r['projection_universe']['coverage']['final_projection_players'])
           pdf=Path('/tmp/team-improvement/GM_Action_Report.pdf')
           assert pdf.exists() and pdf.stat().st_size > 2500
           reader=PdfReader(str(pdf))
