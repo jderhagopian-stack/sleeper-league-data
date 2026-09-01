@@ -6,6 +6,8 @@ on:
     paths:
       - 'script/trade_decision/negotiation_frontier.py'
       - 'script/opportunity_engine/application_v21.py'
+      - 'script/opportunity_engine/focal_utility_stability.py'
+      - 'script/test_focal_utility_stability.py'
       - 'script/render_opportunity_engine_report.py'
       - 'script/audit_contender_state_utility_calibration.py'
       - 'script/strategic_posture.py'
@@ -50,13 +52,16 @@ jobs:
         run: |
           python -m py_compile \
             script/opportunity_engine/application_v21.py \
+            script/opportunity_engine/focal_utility_stability.py \
             script/trade_decision/negotiation_frontier.py \
             script/render_opportunity_engine_report.py \
             script/audit_contender_state_utility_calibration.py \
             script/strategic_posture.py \
             script/test_strategic_posture.py \
-            script/test_opportunity_engine_outbound.py
+            script/test_opportunity_engine_outbound.py \
+            script/test_focal_utility_stability.py
           python script/test_strategic_posture.py
+          python script/test_focal_utility_stability.py
           python script/test_opportunity_engine_outbound.py
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
@@ -91,6 +96,8 @@ jobs:
             --price-frontier-targets 4 \
             --price-frontier-packages-per-target 6 \
             --portfolio-depth 0 \
+            --actionability-stability-seeds 2 \
+            --actionability-stability-sims 30 \
             --trade-review-depth 0 \
             --output /tmp/oe-full/posture-smoke.json
           python - <<'PY'
@@ -117,7 +124,7 @@ jobs:
           import json
           from pathlib import Path
           b=json.load(open('/tmp/oe-full/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.3'
           assert b['team_name']=='Hurts So Good'
           posture=b.get('strategic_posture') or {}
           assert posture.get('selected_posture')=='AUTO'
@@ -128,6 +135,13 @@ jobs:
           assert b['policy']['outbound_future_value_search_creates_new_utility'] is False
           assert b['policy']['outbound_future_value_candidates_require_shared_utility_recheck'] is True
           assert b['capability_status']['outbound_future_value_trade_search'] is True
+          assert b['capability_status']['focal_utility_sign_stability_confirmation'] is True
+          assert b['capability_status']['simulation_sensitive_trade_watchlist'] is True
+          assert b['policy']['focal_utility_sign_stability_creates_new_utility'] is False
+          assert b['policy']['focal_utility_sign_stability_uses_fixed_margin_threshold'] is False
+          assert b['policy']['simulation_sensitive_focal_utility_can_be_headline_action'] is False
+          assert b['policy']['portfolio_search_excludes_simulation_sensitive_focal_utility'] is True
+          assert b['focal_utility_stability_confirmation']['enabled'] is True
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['policy']['near_frontier_watchlist_creates_new_trade_value'] is False
           assert b['policy']['near_frontier_watchlist_creates_acceptance_probability'] is False
@@ -142,6 +156,11 @@ jobs:
                   f=row.get('negotiation_frontier') or {}
                   assert f.get('counterparty_bilateral_viable') is True
                   assert float(f.get('focal_team_improvement_utility') or 0)>0
+                  st=row.get('focal_utility_stability_confirmation') or {}
+                  assert st.get('confirmed_for_headline_action') is True
+          for row in b.get('simulation_sensitive_trade_watchlist') or []:
+              st=row.get('focal_utility_stability_confirmation') or {}
+              assert st.get('confirmed_for_headline_action') is False
           assert Path('/tmp/oe-full/Opportunity_Engine_Report.md').stat().st_size > 800
           audit=json.load(open('/tmp/oe-full/contender-state-utility-audit.json'))
           assert audit['trade_case_count'] > 0
