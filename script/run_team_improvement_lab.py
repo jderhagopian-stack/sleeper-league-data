@@ -261,15 +261,30 @@ def trade_candidates(focus_uid: str, catalog: Dict[str, Dict[str, Any]], limit: 
 
 
 def trade_actions(focus_uid: str, row: Dict[str, Any]):
-    seller = row["seller_user_id"]
-    outgoing = row["outgoing"]
-    target = row["target"]
+    """Translate a governed trade row into canonical actions.
+
+    Legacy acquisition rows use one target plus an outgoing package. Generalized
+    rows may instead expose an explicit incoming package, which supports
+    outbound/future-value discovery without creating a second trade contract.
+    """
+    counterparty = str(row.get("counterparty_user_id") or row.get("seller_user_id") or "")
+    if not counterparty:
+        raise ValueError("Trade candidate missing counterparty")
+    outgoing = list(row.get("outgoing") or [])
+    incoming = list(row.get("incoming") or [])
+    if not incoming:
+        target = row.get("target") or {}
+        if target:
+            incoming = [target]
+    if not outgoing or not incoming:
+        raise ValueError("Trade candidate must include outgoing and incoming assets")
     return [
-        {"type": "trade", "from_user_id": str(focus_uid), "to_user_id": seller,
-         "players": [x["player_id"] for x in outgoing if x.get("asset_type") == "player"],
-         "picks": [x["asset_id"] for x in outgoing if x.get("asset_type") == "pick"]},
-        {"type": "trade", "from_user_id": seller, "to_user_id": str(focus_uid),
-         "players": [target["player_id"]], "picks": []},
+        {"type": "trade", "from_user_id": str(focus_uid), "to_user_id": counterparty,
+         "players": [x["player_id"] for x in outgoing if x.get("asset_type") == "player" and x.get("player_id") is not None],
+         "picks": [x["asset_id"] for x in outgoing if x.get("asset_type") == "pick" and x.get("asset_id")]},
+        {"type": "trade", "from_user_id": counterparty, "to_user_id": str(focus_uid),
+         "players": [x["player_id"] for x in incoming if x.get("asset_type") == "player" and x.get("player_id") is not None],
+         "picks": [x["asset_id"] for x in incoming if x.get("asset_type") == "pick" and x.get("asset_id")]},
     ]
 
 
@@ -305,8 +320,12 @@ def waiver_actions(focus_uid: str, row: Dict[str, Any]):
 
 def describe(row):
     if row["channel"] == "TRADE":
-        sent = " + ".join(x["name"] for x in row["outgoing"])
-        return f"Trade {sent} for {row['target']['name']}"
+        sent = " + ".join(x["name"] for x in (row.get("outgoing") or []))
+        incoming = list(row.get("incoming") or [])
+        if not incoming and row.get("target"):
+            incoming = [row["target"]]
+        received = " + ".join(x["name"] for x in incoming)
+        return f"Trade {sent} for {received}"
     if row["channel"] == "WAIVER":
         sim = row.get("simulation") or {}; res = (sim.get("roster_resolution") or {}).get(str(row.get("focus_user_id"))) or {}
         cuts = [x.get("name") for x in res.get("selected_cuts") or []]
