@@ -34,7 +34,7 @@ class FakeBase:
             'price_frontier_candidate_packages':[
                 {'focal_outgoing_asset_ids':['pick:A'],'decision_score':10.0,'seller_strategic_utility':-5.0,'focal_strategic_utility':10.0,'acceptance_fit_score':0.9,'recommendation_band':'seller_underpaid','package_market_value_coordinate':10.0},
                 {'focal_outgoing_asset_ids':['pick:B'],'decision_score':8.0,'seller_strategic_utility':-1.0,'focal_strategic_utility':6.0,'acceptance_fit_score':0.7,'recommendation_band':'seller_underpaid','package_market_value_coordinate':20.0},
-                {'focal_outgoing_asset_ids':['pick:C'],'decision_score':5.0,'seller_strategic_utility':1.0,'focal_strategic_utility':3.0,'acceptance_fit_score':0.6,'recommendation_band':'negotiation_candidate','package_market_value_coordinate':30.0},
+                {'focal_outgoing_asset_ids':['pick:C'],'decision_score':5.0,'seller_strategic_utility':-0.5,'focal_strategic_utility':3.0,'acceptance_fit_score':0.6,'recommendation_band':'seller_underpaid','package_market_value_coordinate':30.0},
                 {'focal_outgoing_asset_ids':['pick:D'],'decision_score':-2.0,'seller_strategic_utility':4.0,'focal_strategic_utility':-1.0,'acceptance_fit_score':0.6,'recommendation_band':'focal_overpay_or_bad_timing','package_market_value_coordinate':40.0},
             ],
         }]}
@@ -46,12 +46,14 @@ catalog={
     'pick:C':{'asset_id':'pick:C','asset_type':'pick','name':'C','market_dynasty':30.0},
     'pick:D':{'asset_id':'pick:D','asset_type':'pick','name':'D','market_dynasty':40.0},
 }
-lab._targeted_price_curves=lambda base,focus_uid,target_asset_ids,package_budget:{
-    'player:T':{
-        'target_asset_id':'player:T',
-        'price_frontier_candidate_packages':FakeBase.team_doc('focus','trade_opportunities')['opportunities'][0]['price_frontier_candidate_packages'],
-    }
-}
+def fake_targeted(base,focus_uid,target_asset_ids,package_budget):
+    curve=[dict(x) for x in FakeBase.team_doc('focus','trade_opportunities')['opportunities'][0]['price_frontier_candidate_packages']]
+    for x in curve:
+        if x['focal_outgoing_asset_ids']==['pick:C']:
+            x['seller_strategic_utility']=1.0
+            x['recommendation_band']='negotiation_candidate'
+    return {'player:T':{'target_asset_id':'player:T','price_frontier_candidate_packages':curve}}
+lab._targeted_price_curves=fake_targeted
 rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1,frontier_packages_per_target=4)
 sigs={tuple(x['outgoing'][0]['asset_id'] for _ in [0]) for x in rows}
 assert ('pick:C',) in sigs, 'seller-clearing transition must survive expansion'
