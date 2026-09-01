@@ -124,12 +124,28 @@ def score(sim: Dict[str, Any]) -> Dict[str, Any]:
         )
 
     required = ("current", "future", "liquidity", "resilience")
-    w = {k: max(0.0, sf(weights.get(k))) for k in required}
+    authorization = s.get("incremental_channel_authorization") or {}
+    active = {
+        "current": True,
+        "future": True,
+        "liquidity": bool(authorization.get("liquidity", True)),
+        "resilience": bool(authorization.get("resilience", True)),
+    }
+    raw_weights = {k: max(0.0, sf(weights.get(k))) for k in required}
+    suppressed_weight = {
+        k: raw_weights[k] if not active[k] else 0.0
+        for k in required
+    }
+    w = {
+        k: (raw_weights[k] if active[k] else 0.0)
+        for k in required
+    }
     total_weight = sum(w.values())
     if total_weight <= 0:
-        raise RuntimeError("Shared decision utility received non-positive objective weights")
-    # Normalize the governed weights themselves in case a calibration artifact
-    # carries harmless rounding drift.
+        raise RuntimeError("Shared decision utility received non-positive authorized objective weights")
+    # Structural de-duplication rule: a channel explicitly disabled by the
+    # governing strategic profile cannot consume objective-weight mass. The
+    # remaining governed weights are renormalized; no new coefficient is fit.
     w = {k: v / total_weight for k, v in w.items()}
 
     blocks = primitive_blocks(sim)
@@ -142,6 +158,13 @@ def score(sim: Dict[str, Any]) -> Dict[str, Any]:
         "primitive_blocks": {k: round(sf(blocks[k]), 2) for k in required},
         "diagnostics": blocks["diagnostics"],
         "objective_weights": {k: round(v, 6) for k, v in w.items()},
+        "objective_weights_before_channel_authorization": {
+            k: round(v, 6) for k, v in raw_weights.items()
+        },
+        "incremental_channel_authorization": active,
+        "suppressed_unauthorized_objective_weight": {
+            k: round(v, 6) for k, v in suppressed_weight.items() if v > 0
+        },
         "model_version": MODEL_VERSION,
         "scale_status": "DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS",
         "negotiation_plausibility_incremental_weight": 0.0,
