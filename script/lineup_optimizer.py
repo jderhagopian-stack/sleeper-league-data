@@ -17,7 +17,13 @@ MODEL_VERSION = "FSFFL-Lineup-Optimizer-1.0"
 
 
 def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projections):
-    """Exact max-weight legal lineup assignment via slot-mask DP."""
+    """Exact max-weight legal lineup assignment via the canonical Simulator when available."""
+    canonical = getattr(simmod, "optimize_fsffl_fast", None)
+    if callable(canonical):
+        # Preserve Simulator-only runtime metadata (notably nfl_team) used by
+        # same-team correlation and opponent adjustments. The fallback below
+        # exists only for compatibility with older/synthetic simulator modules.
+        return canonical(roster, week, league, players, projections)
     candidates = []
     taxi = set(roster.get("taxi") or [])
     for pid in roster.get("players") or []:
