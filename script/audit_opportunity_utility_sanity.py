@@ -21,6 +21,8 @@ import statistics
 from pathlib import Path
 
 from gm3 import team_improvement as gm3
+import gm_state_weighting as state_weighting
+import strategic_posture as posture_policy
 
 CASE_SPECS = [
     {
@@ -137,6 +139,25 @@ def extract(result):
     }
 
 
+def apply_posture(extracted, weight_resolution, posture):
+    resolved = posture_policy.resolve(weight_resolution, posture, state_weighting)
+    raw = resolved.get("active_weights") or {}
+    current_w = max(0.0, float(raw.get("current") or 0.0))
+    future_w = max(0.0, float(raw.get("future") or 0.0))
+    total = current_w + future_w
+    if total <= 0:
+        raise RuntimeError("Posture produced non-positive authorized current/future weight")
+    current_w /= total
+    future_w /= total
+    out = copy.deepcopy(extracted)
+    out["posture"] = posture
+    out["authorized_current_weight"] = current_w
+    out["authorized_future_weight"] = future_w
+    out["score"] = current_w * float(out["current_primitive"]) + future_w * float(out["future_primitive"])
+    out["objective_weights"] = copy.deepcopy(resolved.get("active_weights") or {})
+    return out
+
+
 def summarize_seed_runs(runs):
     scores = [x["score"] for x in runs]
     signs = {1 if x > 0 else -1 if x < 0 else 0 for x in scores}
@@ -231,19 +252,27 @@ def main():
             "production_counterparty_utility": row.get("counterparty_shared_decision_utility_score"),
             "postures": {},
         }
+        base_seed_runs = []
+        weight_resolution = None
+        for seed in seeds:
+            evaluator = gm3.portfolio_evaluator(
+                str(args.focus_user_id),
+                simulations=int(args.simulations),
+                seed=int(seed),
+                strategic_posture="AUTO",
+            )
+            result = evaluator.evaluate([row])
+            extracted = extract(result)
+            extracted["seed"] = seed
+            base_seed_runs.append(extracted)
+            if weight_resolution is None:
+                sim = result.get("simulation") or {}
+                strategic = sim.get("strategic") or {}
+                weight_resolution = copy.deepcopy(strategic.get("weight_resolution") or {})
+        if not weight_resolution:
+            raise RuntimeError(f"Missing governed weight resolution for {spec['id']}")
         for posture in postures:
-            seed_rows = []
-            for seed in seeds:
-                evaluator = gm3.portfolio_evaluator(
-                    str(args.focus_user_id),
-                    simulations=int(args.simulations),
-                    seed=int(seed),
-                    strategic_posture=posture,
-                )
-                result = evaluator.evaluate([row])
-                extracted = extract(result)
-                extracted["seed"] = seed
-                seed_rows.append(extracted)
+            seed_rows = [apply_posture(x, weight_resolution, posture) for x in base_seed_runs]
             case["postures"][posture] = {
                 "runs": seed_rows,
                 "summary": summarize_seed_runs(seed_rows),
@@ -265,6 +294,8 @@ def main():
         ),
         "owner_intuition_used_as_fitted_target": False,
         "new_utility_created": False,
+        "simulator_rerun_per_posture": False,
+        "posture_reweighting_uses_existing_governed_weights": True,
     }
     Path(args.output).write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
     if args.markdown:
