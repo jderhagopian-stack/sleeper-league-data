@@ -75,6 +75,8 @@ jobs:
           assert decision['recommendation']['authority']=='Shared Decision Utility / GM3 Team Improvement'
           assert decision['recommendation']['no_independent_roster_decision_score_created'] is True
           assert decision['recommendation'].get('pareto_diagnostic')
+          assert decision.get('roster_resolution')
+          assert all(x.get('roster_legal') is True for x in decision['roster_resolution'].values())
           assert arch['principles']['raw_model_output_is_source_of_truth'] is True
           assert arch['principles']['chatgpt_reads_raw_output_not_pdf'] is True
           assert arch['principles']['pdf_is_presentation_only'] is True
