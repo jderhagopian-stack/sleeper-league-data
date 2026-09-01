@@ -175,8 +175,12 @@ jobs:
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['capability_status']['discrete_price_frontier'] is True
           assert b['capability_status']['progressive_price_frontier_search'] is True
+          assert b['capability_status']['targeted_adaptive_price_discovery'] is True
           assert b['policy']['theoretical_packages_can_occupy_actionable_ranking'] is False
           assert b['policy']['non_positive_focal_utility_can_occupy_actionable_ranking'] is False
+          assert b['policy']['targeted_adaptive_price_discovery_creates_new_utility'] is False
+          assert b['policy']['targeted_adaptive_price_discovery_creates_new_trade_value'] is False
+          assert b['policy']['targeted_adaptive_price_discovery_package_economics_owned_by_gm3'] is True
           assert int(b['search_configuration']['price_frontier_packages_per_target']) >= 18
           if not b.get('best_actionable_trade') and not b.get('best_trade_to_explore'):
               assert b.get('best_trade_opportunity') is None
