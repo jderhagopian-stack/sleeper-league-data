@@ -38,6 +38,11 @@ on:
         required: false
         default: '16'
         type: string
+      price_frontier_packages_per_target:
+        description: 'Packages sampled densely around each target price frontier'
+        required: false
+        default: '18'
+        type: string
       portfolio_depth:
         description: 'Top governed single-step moves eligible for adaptive bundle search'
         required: false
@@ -97,6 +102,7 @@ jobs:
       WAIVER_SCREEN: ${{ inputs.waiver_screen || '50' }}
       TRADE_PACKAGES_PER_TARGET: ${{ inputs.trade_packages_per_target || '12' }}
       PRICE_FRONTIER_TARGETS: ${{ inputs.price_frontier_targets || '16' }}
+      PRICE_FRONTIER_PACKAGES_PER_TARGET: ${{ inputs.price_frontier_packages_per_target || '18' }}
       PORTFOLIO_DEPTH: ${{ inputs.portfolio_depth || '15' }}
       PORTFOLIO_MAX_MOVES: ${{ inputs.portfolio_max_moves || '3' }}
       PORTFOLIO_BEAM_WIDTH: ${{ inputs.portfolio_beam_width || '10' }}
@@ -131,6 +137,7 @@ jobs:
             --waiver-screen "$WAIVER_SCREEN" \
             --trade-packages-per-target "$TRADE_PACKAGES_PER_TARGET" \
             --price-frontier-targets "$PRICE_FRONTIER_TARGETS" \
+            --price-frontier-packages-per-target "$PRICE_FRONTIER_PACKAGES_PER_TARGET" \
             --confirm-top '15' \
             --portfolio-depth "$PORTFOLIO_DEPTH" \
             --portfolio-max-moves "$PORTFOLIO_MAX_MOVES" \
@@ -170,6 +177,9 @@ jobs:
           assert b['capability_status']['progressive_price_frontier_search'] is True
           assert b['policy']['theoretical_packages_can_occupy_actionable_ranking'] is False
           assert b['policy']['non_positive_focal_utility_can_occupy_actionable_ranking'] is False
+          assert int(b['search_configuration']['price_frontier_packages_per_target']) >= 18
+          if not b.get('best_actionable_trade') and not b.get('best_trade_to_explore'):
+              assert b.get('best_trade_opportunity') is None
           nf=b.get('negotiation_frontier') or {}
           assert nf.get('authority')=='Trade Decision'
           assert nf.get('policy',{}).get('price_frontier_uses_discrete_evaluated_packages') is True
