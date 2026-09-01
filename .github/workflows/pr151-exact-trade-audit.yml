@@ -1,0 +1,182 @@
+name: PR151 Exact Trade Audit
+on:
+  push:
+    branches: [audit-pr151-exact-trades]
+    paths:
+      - '.github/workflows/pr151-exact-trade-audit.yml'
+
+jobs:
+  exact-trade-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime dependencies
+        run: python -m pip install numpy
+      - name: Build full fantasy-relevant projection universe
+        run: python script/build_fsffl_full_projection_universe.py
+      - name: Refresh Behavioral Intelligence cache
+        run: python script/refresh_behavioral_intelligence_v3.py
+      - name: Rebuild governed GM3 trade opportunity curves
+        run: python script/build_fsffl_gm30.py
+      - name: Evaluate exact PR151 sanity trades and bilateral curves
+        run: |
+          python - <<'PY'
+          import copy, importlib.util, json, sys
+          from pathlib import Path
+
+          ROOT=Path('.').resolve()
+          SCRIPT=ROOT/'script'
+          sys.path.insert(0,str(SCRIPT))
+          FOCUS='846634401482792960'
+          SEED=20260821
+          SIMS=500
+
+          def load(path,name):
+              spec=importlib.util.spec_from_file_location(name,path)
+              mod=importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(mod)
+              return mod
+
+          v16=load(SCRIPT/'run_team_improvement_lab_v16.py','pr151_v16')
+          base=v16.load_base()
+          base.MODEL_VERSION=v16.MODEL_VERSION
+          utility=base.load_module(SCRIPT/'decision_utility.py','pr151_utility')
+          dl=base.load_module(SCRIPT/'run_roster_decision_lab.py','pr151_dl')
+          stateaware=base.load_module(SCRIPT/'decision_lab_state_aware.py','pr151_stateaware')
+          dl=stateaware.install(dl)
+          lineupopt=base.load_module(SCRIPT/'lineup_optimizer.py','pr151_lineup')
+          rosteraware=base.load_module(SCRIPT/'roster_aware_trade.py','pr151_roster')
+          model_inputs=dl.load_model_inputs()
+          simmod,league,rosters,users,players,season,projections,raw_schedule=model_inputs
+          baseline_lineups=dl.load_cached_lineups(season)
+          baseline=dl.simulate_from_lineups(simmod,league,rosters,users,raw_schedule,baseline_lineups,SIMS,SEED)
+          players_catalog,picks_catalog=base.asset_catalog()
+          catalog={**players_catalog,**picks_catalog}
+
+          engine=base.load_module(SCRIPT/'build_fsffl_gm_engine.py','pr151_engine')
+          override=base.load_module(SCRIPT/'nonprojection_high_priority_overrides.py','pr151_override')
+          override.install(engine)
+
+          def actions_for(target,outgoing):
+              seller=str(target['owner_user_id'])
+              return [
+                  {'type':'trade','from_user_id':FOCUS,'to_user_id':seller,
+                   'players':[x['player_id'] for x in outgoing if x.get('asset_type')=='player'],
+                   'picks':[x['asset_id'] for x in outgoing if x.get('asset_type')=='pick']},
+                  {'type':'trade','from_user_id':seller,'to_user_id':FOCUS,
+                   'players':[target['player_id']],'picks':[]},
+              ]
+
+          def evaluate(target,outgoing,label,market_coordinate=None):
+              sim=v16.simulate_actions_protect_add(
+                  base,dl,lineupopt,rosteraware,model_inputs,baseline_lineups,baseline,
+                  FOCUS,actions_for(target,outgoing),SIMS,SEED
+              )
+              focal=utility.score(sim)
+              cp=utility.score(sim['counterparty'])
+              return {
+                  'label':label,
+                  'target':target['name'],
+                  'seller_user_id':target['owner_user_id'],
+                  'outgoing':[x['name'] for x in outgoing],
+                  'outgoing_asset_ids':[x['asset_id'] for x in outgoing],
+                  'package_market_value_coordinate':market_coordinate if market_coordinate is not None else sum(float(x.get('market_dynasty') or 0) for x in outgoing),
+                  'focal_shared_utility':float(focal['score']),
+                  'seller_shared_utility':float(cp['score']),
+                  'focal_utility_attribution':focal,
+                  'seller_utility_attribution':cp,
+                  'focal_delta':sim['focus_delta'],
+                  'seller_delta':sim['counterparty']['focus_delta'],
+                  'focal_strategic':sim['strategic'],
+                  'seller_strategic':sim['counterparty']['strategic'],
+                  'simulation_count':SIMS,
+              }
+
+          exact_specs=[
+              ('Lamar alone for Chase Brown','player:9224',['player:4881']),
+              ('Darnold + 2028 Mid 1st for Jahmyr Gibbs','player:9221',['player:4943','pick:2028:R1:orig10']),
+          ]
+          exact=[]
+          for label,tid,aids in exact_specs:
+              exact.append(evaluate(catalog[tid],[catalog[a] for a in aids],label))
+
+          curves={}
+          for tid in ['player:9224','player:9221']:
+              target=catalog[tid]
+              payload=engine.build_targeted_trade_price_curves(FOCUS,[tid],max_packages_per_target=24)
+              target_payload=next((x for x in (payload.get('targets') or []) if x.get('target_asset_id')==tid),{})
+              pkgs=list(target_payload.get('price_frontier_candidate_packages') or [])
+              rows=[]
+              seen=set()
+              for i,pkg in enumerate(pkgs,1):
+                  aids=[str(x) for x in (pkg.get('focal_outgoing_asset_ids') or [])]
+                  if not aids or any(a not in catalog for a in aids):
+                      continue
+                  key=tuple(sorted(aids))
+                  if key in seen: continue
+                  seen.add(key)
+                  rows.append(evaluate(
+                      target,[catalog[a] for a in aids],
+                      f"targeted package {i}",
+                      float(pkg.get('package_market_value_coordinate') or 0)
+                  ))
+              rows.sort(key=lambda x:(x['package_market_value_coordinate'],x['focal_shared_utility']))
+              overlaps=[x for x in rows if x['focal_shared_utility']>0 and x['seller_shared_utility']>=0]
+              seller_clear=[x for x in rows if x['seller_shared_utility']>=0]
+              focal_positive=[x for x in rows if x['focal_shared_utility']>0]
+              curves[target['name']]={
+                  'evaluated_package_count':len(rows),
+                  'price_overlap_exists':bool(overlaps),
+                  'seller_clearing_floor':min(seller_clear,key=lambda x:x['package_market_value_coordinate']) if seller_clear else None,
+                  'rational_focal_ceiling':max(focal_positive,key=lambda x:x['package_market_value_coordinate']) if focal_positive else None,
+                  'mutually_beneficial_packages':overlaps,
+                  'rows':rows,
+              }
+
+          out={
+              'focus_user_id':FOCUS,
+              'simulation_count_per_package':SIMS,
+              'utility_model':'FSFFL-Shared-Decision-Utility-2.0',
+              'bilateral_same_utility_model':True,
+              'exact_tests':exact,
+              'targeted_curves':curves,
+          }
+          Path('/tmp/pr151-exact').mkdir(parents=True,exist_ok=True)
+          Path('/tmp/pr151-exact/results.json').write_text(json.dumps(out,indent=2,sort_keys=True))
+          print(json.dumps({
+              'exact_tests':[{
+                  'label':x['label'],
+                  'focal_shared_utility':x['focal_shared_utility'],
+                  'seller_shared_utility':x['seller_shared_utility'],
+                  'focal_delta':x['focal_delta'],
+                  'seller_delta':x['seller_delta'],
+              } for x in exact],
+              'curve_summary':{
+                  k:{
+                      'evaluated_package_count':v['evaluated_package_count'],
+                      'price_overlap_exists':v['price_overlap_exists'],
+                      'seller_clearing_floor':None if not v['seller_clearing_floor'] else {
+                          'outgoing':v['seller_clearing_floor']['outgoing'],
+                          'focal_shared_utility':v['seller_clearing_floor']['focal_shared_utility'],
+                          'seller_shared_utility':v['seller_clearing_floor']['seller_shared_utility'],
+                      },
+                      'rational_focal_ceiling':None if not v['rational_focal_ceiling'] else {
+                          'outgoing':v['rational_focal_ceiling']['outgoing'],
+                          'focal_shared_utility':v['rational_focal_ceiling']['focal_shared_utility'],
+                          'seller_shared_utility':v['rational_focal_ceiling']['seller_shared_utility'],
+                      },
+                  } for k,v in curves.items()
+              }
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr151-exact-trade-audit
+          path: /tmp/pr151-exact/results.json
+          retention-days: 14
