@@ -79,6 +79,11 @@ jobs:
           assert all(x.get('roster_legal') is True for x in decision['roster_resolution'].values())
           assert decision['projection_input_coverage']['coverage_complete'] is True
           assert decision['projection_input_coverage']['missing_player_ids']==[]
+          aug=decision['projection_input_coverage'].get('projection_augmentation') or {}
+          assert aug.get('unrelated_full_universe_players_added',False) is False
+          hf=(decision.get('simulation') or {}).get('hypothetical_simulator_features') or {}
+          assert hf.get('decision_lab_projection_override_used') is True
+          assert hf.get('decision_lab_unrelated_full_universe_players_added') is False
           assert arch['principles']['raw_model_output_is_source_of_truth'] is True
           assert arch['principles']['chatgpt_reads_raw_output_not_pdf'] is True
           assert arch['principles']['pdf_is_presentation_only'] is True
