@@ -45,7 +45,12 @@ class PortfolioEvaluator:
         if not actions:return {'team_improvement_score':0.0,'simulation':{'focus_delta':{k:0.0 for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']},'strategic':{'market_dynasty_delta':0.0,'base_franchise_value_delta':0.0,'break_glass_delta':0.0}},'actions':[]}
         sim=self.current.simulate_actions_protect_add(self.base,self.dl,self.lineupopt,self.rosteraware,self._inputs_with_waiver_projections(rows),self.baseline_lineups,self.baseline,self.focus_user_id,actions,self.simulations,self.seed)
         attribution=self.base.load_module(SCRIPT/'decision_attribution.py','gm3_portfolio_decision_attribution').reconcile(sim)
-        return {'team_improvement_score':self.base.unified_score(self.focus_user_id,sim),'simulation':sim,'decision_attribution':attribution,'actions':sim.get('effective_actions') or actions,'source_rows':rows,'authority':'GM3 Team Improvement','shared_decision_utility':'FSFFL-Shared-Decision-Utility-2.0','bundle_simulation_source':'current Team Improvement implementation via stable GM3 facade'}
+        out={'team_improvement_score':self.base.unified_score(self.focus_user_id,sim),'simulation':sim,'decision_attribution':attribution,'actions':sim.get('effective_actions') or actions,'source_rows':rows,'authority':'GM3 Team Improvement','shared_decision_utility':'FSFFL-Shared-Decision-Utility-2.0','bundle_simulation_source':'current Team Improvement implementation via stable GM3 facade'}
+        counterparty=(sim or {}).get('counterparty')
+        if counterparty:
+            out['counterparty_shared_decision_utility_score']=self.base.unified_score(self.focus_user_id,counterparty)
+            out['counterparty_shared_decision_utility_source']='same_simulation_same_shared_utility_as_focal'
+        return out
 
     def evaluate_player_context(self,player_id):
         """Publish GM3-owned marginal roster context for one player.
