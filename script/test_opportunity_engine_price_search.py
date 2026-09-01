@@ -86,3 +86,50 @@ sample=lab._price_frontier_sample(curve,8,FakeBase.sf)
 coords={int(x['package_market_value_coordinate']) for x in sample}
 assert {5,6,7}.issubset(coords), 'seller zero-crossing neighborhood must receive dense coverage'
 assert {7,8,9}.issubset(coords), 'focal zero-crossing neighborhood must receive dense coverage'
+
+
+# Team Improvement v1.6 must preserve the league reference required by the
+# Shared Decision Utility current-outcome block, and must expose the seller
+# perspective from the same simulation.
+class SimBase(FakeBase):
+    @staticmethod
+    def fast_reoptimize(*args,**kwargs): return ({},['focus','seller'])
+    @staticmethod
+    def team_index(payload): return {str(x['user_id']):x for x in payload['teams']}
+    @staticmethod
+    def delta(a,b): return float(b)-float(a)
+
+class FakeDL:
+    @staticmethod
+    def apply_actions(rosters,actions): return (rosters,[])
+    @staticmethod
+    def touched_users(focus_uid,actions): return ['focus','seller']
+    @staticmethod
+    def simulate_from_lineups(*args,**kwargs):
+        return {'teams':[
+            {'user_id':'focus','expected_wins':8.0,'expected_points_for':1500.0,'playoff_probability':0.70,'bye_probability':0.20,'championship_probability':0.15},
+            {'user_id':'seller','expected_wins':6.0,'expected_points_for':1400.0,'playoff_probability':0.50,'bye_probability':0.10,'championship_probability':0.08},
+        ]}
+    @staticmethod
+    def strategic_summary(uid,actions):
+        return {'objective_weights':{'current':0.4,'future':0.3,'liquidity':0.15,'resilience':0.15}}
+
+class FakeRosterAware:
+    @staticmethod
+    def legalize_trade_rosters(*args,**kwargs): return (args[2],{},[])
+
+baseline={'teams':[
+    {'user_id':'focus','expected_wins':7.0,'expected_points_for':1400.0,'playoff_probability':0.60,'bye_probability':0.10,'championship_probability':0.10},
+    {'user_id':'seller','expected_wins':7.0,'expected_points_for':1450.0,'playoff_probability':0.60,'bye_probability':0.15,'championship_probability':0.12},
+]}
+mi=(object(),{},[],[],{},'2026',{}, {})
+sim=lab.simulate_actions_protect_add(
+    SimBase(),FakeDL(),object(),FakeRosterAware(),mi,{},baseline,'focus',
+    [{'type':'trade','from_user_id':'focus','to_user_id':'seller','players':[],'picks':['pick:A']}],
+    100,1,
+)
+assert sim['league_reference']['team_count']==2
+assert sim['league_reference']['expected_wins_mean']==7.0
+assert sim['counterparty_user_id']=='seller'
+assert sim['counterparty']['focus_delta']['expected_wins']==-1.0
+assert sim['counterparty']['league_reference']==sim['league_reference']
