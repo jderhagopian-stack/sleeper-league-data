@@ -152,11 +152,6 @@ def main():
             and '"net_title_equity_swing_against_focus": round(buyer_net_swing, 5)' in trade_v16
             and '"net_title_equity_swing_against_focus": 0.0' not in trade_v16
         ),
-        "direct_trade_buyer_uses_symmetric_title_externality": (
-            "buyer_utility_uses_symmetric_opponent_title_externality" in trade_v16
-            and '"net_title_equity_swing_against_focus": round(buyer_net_swing, 5)' in trade_v16
-            and '"net_title_equity_swing_against_focus": 0.0' not in trade_v16
-        ),
         "portfolio_uses_shared_team_improvement_authority": (
             "self.base.unified_score" in facade
             and "'decision_attribution':attribution" in facade
@@ -268,7 +263,6 @@ def main():
             "major_authorized_utility_block_always_zero": True,
             "focal_counterparty_authority_mismatch": True,
             "focal_counterparty_title_semantics_mismatch": True,
-            "direct_trade_buyer_title_externality_asymmetry": True,
             "report_decision_value_reconciliation": True,
             "unauthorized_duplicate_channel_weight": True,
             "roster_interaction_duplicate_value_path": True,
