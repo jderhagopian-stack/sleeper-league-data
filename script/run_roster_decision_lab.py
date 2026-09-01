@@ -451,6 +451,11 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
     )
     result.setdefault("features", {})["decision_lab_projection_override_used"] = projections_override is not None
     result["features"]["decision_lab_projection_player_count"] = len((projections or {}).get("players") or {})
+    aug = (projections or {}).get("_decision_lab_projection_augmentation") or {}
+    result["features"]["decision_lab_projection_added_player_ids"] = list(aug.get("added_player_ids") or [])
+    result["features"]["decision_lab_unrelated_full_universe_players_added"] = bool(
+        aug.get("unrelated_full_universe_players_added", False)
+    )
     return result
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
