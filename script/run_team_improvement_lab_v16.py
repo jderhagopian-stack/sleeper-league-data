@@ -21,6 +21,11 @@ _TARGETED_GM_CACHE={}
 def load_base():
     spec=importlib.util.spec_from_file_location('team_improvement_lab_base16',BASE); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
 
+def load_posture():
+    path=Path(__file__).resolve().parent/'strategic_posture.py'
+    spec=importlib.util.spec_from_file_location('team_improvement_search_posture',path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
 def _pop_cli_int(name,default):
     if name not in sys.argv:return int(default)
     i=sys.argv.index(name); value=int(sys.argv[i+1]); del sys.argv[i:i+2]; return value
@@ -190,7 +195,7 @@ def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_t
         if tid not in seen_targets:target_best.append(r); seen_targets.add(tid)
     future_value=sorted(rows,key=lambda x:(x.get('package_market_dynasty_delta',-1e18),x['pre_screen_score']),reverse=True)
     immediate=sorted(rows,key=lambda x:(x.get('package_market_redraft_delta',-1e18),x['pre_screen_score']),reverse=True)
-    posture_mod=base.load_module(Path(__file__).resolve().parent/'strategic_posture.py','team_improvement_search_posture')
+    posture_mod=load_posture()
     normalized_posture=posture_mod.normalize_selection(posture)
     available={
         'focal_utility':focal,
