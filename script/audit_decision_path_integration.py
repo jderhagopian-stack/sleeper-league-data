@@ -89,6 +89,8 @@ def main():
     trade_current = text(SCRIPT / "run_trade_market_sweep_v31.py")
     roster_interaction_overlay = text(SCRIPT / "roster_interaction_overlay.py")
     roster = text(SCRIPT / "run_roster_decision_lab.py")
+    lineup_optimizer = text(SCRIPT / "lineup_optimizer.py")
+    trade_v13 = text(SCRIPT / "run_trade_market_sweep_v13.py")
     oe_base = text(SCRIPT / "opportunity_engine" / "application.py")
     oe = text(SCRIPT / "opportunity_engine" / "application_v21.py")
     architecture = json.loads(text(DATA / "model_governance" / "application_architecture.json"))
@@ -208,14 +210,21 @@ def main():
         ),
         "roster_direct_path_cannot_silently_drop_projection_inputs": (
             "player_weekly_projections_full.json" in roster
-            and "native_players_preserved" in roster
+            and "augment_projections_for_actions" in roster
+            and "unrelated_full_universe_players_added" in roster
             and "assert_projection_coverage" in roster
-            and "without canonical Simulator projection coverage" in roster
+            and "without native or canonical full Simulator projection coverage" in roster
             and "projections_override=projections" in roster
         ),
         "team_improvement_simulator_uses_same_projection_universe_as_lineup_optimizer": (
             "projections_override=projections" in ti
             and "simulator_features" in ti
+            and "_decision_lab_projection_augmentation" in ti
+        ),
+        "touched_lineups_delegate_to_canonical_simulator_optimizer": (
+            'canonical = getattr(simmod, "optimize_fsffl_fast", None)' in lineup_optimizer
+            and 'return canonical(roster, week, league, players, projections)' in lineup_optimizer
+            and 'canonical = getattr(simmod, "optimize_fsffl_fast", None)' in trade_v13
         ),
         "opportunity_engine_does_not_create_valuation_authority": (
             "team_improvement" in oe
@@ -272,6 +281,7 @@ def main():
             "standalone_roster_legality_bypass": True,
             "standalone_roster_projection_coverage_bypass": True,
             "lineup_simulator_projection_universe_mismatch": True,
+            "touched_lineup_simulator_metadata_mismatch": True,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
