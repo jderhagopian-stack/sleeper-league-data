@@ -20,7 +20,7 @@ DECISION_OUTPUTS = (
     "expected_wins",
     "playoff_probability",
     "championship_probability",
-    "strategic_value_delta",
+    "shared_decision_utility_score",
 )
 
 
@@ -39,6 +39,8 @@ def metric(row, key):
         return sf(d.get(key))
     if key == "net_title_equity_swing_against_focus":
         return sf(sim.get(key))
+    if key == "shared_decision_utility_score":
+        return sf(row.get("shared_decision_utility_score"), sf(row.get("post_sim_score")))
     return sf(st.get(key))
 
 
@@ -124,11 +126,11 @@ def compare(row, current):
     diagnostic_keys = (
         "expected_wins", "expected_points_for", "playoff_probability", "bye_probability",
         "championship_probability", "market_dynasty_delta", "strategic_value_delta",
-        "liquidity_value_delta", "break_glass_delta", "roster_interaction_value_delta",
+        "shared_decision_utility_score", "liquidity_value_delta", "break_glass_delta", "roster_interaction_value_delta",
         "net_title_equity_swing_against_focus",
     )
     deltas = {k: round(metric(row, k) - metric(current, k), 5) for k in diagnostic_keys}
-    score_delta = round(sf(row.get("post_sim_score")) - sf(current.get("post_sim_score")), 2)
+    score_delta = round(metric(row, "shared_decision_utility_score") - metric(current, "shared_decision_utility_score"), 2)
 
     decision_deltas = {k: deltas[k] for k in DECISION_OUTPUTS}
     decision_relation = relation_from_deltas(decision_deltas)
@@ -166,13 +168,13 @@ def compare(row, current):
     return {
         "verdict_vs_current_offer": verdict,
         "post_sim_score_delta_vs_current_offer": score_delta,
-        "post_sim_score_role": "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE",
+        "post_sim_score_role": "COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE",
         "metric_deltas_vs_current_offer": deltas,
         "decision_metric_deltas_vs_current_offer": decision_deltas,
         "decision_relation_vs_current_offer": decision_relation,
         "competitive_relation_vs_current_offer": comp_relation,
         "reason": lead + ", driven by " + ", ".join(drivers[:6]) + ".",
-        "comparison_basis": "pareto_dominance_across_core_competitive_outcomes_and_overall_franchise_impact",
+        "comparison_basis": "trade_decision_frontier_interpretation_across_simulator_outcomes_and_authoritative_shared_decision_utility",
         "unsupported_numeric_score_cutoff_used": False,
     }
 
@@ -193,7 +195,7 @@ def current_offer_focally_acceptable(current):
     remains relevant for generated counters and market alternatives.
     """
     state = objective_state(current)
-    post = sf(current.get("post_sim_score"))
+    post = metric(current, "shared_decision_utility_score")
     focal = post > 0
     if state in {"contender", "elite_contender"} and current.get("championship_equity_constraint") == "FAIL":
         focal = False
