@@ -394,12 +394,21 @@ def reoptimize_touched_lineups(simmod, baseline_lineups, hypothetical_rosters, t
     return lineups, reoptimized
 
 
-def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed):
-    """Run current vectorized Simulator mechanics from prepared lineups."""
+def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups, n_sims, seed,
+                          projections_override=None):
+    """Run current vectorized Simulator mechanics from prepared lineups.
+
+    Hypothetical callers may pass the exact projection universe used for lineup
+    optimization. This is required for full-universe waiver/depth candidates so
+    simulation-time backup chains cannot silently fall back to the narrower
+    native projection set.
+    """
     season = str(league.get("season"))
-    projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
+    projections = projections_override
+    if projections is None:
+        projections = load_json(DATA / "simulator" / season / "inputs" / "player_weekly_projections.json", {}) or {}
     players = load_json(DATA / "players.json", {}) or {}
-    return simmod.run_preproduction_simulation(
+    result = simmod.run_preproduction_simulation(
         league,
         rosters,
         users,
@@ -410,6 +419,9 @@ def simulate_from_lineups(simmod, league, rosters, users, raw_schedule, lineups,
         seed=seed,
         lineups_override=lineups,
     )
+    result.setdefault("features", {})["decision_lab_projection_override_used"] = projections_override is not None
+    result["features"]["decision_lab_projection_player_count"] = len((projections or {}).get("players") or {})
+    return result
 
 def classify_decision(focus_cmp: Dict[str, Any], team_state: str):
     """Threshold-free legacy Decision Lab classification.
@@ -528,7 +540,8 @@ def main():
     baseline = simulate_from_lineups(simmod, league, canonical_rosters, users, raw_schedule,
                                      baseline_lineups, args.sims, args.seed)
     hypothetical = simulate_from_lineups(simmod, league, hypothetical_rosters, users, raw_schedule,
-                                         hypothetical_lineups, args.sims, args.seed)
+                                         hypothetical_lineups, args.sims, args.seed,
+                                         projections_override=projections)
     base_by_uid, hyp_by_uid = team_index(baseline), team_index(hypothetical)
 
     # Standalone roster/multi-move decisions must consume the same governed
