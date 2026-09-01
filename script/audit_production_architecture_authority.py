@@ -139,7 +139,7 @@ def main():
             "overlay.apply_to_report(report, interaction, ranker)",
             "trade_option_governance.py",
             "gov.apply_to_report(report)",
-            "post_sim_score_is_diagnostic_not_categorical_decision_rule",
+            "post_sim_score_is_shared_decision_utility_compatibility_alias",
         ])
         and "run_trade_market_sweep_v30.py" not in v31
         and "run_trade_market_sweep_v29.py" not in v31
@@ -221,7 +221,8 @@ def main():
             "def recompute_action(report, inherited):",
             'row["comparison_to_current_offer"] = comp',
             'report["recommended_next_action"] = final_action',
-            "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE",
+            "COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE",
+            'DECISION_OUTPUTS = ("shared_decision_utility_score",)',
         ])
     )
     findings.append({
@@ -385,7 +386,7 @@ def main():
     team_improvement_ok = (
         "python script/gm3/team_improvement.py" in team_improvement_workflow
         and "python script/run_team_improvement_lab_v13.py" not in team_improvement_workflow
-        and "FSFFL-GM-Team-Improvement-Lab-1.4" in team_improvement_workflow
+        and "FSFFL-GM-Team-Improvement-Lab-1.6" in team_improvement_workflow
     )
     findings.append({
         "id": "APPLICATION-TEAM-IMPROVEMENT-003",
