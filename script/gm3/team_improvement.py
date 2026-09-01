@@ -33,7 +33,8 @@ class PortfolioEvaluator:
         for row in rows:actions.extend(self._actions_for_row(row))
         if not actions:return {'team_improvement_score':0.0,'simulation':{'focus_delta':{k:0.0 for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']},'strategic':{'market_dynasty_delta':0.0,'base_franchise_value_delta':0.0,'break_glass_delta':0.0}},'actions':[]}
         sim=self.current.simulate_actions_protect_add(self.base,self.dl,self.lineupopt,self.rosteraware,self._inputs_with_waiver_projections(rows),self.baseline_lineups,self.baseline,self.focus_user_id,actions,self.simulations,self.seed)
-        return {'team_improvement_score':self.base.unified_score(self.focus_user_id,sim),'simulation':sim,'actions':sim.get('effective_actions') or actions,'source_rows':rows,'authority':'GM3 Team Improvement','shared_decision_utility':'FSFFL-Shared-Decision-Utility-2.0','bundle_simulation_source':'current Team Improvement implementation via stable GM3 facade'}
+        attribution=self.base.load_module(SCRIPT/'decision_attribution.py','gm3_portfolio_decision_attribution').reconcile(sim)
+        return {'team_improvement_score':self.base.unified_score(self.focus_user_id,sim),'simulation':sim,'decision_attribution':attribution,'actions':sim.get('effective_actions') or actions,'source_rows':rows,'authority':'GM3 Team Improvement','shared_decision_utility':'FSFFL-Shared-Decision-Utility-2.0','bundle_simulation_source':'current Team Improvement implementation via stable GM3 facade'}
 def portfolio_evaluator(focus_user_id,simulations=1000,seed=20260821):return PortfolioEvaluator(focus_user_id,simulations,seed)
 def main():
     current=_load_current()
