@@ -233,6 +233,13 @@ jobs:
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
           assert not [x for x in banned if x in text], text
           assert '...' not in text and '\u2026' not in text, text
+          cur=a.get('current_offer_evaluation') or {}
+          print(json.dumps({'trade_decision_reconciliation_sample':{
+              'description':cur.get('description'),
+              'shared_decision_utility_score':cur.get('shared_decision_utility_score'),
+              'attribution':cur.get('decision_attribution'),
+              'recommended_next_action':a.get('recommended_next_action'),
+          }},indent=2))
           print('Market Sweep 1.26 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.11 test passed')
           PY
       - name: Audit downstream cut-plan sensitivity
