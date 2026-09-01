@@ -11,6 +11,9 @@ on:
       - 'script/render_gm_franchise_report.py'
       - 'script/render_simulator_report.py'
       - 'script/render_roster_decision_report.py'
+      - 'script/run_roster_decision_lab.py'
+      - 'script/decision_attribution.py'
+      - 'script/decision_utility.py'
       - 'script/render_league_power_report.py'
       - 'script/render_player_dossier.py'
       - 'script/render_market_movement_report.py'
@@ -41,7 +44,7 @@ jobs:
         run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
+        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/run_roster_decision_lab.py script/decision_attribution.py script/decision_utility.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_gm_action_report_v10.py
 
       - name: Render standardized reports
         run: |
@@ -64,6 +67,14 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           arch=json.loads(Path('data/reporting/fsffl_reporting_architecture.json').read_text())
+          decision=json.loads(Path('/tmp/fsffl-reports/decision.json').read_text())
+          assert decision['shared_decision_utility_model_version']=='FSFFL-Shared-Decision-Utility-2.0'
+          assert decision['decision_attribution']['reconciles'] is True
+          assert decision['decision_attribution']['creates_independent_score'] is False
+          assert abs(float(decision['decision_attribution']['final_shared_decision_utility'])-float(decision['shared_decision_utility_score'])) <= .03
+          assert decision['recommendation']['authority']=='Shared Decision Utility / GM3 Team Improvement'
+          assert decision['recommendation']['no_independent_roster_decision_score_created'] is True
+          assert decision['recommendation'].get('pareto_diagnostic')
           assert arch['principles']['raw_model_output_is_source_of_truth'] is True
           assert arch['principles']['chatgpt_reads_raw_output_not_pdf'] is True
           assert arch['principles']['pdf_is_presentation_only'] is True
