@@ -8,6 +8,12 @@ on:
       - 'script/opportunity_engine/application_v21.py'
       - 'script/render_opportunity_engine_report.py'
       - 'script/audit_contender_state_utility_calibration.py'
+      - 'script/strategic_posture.py'
+      - 'script/decision_lab_state_aware.py'
+      - 'script/run_team_improvement_lab.py'
+      - 'script/run_team_improvement_lab_v16.py'
+      - 'script/gm3/team_improvement.py'
+      - 'script/test_strategic_posture.py'
       - '.github/workflows/opportunity-engine-full-production-validation.yml'
   # Keep this push hook so merges touching the production OE path rerun the full validation on main.
   push:
@@ -39,7 +45,10 @@ jobs:
             script/opportunity_engine/application_v21.py \
             script/trade_decision/negotiation_frontier.py \
             script/render_opportunity_engine_report.py \
-            script/audit_contender_state_utility_calibration.py
+            script/audit_contender_state_utility_calibration.py \
+            script/strategic_posture.py \
+            script/test_strategic_posture.py
+          python script/test_strategic_posture.py
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
       - name: Refresh governed inputs
@@ -67,6 +76,12 @@ jobs:
           b=json.load(open('/tmp/oe-full/opportunity-board.json'))
           assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
           assert b['team_name']=='Hurts So Good'
+          posture=b.get('strategic_posture') or {}
+          assert posture.get('selected_posture')=='AUTO'
+          assert posture.get('posture_source')=='MODEL_DEFAULT'
+          assert posture.get('competitive_state')==b.get('team_state')
+          assert b['policy']['strategic_posture_changes_competitive_state'] is False
+          assert b['policy']['strategic_posture_search_guidance_creates_new_utility'] is False
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['policy']['near_frontier_watchlist_creates_new_trade_value'] is False
           assert b['policy']['near_frontier_watchlist_creates_acceptance_probability'] is False
