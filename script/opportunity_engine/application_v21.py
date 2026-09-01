@@ -21,6 +21,44 @@ def _trade_signature(row):
         tuple(sorted(str(a.get('asset_id') or '') for a in (row.get('outgoing') or []))),
         tuple(sorted(str(a.get('asset_id') or '') for a in (row.get('incoming') or []))),
     )
+def _preserve_specialized_views(views, actionable_trade_signatures, simulation_sensitive_signatures):
+    preserved={}
+    for key,row in (views or {}).items():
+        if not row:
+            preserved[key]=None
+            continue
+        out=copy.deepcopy(row)
+        channel=str(out.get('channel') or '')
+        if channel=='TRADE':
+            sig=_trade_signature(out)
+            focal=float(out.get('team_improvement_score') or 0.0)
+            counterparty=float(out.get('counterparty_shared_decision_utility_score') or 0.0)
+            if sig in actionable_trade_signatures:
+                status='ACTIONABLE'
+            elif sig in simulation_sensitive_signatures:
+                status='SIMULATION_SENSITIVE'
+            elif focal <= 0:
+                status='FOCAL_NON_POSITIVE'
+            elif counterparty < 0:
+                status='THEORETICAL_COUNTERPARTY_FAILURE'
+            else:
+                status='INVESTIGATIVE_ONLY'
+            out['opportunity_routing_status']=status
+            out['specialist_view_is_recommendation']=False
+            out['specialist_view_preserved_despite_non_actionable_status']=status!='ACTIONABLE'
+        elif channel=='WAIVER':
+            status='ACTIONABLE' if float(out.get('team_improvement_score') or 0)>0 else 'INVESTIGATIVE_ONLY'
+            out['opportunity_routing_status']=status
+            out['specialist_view_is_recommendation']=False
+            out['specialist_view_preserved_despite_non_actionable_status']=status!='ACTIONABLE'
+        else:
+            out['opportunity_routing_status']='ANALYTICAL_CONTEXT'
+            out['specialist_view_is_recommendation']=False
+            out['specialist_view_preserved_despite_non_actionable_status']=True
+        preserved[key]=out
+    return preserved
+
+
 def _execution_plan(rows):
     return {'steps':[{'step':i+1,'channel':r.get('channel'),'description':r.get('description'),'execution_authority':'Trade Decision' if r.get('channel')=='TRADE' else 'GM3 Team Improvement'} for i,r in enumerate(rows)],'live_ownership_and_availability_must_be_rechecked_before_execution':True,'counterparty_acceptance_is_not_assumed':True}
 def _portfolio_result(rows,result):
@@ -135,41 +173,11 @@ def build_board(source,a,reviews):
     )
     actionable_trade_signatures={_trade_signature(x) for x in actionable_trades}
     simulation_sensitive_signatures={_trade_signature(x) for x in simulation_sensitive_trades}
-    preserved_views={}
-    for key,row in (b.get('specialized_views') or {}).items():
-        if not row:
-            preserved_views[key]=None
-            continue
-        out=copy.deepcopy(row)
-        channel=str(out.get('channel') or '')
-        if channel=='TRADE':
-            sig=_trade_signature(out)
-            focal=float(out.get('team_improvement_score') or 0.0)
-            counterparty=float(out.get('counterparty_shared_decision_utility_score') or 0.0)
-            if sig in actionable_trade_signatures:
-                status='ACTIONABLE'
-            elif sig in simulation_sensitive_signatures:
-                status='SIMULATION_SENSITIVE'
-            elif focal <= 0:
-                status='FOCAL_NON_POSITIVE'
-            elif counterparty < 0:
-                status='THEORETICAL_COUNTERPARTY_FAILURE'
-            else:
-                status='INVESTIGATIVE_ONLY'
-            out['opportunity_routing_status']=status
-            out['specialist_view_is_recommendation']=False
-            out['specialist_view_preserved_despite_non_actionable_status']=status!='ACTIONABLE'
-        elif channel=='WAIVER':
-            status='ACTIONABLE' if float(out.get('team_improvement_score') or 0)>0 else 'INVESTIGATIVE_ONLY'
-            out['opportunity_routing_status']=status
-            out['specialist_view_is_recommendation']=False
-            out['specialist_view_preserved_despite_non_actionable_status']=status!='ACTIONABLE'
-        else:
-            out['opportunity_routing_status']='ANALYTICAL_CONTEXT'
-            out['specialist_view_is_recommendation']=False
-            out['specialist_view_preserved_despite_non_actionable_status']=True
-        preserved_views[key]=out
-    b['specialized_views']=preserved_views
+    b['specialized_views']=_preserve_specialized_views(
+        b.get('specialized_views') or {},
+        actionable_trade_signatures,
+        simulation_sensitive_signatures,
+    )
     candidates=[x for x in [actionable,waivers[0] if waivers else None] if x]
     if candidates:b['best_move_available']=max(candidates,key=lambda x:float(x.get('team_improvement_score') or 0))
     elif source.get('hold_benchmark'):b['best_move_available']=copy.deepcopy(source.get('hold_benchmark'))
