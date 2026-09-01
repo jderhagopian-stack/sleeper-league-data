@@ -53,27 +53,28 @@ DESCRIPTIONS = {
 SEARCH_LANE_ORDERS = {
     "AUTO": (
         "focal_utility", "bilateral_utility", "negotiation_fit",
-        "seller_motivation", "target_diversity",
+        "seller_motivation", "target_diversity", "outbound_future_value",
     ),
     "BALANCED_CONTENDER": (
         "focal_utility", "bilateral_utility", "negotiation_fit",
-        "target_diversity", "seller_motivation",
+        "target_diversity", "seller_motivation", "outbound_future_value",
     ),
     "PUSH_CHIPS_IN": (
         "immediate_current_value", "focal_utility", "bilateral_utility",
         "negotiation_fit", "seller_motivation", "target_diversity",
+        "outbound_future_value",
     ),
     "PRESERVE_FUTURE_VALUE": (
-        "future_value_preservation", "bilateral_utility", "focal_utility",
-        "target_diversity", "negotiation_fit", "seller_motivation",
+        "outbound_future_value", "future_value_preservation", "bilateral_utility",
+        "focal_utility", "target_diversity", "negotiation_fit", "seller_motivation",
     ),
     "RETOOL": (
-        "future_value_preservation", "target_diversity", "bilateral_utility",
-        "seller_motivation", "focal_utility", "negotiation_fit",
+        "outbound_future_value", "future_value_preservation", "target_diversity",
+        "bilateral_utility", "seller_motivation", "focal_utility", "negotiation_fit",
     ),
     "REBUILD": (
-        "future_value_preservation", "seller_motivation", "target_diversity",
-        "bilateral_utility", "focal_utility", "negotiation_fit",
+        "outbound_future_value", "future_value_preservation", "seller_motivation",
+        "target_diversity", "bilateral_utility", "focal_utility", "negotiation_fit",
     ),
 }
 
