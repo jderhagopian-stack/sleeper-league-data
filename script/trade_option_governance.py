@@ -4,8 +4,10 @@
 This module owns the evidence-consistent comparison of a proposed option against
 a current offer and the final action recomputation after those comparisons.
 
-Trade quality is determined by simulated competitive outputs plus overall
-franchise impact. Behavioral acceptance fit remains separate feasibility
+Trade quality ordering is determined exactly once by authoritative Shared
+Decision Utility. Simulator competitive outputs remain visible frontier
+diagnostics but do not receive an additional vote after already entering Shared
+Decision Utility. Behavioral acceptance fit remains separate feasibility
 information and never changes BETTER/MIXED/WORSE.
 
 This is a mechanical extraction of the validated v31 logic; decision semantics
@@ -15,12 +17,13 @@ from __future__ import annotations
 
 MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.6"
 EPS = 1e-9
-DECISION_OUTPUTS = (
+DECISION_OUTPUTS = ("shared_decision_utility_score",)
+FRONTIER_DIAGNOSTIC_OUTPUTS = (
     "expected_points_for",
     "expected_wins",
     "playoff_probability",
     "championship_probability",
-    "shared_decision_utility_score",
+    "market_dynasty_delta",
 )
 
 
@@ -133,6 +136,7 @@ def compare(row, current):
     score_delta = round(metric(row, "shared_decision_utility_score") - metric(current, "shared_decision_utility_score"), 2)
 
     decision_deltas = {k: deltas[k] for k in DECISION_OUTPUTS}
+    frontier_diagnostic_deltas = {k: deltas[k] for k in FRONTIER_DIAGNOSTIC_OUTPUTS}
     decision_relation = relation_from_deltas(decision_deltas)
     verdict = {
         "DOMINATES_CURRENT_OFFER": "BETTER",
@@ -156,14 +160,14 @@ def compare(row, current):
     if abs(deltas["liquidity_value_delta"]) >= 500:
         drivers.append(f"{deltas['liquidity_value_delta']:+,.0f} incremental asset liquidity")
     if not drivers:
-        drivers.append(f"{score_delta:+,.0f} composite-score diagnostic")
+        drivers.append(f"{score_delta:+,.0f} Shared Decision Utility")
 
     lead = (
-        "Clearly better than the current offer across the decision outputs"
+        "Higher authoritative Shared Decision Utility than the current offer"
         if verdict == "BETTER"
-        else "Clearly worse than the current offer across the decision outputs"
+        else "Lower authoritative Shared Decision Utility than the current offer"
         if verdict == "WORSE"
-        else "A mixed tradeoff versus the current offer"
+        else "Equivalent authoritative Shared Decision Utility to the current offer"
     )
     return {
         "verdict_vs_current_offer": verdict,
@@ -171,10 +175,12 @@ def compare(row, current):
         "post_sim_score_role": "COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE",
         "metric_deltas_vs_current_offer": deltas,
         "decision_metric_deltas_vs_current_offer": decision_deltas,
+        "frontier_diagnostic_metric_deltas_vs_current_offer": frontier_diagnostic_deltas,
         "decision_relation_vs_current_offer": decision_relation,
         "competitive_relation_vs_current_offer": comp_relation,
         "reason": lead + ", driven by " + ", ".join(drivers[:6]) + ".",
-        "comparison_basis": "trade_decision_frontier_interpretation_across_simulator_outcomes_and_authoritative_shared_decision_utility",
+        "comparison_basis": "authoritative_shared_decision_utility_for_economic_ordering_with_simulator_frontier_metrics_diagnostic_only",
+        "raw_simulator_frontier_metrics_have_independent_final_vote": False,
         "unsupported_numeric_score_cutoff_used": False,
     }
 
