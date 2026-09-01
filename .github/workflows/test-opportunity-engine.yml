@@ -25,6 +25,8 @@ jobs:
             script/opportunity_engine/negotiation_frontier.py \
             script/trade_decision/negotiation_frontier.py \
             script/gm3/team_improvement.py \
+            script/decision_attribution.py \
+            script/decision_utility.py \
             script/run_team_improvement_lab.py \
             script/run_team_improvement_lab_v13.py \
             script/run_team_improvement_lab_v16.py \
@@ -99,6 +101,13 @@ jobs:
           assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
           assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
           assert isinstance(b['portfolio_optimization']['best_portfolio_preferred_to_best_single_step'], bool)
+          bp=b['portfolio_optimization']['best_portfolio']
+          assert bp is not None
+          assert bp['decision_attribution']['reconciles'] is True
+          assert abs(float(bp['decision_attribution']['final_shared_decision_utility'])-float(bp['team_improvement_score'])) <= .03
+          bs=b['portfolio_optimization']['best_single_step_same_precision']
+          assert bs['decision_attribution']['reconciles'] is True
+          assert abs(float(bs['decision_attribution']['final_shared_decision_utility'])-float(bs['team_improvement_score'])) <= .03
           assert b['robustness']['used_for_primary_ranking'] is False
           assert b['robustness']['best_single_step']['enabled'] is True
           assert b['prospective_validation']['contains_future_outcomes'] is False
