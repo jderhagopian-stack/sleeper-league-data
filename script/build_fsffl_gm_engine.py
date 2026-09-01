@@ -4484,6 +4484,286 @@ def _u_trade_strategic_utility(uid, outgoing, incoming, ctx, profile_by_uid):
     }
 
 
+def _u_package_market_coordinate(uid, asset_ids, ctx):
+    """Market-value coordinate used only for price ordering/search coverage."""
+    vals = ctx["owner_vals"].get(str(uid), {})
+    return round(sum(
+        (
+            safe_float((ctx["asset_meta"].get(a) or {}).get("market_dynasty"))
+            or safe_float((ctx["asset_meta"].get(a) or {}).get("market_value"))
+            or safe_float(vals.get(a))
+        )
+        for a in asset_ids
+    ), 1)
+
+
+def _u_build_trade_package_row(uid, seller_uid, target_aid, combo, ctx, profile_by_uid, need, motivation):
+    """Canonical GM3 package economics used by broad and targeted discovery."""
+    uid = str(uid)
+    seller_uid = str(seller_uid)
+    combo = list(combo)
+    vals = ctx["owner_vals"]
+    target = ctx["player_meta"].get(target_aid, {})
+
+    focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
+    seller_exit = _u_adjusted_exit_cost(seller_uid, [target_aid], combo, ctx, profile_by_uid)
+
+    seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
+    focal_receive_eff, _ = _u_package_effective_value([target_aid], uid, ctx, profile_by_uid)
+
+    focal_surplus = focal_receive_eff - safe_float(focal_exit.get("adjusted_exit_cost"))
+    seller_threshold = safe_float(seller_exit.get("adjusted_exit_cost"))
+    seller_surplus = seller_eff - seller_threshold
+    seller_ratio = seller_eff / max(seller_threshold, 1.0)
+
+    focal_util = _u_trade_strategic_utility(uid, combo, [target_aid], ctx, profile_by_uid)
+    seller_util = _u_trade_strategic_utility(seller_uid, [target_aid], combo, ctx, profile_by_uid)
+
+    fairness = 1.0 - min(abs(1.0 - seller_ratio), 0.35) / 0.35
+    acceptance = clamp(
+        0.48 * fairness
+        + 0.34 * motivation
+        + 0.18 * clamp((seller_util["strategic_utility"] + 0.18) / 0.36, 0.0, 1.0),
+        0.0, 1.0
+    )
+
+    hold_benchmark = sum(
+        max(
+            safe_float(
+                ((profile_by_uid.get(uid, {}).get(a) or {}).get("future_distribution") or {})
+                .get("hold_appreciation_pct")
+            ),
+            0.0
+        ) * safe_float(vals[uid].get(a))
+        for a in combo
+    )
+    net_after_wait = focal_surplus - hold_benchmark
+
+    focal_ok = (
+        net_after_wait >= -0.025 * max(focal_receive_eff, 1.0)
+        and focal_util["strategic_utility"] >= -0.015
+    )
+    seller_ok = (
+        seller_surplus >= -0.025 * max(seller_threshold, 1.0)
+        and seller_util["strategic_utility"] >= -0.025
+    )
+
+    if focal_ok and seller_ok and focal_surplus >= 0 and seller_surplus >= 0:
+        band = "mutual_value_candidate"
+    elif focal_ok and seller_ratio >= 0.94 and seller_util["strategic_utility"] >= -0.06:
+        band = "negotiation_candidate"
+    elif net_after_wait < -0.10 * max(focal_receive_eff, 1.0):
+        band = "focal_overpay_or_bad_timing"
+    elif seller_ratio < 0.88:
+        band = "seller_underpaid"
+    else:
+        band = "low_priority"
+
+    decision = (
+        0.34 * (net_after_wait / max(focal_receive_eff, 1.0))
+        + 0.30 * focal_util["strategic_utility"]
+        + 0.18 * acceptance
+        + 0.10 * seller_util["strategic_utility"]
+        + 0.08 * need
+    )
+
+    return {
+        "focal_outgoing_asset_ids": combo,
+        "focal_outgoing_assets": [(ctx["asset_meta"].get(a) or {}).get("name") for a in combo],
+        "package_market_value_coordinate": _u_package_market_coordinate(uid, combo, ctx),
+        "target_asset_id": target_aid,
+        "target_player": target.get("name"),
+        "focal_receive_effective_value": round(focal_receive_eff, 1),
+        "focal_adjusted_exit_cost": focal_exit["adjusted_exit_cost"],
+        "focal_raw_surplus": round(focal_surplus, 1),
+        "hold_wait_benchmark": round(hold_benchmark, 1),
+        "focal_surplus_after_wait_benchmark": round(net_after_wait, 1),
+        "focal_lineup_gain": focal_util["lineup_gain"],
+        "focal_strategic_utility": focal_util["strategic_utility"],
+        "seller_effective_incoming_value": round(seller_eff, 1),
+        "seller_adjusted_exit_threshold": round(seller_threshold, 1),
+        "seller_surplus": round(seller_surplus, 1),
+        "seller_value_ratio": round(seller_ratio, 3),
+        "seller_lineup_gain": seller_util["lineup_gain"],
+        "seller_strategic_utility": seller_util["strategic_utility"],
+        "seller_motivation_score": round(motivation, 3),
+        "acceptance_fit_score": round(acceptance, 3),
+        "decision_score": round(decision, 5),
+        "recommendation_band": band,
+        "focal_exit_detail": focal_exit,
+        "seller_exit_detail": seller_exit,
+        "seller_package_quality": seller_pkg,
+    }
+
+
+def _u_targeted_outgoing_combos(uid, ctx, profile_by_uid):
+    """Bounded expanded package geometry for selective price discovery only."""
+    uid = str(uid)
+    vals = ctx["owner_vals"]
+    holdings = list(ctx["holdings"].get(uid, []))
+    focal_profiles = profile_by_uid.get(uid, {})
+    scored = []
+    for aid in holdings:
+        v = safe_float(vals.get(uid, {}).get(aid))
+        if v <= 0:
+            continue
+        p = focal_profiles.get(aid, {})
+        strategic = safe_float(p.get("strategic_score"), 0.25)
+        liquidity = safe_float(p.get("liquidity_score"), 0.5)
+        movability = v * (1.0 - 0.62 * strategic) * (0.85 + 0.15 * liquidity)
+        scored.append((aid, v, movability))
+
+    # Player count is deliberately bounded as a computational search control.
+    # All positive-value picks remain eligible as fine-adjustment instruments.
+    players = [
+        x[0] for x in sorted(scored, key=lambda z: z[2], reverse=True)
+        if str(x[0]).startswith("player:")
+    ][:8]
+    picks = [
+        aid for aid in holdings
+        if not str(aid).startswith("player:") and safe_float(vals.get(uid, {}).get(aid)) > 0
+    ]
+
+    combos = []
+    seen = set()
+    def add(combo):
+        key = tuple(sorted(str(x) for x in combo))
+        if not key or key in seen:
+            return
+        seen.add(key)
+        combos.append(tuple(combo))
+
+    for n in (1, 2, 3):
+        for combo in itertools.combinations(picks, n):
+            add(combo)
+    for player_aid in players:
+        for pick_aid in picks:
+            add((player_aid, pick_aid))
+        for pick_pair in itertools.combinations(picks, 2):
+            add((player_aid,) + pick_pair)
+    return combos
+
+
+def build_targeted_trade_price_curves(uid: str, target_asset_ids, max_packages_per_target=48, ctx=None, profile_by_uid=None):
+    """Generate denser GM3-owned package curves only for selected targets.
+
+    Target selection belongs upstream to search/orchestration. Every returned
+    package still uses the same canonical GM3 package economics as universal
+    discovery. Cheap pre-screening only determines which combinations receive
+    full GM3 evaluation and has no recommendation authority.
+    """
+    ctx = ctx or _u_load_context()
+    uid = str(uid)
+    if uid not in ctx["owners"]:
+        return {"error": f"Unknown focal user_id {uid}", "targets": []}
+    if profile_by_uid is None:
+        profile_by_uid = {
+            str(ouid): _u_profile_map(build_strategic_asset_profiles_for_team(str(ouid), ctx))
+            for ouid in ctx["owners"]
+        }
+
+    vals = ctx["owner_vals"]
+    team = ctx["teams"].get(uid, {})
+    need_map = team.get("position_need") or {}
+    combos = _u_targeted_outgoing_combos(uid, ctx, profile_by_uid)
+    out = []
+
+    for target_aid in [str(x) for x in target_asset_ids]:
+        target = ctx["player_meta"].get(target_aid, {})
+        seller_uid = str(target.get("current_owner_user_id") or "")
+        if not target or not seller_uid or seller_uid == uid or seller_uid not in ctx["owners"]:
+            continue
+        if safe_float(vals.get(uid, {}).get(target_aid)) <= 0 or safe_float(vals.get(seller_uid, {}).get(target_aid)) <= 0:
+            continue
+
+        seller_profile = profile_by_uid.get(seller_uid, {}).get(target_aid, {})
+        seller_exit_static = safe_float(seller_profile.get("break_glass_value"))
+        if seller_exit_static <= 0:
+            seller_exit_static = safe_float(vals[seller_uid].get(target_aid))
+        need = safe_float(need_map.get(target.get("position")), 0.5)
+        motivation = _u_seller_motivation(seller_uid, target_aid, ctx, profile_by_uid)
+        focal_receive_eff, _ = _u_package_effective_value([target_aid], uid, ctx, profile_by_uid)
+
+        screened = []
+        for combo in combos:
+            seller_eff, _ = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
+            if seller_eff <= 0:
+                continue
+            static_ratio = seller_eff / max(seller_exit_static, 1.0)
+            if static_ratio < 0.68:
+                continue
+            focal_out_eff, _ = _u_package_effective_value(combo, uid, ctx, profile_by_uid)
+            screened.append({
+                "combo": combo,
+                "price": _u_package_market_coordinate(uid, combo, ctx),
+                "seller_ratio": static_ratio,
+                "focal_raw_surplus": focal_receive_eff - focal_out_eff,
+            })
+
+        screened.sort(key=lambda x: (x["price"], x["seller_ratio"]))
+        n = len(screened)
+        budget = max(1, int(max_packages_per_target))
+        chosen = []
+        chosen_idx = set()
+        def choose(i):
+            if i is not None and 0 <= i < n and i not in chosen_idx and len(chosen) < budget:
+                chosen_idx.add(i)
+                chosen.append(i)
+
+        if n:
+            choose(0); choose(n - 1)
+            seller_cross = next((i for i, x in enumerate(screened) if x["seller_ratio"] >= 1.0), None)
+            focal_cross = next((i for i, x in enumerate(screened) if x["focal_raw_surplus"] <= 0.0), None)
+            for center in (seller_cross, focal_cross):
+                if center is not None:
+                    for d in (0, -1, 1, -2, 2, -3, 3):
+                        choose(center + d)
+
+            for i in sorted(range(n), key=lambda j: abs(screened[j]["seller_ratio"] - 1.0))[:8]:
+                choose(i)
+            for i in sorted(range(n), key=lambda j: abs(screened[j]["focal_raw_surplus"]))[:8]:
+                choose(i)
+
+            remaining = max(0, budget - len(chosen))
+            if remaining:
+                for j in range(1, remaining + 1):
+                    choose(round(j * (n - 1) / (remaining + 1)))
+
+        packages = [
+            _u_build_trade_package_row(
+                uid, seller_uid, target_aid, screened[i]["combo"], ctx, profile_by_uid, need, motivation
+            )
+            for i in sorted(chosen, key=lambda j: screened[j]["price"])
+        ]
+
+        out.append({
+            "target_asset_id": target_aid,
+            "target_player": target.get("name"),
+            "seller_user_id": seller_uid,
+            "seller_team": (ctx["owners"].get(seller_uid) or {}).get("team_name"),
+            "candidate_combinations_screened": len(screened),
+            "packages_fully_evaluated": len(packages),
+            "price_frontier_candidate_packages": packages,
+            "search_is_targeted": True,
+            "target_selection_owned_by_opportunity_search": True,
+            "package_economics_owned_by_gm3": True,
+            "pre_screen_has_final_decision_authority": False,
+            "search_budget_is_computational_only": True,
+        })
+
+    return {
+        "model_version": "GM-2.2-Targeted-Price-Discovery-1.0",
+        "focal_user_id": uid,
+        "targets": out,
+        "policy": {
+            "creates_new_trade_value": False,
+            "creates_new_recommendation_utility": False,
+            "uses_same_package_economics_as_universal_gm3": True,
+            "target_selection_is_external_search_orchestration": True,
+            "package_budget_is_computational_only": True,
+        },
+    }
+
 def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None):
     ctx = ctx or _u_load_context()
     uid = str(uid)
@@ -4518,6 +4798,7 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
 
     top_value = [x[0] for x in sorted(scored_holdings, key=lambda z:z[1], reverse=True)[:10]]
     top_movable = [x[0] for x in sorted(scored_holdings, key=lambda z:z[2], reverse=True)[:14]]
+
     outgoing_candidates = []
     for aid in top_value + top_movable:
         if aid not in outgoing_candidates:
@@ -4603,101 +4884,16 @@ def build_universal_trade_opportunities(uid: str, ctx=None, profile_by_uid=None)
         packages = []
 
         for row in prelim:
-            combo = list(row["combo"])
-            focal_exit = _u_adjusted_exit_cost(uid, combo, [target_aid], ctx, profile_by_uid)
-            seller_exit = _u_adjusted_exit_cost(seller_uid, [target_aid], combo, ctx, profile_by_uid)
-
-            seller_eff, seller_pkg = _u_package_effective_value(combo, seller_uid, ctx, profile_by_uid)
-            focal_receive_eff, focal_receive_pkg = _u_package_effective_value([target_aid], uid, ctx, profile_by_uid)
-
-            focal_surplus = focal_receive_eff - safe_float(focal_exit.get("adjusted_exit_cost"))
-            seller_threshold = safe_float(seller_exit.get("adjusted_exit_cost"))
-            seller_surplus = seller_eff - seller_threshold
-            seller_ratio = seller_eff / max(seller_threshold,1.0)
-
-            focal_util = _u_trade_strategic_utility(uid, combo, [target_aid], ctx, profile_by_uid)
-            seller_util = _u_trade_strategic_utility(seller_uid, [target_aid], combo, ctx, profile_by_uid)
-
-            fairness = 1.0 - min(abs(1.0-seller_ratio),0.35)/0.35
-            acceptance = clamp(
-                0.48 * fairness
-                + 0.34 * motivation
-                + 0.18 * clamp((seller_util["strategic_utility"]+0.18)/0.36,0.0,1.0),
-                0.0,1.0
-            )
-
-            # Do-nothing benchmark: young/appreciating outgoing assets make small
-            # numerical "wins" insufficient.
-            hold_benchmark = sum(
-                max(
-                    safe_float(
-                        ((profile_by_uid.get(uid, {}).get(a) or {}).get("future_distribution") or {})
-                        .get("hold_appreciation_pct")
-                    ),
-                    0.0
-                ) * safe_float(vals[uid].get(a))
-                for a in combo
-            )
-            net_after_wait = focal_surplus - hold_benchmark
-
-            focal_ok = (
-                net_after_wait >= -0.025 * max(focal_receive_eff,1.0)
-                and focal_util["strategic_utility"] >= -0.015
-            )
-            seller_ok = (
-                seller_surplus >= -0.025 * max(seller_threshold,1.0)
-                and seller_util["strategic_utility"] >= -0.025
-            )
-
-            if focal_ok and seller_ok and focal_surplus >= 0 and seller_surplus >= 0:
-                band = "mutual_value_candidate"
-            elif focal_ok and seller_ratio >= 0.94 and seller_util["strategic_utility"] >= -0.06:
-                band = "negotiation_candidate"
-            elif net_after_wait < -0.10 * max(focal_receive_eff,1.0):
-                band = "focal_overpay_or_bad_timing"
-            elif seller_ratio < 0.88:
-                band = "seller_underpaid"
-            else:
-                band = "low_priority"
-
-            decision = (
-                0.34 * (net_after_wait/max(focal_receive_eff,1.0))
-                + 0.30 * focal_util["strategic_utility"]
-                + 0.18 * acceptance
-                + 0.10 * seller_util["strategic_utility"]
-                + 0.08 * need
-            )
-
-            packages.append({
-                "focal_outgoing_asset_ids": combo,
-                "focal_outgoing_assets": [(ctx["asset_meta"].get(a) or {}).get("name") for a in combo],
-                "package_market_value_coordinate": round(sum(
-                    safe_float((ctx["asset_meta"].get(a) or {}).get("market_dynasty"))
-                    for a in combo
-                ), 1),
-                "target_asset_id": target_aid,
-                "target_player": target.get("name"),
-                "focal_receive_effective_value": round(focal_receive_eff,1),
-                "focal_adjusted_exit_cost": focal_exit["adjusted_exit_cost"],
-                "focal_raw_surplus": round(focal_surplus,1),
-                "hold_wait_benchmark": round(hold_benchmark,1),
-                "focal_surplus_after_wait_benchmark": round(net_after_wait,1),
-                "focal_lineup_gain": focal_util["lineup_gain"],
-                "focal_strategic_utility": focal_util["strategic_utility"],
-                "seller_effective_incoming_value": round(seller_eff,1),
-                "seller_adjusted_exit_threshold": round(seller_threshold,1),
-                "seller_surplus": round(seller_surplus,1),
-                "seller_value_ratio": round(seller_ratio,3),
-                "seller_lineup_gain": seller_util["lineup_gain"],
-                "seller_strategic_utility": seller_util["strategic_utility"],
-                "seller_motivation_score": round(motivation,3),
-                "acceptance_fit_score": round(acceptance,3),
-                "decision_score": round(decision,5),
-                "recommendation_band": band,
-                "focal_exit_detail": focal_exit,
-                "seller_exit_detail": seller_exit,
-                "seller_package_quality": seller_pkg,
-            })
+            packages.append(_u_build_trade_package_row(
+                uid,
+                seller_uid,
+                target_aid,
+                row["combo"],
+                ctx,
+                profile_by_uid,
+                need,
+                motivation,
+            ))
 
         rank = {
             "mutual_value_candidate":4,

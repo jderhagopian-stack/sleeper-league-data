@@ -34,7 +34,7 @@ class FakeBase:
             'price_frontier_candidate_packages':[
                 {'focal_outgoing_asset_ids':['pick:A'],'decision_score':10.0,'seller_strategic_utility':-5.0,'focal_strategic_utility':10.0,'acceptance_fit_score':0.9,'recommendation_band':'seller_underpaid','package_market_value_coordinate':10.0},
                 {'focal_outgoing_asset_ids':['pick:B'],'decision_score':8.0,'seller_strategic_utility':-1.0,'focal_strategic_utility':6.0,'acceptance_fit_score':0.7,'recommendation_band':'seller_underpaid','package_market_value_coordinate':20.0},
-                {'focal_outgoing_asset_ids':['pick:C'],'decision_score':5.0,'seller_strategic_utility':1.0,'focal_strategic_utility':3.0,'acceptance_fit_score':0.6,'recommendation_band':'negotiation_candidate','package_market_value_coordinate':30.0},
+                {'focal_outgoing_asset_ids':['pick:C'],'decision_score':5.0,'seller_strategic_utility':-0.5,'focal_strategic_utility':3.0,'acceptance_fit_score':0.6,'recommendation_band':'seller_underpaid','package_market_value_coordinate':30.0},
                 {'focal_outgoing_asset_ids':['pick:D'],'decision_score':-2.0,'seller_strategic_utility':4.0,'focal_strategic_utility':-1.0,'acceptance_fit_score':0.6,'recommendation_band':'focal_overpay_or_bad_timing','package_market_value_coordinate':40.0},
             ],
         }]}
@@ -46,11 +46,21 @@ catalog={
     'pick:C':{'asset_id':'pick:C','asset_type':'pick','name':'C','market_dynasty':30.0},
     'pick:D':{'asset_id':'pick:D','asset_type':'pick','name':'D','market_dynasty':40.0},
 }
-rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1)
+def fake_targeted(base,focus_uid,target_asset_ids,package_budget):
+    curve=[dict(x) for x in FakeBase.team_doc('focus','trade_opportunities')['opportunities'][0]['price_frontier_candidate_packages']]
+    for x in curve:
+        if x['focal_outgoing_asset_ids']==['pick:C']:
+            x['seller_strategic_utility']=1.0
+            x['recommendation_band']='negotiation_candidate'
+    return {'player:T':{'target_asset_id':'player:T','price_frontier_candidate_packages':curve}}
+lab._targeted_price_curves=fake_targeted
+rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1,frontier_packages_per_target=4)
 sigs={tuple(x['outgoing'][0]['asset_id'] for _ in [0]) for x in rows}
 assert ('pick:C',) in sigs, 'seller-clearing transition must survive expansion'
 assert ('pick:D',) in sigs, 'focal-zero transition must survive expansion'
 assert any(x.get('price_frontier_search_candidate') for x in rows), 'expanded rows must be explicitly marked'
+assert any(x.get('targeted_adaptive_price_discovery_used') for x in rows), 'selected targets must expose targeted adaptive discovery provenance'
+assert all(x.get('targeted_adaptive_price_discovery_package_economics_owned_by_gm3') is True for x in rows if x.get('targeted_adaptive_price_discovery_used'))
 assert all(x.get('price_frontier_search_is_computational_coverage_only') is True for x in rows if x.get('price_frontier_search_candidate'))
 
 # Generated hypothetical trades may retain the raw Trade Decision action for
@@ -66,3 +76,13 @@ assert summary['generated_proposal_semantics_applied'] is True
 assert summary['generated_proposal_willingness_observed'] is False
 
 print('Opportunity Engine progressive price-search regression passed')
+
+# Frontier sampling must keep local neighbors around economic zero-crossings,
+# not merely endpoints/evenly spaced packages.
+curve=[]
+for i in range(10):
+    curve.append({'focal_outgoing_asset_ids':[f'pick:{i}'],'package_market_value_coordinate':float(i+1),'seller_strategic_utility':float(i-5),'focal_strategic_utility':float(7-i)})
+sample=lab._price_frontier_sample(curve,8,FakeBase.sf)
+coords={int(x['package_market_value_coordinate']) for x in sample}
+assert {5,6,7}.issubset(coords), 'seller zero-crossing neighborhood must receive dense coverage'
+assert {7,8,9}.issubset(coords), 'focal zero-crossing neighborhood must receive dense coverage'

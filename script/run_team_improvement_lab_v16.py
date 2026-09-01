@@ -15,6 +15,8 @@ MODEL_VERSION='FSFFL-GM-Team-Improvement-Lab-1.6'
 PROJECTION_MODEL_VERSION='FSFFL-Full-Projection-Universe-1.0'
 DEFAULT_TRADE_PACKAGES_PER_TARGET=8
 DEFAULT_PRICE_FRONTIER_TARGETS=16
+DEFAULT_PRICE_FRONTIER_PACKAGES_PER_TARGET=18
+_TARGETED_GM_CACHE={}
 
 def load_base():
     spec=importlib.util.spec_from_file_location('team_improvement_lab_base16',BASE); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
@@ -48,31 +50,95 @@ def _round_robin_rows(lanes,limit,keyfn):
     return out
 
 def _price_frontier_sample(packages,budget,sf):
-    """Sample the full cost curve without creating a valuation score."""
+    """Sample the full cost curve without creating a valuation score.
+
+    Coverage is deliberately densest around the seller-utility and focal-utility
+    sign changes, because those are the only economically meaningful boundaries
+    Trade Decision later interprets. The budget is computational only.
+    """
     ordered=sorted(
         [copy.deepcopy(x) for x in (packages or [])],
         key=lambda p:(sf(p.get('package_market_value_coordinate')), -sf(p.get('focal_strategic_utility')))
     )
     n=len(ordered); budget=max(1,int(budget))
     if n<=budget:return ordered
-    must={0,n-1}
+
+    priority=[]
+    def add(i):
+        if i is not None and 0<=i<n and i not in priority: priority.append(i)
+
+    add(0); add(n-1)
     seller_i=next((i for i,p in enumerate(ordered) if sf(p.get('seller_strategic_utility'),-1e18)>=0),None)
     focal_i=next((i for i,p in enumerate(ordered) if sf(p.get('focal_strategic_utility'),1e18)<=0),None)
-    for i in (seller_i,focal_i):
-        if i is not None:must.update({i,max(0,i-1)})
-    chosen=set(must)
+    for center in (seller_i,focal_i):
+        if center is not None:
+            for d in (0,-1,1,-2,2):
+                add(center+d)
+
+    # Also retain packages closest to each zero crossing even when utility is
+    # not monotone in the market-ordering coordinate.
+    for i in sorted(range(n), key=lambda j:abs(sf(ordered[j].get('seller_strategic_utility'),1e18)))[:3]:
+        add(i)
+    for i in sorted(range(n), key=lambda j:abs(sf(ordered[j].get('focal_strategic_utility'),1e18)))[:3]:
+        add(i)
+
+    chosen=priority[:budget]
+    chosen_set=set(chosen)
     remaining=max(0,budget-len(chosen))
     if remaining:
         for j in range(1,remaining+1):
-            chosen.add(round(j*(n-1)/(remaining+1)))
-    if len(chosen)>budget:
-        extras=[i for i in sorted(chosen) if i not in must]
-        chosen=set(must)|set(extras[:max(0,budget-len(must))])
-    return [ordered[i] for i in sorted(chosen)[:budget]]
+            i=round(j*(n-1)/(remaining+1))
+            if i not in chosen_set:
+                chosen.append(i); chosen_set.add(i)
+    if len(chosen)<budget:
+        for i in range(n):
+            if i not in chosen_set:
+                chosen.append(i); chosen_set.add(i)
+                if len(chosen)>=budget:break
+    return [ordered[i] for i in sorted(chosen[:budget])]
 
-def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_targets):
+def _targeted_price_curves(base,focus_uid,target_asset_ids,package_budget):
+    """Ask canonical GM3 for deeper curves only on selected trade targets."""
+    target_asset_ids=tuple(str(x) for x in target_asset_ids if x)
+    if not target_asset_ids:
+        return {}
+    key=(str(focus_uid),target_asset_ids,int(package_budget))
+    if key in _TARGETED_GM_CACHE:
+        return copy.deepcopy(_TARGETED_GM_CACHE[key])
+
+    engine=base.load_module(Path(__file__).resolve().parent/'build_fsffl_gm_engine.py','gm3_targeted_price_discovery')
+    override=base.load_module(Path(__file__).resolve().parent/'nonprojection_high_priority_overrides.py','gm3_targeted_price_discovery_overrides')
+    override.install(engine)
+    payload=engine.build_targeted_trade_price_curves(
+        str(focus_uid),
+        list(target_asset_ids),
+        max_packages_per_target=max(1,int(package_budget)),
+    )
+    curves={
+        str(x.get('target_asset_id')):copy.deepcopy(x)
+        for x in (payload.get('targets') or [])
+        if x.get('target_asset_id')
+    }
+    _TARGETED_GM_CACHE[key]=copy.deepcopy(curves)
+    return curves
+
+def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_targets,frontier_packages_per_target):
     doc=base.team_doc(focus_uid,'trade_opportunities'); rows=[]; frontier_rows=[]
     opportunities=list(doc.get('opportunities') or [])
+    def existing_curve_has_overlap(opp):
+        for pkg in (opp.get('price_frontier_candidate_packages') or []):
+            if base.sf(pkg.get('focal_strategic_utility'),-1e18)>0 and base.sf(pkg.get('seller_strategic_utility'),-1e18)>=0:
+                return True
+        return False
+    targeted_ids=[]
+    for opp in opportunities:
+        if len(targeted_ids)>=max(0,int(frontier_targets)):
+            break
+        if opp.get('target_asset_id') and not existing_curve_has_overlap(opp):
+            targeted_ids.append(str(opp.get('target_asset_id')))
+    targeted_curves=_targeted_price_curves(
+        base,focus_uid,targeted_ids,max(1,int(frontier_packages_per_target))
+    ) if targeted_ids else {}
     def make_row(opp,pkg,ordinal,frontier=False):
         tid=str(opp.get('target_asset_id') or ''); seller=str(opp.get('seller_user_id') or ''); target=catalog.get(tid)
         if not target or not seller or seller==str(focus_uid):return None
@@ -96,9 +162,14 @@ def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_t
             row=make_row(opp,pkg,ordinal,False)
             if row:rows.append(row)
         if oi<max(0,int(frontier_targets)):
-            for ordinal,pkg in enumerate(_price_frontier_sample(opp.get('price_frontier_candidate_packages') or [],packages_per_target,base.sf),1):
+            targeted=targeted_curves.get(str(opp.get('target_asset_id') or '')) or {}
+            curve=targeted.get('price_frontier_candidate_packages') or opp.get('price_frontier_candidate_packages') or []
+            for ordinal,pkg in enumerate(_price_frontier_sample(curve,frontier_packages_per_target,base.sf),1):
                 row=make_row(opp,pkg,ordinal,True)
-                if row:frontier_rows.append(row)
+                if row:
+                    row['targeted_adaptive_price_discovery_used']=bool(targeted)
+                    row['targeted_adaptive_price_discovery_package_economics_owned_by_gm3']=bool(targeted)
+                    frontier_rows.append(row)
     key=lambda r:(r['seller_user_id'],r['target']['asset_id'],tuple(sorted(x['asset_id'] for x in r['outgoing'])))
     dedup={}
     for r in rows:dedup.setdefault(key(r),r)
@@ -141,17 +212,26 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
     legal,resolutions,cuts=rosteraware.legalize_trade_rosters(dl,canonical_rosters,hypothetical,touched,league,players,protected_player_ids_by_uid=protected); effective=list(actions)+list(cuts); lineups,reopt=base.fast_reoptimize(lineupopt,dl,simmod,baseline_lineups,legal,touched,league,users,players,projections); hyp=dl.simulate_from_lineups(simmod,league,legal,users,raw_schedule,lineups,sims,seed); bidx,hidx=base.team_index(baseline),base.team_index(hyp); b,h=bidx[str(focus_uid)],hidx[str(focus_uid)]
     return {'focus_before':b,'focus_after':h,'focus_delta':{k:base.delta(b.get(k),h.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']},'strategic':dl.strategic_summary(str(focus_uid),effective),'roster_resolution':resolutions,'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims}
 def main():
-    ppt=_pop_cli_int('--trade-packages-per-target',DEFAULT_TRADE_PACKAGES_PER_TARGET); pft=_pop_cli_int('--price-frontier-targets',DEFAULT_PRICE_FRONTIER_TARGETS); out=output_path_from_argv(); base=load_base(); base.MODEL_VERSION=MODEL_VERSION; saved=base.evaluate_row; evaluated_trade_rows=[]
-    base.trade_candidates=lambda uid,catalog,limit:trade_candidates(base,uid,catalog,limit,ppt,pft); base.waiver_candidates=lambda uid,catalog,mi,limit:waiver_candidates(base,uid,catalog,mi,limit); base.simulate_actions=lambda dl,lo,ra,mi,bl,b,uid,a,s,seed:simulate_actions_protect_add(base,dl,lo,ra,mi,bl,b,uid,a,s,seed)
+    ppt=_pop_cli_int('--trade-packages-per-target',DEFAULT_TRADE_PACKAGES_PER_TARGET); pft=_pop_cli_int('--price-frontier-targets',DEFAULT_PRICE_FRONTIER_TARGETS); pfpt=_pop_cli_int('--price-frontier-packages-per-target',DEFAULT_PRICE_FRONTIER_PACKAGES_PER_TARGET); out=output_path_from_argv(); base=load_base(); base.MODEL_VERSION=MODEL_VERSION; saved=base.evaluate_row; evaluated_trade_rows=[]
+    base.trade_candidates=lambda uid,catalog,limit:trade_candidates(base,uid,catalog,limit,ppt,pft,pfpt); base.waiver_candidates=lambda uid,catalog,mi,limit:waiver_candidates(base,uid,catalog,mi,limit); base.simulate_actions=lambda dl,lo,ra,mi,bl,b,uid,a,s,seed:simulate_actions_protect_add(base,dl,lo,ra,mi,bl,b,uid,a,s,seed)
     def ev(row,uid,dl,lo,ra,mi,bl,b,s,seed):
         if row.get('channel')!='WAIVER' or not row.get('native_full_projection'):
             result=saved(row,uid,dl,lo,ra,mi,bl,b,s,seed)
-            if result.get('channel')=='TRADE': evaluated_trade_rows.append(copy.deepcopy(result))
+            if result.get('channel')=='TRADE':
+                evaluated_trade_rows.append(copy.deepcopy(result))
+                if row.get('price_frontier_search_candidate'):
+                    # Preserve the real GM3 utility for the dedicated frontier,
+                    # but make this search-only row ineligible for broad Team
+                    # Improvement recommendation/portfolio slots.
+                    routed=copy.deepcopy(result)
+                    routed['actionable']=False
+                    routed['price_frontier_search_excluded_from_broad_ranking']=True
+                    return routed
             return result
         m=list(mi); p=copy.deepcopy(m[6]); p.setdefault('players',{})[str(row['target']['player_id'])]=copy.deepcopy(row['native_full_projection']); m[6]=p; return saved(row,uid,dl,lo,ra,tuple(m),bl,b,s,seed)
     base.evaluate_row=ev; base.main()
     if out and out.exists():
-        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.0','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.0','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
+        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report['search_summary']['price_frontier_packages_per_target_considered']=int(pfpt); report['search_summary']['targeted_adaptive_price_discovery_enabled']=bool(pft and pfpt); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'targeted_price_discovery_package_economics_owned_by_gm3':True,'targeted_price_discovery_target_selection_is_search_orchestration':True,'targeted_price_discovery_creates_new_trade_value':False,'targeted_price_discovery_rows_are_search_only_not_broad_ranking':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.0','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.0','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
         frontier={}
         for row in evaluated_trade_rows:
             target=row.get('target') or {}; key=(str(row.get('seller_user_id') or ''),str(target.get('asset_id') or ''),tuple(sorted(str(x.get('asset_id') or '') for x in (row.get('outgoing') or []))))
@@ -159,12 +239,28 @@ def main():
             if prior is None or int(row_sims or 0)>=int(prior_sims or 0): frontier[key]=row
         report['trade_price_frontier_candidates']=sorted(list(frontier.values()),key=lambda x:base.sf(x.get('team_improvement_score')) if x.get('team_improvement_score') is not None else -1e18,reverse=True)
         report['search_summary']['trade_price_frontier_candidates_evaluated']=len(report['trade_price_frontier_candidates'])
+
+        # Targeted frontier rows are search coverage for price discovery, not
+        # additional broad single-step recommendations. Keep them in the
+        # dedicated frontier output but prevent them from crowding target
+        # diversity, waiver opportunities, or portfolio construction.
+        def broad_row(x):
+            return not bool((x or {}).get('price_frontier_search_candidate'))
+        report['top_cross_channel_options']=[
+            x for x in (report.get('top_cross_channel_options') or []) if broad_row(x)
+        ]
+        report['best_trade_options']=[
+            x for x in (report.get('best_trade_options') or []) if broad_row(x)
+        ]
+        if report.get('recommended_action') and not broad_row(report.get('recommended_action')):
+            candidates=list(report.get('top_cross_channel_options') or [])
+            report['recommended_action']=copy.deepcopy(candidates[0] if candidates else report.get('hold_benchmark'))
+        report['search_summary']['targeted_price_frontier_rows_excluded_from_broad_ranking']=True
         report['policy']['trade_price_frontier_uses_all_evaluated_trade_candidates']=True
         report['policy']['trade_price_frontier_candidates_preserve_gm3_utility']=True
         report['policy']['trade_price_frontier_candidates_ordered_by_gm3_utility']=True
         report['policy']['price_frontier_search_uses_upstream_gm_trade_package_curve']=True
         report['policy']['price_frontier_search_depth_is_computational_control_only']=True
-        report['policy']['price_frontier_search_uses_upstream_gm_trade_package_curve']=True
-        report['policy']['price_frontier_search_depth_is_computational_control_only']=True
+        report['policy']['targeted_adaptive_price_discovery_uses_same_gm3_package_economics']=True
         out.write_text(json.dumps(report,indent=2,sort_keys=True))
 if __name__=='__main__':main()
