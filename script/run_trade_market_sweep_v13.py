@@ -49,7 +49,10 @@ def load_module(path: Path, name: str):
 
 
 def fast_optimize_weekly_lineup(simmod, roster, week, league, players, projections):
-    """Exact max-weight legal lineup assignment via slot-mask DP."""
+    """Exact max-weight legal lineup assignment via canonical Simulator when available."""
+    canonical = getattr(simmod, "optimize_fsffl_fast", None)
+    if callable(canonical):
+        return canonical(roster, week, league, players, projections)
     core = getattr(simmod, "core", simmod)
     candidates = []
     taxi = set(roster.get("taxi") or [])
