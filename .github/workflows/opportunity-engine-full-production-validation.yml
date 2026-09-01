@@ -8,6 +8,7 @@ on:
       - 'script/opportunity_engine/application_v21.py'
       - 'script/opportunity_engine/focal_utility_stability.py'
       - 'script/test_focal_utility_stability.py'
+      - 'script/test_opportunity_specialist_views.py'
       - 'script/render_opportunity_engine_report.py'
       - 'script/audit_contender_state_utility_calibration.py'
       - 'script/strategic_posture.py'
@@ -59,9 +60,11 @@ jobs:
             script/strategic_posture.py \
             script/test_strategic_posture.py \
             script/test_opportunity_engine_outbound.py \
-            script/test_focal_utility_stability.py
+            script/test_focal_utility_stability.py \
+            script/test_opportunity_specialist_views.py
           python script/test_strategic_posture.py
           python script/test_focal_utility_stability.py
+          python script/test_opportunity_specialist_views.py
           python script/test_opportunity_engine_outbound.py
           python script/test_negotiation_price_frontier.py
           python script/test_opportunity_engine_price_search.py
@@ -137,6 +140,9 @@ jobs:
           assert b['capability_status']['outbound_future_value_trade_search'] is True
           assert b['capability_status']['focal_utility_sign_stability_confirmation'] is True
           assert b['capability_status']['simulation_sensitive_trade_watchlist'] is True
+          assert b['capability_status']['specialist_view_routing_status'] is True
+          assert b['policy']['specialist_views_require_actionability'] is False
+          assert b['policy']['specialist_views_create_recommendation_authority'] is False
           assert b['policy']['focal_utility_sign_stability_creates_new_utility'] is False
           assert b['policy']['focal_utility_sign_stability_uses_fixed_margin_threshold'] is False
           assert b['policy']['simulation_sensitive_focal_utility_can_be_headline_action'] is False
@@ -161,6 +167,16 @@ jobs:
           for row in b.get('simulation_sensitive_trade_watchlist') or []:
               st=row.get('focal_utility_stability_confirmation') or {}
               assert st.get('confirmed_for_headline_action') is False
+          views=b.get('specialized_views') or {}
+          populated=[row for row in views.values() if row]
+          assert populated, 'Expected governed specialist intelligence to remain visible'
+          for row in populated:
+              assert row.get('specialist_view_is_recommendation') is False
+              assert row.get('opportunity_routing_status')
+          assert any(
+              row.get('specialist_view_preserved_despite_non_actionable_status') is True
+              for row in populated
+          ), 'Expected at least one non-actionable specialist view to remain visible in full production'
           assert Path('/tmp/oe-full/Opportunity_Engine_Report.md').stat().st_size > 800
           audit=json.load(open('/tmp/oe-full/contender-state-utility-audit.json'))
           assert audit['trade_case_count'] > 0
