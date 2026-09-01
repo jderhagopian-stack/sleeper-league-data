@@ -276,23 +276,30 @@ def _asset_ids(row):
         for x in (row.get("outgoing") or [])
         if x.get("asset_id")
     }
-    target = str(((row.get("target") or {}).get("asset_id")) or "")
-    return outgoing, target
+    incoming_rows = list(row.get("incoming") or [])
+    if not incoming_rows and row.get("target"):
+        incoming_rows = [row.get("target") or {}]
+    incoming = {
+        str(x.get("asset_id"))
+        for x in incoming_rows
+        if x.get("asset_id")
+    }
+    return outgoing, incoming
 
 
 def _compatible(a, b):
     """Structural compatibility only; final bundle value is evaluated by GM3."""
     if str(a.get("channel") or "") == "HOLD" or str(b.get("channel") or "") == "HOLD":
         return False
-    a_out, a_target = _asset_ids(a)
-    b_out, b_target = _asset_ids(b)
-    if a_target and b_target and a_target == b_target:
+    a_out, a_in = _asset_ids(a)
+    b_out, b_in = _asset_ids(b)
+    if a_in & b_in:
         return False
     if a_out & b_out:
         return False
-    if a_target and a_target in b_out:
+    if a_in & b_out:
         return False
-    if b_target and b_target in a_out:
+    if b_in & a_out:
         return False
     return True
 
