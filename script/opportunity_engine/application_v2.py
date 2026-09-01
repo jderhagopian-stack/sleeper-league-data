@@ -76,13 +76,16 @@ def _execution_plan(rows):
         channel = str(row.get("channel") or "")
         target = row.get("target") or {}
         if channel == "TRADE":
+            incoming=list(row.get("incoming") or [])
+            if not incoming and target:
+                incoming=[target]
             steps.append({
                 "step": ordinal,
                 "channel": channel,
                 "description": row.get("description"),
                 "preconditions": {
-                    "target_asset_id": target.get("asset_id"),
-                    "target_must_remain_with_seller_user_id": row.get("seller_user_id"),
+                    "counterparty_user_id": row.get("counterparty_user_id") or row.get("seller_user_id"),
+                    "incoming_asset_ids_must_remain_with_counterparty": [x.get("asset_id") for x in incoming],
                     "focal_outgoing_assets_must_remain_owned": [x.get("asset_id") for x in (row.get("outgoing") or [])],
                     "counterparty_willingness_observed": False,
                 },
