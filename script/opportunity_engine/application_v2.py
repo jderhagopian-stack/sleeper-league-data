@@ -209,6 +209,7 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
         comparable_single = {
             "description": best_single_row.get("description"),
             "team_improvement_score": single_result.get("team_improvement_score"),
+            "decision_attribution": single_result.get("decision_attribution"),
             "simulation_count": confirm_count,
             "authority": "GM3 Team Improvement",
         }
