@@ -147,10 +147,13 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
             else:
                 f = _optionality(row)
         elif feature == "resilience":
-            # Final resilience must measure depth insurance, not dependency on
-            # a star player. Dependency is fragility/current-value context and
-            # is already reflected in lineup/simulation outcomes.
-            if row.get("final_shared_utility_resilience_basis") == "depth_insurance_only":
+            # Availability/injury risk is already sampled by the canonical
+            # Simulator via weekly active_probability. Roster fragility and
+            # depth-insurance remain valuable diagnostics/search context, but
+            # receive no second incremental utility without residual evidence.
+            if row.get("resilience_incremental_value_authorized") is False:
+                f = 0.0
+            elif row.get("final_shared_utility_resilience_basis") == "depth_insurance_only":
                 f = float(row.get("depth_insurance_score") or 0.0)
             else:
                 f = float(row.get("replacement_resilience_score") or 0.0)
@@ -204,6 +207,7 @@ def install(base_dl):
                 "fragility_dependency_score": float(p.get("fragility_dependency_score") or 0.0),
                 "depth_insurance_score": float(p.get("depth_insurance_score") or 0.0),
                 "final_shared_utility_resilience_basis": p.get("final_shared_utility_resilience_basis"),
+                "resilience_incremental_value_authorized": p.get("resilience_incremental_value_authorized"),
                 "future_distribution": p.get("future_distribution"),
                 "pick_profile": p.get("pick_profile"),
                 "objective_state": p.get("objective_state") or weight_resolution["state"],
