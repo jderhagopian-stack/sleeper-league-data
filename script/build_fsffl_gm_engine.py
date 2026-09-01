@@ -4123,6 +4123,11 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
             # With that duplicated component removed, the remaining distinct
             # future-utility component carries the full normalized weight.
             future_utility = clamp(dist["upside_optionality"], 0.0, 1.0)
+            # Keep dependency (how badly this roster suffers if the player is
+            # unavailable) separate from true resilience (how much the player
+            # protects the roster when another same-position starter is out).
+            # Dependency is fragility/current-value context, not an independent
+            # resilience benefit in final Shared Decision Utility.
             resilience = clamp(0.62 * dependency + 0.38 * depth_insurance, 0.0, 1.0)
 
             strategic_score = clamp(
@@ -4185,7 +4190,12 @@ def build_strategic_asset_profiles_for_team(uid: str, ctx=None):
                 "single_absence_dependency_drop": round(single_drop, 1),
                 "depth_insurance_drop": round(depth_drop, 1),
                 "replacement_resilience_score": round(resilience, 4),
-                "replacement_resilience_basis": "team_specific_lineup_reoptimization",
+                "replacement_resilience_basis": "legacy_blend_dependency_plus_depth_insurance_search_context",
+                "fragility_dependency_score": round(dependency, 4),
+                "depth_insurance_score": round(depth_insurance, 4),
+                "final_shared_utility_resilience_basis": "depth_insurance_only",
+                "liquidity_incremental_value_authorized": False,
+                "liquidity_incremental_value_policy": "market_derived_player_liquidity_diagnostic_until_residual_validation",
                 "strategic_score": round(strategic_score, 4),
                 "core_status": status,
                 "liquidity_score": round(liquidity, 4),
