@@ -74,6 +74,40 @@ jobs:
             --input /tmp/oe-full/opportunity-board.json \
             --output /tmp/oe-full/contender-state-utility-audit.json \
             --markdown /tmp/oe-full/Contender_State_Utility_Audit.md
+      - name: Run owner-posture smoke
+        run: |
+          python script/opportunity_engine/application_v21.py \
+            --focus-user-id 846634401482792960 \
+            --strategic-posture PRESERVE_FUTURE_VALUE \
+            --quick-sims 30 \
+            --confirm-sims 60 \
+            --trade-screen 8 \
+            --waiver-screen 8 \
+            --confirm-top 4 \
+            --trade-packages-per-target 4 \
+            --price-frontier-targets 4 \
+            --price-frontier-packages-per-target 6 \
+            --portfolio-depth 0 \
+            --trade-review-depth 0 \
+            --output /tmp/oe-full/posture-smoke.json
+          python - <<'PY'
+          import json
+          auto=json.load(open('/tmp/oe-full/opportunity-board.json'))
+          b=json.load(open('/tmp/oe-full/posture-smoke.json'))
+          p=b.get('strategic_posture') or {}
+          assert p.get('selected_posture')=='PRESERVE_FUTURE_VALUE'
+          assert p.get('posture_source')=='OWNER_OVERRIDE'
+          assert p.get('competitive_state')==(auto.get('competitive_state') or auto.get('team_state'))
+          assert b.get('competitive_state')==(auto.get('competitive_state') or auto.get('team_state'))
+          trade=next((x for x in (b.get('negotiation_frontier') or {}).get('evaluated_trade_packages',[]) if (x.get('simulation') or {}).get('strategic')),None)
+          if trade:
+              sim=trade.get('simulation') or {}
+              assert (sim.get('strategic') or {}).get('strategic_posture')=='PRESERVE_FUTURE_VALUE'
+              cp=(sim.get('counterparty') or {}).get('strategic') or {}
+              if cp:
+                  assert cp.get('strategic_posture')=='AUTO'
+          print({'posture':p.get('selected_posture'),'competitive_state':b.get('competitive_state')})
+          PY
       - name: Validate full production output
         run: |
           python - <<'PY'
