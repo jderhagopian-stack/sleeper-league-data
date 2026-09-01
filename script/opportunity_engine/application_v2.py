@@ -12,6 +12,7 @@ import argparse
 import copy
 import datetime as dt
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -48,6 +49,18 @@ def _run_team_improvement(args, raw_output: Path):
     ]
     subprocess.run(cmd, cwd=ROOT, check=True)
 
+
+def _portfolio_evaluator(focus_user_id, simulations, seed, strategic_posture="AUTO"):
+    """Call the stable GM3 evaluator while preserving compatibility test doubles."""
+    fn = gm3_team_improvement.portfolio_evaluator
+    if "strategic_posture" in inspect.signature(fn).parameters:
+        return fn(
+            str(focus_user_id),
+            simulations=int(simulations),
+            seed=int(seed),
+            strategic_posture=strategic_posture,
+        )
+    return fn(str(focus_user_id), simulations=int(simulations), seed=int(seed))
 
 def _bundle_key(indices):
     return tuple(sorted(int(x) for x in indices))
@@ -133,9 +146,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
             "adaptive_search": True,
         }
 
-    screen_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=int(simulations), seed=int(seed),
-        strategic_posture=strategic_posture,
+    screen_evaluator = _portfolio_evaluator(
+        focus_user_id, simulations, seed, strategic_posture
     )
     all_screened = []
     current_level = []
@@ -188,9 +200,8 @@ def build_adaptive_portfolio_view(source, focus_user_id, depth=8, max_moves=3,
     all_screened.sort(key=lambda x: float(x.get("team_improvement_score") or 0.0), reverse=True)
     finalists = all_screened[: min(max(1, int(confirm_top)), len(all_screened))]
     confirm_count = int(confirm_simulations) if int(confirm_simulations) > int(simulations) else int(simulations)
-    confirm_evaluator = gm3_team_improvement.portfolio_evaluator(
-        str(focus_user_id), simulations=confirm_count, seed=int(seed),
-        strategic_posture=strategic_posture,
+    confirm_evaluator = _portfolio_evaluator(
+        focus_user_id, confirm_count, seed, strategic_posture
     )
     confirmed = []
     for row in finalists:
@@ -261,9 +272,8 @@ def _robustness(rows, focus_user_id, simulations, seeds, strategic_posture='AUTO
         return {"enabled": False}
     samples = []
     for seed in seeds:
-        evaluator = gm3_team_improvement.portfolio_evaluator(
-            str(focus_user_id), simulations=int(simulations), seed=int(seed),
-            strategic_posture=strategic_posture,
+        evaluator = _portfolio_evaluator(
+            focus_user_id, simulations, seed, strategic_posture
         )
         result = evaluator.evaluate(rows)
         sim = result.get("simulation") or {}
