@@ -8,19 +8,24 @@ human inspection.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional
 
 
-MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.1"
+MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.2"
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA = ROOT / "data"
 
 
 def _load(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _number(value: Any) -> Optional[float]:
@@ -170,8 +175,10 @@ def _rank_map(
 
 
 def _rank_players(
-    assets: Mapping[str, Any], projections: Mapping[str, Any]
+    assets: Mapping[str, Any], projections: Mapping[str, Any],
+    team_context: Optional[Mapping[str, Mapping[str, Any]]] = None,
 ) -> list[Dict[str, Any]]:
+    team_context = team_context or {}
     source_rows = [dict(row) for row in (assets.get("players") or [])]
     projection_players = projections.get("players") or {}
     projection_summaries = {
@@ -227,6 +234,10 @@ def _rank_players(
             "current_season_projection_position_rank": projection_position_ranks.get(player_id),
             "current_season_projection": projection_summaries[player_id],
             "published_fsffl_value_status": _published_fsffl_value_status(row),
+            "team_specific_context": team_context.get(player_id) or {
+                "available": False,
+                "reason": "no current governed GM3 team-context payload supplied",
+            },
             "field_provenance": {
                 "identity_and_ownership": {
                     "authority": "published league asset catalog",
@@ -253,6 +264,238 @@ def _rank_players(
             },
         })
     return output
+
+
+def _percentile(value: Any, population: Iterable[Any]) -> Optional[float]:
+    number = _number(value)
+    values = [x for item in population if (x := _number(item)) is not None]
+    if number is None or not values:
+        return None
+    if len(values) == 1:
+        return 1.0
+    less = sum(x < number for x in values)
+    equal = sum(x == number for x in values)
+    return round((less + 0.5 * (equal - 1)) / (len(values) - 1), 4)
+
+
+def _team_context_status(
+    path: Optional[Path], data_dir: Path, focus_user_id: Optional[str]
+) -> tuple[Dict[str, Any], Dict[str, Mapping[str, Any]], Optional[Mapping[str, Any]]]:
+    if not path:
+        return ({
+            "available": False,
+            "compatible": False,
+            "reason": "no GM3 team-context payload supplied",
+            "terminal_consumes_payload": False,
+        }, {}, None)
+    path = Path(path)
+    if not path.exists():
+        return ({
+            "available": False,
+            "compatible": False,
+            "reason": f"team-context payload does not exist: {path}",
+            "terminal_consumes_payload": False,
+        }, {}, None)
+    payload = _load(path)
+    expected_focus = str(focus_user_id or payload.get("focus_user_id") or "")
+    errors = []
+    if payload.get("authority") != "GM3 Team Improvement":
+        errors.append("payload authority is not GM3 Team Improvement")
+    if str(payload.get("focus_user_id") or "") != expected_focus:
+        errors.append("payload focus team does not match requested viewer team")
+    contract = payload.get("scenario_contract") or {}
+    if not contract.get("zero_price_counterfactual"):
+        errors.append("payload lacks the zero-price scenario declaration")
+    if any(contract.get(key) for key in (
+        "fair_price_estimate", "willingness_to_pay_estimate",
+        "trade_acceptance_probability", "recommendation",
+    )):
+        errors.append("payload claims forbidden price, acceptance, or recommendation authority")
+    for source, expected_hash in (payload.get("source_hashes") or {}).items():
+        source_path = ROOT / source
+        if not source_path.exists() or _sha256(source_path) != expected_hash:
+            errors.append(f"source revision mismatch: {source}")
+    compatible = not errors
+    records = {
+        str(row.get("player_id") or ""): row
+        for row in (payload.get("records") or [])
+        if compatible and row.get("player_id")
+    }
+    return ({
+        "available": True,
+        "compatible": compatible,
+        "focus_user_id": payload.get("focus_user_id"),
+        "model_version": payload.get("model_version"),
+        "shared_decision_utility": payload.get("shared_decision_utility"),
+        "generated_at_utc": payload.get("generated_at_utc"),
+        "record_count": payload.get("record_count"),
+        "available_record_count": payload.get("available_record_count"),
+        "errors": errors,
+        "terminal_consumes_payload": compatible,
+        "quarantine_enforced": not compatible,
+    }, records, payload if compatible else None)
+
+
+def _positional_heat_map(
+    assets: Mapping[str, Any], projections: Mapping[str, Any],
+    league: Mapping[str, Any], standings: Mapping[str, Any],
+) -> Dict[str, Any]:
+    positions = ("QB", "RB", "WR", "TE")
+    dedicated_slots = {
+        position: sum(str(slot) == position for slot in (league.get("roster_positions") or []))
+        for position in positions
+    }
+    projection_players = projections.get("players") or {}
+    teams = {
+        str(row.get("user_id") or ""): {
+            "user_id": str(row.get("user_id") or ""),
+            "manager": row.get("manager"),
+            "team_name": row.get("team_name"),
+            "positions": {},
+            "future_draft_capital_market_value": 0.0,
+            "long_term_player_market_value": 0.0,
+            "competitive_outcomes": {
+                key: row.get(key) for key in (
+                    "expected_wins", "expected_points_for", "playoff_probability",
+                    "bye_probability", "championship_probability",
+                )
+            },
+        }
+        for row in (standings.get("teams") or [])
+    }
+    by_team_position: Dict[str, Dict[str, list[Dict[str, Any]]]] = {
+        uid: {position: [] for position in positions} for uid in teams
+    }
+    for player in (assets.get("players") or []):
+        uid = str(player.get("current_owner_user_id") or "")
+        position = str(player.get("position") or "")
+        if uid not in teams or position not in positions:
+            continue
+        projection = _projection_summary(projection_players.get(str(player.get("player_id") or "")))
+        by_team_position[uid][position].append({
+            "projection": _number(projection.get("mean_weekly_projection")),
+            "market": _number(player.get("market_dynasty")) or 0.0,
+        })
+        teams[uid]["long_term_player_market_value"] += _number(player.get("market_dynasty")) or 0.0
+    for pick in (assets.get("picks") or []):
+        uid = str(pick.get("current_owner_user_id") or "")
+        if uid in teams:
+            teams[uid]["future_draft_capital_market_value"] += _number(pick.get("market_dynasty")) or 0.0
+    for uid, team in teams.items():
+        team["future_draft_capital_market_value"] = round(team["future_draft_capital_market_value"], 2)
+        team["long_term_player_market_value"] = round(team["long_term_player_market_value"], 2)
+        for position in positions:
+            rows = by_team_position[uid][position]
+            projections_sorted = sorted(
+                (row["projection"] for row in rows if row["projection"] is not None), reverse=True
+            )
+            markets = sorted((row["market"] for row in rows), reverse=True)
+            slots = dedicated_slots[position]
+            team["positions"][position] = {
+                "dedicated_starter_slots": slots,
+                "rostered_player_count": len(rows),
+                "projected_player_count": len(projections_sorted),
+                "dedicated_starter_projection_ppg": round(sum(projections_sorted[:slots]), 3),
+                "projection_depth_beyond_dedicated_slots_ppg": round(sum(projections_sorted[slots:]), 3),
+                "total_rostered_projection_ppg": round(sum(projections_sorted), 3),
+                "dedicated_starter_long_term_market_value": round(sum(markets[:slots]), 2),
+                "total_position_long_term_market_value": round(sum(markets), 2),
+            }
+            if position == "QB":
+                team["positions"][position]["top_two_qb_projection_ppg"] = round(sum(projections_sorted[:2]), 3)
+    team_rows = list(teams.values())
+    for team in team_rows:
+        for position in positions:
+            row = team["positions"][position]
+            for field in (
+                "dedicated_starter_projection_ppg",
+                "projection_depth_beyond_dedicated_slots_ppg",
+                "total_position_long_term_market_value",
+            ):
+                row[f"{field}_league_percentile"] = _percentile(
+                    row[field], (other["positions"][position][field] for other in team_rows)
+                )
+            if position == "QB":
+                row["top_two_qb_projection_ppg_league_percentile"] = _percentile(
+                    row["top_two_qb_projection_ppg"],
+                    (other["positions"][position]["top_two_qb_projection_ppg"] for other in team_rows),
+                )
+        for field in ("future_draft_capital_market_value", "long_term_player_market_value"):
+            team[f"{field}_league_percentile"] = _percentile(
+                team[field], (other[field] for other in team_rows)
+            )
+    team_rows.sort(key=lambda row: str(row.get("team_name") or ""))
+    return {
+        "authority": {
+            "current_season": "Projection System",
+            "long_term_and_draft_capital": "published market anchors",
+            "competitive_outcomes": "Simulator",
+            "percentiles": "League Intelligence monotonic display transform",
+        },
+        "creates_new_strength_model": False,
+        "creates_categorical_team_labels": False,
+        "dedicated_slots_derived_from_league_rules": dedicated_slots,
+        "superflex_handling": "top-two QB projection is exposed separately; SUPER_FLEX is not forced into QB",
+        "teams": team_rows,
+    }
+
+
+def _trade_partner_map(heat_map: Mapping[str, Any], focus_user_id: Optional[str],
+                       team_context_payload: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
+    teams = list(heat_map.get("teams") or [])
+    positions = ("QB", "RB", "WR", "TE")
+    rows = []
+    for buyer in teams:
+        for holder in teams:
+            if buyer["user_id"] == holder["user_id"]:
+                continue
+            for position in positions:
+                buyer_pct = buyer["positions"][position]["total_position_long_term_market_value_league_percentile"]
+                holder_pct = holder["positions"][position]["total_position_long_term_market_value_league_percentile"]
+                rows.append({
+                    "investigating_team_user_id": buyer["user_id"],
+                    "investigating_team": buyer["team_name"],
+                    "asset_holding_team_user_id": holder["user_id"],
+                    "asset_holding_team": holder["team_name"],
+                    "position": position,
+                    "investigating_team_percentile": buyer_pct,
+                    "asset_holding_team_percentile": holder_pct,
+                    "league_relative_strength_gap": round((holder_pct or 0.0) - (buyer_pct or 0.0), 4),
+                })
+    rows.sort(key=lambda row: row["league_relative_strength_gap"], reverse=True)
+    player_rows = []
+    for row in ((team_context_payload or {}).get("records") or []):
+        if not row.get("available") or row.get("scenario") != "ZERO_PRICE_ROSTER_TRANSFER":
+            continue
+        focal = row.get("focal_team_context") or {}
+        owner = row.get("current_owner_context") or {}
+        player_rows.append({
+            "player_id": row.get("player_id"),
+            "name": row.get("name"),
+            "position": row.get("position"),
+            "current_owner_user_id": row.get("current_owner_user_id"),
+            "current_owner_team": row.get("current_owner_team"),
+            "viewer_gross_marginal_utility": ((focal.get("shared_decision_utility") or {}).get("score")),
+            "current_owner_zero_compensation_utility": ((owner.get("shared_decision_utility") or {}).get("score")),
+            "viewer_simulator_delta": focal.get("simulator_delta") or {},
+            "viewer_utility_components": ((focal.get("shared_decision_utility") or {}).get("components") or {}),
+            "current_owner_utility_components": ((owner.get("shared_decision_utility") or {}).get("components") or {}),
+            "fair_price_estimate": False,
+            "recommendation": False,
+        })
+    player_rows.sort(key=lambda row: _number(row["viewer_gross_marginal_utility"]) or float("-inf"), reverse=True)
+    return {
+        "purpose": "identify league-relative roster complementarities for investigation",
+        "recommendation": False,
+        "acceptance_probability": False,
+        "fair_trade_claim": False,
+        "positional_complementarities": rows,
+        "focus_team_user_id": str(focus_user_id) if focus_user_id else None,
+        "focus_team_positional_complementarities": [
+            row for row in rows if str(row["investigating_team_user_id"]) == str(focus_user_id)
+        ] if focus_user_id else [],
+        "focus_team_player_context": player_rows,
+    }
 
 
 def _legacy_contract_status(data_dir: Path) -> Dict[str, Any]:
@@ -306,17 +549,31 @@ def _player_value_contract_status(players: Iterable[Mapping[str, Any]]) -> Dict[
     }
 
 
-def build_terminal(data_dir: Path = DEFAULT_DATA) -> Dict[str, Any]:
+def build_terminal(
+    data_dir: Path = DEFAULT_DATA,
+    *,
+    focus_user_id: Optional[str] = None,
+    team_context_path: Optional[Path] = None,
+) -> Dict[str, Any]:
     data_dir = Path(data_dir)
     asset_path = data_dir / "fsffl_asset_values.json"
     projection_path = data_dir / "simulator" / "2026" / "inputs" / "player_weekly_projections.json"
     standings_path = data_dir / "gm" / "league" / "simulator_context.json"
+    league_path = data_dir / "league.json"
     assets = _load(asset_path)
     projections = _load(projection_path)
     standings = _load(standings_path)
+    league = _load(league_path)
 
-    players = _rank_players(assets, projections)
+    team_context_status, team_context_records, team_context_payload = _team_context_status(
+        team_context_path, data_dir, focus_user_id
+    )
+    if not focus_user_id and team_context_payload:
+        focus_user_id = str(team_context_payload.get("focus_user_id") or "")
+    players = _rank_players(assets, projections, team_context_records)
     player_value_contract = _player_value_contract_status(players)
+    heat_map = _positional_heat_map(assets, projections, league, standings)
+    trade_partner_map = _trade_partner_map(heat_map, focus_user_id, team_context_payload)
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_version": MODEL_VERSION,
@@ -326,10 +583,12 @@ def build_terminal(data_dir: Path = DEFAULT_DATA) -> Dict[str, Any]:
             _source_record(asset_path, assets, role="published market anchors and legacy adjusted-value diagnostics"),
             _source_record(projection_path, projections, role="published current-season projection means and uncertainty"),
             _source_record(standings_path, standings, role="published Simulator competitive outcomes"),
+            _source_record(league_path, league, role="rule-defined league roster construction"),
         ],
         "contract_health": {
             "competitive_state_strategic_posture": _legacy_contract_status(data_dir),
             "player_value_authority": player_value_contract,
+            "gm3_team_context": team_context_status,
         },
         "views": {
             "player_value_rankings": {
@@ -357,6 +616,16 @@ def build_terminal(data_dir: Path = DEFAULT_DATA) -> Dict[str, Any]:
                 "teams": standings.get("teams") or [],
                 "simulator_model_version": standings.get("simulator_model_version"),
             },
+            "team_relative_player_context": {
+                "authority": "GM3 Team Improvement",
+                "focus_user_id": str(focus_user_id) if focus_user_id else None,
+                "gross_context_only": True,
+                "creates_trade_price": False,
+                "recommendation": False,
+                "records": list(team_context_records.values()),
+            },
+            "positional_strength_heat_map": heat_map,
+            "trade_partner_intelligence": trade_partner_map,
         },
         "capability_status": {
             "read_only_application_boundary": True,
@@ -369,8 +638,10 @@ def build_terminal(data_dir: Path = DEFAULT_DATA) -> Dict[str, Any]:
             "model_vs_market": False,
             "model_vs_market_blocked_by_source_contract": True,
             "league_competitive_landscape": True,
-            "positional_strength_heat_map": False,
-            "trade_partner_map": False,
+            "team_specific_player_context": bool(team_context_status.get("compatible")),
+            "viewer_team_and_current_owner_context": bool(team_context_status.get("compatible")),
+            "positional_strength_heat_map": True,
+            "trade_partner_map": True,
             "decision_utility_inspector": False,
         },
     }
@@ -458,6 +729,101 @@ def render_player_rankings_markdown(payload: Mapping[str, Any], *, limit: int = 
                 f"{_fmt(projection.get('mean_weekly_projection'))} |"
             )
 
+    team_status = payload["contract_health"]["gm3_team_context"]
+    if team_status.get("compatible"):
+        context_rows = [
+            row for row in payload["views"]["team_relative_player_context"]["records"]
+            if row.get("available")
+        ]
+        external = [row for row in context_rows if row.get("scenario") == "ZERO_PRICE_ROSTER_TRANSFER"]
+        external.sort(
+            key=lambda row: _number(((row.get("focal_team_context") or {}).get("shared_decision_utility") or {}).get("score")) or float("-inf"),
+            reverse=True,
+        )
+        retained = [row for row in context_rows if row.get("scenario") == "FOCAL_ROSTER_REMOVAL"]
+        retained.sort(
+            key=lambda row: _number(((row.get("focal_team_context") or {}).get("shared_decision_utility") or {}).get("score")) or float("inf")
+        )
+        lines.extend([
+            "",
+            "## Team-relative player context",
+            "",
+            "These are gross GM3 roster counterfactuals, not trade prices. External players are transferred without compensation; players already on the viewing roster are removed to measure retention dependence.",
+            "",
+            "### Largest gross gains for the viewing team",
+            "",
+            "| Player | Pos | Current team | Viewer utility | Owner utility | Exp. wins delta |",
+            "|---|:---:|---|---:|---:|---:|",
+        ])
+        for row in external[:10]:
+            focal = row.get("focal_team_context") or {}
+            owner = row.get("current_owner_context") or {}
+            lines.append(
+                f"| {row.get('name')} | {row.get('position')} | {row.get('current_owner_team')} | "
+                f"{_fmt(((focal.get('shared_decision_utility') or {}).get('score')), 0)} | "
+                f"{_fmt(((owner.get('shared_decision_utility') or {}).get('score')), 0)} | "
+                f"{_fmt((focal.get('simulator_delta') or {}).get('expected_wins'), 2)} |"
+            )
+        lines.extend([
+            "",
+            "### Largest retention losses for the viewing team",
+            "",
+            "| Player | Pos | Removal utility | Exp. wins delta | Playoff delta |",
+            "|---|:---:|---:|---:|---:|",
+        ])
+        for row in retained[:10]:
+            focal = row.get("focal_team_context") or {}
+            lines.append(
+                f"| {row.get('name')} | {row.get('position')} | "
+                f"{_fmt(((focal.get('shared_decision_utility') or {}).get('score')), 0)} | "
+                f"{_fmt((focal.get('simulator_delta') or {}).get('expected_wins'), 2)} | "
+                f"{_fmt((focal.get('simulator_delta') or {}).get('playoff_probability'), 3)} |"
+            )
+
+    heat = payload["views"]["positional_strength_heat_map"]
+    lines.extend([
+        "",
+        "## League positional strength heat map",
+        "",
+        "Values are league percentiles of governed raw fields. They are display transforms, not team grades or decision weights.",
+        "",
+        "| Team | QB starters | QB top-2 | RB starters | WR starters | TE starters | Future picks |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ])
+    for team in heat.get("teams") or []:
+        pos = team["positions"]
+        lines.append(
+            f"| {team.get('team_name')} | "
+            f"{_fmt(pos['QB']['dedicated_starter_projection_ppg_league_percentile'], 3)} | "
+            f"{_fmt(pos['QB']['top_two_qb_projection_ppg_league_percentile'], 3)} | "
+            f"{_fmt(pos['RB']['dedicated_starter_projection_ppg_league_percentile'], 3)} | "
+            f"{_fmt(pos['WR']['dedicated_starter_projection_ppg_league_percentile'], 3)} | "
+            f"{_fmt(pos['TE']['dedicated_starter_projection_ppg_league_percentile'], 3)} | "
+            f"{_fmt(team.get('future_draft_capital_market_value_league_percentile'), 3)} |"
+        )
+
+    partner = payload["views"]["trade_partner_intelligence"]
+    focus_rows = [row for row in partner.get("focus_team_positional_complementarities") or [] if row.get("league_relative_strength_gap", 0) > 0]
+    if focus_rows:
+        lines.extend([
+            "",
+            "## Trade-partner intelligence",
+            "",
+            "These are roster-shape differences worth investigating. They do not claim that a fair or acceptable trade exists.",
+            "",
+            "The comparison field is total long-term positional market value; the raw values remain available in the JSON payload.",
+            "",
+            "| Position | Team with relative strength | Viewing team value pct. | Other team value pct. | Gap |",
+            "|:---:|---|---:|---:|---:|",
+        ])
+        for row in focus_rows[:12]:
+            lines.append(
+                f"| {row.get('position')} | {row.get('asset_holding_team')} | "
+                f"{_fmt(row.get('investigating_team_percentile'), 3)} | "
+                f"{_fmt(row.get('asset_holding_team_percentile'), 3)} | "
+                f"{_fmt(row.get('league_relative_strength_gap'), 3)} |"
+            )
+
     state_contract = payload["contract_health"]["competitive_state_strategic_posture"]
     lines.extend([
         "",
@@ -480,9 +846,15 @@ def main() -> None:
         default=DEFAULT_DATA / "league_intelligence" / "terminal.json",
     )
     parser.add_argument("--markdown-output", type=Path)
+    parser.add_argument("--focus-user-id")
+    parser.add_argument("--team-context", type=Path)
     parser.add_argument("--limit", type=int, default=25)
     args = parser.parse_args()
-    payload = build_terminal(args.data_dir)
+    payload = build_terminal(
+        args.data_dir,
+        focus_user_id=args.focus_user_id,
+        team_context_path=args.team_context,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     if args.markdown_output:

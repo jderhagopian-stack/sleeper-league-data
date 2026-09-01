@@ -1,7 +1,7 @@
 # FSFFL Player Value & Rankings Terminal
 
 Season: 2026  
-Terminal contract: FSFFL-League-Intelligence-Terminal-1.1
+Terminal contract: FSFFL-League-Intelligence-Terminal-1.2
 
 This is a read-only analytical view. It exposes separate governed perspectives and does not create a blended player score or recommendation.
 
@@ -132,6 +132,80 @@ This is a read-only analytical view. It exposes separate governed perspectives a
 | 8 | Kyle Pitts | Hurts So Good | 2,738 | 6 | 8.2 |
 | 9 | Kenyon Sadiq | Ball Knower | 2,360 | 27 | 2.2 |
 | 10 | Dalton Kincaid | Chef Niners | 2,203 | 16 | 6.8 |
+
+## Team-relative player context
+
+These are gross GM3 roster counterfactuals, not trade prices. External players are transferred without compensation; players already on the viewing roster are removed to measure retention dependence.
+
+### Largest gross gains for the viewing team
+
+| Player | Pos | Current team | Viewer utility | Owner utility | Exp. wins delta |
+|---|:---:|---|---:|---:|---:|
+| Jahmyr Gibbs | RB | STINKS | 8,163 | -11,731 | 1.13 |
+| Bijan Robinson | RB | BING BONG DRIGSY🍎 | 8,146 | -18,582 | 1.14 |
+| Christian McCaffrey | RB | The Bodini Blitzers 🏆🥇 | 5,911 | -9,372 | 1.05 |
+| Josh Allen | QB | HUNGRY DAWGS | 5,837 | -9,778 | 0.52 |
+| Ja'Marr Chase | WR | BING BONG DRIGSY🍎 | 5,693 | -12,420 | 0.53 |
+| Puka Nacua | WR | The Bodini Blitzers 🏆🥇 | 5,499 | -7,451 | 0.60 |
+| Chase Brown | RB | MochaSmevs | 5,183 | -16,352 | 0.73 |
+| Ashton Jeanty | RB | MochaSmevs | 5,030 | -15,925 | 0.55 |
+| Jonathan Taylor | RB | King B | 4,921 | -12,286 | 0.60 |
+| Brock Bowers | TE | BING BONG DRIGSY🍎 | 4,691 | -9,597 | 0.47 |
+
+### Largest retention losses for the viewing team
+
+| Player | Pos | Removal utility | Exp. wins delta | Playoff delta |
+|---|:---:|---:|---:|---:|
+| Quinshon Judkins | RB | -7,461 | -0.81 | -0.144 |
+| Lamar Jackson | QB | -6,675 | -0.61 | -0.091 |
+| Dak Prescott | QB | -5,653 | -0.59 | -0.096 |
+| CeeDee Lamb | WR | -5,447 | -0.49 | -0.074 |
+| Drake London | WR | -3,408 | -0.25 | -0.036 |
+| Tony Pollard | RB | -3,167 | -0.40 | -0.057 |
+| Sam Darnold | QB | -2,674 | -0.28 | -0.037 |
+| Tee Higgins | WR | -2,594 | -0.25 | -0.030 |
+| Zay Flowers | WR | -2,575 | -0.22 | -0.028 |
+| DeVonta Smith | WR | -2,130 | -0.16 | -0.019 |
+
+## League positional strength heat map
+
+Values are league percentiles of governed raw fields. They are display transforms, not team grades or decision weights.
+
+| Team | QB starters | QB top-2 | RB starters | WR starters | TE starters | Future picks |
+|---|---:|---:|---:|---:|---:|---:|
+| BING BONG DRIGSY🍎 | 0.364 | 0.364 | 0.909 | 0.727 | 1.000 | 0.091 |
+| Ball Knower | 0.273 | 0.545 | 0.364 | 0.273 | 0.091 | 0.909 |
+| Chef Niners | 0.545 | 0.636 | 0.455 | 0.909 | 0.273 | 0.182 |
+| HUNGRY DAWGS | 1.000 | 0.091 | 0.000 | 0.364 | 0.909 | 1.000 |
+| Hurts So Good | 0.727 | 1.000 | 0.273 | 0.818 | 0.545 | 0.455 |
+| King B | 0.182 | 0.273 | 0.636 | 0.545 | 0.364 | 0.364 |
+| MochaSmevs | 0.909 | 0.818 | 0.727 | 0.455 | 0.818 | 0.636 |
+| STINKS | 0.455 | 0.182 | 1.000 | 0.000 | 0.727 | 0.727 |
+| The Associate  | 0.091 | 0.000 | 0.091 | 0.182 | 0.000 | 0.545 |
+| The Bodini Blitzers 🏆🥇 | 0.636 | 0.727 | 0.818 | 1.000 | 0.636 | 0.818 |
+| The Shish Kebab Boys | 0.818 | 0.909 | 0.545 | 0.636 | 0.182 | 0.000 |
+| Trash Incessant Talkers | 0.000 | 0.455 | 0.182 | 0.091 | 0.455 | 0.273 |
+
+## Trade-partner intelligence
+
+These are roster-shape differences worth investigating. They do not claim that a fair or acceptable trade exists.
+
+The comparison field is total long-term positional market value; the raw values remain available in the JSON payload.
+
+| Position | Team with relative strength | Viewing team value pct. | Other team value pct. | Gap |
+|:---:|---|---:|---:|---:|
+| TE | BING BONG DRIGSY🍎 | 0.364 | 1.000 | 0.636 |
+| RB | STINKS | 0.364 | 1.000 | 0.636 |
+| RB | BING BONG DRIGSY🍎 | 0.364 | 0.909 | 0.545 |
+| TE | HUNGRY DAWGS | 0.364 | 0.909 | 0.545 |
+| RB | King B | 0.364 | 0.818 | 0.455 |
+| TE | Trash Incessant Talkers | 0.364 | 0.818 | 0.455 |
+| RB | Chef Niners | 0.364 | 0.727 | 0.364 |
+| TE | STINKS | 0.364 | 0.727 | 0.364 |
+| TE | Chef Niners | 0.364 | 0.636 | 0.273 |
+| RB | MochaSmevs | 0.364 | 0.636 | 0.273 |
+| QB | MochaSmevs | 0.727 | 1.000 | 0.273 |
+| TE | MochaSmevs | 0.364 | 0.545 | 0.182 |
 
 ## Quarantine and limitations
 

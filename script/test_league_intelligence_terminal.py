@@ -64,6 +64,47 @@ assert contract["terminal_consumes_incompatible_artifacts"] is False
 if contract["incompatible_artifacts"]:
     assert contract["compatible"] is False
 
+heat_map = payload["views"]["positional_strength_heat_map"]
+assert heat_map["creates_new_strength_model"] is False
+assert heat_map["creates_categorical_team_labels"] is False
+assert len(heat_map["teams"]) == 12
+assert heat_map["dedicated_slots_derived_from_league_rules"] == {
+    "QB": 1, "RB": 2, "WR": 3, "TE": 1,
+}
+for team in heat_map["teams"]:
+    for position in ("QB", "RB", "WR", "TE"):
+        row = team["positions"][position]
+        assert row["dedicated_starter_slots"] > 0
+        assert 0.0 <= row["dedicated_starter_projection_ppg_league_percentile"] <= 1.0
+
+partner = payload["views"]["trade_partner_intelligence"]
+assert partner["recommendation"] is False
+assert partner["acceptance_probability"] is False
+assert partner["fair_trade_claim"] is False
+assert len(partner["positional_complementarities"]) == 12 * 11 * 4
+
+team_context_path = SCRIPT.parent / "data" / "league_intelligence" / "hurts_so_good_team_context.json"
+if team_context_path.exists():
+    focused = app.build_terminal(
+        SCRIPT.parent / "data",
+        focus_user_id="846634401482792960",
+        team_context_path=team_context_path,
+    )
+    status = focused["contract_health"]["gm3_team_context"]
+    assert status["compatible"] is True
+    assert status["terminal_consumes_payload"] is True
+    context = focused["views"]["team_relative_player_context"]
+    assert context["creates_trade_price"] is False
+    assert context["recommendation"] is False
+    assert len(context["records"]) == 243
+    available = next(row for row in context["records"] if row.get("available"))
+    assert available["creates_trade_price"] is False
+    assert available["creates_acceptance_probability"] is False
+    assert available["recommendation"] is False
+    focused_partner = focused["views"]["trade_partner_intelligence"]
+    assert focused_partner["focus_team_player_context"]
+    assert all(row["recommendation"] is False for row in focused_partner["focus_team_player_context"])
+
 markdown = app.render_player_rankings_markdown(payload, limit=10)
 assert "FSFFL Player Value & Rankings Terminal" in markdown
 assert "Long-term market ranking" in markdown

@@ -187,6 +187,48 @@ model-versus-market rankings are reported as unavailable rather than fabricated.
 The application also excludes all legacy team-profile artifacts that still
 combine competitive state and strategic posture.
 
+### Governed team-relative context and league maps
+
+GM3 now publishes an explicit player/team context contract for a selected
+viewing franchise. Each rostered player is evaluated through a zero-price
+counterfactual transfer, while a player already on the viewing roster is
+evaluated through removal. GM3 and Simulator continue to own roster
+legalization, lineup reoptimization, competitive-outcome changes, objective
+weights, and Shared Decision Utility attribution.
+
+This context deliberately is **not** a trade price or willingness-to-pay
+estimate. It exposes the viewing team's gross marginal utility and the current
+owner's zero-compensation utility separately so a person can understand roster
+fit and retention dependence without the Terminal making a recommendation.
+
+The current Terminal also publishes:
+
+- a league positional heat map using raw Projection System means, published
+  market values, rule-derived dedicated starter counts, and monotonic league
+  percentiles;
+- a trade-partner investigation map that exposes positional strength gaps and
+  player-specific viewer/owner utility context without asserting fairness or
+  acceptance; and
+- raw Simulator competitive outcomes beside those roster-shape views.
+
+Generate fresh team context before rendering the focused Terminal:
+
+```bash
+python script/gm3/team_context.py \
+  --focus-user-id 846634401482792960 \
+  --simulations 1000 \
+  --output data/league_intelligence/hurts_so_good_team_context.json
+
+python script/league_intelligence/application.py \
+  --focus-user-id 846634401482792960 \
+  --team-context data/league_intelligence/hurts_so_good_team_context.json \
+  --output data/league_intelligence/terminal.json \
+  --markdown-output reports/league_intelligence/player_value_rankings.md
+```
+
+The team-context artifact includes hashes of the current model/data inputs it
+consumed. The Terminal fails closed and quarantines it if those inputs change.
+
 ## Success criteria
 
 The first release is successful when a manager can inspect the league, compare model versus market, understand each team's positional shape, and identify plausible counterparties while every displayed conclusion can be traced back to an existing owning model or an explicitly documented presentation-only transformation.
