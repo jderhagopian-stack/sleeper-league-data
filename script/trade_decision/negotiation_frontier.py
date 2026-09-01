@@ -21,7 +21,10 @@ def sf(x, default=0.0):
 
 
 def _counterparty_utility(row):
-    for key in ("seller_strategic_utility_precomputed", "buyer_decision_utility_score"):
+    # Production trade feasibility must use the same governed Shared Decision
+    # Utility used for the focal franchise. Legacy/pre-screen seller strategic
+    # utility remains available only as discovery context/fallback for old rows.
+    for key in ("counterparty_shared_decision_utility_score", "buyer_decision_utility_score", "seller_strategic_utility_precomputed"):
         if row.get(key) is not None:
             return sf(row.get(key))
     return None
@@ -60,6 +63,11 @@ def _package_view(row):
         "package_market_value_coordinate": _package_price(row),
         "focal_team_improvement_utility": _focal_utility(row),
         "counterparty_shared_utility": _counterparty_utility(row),
+        "counterparty_utility_source": (
+            "shared_decision_utility"
+            if row.get("counterparty_shared_decision_utility_score") is not None
+            else "legacy_or_external_fallback"
+        ),
         "descriptive_acceptance_fit": str(row.get("acceptance_fit") or row.get("source_recommendation_band") or "UNKNOWN").upper(),
     }
 
@@ -160,6 +168,8 @@ def build_target_price_frontier(rows):
         "policy": {
             "price_frontier_uses_only_evaluated_packages": True,
             "seller_floor_uses_counterparty_shared_utility_sign": True,
+            "production_counterparty_utility_uses_same_shared_decision_utility_as_focal": True,
+            "seller_strategic_utility_precomputed_is_search_only_when_shared_utility_available": True,
             "focal_ceiling_uses_gm3_team_improvement_utility_sign": True,
             "market_value_is_ordering_coordinate_not_incremental_utility": True,
             "behavioral_fit_does_not_change_price_or_utility": True,
