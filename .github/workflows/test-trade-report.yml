@@ -191,6 +191,9 @@ jobs:
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
               if x:
+                  br=x.get('buyer_rationality') or {}
+                  if br.get('buyer_decision_utility_status')=='AVAILABLE':
+                      assert br.get('buyer_utility_uses_symmetric_opponent_title_externality') is True
                   assert abs(float(x.get('shared_decision_utility_score') or 0)-float(x.get('post_sim_score') or 0)) < 1e-6
                   assert x.get('post_sim_score_is_shared_decision_utility_compatibility_alias') is True
                   da=x.get('decision_attribution') or {}
