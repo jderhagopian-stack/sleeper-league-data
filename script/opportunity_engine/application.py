@@ -420,23 +420,25 @@ def build_portfolio_view(source, focus_user_id, depth=6, simulations=500,
     }
 
 def _trade_scenario(row, focus_user_id, ordinal):
-    target = row.get("target") or {}
     outgoing = list(row.get("outgoing") or [])
-    seller = str(row.get("seller_user_id") or "")
-    if not seller or not target.get("player_id"):
-        raise ValueError("Trade candidate is missing seller or target player")
+    incoming = list(row.get("incoming") or [])
+    if not incoming and row.get("target"):
+        incoming = [row.get("target") or {}]
+    counterparty = str(row.get("counterparty_user_id") or row.get("seller_user_id") or "")
+    if not counterparty or not outgoing or not incoming:
+        raise ValueError("Trade candidate is missing counterparty, outgoing, or incoming assets")
     return {
         "scenario_id": f"opportunity-engine-{focus_user_id}-{ordinal}",
         "description": str(row.get("description") or "Opportunity Engine generated trade"),
         "transaction_status": "proposed",
         "offer_initiator_user_id": str(focus_user_id),
         "focus_user_id": str(focus_user_id),
-        "participant_user_ids": [str(focus_user_id), seller],
+        "participant_user_ids": [str(focus_user_id), counterparty],
         "actions": [
             {
                 "type": "trade",
                 "from_user_id": str(focus_user_id),
-                "to_user_id": seller,
+                "to_user_id": counterparty,
                 "players": [
                     str(x.get("player_id"))
                     for x in outgoing
@@ -450,10 +452,18 @@ def _trade_scenario(row, focus_user_id, ordinal):
             },
             {
                 "type": "trade",
-                "from_user_id": seller,
+                "from_user_id": counterparty,
                 "to_user_id": str(focus_user_id),
-                "players": [str(target.get("player_id"))],
-                "picks": [],
+                "players": [
+                    str(x.get("player_id"))
+                    for x in incoming
+                    if x.get("asset_type") == "player" and x.get("player_id") is not None
+                ],
+                "picks": [
+                    str(x.get("asset_id"))
+                    for x in incoming
+                    if x.get("asset_type") == "pick" and x.get("asset_id")
+                ],
             },
         ],
     }
