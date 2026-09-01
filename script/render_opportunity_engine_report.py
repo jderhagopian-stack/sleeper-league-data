@@ -39,6 +39,7 @@ def render(board):
     actionable = board.get("best_actionable_trade") or {}
     explore = board.get("best_trade_to_explore") or {}
     outbound = board.get("outbound_future_value_opportunities") or []
+    simulation_sensitive = board.get("simulation_sensitive_trade_watchlist") or []
     price_gaps = board.get("high_impact_price_gap_targets") or []
     lines += [
         "",
@@ -51,6 +52,23 @@ def render(board):
                 else ""
             )
         ) if actionable else "No trade currently clears both sides of the governed price frontier.",
+        "",
+        "## SIMULATION-SENSITIVE / NOT PROMOTED",
+    ]
+    if simulation_sensitive:
+        for row in simulation_sensitive[:6]:
+            stability = row.get("focal_utility_stability_confirmation") or {}
+            lines.append(
+                f"- **{row.get('description') or 'Trade'}:** initial utility "
+                f"{float(row.get('team_improvement_score') or 0):+,.1f}; "
+                f"repeated-seed range {float(stability.get('score_min') or 0):+,.1f} to "
+                f"{float(stability.get('score_max') or 0):+,.1f}; "
+                f"{stability.get('classification') or 'not confirmed'}. "
+                "Kept for investigation, not promoted as an actionable trade."
+            )
+    else:
+        lines.append("No price-clearing trade was withheld for focal-utility sign instability.")
+    lines += [
         "",
         "## OUTBOUND / FUTURE VALUE",
     ]
