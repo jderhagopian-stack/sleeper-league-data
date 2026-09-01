@@ -216,8 +216,27 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
         return (sum(vals)/len(vals)) if vals else 0.0
     league_reference={'team_count':len(baseline_teams),'expected_wins_mean':mean_metric('expected_wins'),'expected_points_for_mean':mean_metric('expected_points_for'),'playoff_probability_mean':mean_metric('playoff_probability'),'championship_probability_mean':mean_metric('championship_probability'),'source':'canonical_baseline_simulator_league_mean'}
     def perspective(uid):
-        before,after=bidx[str(uid)],hidx[str(uid)]
-        return {'focus_before':before,'focus_after':after,'league_reference':league_reference,'focus_delta':{k:base.delta(before.get(k),after.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']},'strategic':dl.strategic_summary(str(uid),effective),'roster_resolution':resolutions,'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims}
+        uid=str(uid); before,after=bidx[uid],hidx[uid]
+        focus_delta={k:base.delta(before.get(k),after.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']}
+        opponent_title_gain=sum(
+            max(0.0, base.sf(base.delta(bidx[str(other)].get('championship_probability'),hidx[str(other)].get('championship_probability'))))
+            for other in touched if str(other)!=uid and str(other) in bidx and str(other) in hidx
+        )
+        focus_title_delta=base.sf(focus_delta.get('championship_probability'))
+        net_swing=opponent_title_gain-focus_title_delta
+        return {
+            'focus_before':before,'focus_after':after,'league_reference':league_reference,
+            'focus_delta':focus_delta,
+            'buyer_championship_probability_delta':round(opponent_title_gain,5),
+            'net_title_equity_swing_against_focus':round(net_swing,5),
+            'competitive_externality':{
+                'focus_championship_probability_delta':round(focus_title_delta,5),
+                'opponent_positive_championship_probability_delta_sum':round(opponent_title_gain,5),
+                'net_title_equity_swing_against_focus':round(net_swing,5),
+            },
+            'strategic':dl.strategic_summary(uid,effective),'roster_resolution':resolutions,
+            'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims
+        }
     result=perspective(str(focus_uid))
     counterparties=[str(x) for x in touched if str(x)!=str(focus_uid)]
     if counterparties:
