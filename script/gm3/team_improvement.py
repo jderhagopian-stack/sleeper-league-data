@@ -21,12 +21,23 @@ class PortfolioEvaluator:
         if c=='HOLD':return []
         raise ValueError(f'Unsupported portfolio channel: {c}')
     def _inputs_with_waiver_projections(self,rows):
-        mi=list(self.model_inputs); p=copy.deepcopy(mi[6]); changed=False
+        mi=list(self.model_inputs); p=copy.deepcopy(mi[6]); changed=False; added=[]
+        native_ids={str(x) for x in (p.get('players') or {})}
         for row in rows:
             if str(row.get('channel') or '')!='WAIVER':continue
             t=row.get('target') or {}; pid=str(t.get('player_id') or ''); profile=row.get('native_full_projection')
-            if pid and profile:p.setdefault('players',{})[pid]=copy.deepcopy(profile); changed=True
-        if changed:mi[6]=p
+            if pid and profile:
+                if pid not in native_ids: added.append(pid)
+                p.setdefault('players',{})[pid]=copy.deepcopy(profile); changed=True
+        if changed:
+            p['_decision_lab_projection_augmentation']={
+                'source_model':'FSFFL-Full-Projection-Universe-1.0',
+                'added_player_ids':sorted(set(added)),
+                'native_player_count':len(native_ids),
+                'final_player_count':len(p.get('players') or {}),
+                'unrelated_full_universe_players_added':False,
+            }
+            mi[6]=p
         return tuple(mi)
     def evaluate(self,rows):
         rows=[copy.deepcopy(x) for x in rows if str(x.get('channel') or '')!='HOLD']; actions=[]
