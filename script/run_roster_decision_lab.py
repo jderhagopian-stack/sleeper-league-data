@@ -452,8 +452,25 @@ def main():
         raise ValueError("scenario.focus_user_id and scenario.actions are required")
 
     simmod, league, canonical_rosters, users, players, season, projections, raw_schedule = load_model_inputs()
-    hypothetical_rosters, pick_transfers = apply_actions(canonical_rosters, actions)
-    touched = touched_users(focus_uid, actions)
+    globals_module = types.SimpleNamespace(
+        roster_maps=roster_maps,
+        gm_asset_map=gm_asset_map,
+        remove_player=remove_player,
+    )
+    requested_actions = list(actions)
+    pre_resolution_rosters, pick_transfers = apply_actions(canonical_rosters, requested_actions)
+    touched = touched_users(focus_uid, requested_actions)
+
+    rosteraware = load_module(Path("script/roster_aware_trade.py"), "roster_decision_roster_resolution")
+    hypothetical_rosters, roster_resolution, cut_actions = rosteraware.legalize_trade_rosters(
+        globals_module,
+        canonical_rosters,
+        pre_resolution_rosters,
+        touched,
+        league,
+        players,
+    )
+    actions = requested_actions + list(cut_actions)
 
     baseline_lineups = load_cached_lineups(season)
     hypothetical_lineups, reoptimized_rids = reoptimize_touched_lineups(
@@ -570,7 +587,11 @@ def main():
             "teams_reoptimized": reoptimized_rids,
             "default_latency_target": "under_2_minutes",
         },
+        "requested_actions": requested_actions,
         "actions": actions,
+        "automatic_roster_cut_actions": cut_actions,
+        "roster_resolution": roster_resolution,
+        "roster_resolution_model_version": getattr(rosteraware, "MODEL_VERSION", None),
         "ephemeral_state": True,
         "canonical_state_mutated": False,
         "pick_transfers": pick_transfers,
