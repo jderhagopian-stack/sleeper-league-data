@@ -1,0 +1,85 @@
+name: Opportunity Engine Full Production Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'script/trade_decision/negotiation_frontier.py'
+      - 'script/opportunity_engine/application_v21.py'
+      - 'script/render_opportunity_engine_report.py'
+      - '.github/workflows/opportunity-engine-full-production-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  full-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Compile production Opportunity Engine path
+        run: |
+          python -m py_compile \
+            script/opportunity_engine/application_v21.py \
+            script/trade_decision/negotiation_frontier.py \
+            script/render_opportunity_engine_report.py
+          python script/test_negotiation_price_frontier.py
+          python script/test_opportunity_engine_price_search.py
+      - name: Refresh governed inputs
+        run: |
+          python script/build_fsffl_full_projection_universe.py
+          python script/refresh_behavioral_intelligence_v3.py
+      - name: Run full Hurts So Good Opportunity Engine
+        run: |
+          mkdir -p /tmp/oe-full
+          python script/opportunity_engine/application_v21.py \
+            --focus-user-id 846634401482792960 \
+            --output /tmp/oe-full/opportunity-board.json
+          python script/render_opportunity_engine_report.py \
+            --input /tmp/oe-full/opportunity-board.json \
+            --output /tmp/oe-full/Opportunity_Engine_Report.md
+      - name: Validate full production output
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          b=json.load(open('/tmp/oe-full/opportunity-board.json'))
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
+          assert b['team_name']=='Hurts So Good'
+          assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
+          assert b['policy']['near_frontier_watchlist_creates_new_trade_value'] is False
+          assert b['policy']['near_frontier_watchlist_creates_acceptance_probability'] is False
+          assert b['policy']['near_frontier_watchlist_uses_fixed_utility_cutoff'] is False
+          nf=b.get('near_frontier_watchlist') or []
+          for row in nf:
+              ev=row.get('near_frontier_evidence') or {}
+              assert ev.get('watchlist_eligible') is True
+              assert ev.get('best_focal_positive_package_for_counterparty') is not None
+          for row in b.get('ranked_single_step_opportunities') or []:
+              if row.get('channel')=='TRADE':
+                  f=row.get('negotiation_frontier') or {}
+                  assert f.get('counterparty_bilateral_viable') is True
+                  assert float(f.get('focal_team_improvement_utility') or 0)>0
+          assert Path('/tmp/oe-full/Opportunity_Engine_Report.md').stat().st_size > 800
+          print(json.dumps({
+              'best_move': (b.get('best_move_available') or {}).get('description'),
+              'best_actionable_trade': (b.get('best_actionable_trade') or {}).get('description'),
+              'best_trade_to_explore': (b.get('best_trade_to_explore') or {}).get('description'),
+              'best_near_frontier_target': ((b.get('best_near_frontier_target') or {}).get('target') or {}).get('name'),
+              'near_frontier_count': len(nf),
+              'price_gap_count': len(b.get('high_impact_price_gap_targets') or []),
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hurts-so-good-opportunity-engine-full-production
+          path: /tmp/oe-full/*
+          if-no-files-found: warn
+          retention-days: 30
