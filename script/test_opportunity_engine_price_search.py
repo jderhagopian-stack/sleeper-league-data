@@ -133,3 +133,21 @@ assert sim['league_reference']['expected_wins_mean']==7.0
 assert sim['counterparty_user_id']=='seller'
 assert sim['counterparty']['focus_delta']['expected_wins']==-1.0
 assert sim['counterparty']['league_reference']==sim['league_reference']
+
+
+# Final Shared Decision Utility de-duplication: market-derived player liquidity
+# cannot receive a second incremental value on top of dynasty market value, and
+# resilience must use depth insurance rather than star dependency/fragility.
+stateaware=load(SCRIPT/'decision_lab_state_aware.py','stateaware_dedup_regression')
+synthetic=[{
+    'asset_type':'player',
+    'base_franchise_value':1000.0,
+    'liquidity_score':0.9,
+    'liquidity_incremental_value_authorized':False,
+    'replacement_resilience_score':0.9,
+    'fragility_dependency_score':0.9,
+    'depth_insurance_score':0.2,
+    'final_shared_utility_resilience_basis':'depth_insurance_only',
+}]
+assert stateaware._weighted_total(synthetic,'liquidity')==0.0
+assert stateaware._weighted_total(synthetic,'resilience')==200.0
