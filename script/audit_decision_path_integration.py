@@ -81,6 +81,7 @@ def main():
     ti = text(SCRIPT / "run_team_improvement_lab_v16.py")
     facade = text(SCRIPT / "gm3" / "team_improvement.py")
     trade_v20 = text(SCRIPT / "run_trade_market_sweep_v20.py")
+    trade_v16 = text(SCRIPT / "run_trade_market_sweep_v16.py")
     trade_gov = text(SCRIPT / "trade_option_governance.py")
     negotiation = text(SCRIPT / "negotiation_ranking.py")
     behavior = text(SCRIPT / "trade_decision" / "behavior_integration.py")
@@ -135,6 +136,11 @@ def main():
             "counterparty_shared_decision_utility_source" in ti
             and "same_simulation_same_shared_utility_as_focal" in ti
             and "counterparty_decision_attribution" in ti
+        ),
+        "direct_trade_buyer_uses_symmetric_title_externality": (
+            "buyer_utility_uses_symmetric_opponent_title_externality" in trade_v16
+            and '"net_title_equity_swing_against_focus": round(buyer_net_swing, 5)' in trade_v16
+            and '"net_title_equity_swing_against_focus": 0.0' not in trade_v16
         ),
         "portfolio_uses_shared_team_improvement_authority": (
             "self.base.unified_score" in facade
@@ -228,6 +234,7 @@ def main():
         "ci_guards": {
             "major_authorized_utility_block_always_zero": True,
             "focal_counterparty_authority_mismatch": True,
+            "direct_trade_buyer_title_externality_asymmetry": True,
             "report_decision_value_reconciliation": True,
             "unauthorized_duplicate_channel_weight": True,
             "superseded_trade_composite_final_authority": True,
