@@ -327,6 +327,7 @@ def build_board(source, args, trade_reviews):
     best_single = (source.get("top_cross_channel_options") or [None])[0]
     robustness_seeds = [args.seed + i * 1009 for i in range(max(0, int(args.robustness_seeds)))]
     board["model_version"] = MODEL_VERSION
+    board["strategic_posture"] = copy.deepcopy(source.get("strategic_posture") or {})
     board["portfolio_optimization"] = portfolio
     board["robustness"] = {
         "best_single_step": _robustness([best_single] if best_single else [], args.focus_user_id, args.robustness_sims, robustness_seeds, getattr(args, "strategic_posture", "AUTO")),
@@ -349,12 +350,16 @@ def build_board(source, args, trade_reviews):
         "portfolio_confirm_sims": int(args.portfolio_confirm_sims),
         "robustness_seeds": int(args.robustness_seeds),
         "robustness_sims_per_seed": int(args.robustness_sims),
+        "strategic_posture": str(args.strategic_posture),
     }
     board.setdefault("capability_status", {})["adaptive_multi_step_portfolio_optimization"] = True
     board["capability_status"]["portfolio_search_up_to_three_or_more_moves"] = int(args.portfolio_max_moves) >= 3
     board["capability_status"]["prospective_validation_snapshots"] = True
     board["capability_status"]["recommendation_robustness_diagnostics"] = int(args.robustness_seeds) > 0
     board.setdefault("policy", {})["adaptive_search_creates_new_utility"] = False
+    board["policy"]["strategic_posture_changes_competitive_state"] = False
+    board["policy"]["strategic_posture_search_guidance_creates_new_utility"] = False
+    board["policy"]["strategic_posture_uses_existing_governed_weight_curve"] = True
     board["policy"]["robustness_diagnostics_change_primary_ranking"] = False
     board["policy"]["portfolio_execution_rechecks_live_preconditions"] = True
     board["policy"]["waiver_discovery_fixed_cross_unit_coefficients_active"] = False
@@ -409,6 +414,7 @@ def main():
         confirm_sims=args.trade_review_confirm_sims,
         search_depth=args.trade_review_search_depth,
         seed=args.seed,
+        strategic_posture=args.strategic_posture,
     )
     board = build_board(source, args, trade_reviews)
     v1.write_json(output, board)
