@@ -46,11 +46,19 @@ catalog={
     'pick:C':{'asset_id':'pick:C','asset_type':'pick','name':'C','market_dynasty':30.0},
     'pick:D':{'asset_id':'pick:D','asset_type':'pick','name':'D','market_dynasty':40.0},
 }
+lab._targeted_price_curves=lambda base,focus_uid,target_asset_ids,package_budget:{
+    'player:T':{
+        'target_asset_id':'player:T',
+        'price_frontier_candidate_packages':FakeBase.team_doc('focus','trade_opportunities')['opportunities'][0]['price_frontier_candidate_packages'],
+    }
+}
 rows=lab.trade_candidates(FakeBase(),'focus',catalog,limit=1,packages_per_target=4,frontier_targets=1,frontier_packages_per_target=4)
 sigs={tuple(x['outgoing'][0]['asset_id'] for _ in [0]) for x in rows}
 assert ('pick:C',) in sigs, 'seller-clearing transition must survive expansion'
 assert ('pick:D',) in sigs, 'focal-zero transition must survive expansion'
 assert any(x.get('price_frontier_search_candidate') for x in rows), 'expanded rows must be explicitly marked'
+assert any(x.get('targeted_adaptive_price_discovery_used') for x in rows), 'selected targets must expose targeted adaptive discovery provenance'
+assert all(x.get('targeted_adaptive_price_discovery_package_economics_owned_by_gm3') is True for x in rows if x.get('targeted_adaptive_price_discovery_used'))
 assert all(x.get('price_frontier_search_is_computational_coverage_only') is True for x in rows if x.get('price_frontier_search_candidate'))
 
 # Generated hypothetical trades may retain the raw Trade Decision action for
