@@ -16,7 +16,7 @@ jobs:
       - name: Install report dependencies
         run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
       - name: Compile Team Improvement Lab
-        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/run_team_improvement_lab_v16.py script/gm3/team_improvement.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
+        run: python -m py_compile script/run_team_improvement_lab.py script/run_team_improvement_lab_v13.py script/run_team_improvement_lab_v16.py script/decision_attribution.py script/gm3/team_improvement.py script/build_fsffl_full_projection_universe.py script/render_gm_action_report_v10.py script/roster_aware_trade.py script/run_roster_decision_lab.py script/run_trade_market_sweep_v13.py
       - name: Unit test shared decision utility
         run: |
           python - <<'PY'
@@ -87,9 +87,29 @@ jobs:
           assert r['ranking_calibration']['version']=='shared-decision-utility-2.0'
           assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
+          observed_non_hold=0
           for row in r.get('top_cross_channel_options') or []:
               assert all(x.get('roster_legal') is True for x in ((row.get('simulation') or {}).get('roster_resolution') or {}).values())
-              if row.get('channel')=='TRADE': assert row.get('acceptance_fit') in {'HIGH','MEDIUM','LOW','VERY_LOW'}
+              if row.get('channel')!='HOLD':
+                  observed_non_hold += 1
+                  a=row.get('decision_attribution') or {}
+                  assert a.get('reconciles') is True, a
+                  assert abs(float(a.get('component_sum') or 0)-float(a.get('final_shared_decision_utility') or 0)) <= .02
+                  channels={x['channel']:x for x in a.get('channels') or []}
+                  for name in ('liquidity','resilience'):
+                      if channels.get(name) and channels[name].get('authorized_for_final_utility') is False:
+                          assert float(channels[name].get('objective_weight') or 0)==0.0
+                          assert float(channels[name].get('numeric_contribution') or 0)==0.0
+              if row.get('channel')=='TRADE':
+                  assert row.get('acceptance_fit') in {'HIGH','MEDIUM','LOW','VERY_LOW'}
+                  sim=row.get('simulation') or {}
+                  assert 'competitive_externality' in sim
+                  assert 'net_title_equity_swing_against_focus' in sim
+                  assert row.get('focal_decision_attribution',{}).get('reconciles') is True
+                  if sim.get('counterparty'):
+                      assert row.get('counterparty_decision_attribution',{}).get('reconciles') is True
+                      assert row.get('counterparty_shared_decision_utility_source')=='same_simulation_same_shared_utility_as_focal'
+          assert observed_non_hold > 0
           for row in r.get('best_waiver_options') or []:
               assert row.get('waiver_discovery_source')=='canonical_full_projection_universe_scale_free_multilane'
               assert row.get('pre_screen_weighted_score_used') is False
