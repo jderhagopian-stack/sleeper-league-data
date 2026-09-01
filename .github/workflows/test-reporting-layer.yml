@@ -110,6 +110,12 @@ jobs:
               banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
               assert not [x for x in banned if x in text], f"{name}: {text}"
               assert '...' not in text and '\u2026' not in text, f"{name}: {text}"
+          print(json.dumps({'roster_decision_reconciliation_sample':{
+              'scenario_id':decision.get('scenario_id'),
+              'shared_decision_utility_score':decision.get('shared_decision_utility_score'),
+              'attribution':decision.get('decision_attribution'),
+              'recommendation':decision.get('recommendation'),
+          }},indent=2))
           print('FSFFL reporting layer standardized smoke test passed')
           PY
 
