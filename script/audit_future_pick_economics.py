@@ -191,6 +191,10 @@ def main():
         ),
         "pick_liquidity_excluded_from_final_primitive_channel": (
             'pp.get("liquidity_incremental_value_authorized") is False' in decision_lab
+            or (
+                'pick_authorized = pp.get("liquidity_incremental_value_authorized")' in decision_lab
+                and 'row.get("asset_type") == "pick" and pick_authorized is False' in decision_lab
+            )
         ),
         "pick_quality_optionality_excluded_from_final_primitive_channel": (
             'pp.get("quality_optionality_incremental_value_authorized") is False' in decision_lab
