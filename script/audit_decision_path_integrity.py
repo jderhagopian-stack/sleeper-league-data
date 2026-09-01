@@ -182,7 +182,10 @@ def main():
     threshold_free_option_governance = (
         "trade_option_governance.py" in v31
         and "unsupported_numeric_score_cutoff_used_for_better_worse" in v31
-        and "DIAGNOSTIC_ONLY_NOT_CATEGORICAL_DECISION_RULE" in option_governance
+        and "COMPATIBILITY_ALIAS_FOR_SHARED_DECISION_UTILITY_NOT_INDEPENDENT_SCORE" in option_governance
+        and 'DECISION_OUTPUTS = ("shared_decision_utility_score",)' in option_governance
+        and "FRONTIER_DIAGNOSTIC_OUTPUTS" in option_governance
+        and '"raw_simulator_frontier_metrics_have_independent_final_vote": False' in option_governance
         and "relation_from_deltas" in option_governance
         and "score_delta>750" not in option_governance.replace(" ", "")
         and "score_delta<-750" not in option_governance.replace(" ", "")
@@ -234,7 +237,7 @@ def main():
             "id": "OPTION-COMPARISON-THRESHOLD-001",
             "severity": "INFO" if threshold_free_option_governance else "CRITICAL",
             "status": "UNSUPPORTED_SCORE_CLIFF_REMOVED" if threshold_free_option_governance else "UNSUPPORTED_SCORE_CLIFF_DETECTED",
-            "observation": "Categorical BETTER/WORSE option comparison must not depend on an uncalibrated composite-score distance threshold; composite score may remain diagnostic only.",
+            "observation": "Categorical BETTER/WORSE option comparison must be threshold-free and must not give raw Simulator primitives a second vote after they have already entered authoritative Shared Decision Utility.",
             "software_invariant": threshold_free_option_governance,
         },
         {
