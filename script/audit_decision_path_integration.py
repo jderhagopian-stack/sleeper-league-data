@@ -87,6 +87,7 @@ def main():
     behavior = text(SCRIPT / "trade_decision" / "behavior_integration.py")
     trade_facade = text(SCRIPT / "trade_engine.py")
     trade_current = text(SCRIPT / "run_trade_market_sweep_v31.py")
+    roster_interaction_overlay = text(SCRIPT / "roster_interaction_overlay.py")
     roster = text(SCRIPT / "run_roster_decision_lab.py")
     oe_base = text(SCRIPT / "opportunity_engine" / "application.py")
     oe = text(SCRIPT / "opportunity_engine" / "application_v21.py")
@@ -109,6 +110,12 @@ def main():
         "shared_utility_is_single_numeric_composer": (
             'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"' in du
             and "components = {k: w[k] * sf(blocks[k]) for k in required}" in du
+        ),
+        "age_scarcity_injury_are_not_independent_shared_utility_addends": (
+            'required = ("current", "future", "liquidity", "resilience")' in du
+            and '"age"' not in du
+            and '"scarcity"' not in du
+            and '"injury"' not in du
         ),
         "unauthorized_channels_cannot_consume_weight": (
             disabled["incremental_channel_authorization"]["liquidity"] is False
@@ -166,6 +173,12 @@ def main():
             '"shared_decision_utility_score",' in trade_gov
             and '"strategic_value_delta",' not in trade_gov.split("DECISION_OUTPUTS =", 1)[1].split(")", 1)[0]
             and 'metric(current, "shared_decision_utility_score")' in trade_gov
+        ),
+        "roster_interaction_overlay_cannot_reprice_shared_utility": (
+            'strategic["roster_interaction_weighted_delta"] = weighted' in roster_interaction_overlay
+            and "weighted = 0.0" in roster_interaction_overlay
+            and 'strategic["roster_interaction_incremental_value_authorized"] = False' in roster_interaction_overlay
+            and 'row["post_sim_score"] = sf(row.get("post_sim_score"))' in roster_interaction_overlay
         ),
         "behavioral_intelligence_has_zero_trade_value_weight": (
             "ACCEPTANCE_WEIGHT = 0.0" in negotiation
@@ -244,6 +257,8 @@ def main():
             "direct_trade_buyer_title_externality_asymmetry": True,
             "report_decision_value_reconciliation": True,
             "unauthorized_duplicate_channel_weight": True,
+            "roster_interaction_duplicate_value_path": True,
+            "independent_age_scarcity_injury_addend": True,
             "superseded_trade_composite_final_authority": True,
             "behavioral_evidence_leaking_into_trade_value": True,
             "silent_trade_facade_fallback": True,
