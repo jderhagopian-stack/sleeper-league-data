@@ -213,7 +213,8 @@ def main():
             and "augment_projections_for_actions" in roster
             and "unrelated_full_universe_players_added" in roster
             and "assert_projection_coverage" in roster
-            and "without native or canonical full Simulator projection coverage" in roster
+            and "transaction players without native or canonical full" in roster
+            and "Simulator projection coverage" in roster
             and "projections_override=projections" in roster
         ),
         "team_improvement_simulator_uses_same_projection_universe_as_lineup_optimizer": (
