@@ -162,6 +162,32 @@ def first_release_contracts() -> tuple[ViewContract, ...]:
                 "descriptive_explanation",
             ),
         ),
+        ViewContract(
+            view_id="decision-utility-inspector",
+            version="1.0",
+            purpose="Expose authoritative decision, simulation, utility-attribution, and negotiation evidence without rescoring it.",
+            upstream_authorities=("GM3 Team Improvement", "Simulator", "Trade Decision", "Opportunity Engine"),
+            governed_fields=(
+                "effective_actions",
+                "focal_simulator_delta",
+                "counterparty_simulator_delta",
+                "focal_shared_decision_utility",
+                "counterparty_shared_decision_utility",
+                "decision_attribution_channels",
+                "competitive_state",
+                "strategic_posture",
+                "objective_weights",
+                "negotiation_frontier",
+                "near_frontier_evidence",
+            ),
+            presentation_transforms=("plain_language_channel_labels",),
+            allowed_operations=(
+                "filter",
+                "group",
+                "governed_join",
+                "descriptive_explanation",
+            ),
+        ),
     )
     validate_contracts(contracts)
     return contracts

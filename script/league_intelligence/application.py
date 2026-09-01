@@ -10,12 +10,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional
 
+SCRIPT_DIR = Path(__file__).resolve().parent.parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from league_intelligence import decision_inspector
 
-MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.2"
+
+MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.3"
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA = ROOT / "data"
 
@@ -554,6 +560,8 @@ def build_terminal(
     *,
     focus_user_id: Optional[str] = None,
     team_context_path: Optional[Path] = None,
+    decision_input_path: Optional[Path] = None,
+    decision_selector: Optional[str] = None,
 ) -> Dict[str, Any]:
     data_dir = Path(data_dir)
     asset_path = data_dir / "fsffl_asset_values.json"
@@ -574,6 +582,37 @@ def build_terminal(
     player_value_contract = _player_value_contract_status(players)
     heat_map = _positional_heat_map(assets, projections, league, standings)
     trade_partner_map = _trade_partner_map(heat_map, focus_user_id, team_context_payload)
+    if decision_input_path:
+        decision_view = decision_inspector.load_and_inspect(
+            decision_input_path, decision_selector
+        )
+        decision_status = {
+            "available": True,
+            "compatible": True,
+            "fully_reconciled_attribution": bool(
+                (decision_view.get("source_contract") or {}).get("fully_reconciled_attribution")
+            ),
+            "partial_inspection": bool(
+                (decision_view.get("source_contract") or {}).get("partial_inspection")
+            ),
+            "source_path": str(decision_input_path),
+            "selector": decision_selector,
+        }
+    else:
+        decision_view = {
+            "available": False,
+            "reason": "no governed decision input was selected",
+            "creates_independent_score": False,
+            "creates_trade_value": False,
+            "creates_acceptance_probability": False,
+            "recommendation": False,
+        }
+        decision_status = {
+            "available": False,
+            "compatible": False,
+            "partial_inspection": False,
+            "reason": "no governed decision input was selected",
+        }
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_version": MODEL_VERSION,
@@ -589,6 +628,7 @@ def build_terminal(
             "competitive_state_strategic_posture": _legacy_contract_status(data_dir),
             "player_value_authority": player_value_contract,
             "gm3_team_context": team_context_status,
+            "decision_utility_inspector": decision_status,
         },
         "views": {
             "player_value_rankings": {
@@ -626,6 +666,7 @@ def build_terminal(
             },
             "positional_strength_heat_map": heat_map,
             "trade_partner_intelligence": trade_partner_map,
+            "decision_utility_inspector": decision_view,
         },
         "capability_status": {
             "read_only_application_boundary": True,
@@ -642,7 +683,7 @@ def build_terminal(
             "viewer_team_and_current_owner_context": bool(team_context_status.get("compatible")),
             "positional_strength_heat_map": True,
             "trade_partner_map": True,
-            "decision_utility_inspector": False,
+            "decision_utility_inspector": bool(decision_status.get("available")),
         },
     }
 
@@ -848,12 +889,17 @@ def main() -> None:
     parser.add_argument("--markdown-output", type=Path)
     parser.add_argument("--focus-user-id")
     parser.add_argument("--team-context", type=Path)
+    parser.add_argument("--decision-input", type=Path)
+    parser.add_argument("--decision-selector")
+    parser.add_argument("--decision-markdown-output", type=Path)
     parser.add_argument("--limit", type=int, default=25)
     args = parser.parse_args()
     payload = build_terminal(
         args.data_dir,
         focus_user_id=args.focus_user_id,
         team_context_path=args.team_context,
+        decision_input_path=args.decision_input,
+        decision_selector=args.decision_selector,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -862,12 +908,22 @@ def main() -> None:
         args.markdown_output.write_text(
             render_player_rankings_markdown(payload, limit=args.limit), encoding="utf-8"
         )
+    if args.decision_markdown_output:
+        view = payload["views"]["decision_utility_inspector"]
+        if not view.get("available", True):
+            raise ValueError("--decision-markdown-output requires --decision-input")
+        args.decision_markdown_output.parent.mkdir(parents=True, exist_ok=True)
+        args.decision_markdown_output.write_text(
+            decision_inspector.render_markdown(view), encoding="utf-8"
+        )
     print(json.dumps({
         "model_version": MODEL_VERSION,
         "players": payload["views"]["player_value_rankings"]["player_count"],
         "quarantined_adjusted_values": payload["contract_health"]["player_value_authority"]["quarantined_player_count"],
         "output": str(args.output),
         "markdown_output": str(args.markdown_output) if args.markdown_output else None,
+        "decision_inspector_available": payload["capability_status"]["decision_utility_inspector"],
+        "decision_markdown_output": str(args.decision_markdown_output) if args.decision_markdown_output else None,
     }, indent=2))
 
 
