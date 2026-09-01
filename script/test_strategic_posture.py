@@ -55,7 +55,9 @@ assert rebuild['posture_curve_score']==min(
 assert 'immediate_current_value' in push['search_lane_order']
 assert push['search_lane_order'][0]=='immediate_current_value'
 for row in (preserve,retool,rebuild):
-    assert row['search_lane_order'][0]=='future_value_preservation'
+    assert row['search_lane_order'][0]=='outbound_future_value'
+    assert 'future_value_preservation' in row['search_lane_order']
+assert 'outbound_future_value' in auto['search_lane_order']
 
 # The shared Decision Lab overlay must scope an owner override to one user.
 overlay=(SCRIPT/'decision_lab_state_aware.py').read_text(encoding='utf-8')
