@@ -132,7 +132,9 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
         base = float(row.get("base_franchise_value") or row.get("market_dynasty") or 0.0)
         if feature == "liquidity":
             pp = row.get("pick_profile") or {}
-            if row.get("asset_type") == "pick" and pp.get("liquidity_incremental_value_authorized") is False:
+            explicitly_authorized = row.get("liquidity_incremental_value_authorized")
+            pick_authorized = pp.get("liquidity_incremental_value_authorized")
+            if explicitly_authorized is False or (row.get("asset_type") == "pick" and pick_authorized is False):
                 f = 0.0
             else:
                 f = float(row.get("liquidity_score") or 0.0)
@@ -145,7 +147,13 @@ def _weighted_total(rows: Iterable[Dict[str, Any]], feature: str) -> float:
             else:
                 f = _optionality(row)
         elif feature == "resilience":
-            f = float(row.get("replacement_resilience_score") or 0.0)
+            # Final resilience must measure depth insurance, not dependency on
+            # a star player. Dependency is fragility/current-value context and
+            # is already reflected in lineup/simulation outcomes.
+            if row.get("final_shared_utility_resilience_basis") == "depth_insurance_only":
+                f = float(row.get("depth_insurance_score") or 0.0)
+            else:
+                f = float(row.get("replacement_resilience_score") or 0.0)
         else:
             f = 0.0
         total += base * f
@@ -189,8 +197,13 @@ def install(base_dl):
                 "core_status": p.get("core_status"),
                 "strategic_score": float(p.get("strategic_score") or 0.0),
                 "liquidity_score": float(p.get("liquidity_score") or 0.0),
+                "liquidity_incremental_value_authorized": p.get("liquidity_incremental_value_authorized"),
+                "liquidity_score_diagnostic": float(p.get("liquidity_score_diagnostic") or p.get("liquidity_score") or 0.0),
                 "replacement_resilience_score": float(p.get("replacement_resilience_score") or 0.0),
                 "replacement_resilience_basis": p.get("replacement_resilience_basis"),
+                "fragility_dependency_score": float(p.get("fragility_dependency_score") or 0.0),
+                "depth_insurance_score": float(p.get("depth_insurance_score") or 0.0),
+                "final_shared_utility_resilience_basis": p.get("final_shared_utility_resilience_basis"),
                 "future_distribution": p.get("future_distribution"),
                 "pick_profile": p.get("pick_profile"),
                 "objective_state": p.get("objective_state") or weight_resolution["state"],
