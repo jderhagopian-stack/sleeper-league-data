@@ -12,7 +12,7 @@ import statistics
 
 from gm3 import team_improvement as gm3
 
-MODEL_VERSION = "FSFFL-OE-Focal-Utility-Stability-1.0"
+MODEL_VERSION = "FSFFL-OE-Bilateral-Utility-Stability-2.0"
 
 
 def _classification(scores):
@@ -35,7 +35,7 @@ def evaluate(rows, focus_user_id, simulations=500, seeds=None, strategic_posture
             "model_version": MODEL_VERSION,
             "creates_new_utility": False,
             "uses_fixed_utility_margin_threshold": False,
-            "confirmation_rule": "all configured seed utilities must remain > 0",
+            "confirmation_rule": "all configured focal and counterparty seed utilities must remain > 0",
             "rows": [],
         }
 
@@ -59,21 +59,37 @@ def evaluate(rows, focus_user_id, simulations=500, seeds=None, strategic_posture
             samples.append({
                 "seed": seed,
                 "team_improvement_score": float(result.get("team_improvement_score") or 0.0),
+                "counterparty_shared_decision_utility_score": float(
+                    result.get("counterparty_shared_decision_utility_score") or 0.0
+                ),
                 "expected_wins_delta": float(focus.get("expected_wins") or 0.0),
                 "championship_probability_delta": float(focus.get("championship_probability") or 0.0),
             })
-        scores = [x["team_improvement_score"] for x in samples]
-        classification = _classification(scores)
+        focal_scores = [x["team_improvement_score"] for x in samples]
+        counterparty_scores = [x["counterparty_shared_decision_utility_score"] for x in samples]
+        focal_classification = _classification(focal_scores)
+        counterparty_classification = _classification(counterparty_scores)
+        bilateral_positive = (
+            focal_classification == "STABLE_POSITIVE"
+            and counterparty_classification == "STABLE_POSITIVE"
+        )
+        classification = "STABLE_BILATERAL_POSITIVE" if bilateral_positive else "BILATERAL_SIGN_SENSITIVE"
         results.append({
             "ordinal": ordinal,
             "description": row.get("description"),
             "classification": classification,
-            "confirmed_for_headline_action": classification == "STABLE_POSITIVE",
+            "focal_classification": focal_classification,
+            "counterparty_classification": counterparty_classification,
+            "confirmed_for_headline_action": bilateral_positive,
             "samples": samples,
-            "score_min": min(scores),
-            "score_median": statistics.median(scores),
-            "score_max": max(scores),
-            "score_population_stddev": statistics.pstdev(scores) if len(scores) > 1 else 0.0,
+            "score_min": min(focal_scores),
+            "score_median": statistics.median(focal_scores),
+            "score_max": max(focal_scores),
+            "score_population_stddev": statistics.pstdev(focal_scores) if len(focal_scores) > 1 else 0.0,
+            "counterparty_score_min": min(counterparty_scores),
+            "counterparty_score_median": statistics.median(counterparty_scores),
+            "counterparty_score_max": max(counterparty_scores),
+            "counterparty_score_population_stddev": statistics.pstdev(counterparty_scores) if len(counterparty_scores) > 1 else 0.0,
         })
 
     return {
@@ -83,7 +99,7 @@ def evaluate(rows, focus_user_id, simulations=500, seeds=None, strategic_posture
         "simulation_count_per_seed": sims,
         "seeds": seeds,
         "strategic_posture": strategic_posture,
-        "confirmation_rule": "all configured seed utilities must remain > 0",
+        "confirmation_rule": "all configured focal and counterparty seed utilities must remain > 0",
         "uses_fixed_utility_margin_threshold": False,
         "creates_new_utility": False,
         "changes_underlying_trade_utility": False,
