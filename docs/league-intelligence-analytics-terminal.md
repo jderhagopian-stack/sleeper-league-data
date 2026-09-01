@@ -160,8 +160,9 @@ Do not promote League Intelligence-specific view schemas or transforms into Shar
 2. Build the Player Value & Rankings payload from existing governed sources.
 3. Build the Team Strength / Weakness Heat Map payload.
 4. Build the Value-Disagreement / Trade-Partner payload.
-5. Add standardized report renderers and terminal surfaces.
-6. Add prospective validation only for claims the layer actually makes (for example data freshness or stability), not for decision outcomes owned elsewhere.
+5. Build the Decision / Utility Inspector over governed application outputs.
+6. Add standardized report renderers and terminal surfaces.
+7. Add prospective validation only for claims the layer actually makes (for example data freshness or stability), not for decision outcomes owned elsewhere.
 
 ## Current first-slice implementation
 
@@ -228,6 +229,34 @@ python script/league_intelligence/application.py \
 
 The team-context artifact includes hashes of the current model/data inputs it
 consumed. The Terminal fails closed and quarantines it if those inputs change.
+
+### Decision / Utility Inspector
+
+The Inspector accepts one explicitly selected governed decision record from
+GM3 Team Improvement, Decision Lab, Trade Decision, or Opportunity Engine. It
+exposes, when the source publishes them:
+
+- effective roster actions and roster-resolution evidence;
+- focal and counterparty Simulator deltas;
+- focal and counterparty Shared Decision Utility;
+- the exact current, future, liquidity, and resilience attribution channels;
+- competitive state, strategic posture, posture source, and objective weights;
+- Trade Decision negotiation-frontier and near-frontier evidence; and
+- any upstream posture-sensitivity results.
+
+Reports containing multiple candidates require an explicit dot/index selector.
+The Terminal never chooses a record because choosing could become an implicit
+recommendation. Missing or unreconciled attribution remains visibly
+unavailable; the Inspector never calls Shared Decision Utility, Simulator, or
+Trade Decision to reconstruct missing calculations.
+
+```bash
+python script/league_intelligence/application.py \
+  --decision-input /path/to/governed-opportunity-or-decision.json \
+  --decision-selector 'rows.0' \
+  --output data/league_intelligence/terminal.json \
+  --decision-markdown-output reports/league_intelligence/decision_inspector.md
+```
 
 ## Success criteria
 

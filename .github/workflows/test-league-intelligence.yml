@@ -9,6 +9,7 @@ on:
       - 'script/gm3/team_context.py'
       - 'script/gm3/team_improvement.py'
       - 'script/test_gm3_team_context.py'
+      - 'script/test_league_intelligence_decision_inspector.py'
       - 'script/test_league_intelligence_contract.py'
       - 'script/test_league_intelligence_terminal.py'
       - 'reports/league_intelligence/**'
@@ -32,6 +33,8 @@ jobs:
         run: python script/test_league_intelligence_terminal.py
       - name: Validate governed GM3 team-context publisher
         run: python script/test_gm3_team_context.py
+      - name: Validate read-only Decision and Utility Inspector
+        run: python script/test_league_intelligence_decision_inspector.py
       - name: Render reviewable first slice
         run: |
           python script/gm3/team_context.py \

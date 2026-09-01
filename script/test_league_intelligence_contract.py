@@ -21,6 +21,7 @@ def main() -> None:
         "player-value-rankings",
         "team-strength-heat-map",
         "value-disagreement-trade-partner-map",
+        "decision-utility-inspector",
     }
     for c in contracts:
         assert set(c.forbidden_operations) == FORBIDDEN_OPERATIONS
