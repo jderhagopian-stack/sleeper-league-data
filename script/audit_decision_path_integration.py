@@ -211,6 +211,11 @@ def main():
             and "native_players_preserved" in roster
             and "assert_projection_coverage" in roster
             and "without canonical Simulator projection coverage" in roster
+            and "projections_override=projections" in roster
+        ),
+        "team_improvement_simulator_uses_same_projection_universe_as_lineup_optimizer": (
+            "projections_override=projections" in ti
+            and "simulator_features" in ti
         ),
         "opportunity_engine_does_not_create_valuation_authority": (
             "team_improvement" in oe
@@ -266,6 +271,7 @@ def main():
             "standalone_roster_shared_authority_bypass": True,
             "standalone_roster_legality_bypass": True,
             "standalone_roster_projection_coverage_bypass": True,
+            "lineup_simulator_projection_universe_mismatch": True,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
