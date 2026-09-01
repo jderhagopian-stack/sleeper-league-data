@@ -94,6 +94,8 @@ jobs:
                   observed_non_hold += 1
                   a=row.get('decision_attribution') or {}
                   assert a.get('reconciles') is True, a
+                  sf=((row.get('simulation') or {}).get('simulator_features') or {})
+                  assert sf.get('reoptimized_lineup_nfl_team_metadata_complete') is True, sf
                   assert abs(float(a.get('component_sum') or 0)-float(a.get('final_shared_decision_utility') or 0)) <= .02
                   channels={x['channel']:x for x in a.get('channels') or []}
                   for name in ('liquidity','resilience'):
