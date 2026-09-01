@@ -9,6 +9,7 @@ on:
       - 'script/render_opportunity_engine_report.py'
       - 'script/audit_contender_state_utility_calibration.py'
       - '.github/workflows/opportunity-engine-full-production-validation.yml'
+  # Keep this push hook so merges touching the production OE path rerun the full validation on main.
   push:
     branches: [main]
     paths:
