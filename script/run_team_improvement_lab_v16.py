@@ -125,11 +125,17 @@ def _targeted_price_curves(base,focus_uid,target_asset_ids,package_budget):
 def trade_candidates(base,focus_uid,catalog,limit,packages_per_target,frontier_targets,frontier_packages_per_target):
     doc=base.team_doc(focus_uid,'trade_opportunities'); rows=[]; frontier_rows=[]
     opportunities=list(doc.get('opportunities') or [])
-    targeted_ids=[
-        str(x.get('target_asset_id') or '')
-        for x in opportunities[:max(0,int(frontier_targets))]
-        if x.get('target_asset_id')
-    ]
+    def existing_curve_has_overlap(opp):
+        for pkg in (opp.get('price_frontier_candidate_packages') or []):
+            if base.sf(pkg.get('focal_strategic_utility'),-1e18)>0 and base.sf(pkg.get('seller_strategic_utility'),-1e18)>=0:
+                return True
+        return False
+    targeted_ids=[]
+    for opp in opportunities:
+        if len(targeted_ids)>=max(0,int(frontier_targets)):
+            break
+        if opp.get('target_asset_id') and not existing_curve_has_overlap(opp):
+            targeted_ids.append(str(opp.get('target_asset_id')))
     targeted_curves=_targeted_price_curves(
         base,focus_uid,targeted_ids,max(1,int(frontier_packages_per_target))
     ) if targeted_ids else {}
