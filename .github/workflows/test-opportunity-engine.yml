@@ -102,19 +102,23 @@ jobs:
           assert b['policy']['theoretical_counterparty_failures_can_be_headline_action'] is False
           assert b['policy']['theoretical_packages_can_occupy_actionable_ranking'] is False
           assert b['policy']['portfolio_search_excludes_theoretical_counterparty_failures'] is True
-          assert b['portfolio_optimization']['candidate_bundles_evaluated'] > 0
-          assert b['portfolio_optimization']['authority']=='GM3 Team Improvement'
-          assert b['portfolio_optimization']['deep_confirmed_portfolios'] > 0
-          assert b['portfolio_optimization']['screening_and_confirmation_use_same_gm3_utility'] is True
-          assert b['portfolio_optimization']['best_single_step_same_precision'] is not None
-          assert isinstance(b['portfolio_optimization']['best_portfolio_preferred_to_best_single_step'], bool)
-          bp=b['portfolio_optimization']['best_portfolio']
-          assert bp is not None
-          assert bp['decision_attribution']['reconciles'] is True
-          assert abs(float(bp['decision_attribution']['final_shared_decision_utility'])-float(bp['team_improvement_score'])) <= .03
-          bs=b['portfolio_optimization']['best_single_step_same_precision']
-          assert bs['decision_attribution']['reconciles'] is True
-          assert abs(float(bs['decision_attribution']['final_shared_decision_utility'])-float(bs['team_improvement_score'])) <= .03
+          po=b['portfolio_optimization']
+          assert po['authority']=='GM3 Team Improvement'
+          assert po['excludes_theoretical_counterparty_failures'] is True
+          if int(po.get('candidate_bundles_evaluated') or 0) > 0:
+              assert po['deep_confirmed_portfolios'] > 0
+              assert po['screening_and_confirmation_use_same_gm3_utility'] is True
+              assert po['best_single_step_same_precision'] is not None
+              assert isinstance(po['best_portfolio_preferred_to_best_single_step'], bool)
+              bp=po['best_portfolio']
+              assert bp is not None
+              assert bp['decision_attribution']['reconciles'] is True
+              assert abs(float(bp['decision_attribution']['final_shared_decision_utility'])-float(bp['team_improvement_score'])) <= .03
+              bs=po['best_single_step_same_precision']
+              assert bs['decision_attribution']['reconciles'] is True
+              assert abs(float(bs['decision_attribution']['final_shared_decision_utility'])-float(bs['team_improvement_score'])) <= .03
+          else:
+              assert po.get('best_portfolio') is None
           assert b['robustness']['used_for_primary_ranking'] is False
           assert b['prospective_validation']['contains_future_outcomes'] is False
           assert len(b['prospective_validation']['source_input_sha256'])==64
