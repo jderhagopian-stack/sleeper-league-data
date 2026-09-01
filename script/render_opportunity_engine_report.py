@@ -38,8 +38,15 @@ def render(board):
     price_gaps = board.get("high_impact_price_gap_targets") or []
     lines += [
         "",
-        "## PURSUE NOW",
-        line_for(actionable) if actionable else "No trade currently clears both sides of the governed price frontier.",
+        "## CONSIDER / OPEN NEGOTIATION",
+        (
+            line_for(actionable)
+            + (
+                f"; modeled counterparty utility {float(actionable.get('counterparty_shared_decision_utility_score')):+,.1f}"
+                if actionable and actionable.get('counterparty_shared_decision_utility_score') is not None
+                else ""
+            )
+        ) if actionable else "No trade currently clears both sides of the governed price frontier.",
         "",
         "## EXPLORE PRICE",
         line_for(explore) if explore else "No incomplete-but-economically-viable negotiation frontier is currently promoted.",
@@ -83,7 +90,7 @@ def render(board):
 
     lines += ["", "## WHAT TO DO NEXT"]
     if actionable:
-        lines.append(f"Open negotiations around {line_for(actionable)}")
+        lines.append(f"Consider opening negotiations around {line_for(actionable)}; verify the bilateral margin and tradeoff before making an offer.")
     elif explore:
         lines.append(f"Continue price discovery on {line_for(explore)}")
     else:
@@ -101,7 +108,10 @@ def render(board):
     ranked = board.get("ranked_single_step_opportunities") or []
     if ranked:
         for i, row in enumerate(ranked[:10], 1):
-            lines.append(f"{i}. {line_for(row)}")
+            suffix = ""
+            if row.get("channel") == "TRADE" and row.get("counterparty_shared_decision_utility_score") is not None:
+                suffix = f"; counterparty utility {float(row.get('counterparty_shared_decision_utility_score')):+,.1f}"
+            lines.append(f"{i}. {line_for(row)}{suffix}")
     else:
         lines.append("No positive single-step opportunity cleared the governed benchmark.")
 
