@@ -163,8 +163,11 @@ def render(board):
         ("Highest governed emerging-value opportunity", "best_emerging_value_opportunity"),
         ("Highest governed draft-intelligence opportunity", "best_draft_intelligence_opportunity"),
     ]:
-        lines.append(f"- **{label}:** {line_for(views.get(key) or {})}")
-    lines.append("These are filtered views of the governed upstream order; they are not separate specialist rankings.")
+        row=views.get(key) or {}
+        status=row.get("opportunity_routing_status")
+        suffix=f" — routing status: **{status}**" if status else ""
+        lines.append(f"- **{label}:** {line_for(row)}{suffix}")
+    lines.append("These are investigative views of governed upstream information, not separate specialist rankings or recommendations. Non-actionable rows remain visible and carry their Opportunity Engine routing status.")
 
     frontier = board.get("negotiation_frontier") or {}
     price_frontiers = frontier.get("target_price_frontiers") or []
