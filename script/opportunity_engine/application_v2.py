@@ -360,7 +360,7 @@ def build_board(source, args, trade_reviews):
         "portfolio_confirm_sims": int(args.portfolio_confirm_sims),
         "robustness_seeds": int(args.robustness_seeds),
         "robustness_sims_per_seed": int(args.robustness_sims),
-        "strategic_posture": str(args.strategic_posture),
+        "strategic_posture": str(getattr(args, "strategic_posture", "AUTO")),
     }
     board.setdefault("capability_status", {})["adaptive_multi_step_portfolio_optimization"] = True
     board["capability_status"]["portfolio_search_up_to_three_or_more_moves"] = int(args.portfolio_max_moves) >= 3
