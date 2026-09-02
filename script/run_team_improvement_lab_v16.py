@@ -325,11 +325,15 @@ def _optimized_team_strength_snapshots(base, rosters):
     already exposes through roster_diagnosis.
     """
     global _GM_STRENGTH_CORE
+    if not hasattr(base,'asset_catalog'):
+        return {}
     if _GM_STRENGTH_CORE is None:
-        _GM_STRENGTH_CORE=base.load_module(
-            Path(__file__).resolve().parent/'build_fsffl_gm_engine.py',
-            'gm3_team_improvement_strength_snapshot',
-        )
+        path=Path(__file__).resolve().parent/'build_fsffl_gm_engine.py'
+        spec=importlib.util.spec_from_file_location('gm3_team_improvement_strength_snapshot',path)
+        mod=importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        _GM_STRENGTH_CORE=mod
     players_catalog,_=base.asset_catalog()
     player_values={
         str(row.get('player_id')):{
