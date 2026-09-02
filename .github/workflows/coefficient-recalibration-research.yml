@@ -8,6 +8,7 @@ on:
       - 'script/audit_strategy_outcome_readiness.py'
       - 'script/run_state_weight_shadow_research.py'
       - 'script/audit_simulator_calibration_chain.py'
+      - 'script/audit_historical_team_outcome_evidence.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -31,6 +32,8 @@ jobs:
         run: python script/run_state_weight_shadow_research.py
       - name: Audit Simulator calibration chain
         run: python script/audit_simulator_calibration_chain.py
+      - name: Audit committed historical team outcome evidence
+        run: python script/audit_historical_team_outcome_evidence.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
@@ -60,6 +63,12 @@ jobs:
           assert s['empirical_validation_claim'] is False
           assert s['hurts_so_good_used_as_target'] is False
 
+          hist=json.load(open('data/audit/historical_team_outcome_evidence.json'))
+          assert hist['authority']=='RESEARCH_DISCOVERY_ONLY'
+          assert hist['production_behavior_changed'] is False
+          assert hist['summary']['single_scalar_strategy_target_authorized'] is False
+          assert hist['policy']['post_decision_team_outcome_is_not_causal_trade_effect'] is True
+
           sim=json.load(open('data/audit/simulator_calibration_chain_audit.json'))
           assert sim['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
           assert sim['production_behavior_changed'] is False
@@ -79,4 +88,5 @@ jobs:
             data/audit/strategy_outcome_readiness.json
             data/audit/state_weight_shadow_research.json
             data/audit/simulator_calibration_chain_audit.json
+            data/audit/historical_team_outcome_evidence.json
           retention-days: 30
