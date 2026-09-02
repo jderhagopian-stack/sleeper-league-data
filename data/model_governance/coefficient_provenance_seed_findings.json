@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "High-impact adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, Behavioral Intelligence, roster-cut resolution, negotiation frontier/ranking, future-pick economics, and projection uncertainty/availability. Full Phase 1 exact-site review remains in progress.",
+  "scope_note": "High-impact adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision/correlation/substitution, Behavioral Intelligence, roster-cut resolution, negotiation frontier/ranking, future-pick economics, and projection uncertainty/availability. Full Phase 1 exact-site review remains in progress.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -697,25 +697,25 @@
       "path": "script/build_fsffl_weekly_projections.py",
       "parameter_name": "median offset",
       "current_value_function": "median = max(0, mean - 0.08 * weekly_sd)",
-      "runtime_authority": "ACTIVE_REPORTED_MEDIAN; VERIFY_SIMULATOR_CONSUMPTION_BEFORE_ASSIGNING_FULL_DECISION_IMPACT",
+      "runtime_authority": "NON_AUTHORITATIVE_IN_CANONICAL_SIMULATOR_PATH; PAYLOAD/DIAGNOSTIC FIELD ONLY UNLESS ANOTHER CONSUMER IS EXPLICITLY GOVERNED",
       "downstream_consumers": [
         "weekly projection payload",
-        "any median-consuming downstream diagnostics"
+        "reporting/diagnostic consumers if any"
       ],
       "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
-      "provenance": "fixed 8% SD offset with no evidentiary source identified; internally inconsistent with a symmetric Normal distribution if interpreted as its median",
+      "provenance": "fixed 8% SD offset with no evidentiary source identified; canonical Simulator does not consume this field, and the offset is inconsistent with the declared symmetric Normal distribution if interpreted as its median",
       "originally_hand_set": true,
       "empirically_validated": false,
       "simulation_derived": false,
       "externally_anchored": false,
       "duplicated_elsewhere": "POTENTIAL_INTERNAL_INCONSISTENCY_WITH_NORMAL_SHAPE",
       "uncertainty_status": "HIGH",
-      "sensitivity_level": "UNKNOWN_UNTIL_RUNTIME_CONSUMER_TRACE",
-      "estimated_decision_impact": "UNKNOWN_POSSIBLY_DIAGNOSTIC",
-      "replacement_feasibility": "STRUCTURAL_ELIMINATION_OR_EMPIRICAL_QUANTILE_MODEL",
+      "sensitivity_level": "LOW_FOR_CURRENT_CANONICAL_DECISION_PATH",
+      "estimated_decision_impact": "NONE_DETECTED_IN_CANONICAL_SIMULATOR",
+      "replacement_feasibility": "STRUCTURAL_ELIMINATION",
       "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
       "recommended_action": "ELIMINATE",
-      "evidence_needed_for_further_promotion": "Trace all median consumers. If Normal distribution remains, median should equal mean absent truncation/mixture semantics; if an asymmetric model is justified, estimate median directly rather than retain 0.08."
+      "evidence_needed_for_further_promotion": "Canonical Simulator traces use mean, sd and active_probability only. Remove the arbitrary median offset from authoritative semantics; if a median is needed for presentation, derive it consistently from the governed distribution or estimate it empirically."
     },
     {
       "parameter_id": "PROJECTION-ACTIVE-PROBABILITY-001",
@@ -772,6 +772,103 @@
       "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
       "recommended_action": "RE_ESTIMATE",
       "evidence_needed_for_further_promotion": "Use stability/coverage curves to justify minimum sample thresholds; hierarchical models may eliminate hard player/position cutoffs."
+    },
+    {
+      "parameter_id": "SIM-TEAM-SHOCK-LOADINGS-001",
+      "module": "Shared Core / Simulator",
+      "path": "script/run_fsffl_season_simulator_preproduction.py",
+      "parameter_name": "TEAM_SHOCK_RHO",
+      "current_value_function": {
+        "QB": 0.16,
+        "WR": 0.13,
+        "TE": 0.13,
+        "RB": 0.08
+      },
+      "runtime_authority": "ACTIVE_SAME_NFL_TEAM_JOINT_SCORE_DEPENDENCE",
+      "downstream_consumers": [
+        "weekly team score variance",
+        "head-to-head win distributions",
+        "playoff/bye/title tails"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "code comment explicitly describes a mild conservative shared offensive-environment loading pending richer calibration; no residual-correlation fit identified",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "HIGH; IMPLEMENTATION_LOADINGS_IMPLY_PAIRWISE_CORRELATION_AS_PRODUCT_OF_POSITION_LOADINGS",
+      "sensitivity_level": "MEDIUM_HIGH_FOR_STACKED_SAME_TEAM_PLAYERS_AND_TAILS",
+      "estimated_decision_impact": "MEDIUM_THROUGH_VARIANCE_AND_TITLE_TAILS",
+      "replacement_feasibility": "DIRECTLY_ESTIMABLE_FROM_TIMESTAMP_SAFE_FORECAST_RESIDUALS; OUTCOME_CORRELATION_ONLY_IS_WEAKER_PROXY",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Estimate same-team forecast-residual covariance/correlation by position pair and horizon using frozen forecasts. Until then retain bounded loadings as an explicitly unvalidated prior; do not substitute raw score correlation for residual correlation without qualification."
+    },
+    {
+      "parameter_id": "SIM-BACKUP-SLOT-ORDER-001",
+      "module": "Shared Core / Simulator",
+      "path": "script/run_fsffl_season_simulator_preproduction.py",
+      "parameter_name": "SLOT_SCARCITY",
+      "current_value_function": {
+        "QB": 0,
+        "TE": 1,
+        "RB": 2,
+        "WR": 2,
+        "SUPER_FLEX": 3,
+        "FLEX": 4
+      },
+      "runtime_authority": "ACTIVE_GREEDY_ORDER_FOR_SIMULATION_TIME_BACKUP_ALLOCATION",
+      "downstream_consumers": [
+        "multi-unavailability lineup substitution",
+        "weekly team scores",
+        "wins/playoffs/title"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set scarce-slot-first ordering intended to reduce bad fallback collisions; it is algorithmic rather than an explicit valuation premium",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "POTENTIAL_ASSIGNMENT_SUBOPTIMALITY_WHEN_MULTIPLE_STARTERS_ARE_UNAVAILABLE",
+      "sensitivity_level": "LOW_WHEN_ACTIVE_PROBABILITY_IS_NEAR_ONE; POTENTIALLY_HIGH_AFTER_AVAILABILITY_CALIBRATION",
+      "estimated_decision_impact": "CURRENTLY_MUTED_BY_NON_BYE_ACTIVE_PROBABILITY_1; COULD_BECOME_MATERIAL_AFTER_AVAILABILITY_REPAIR",
+      "replacement_feasibility": "STRUCTURAL_EXACT_ASSIGNMENT_OR_SMALL_COMBINATORIAL_OPTIMIZATION",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "ELIMINATE",
+      "evidence_needed_for_further_promotion": "Replace greedy slot ordering with exact legal backup assignment per simulation state when computationally tractable, or prove equivalence/near-equivalence across exhaustive synthetic shortage cases. Do not calibrate slot-order integers as economics."
+    },
+    {
+      "parameter_id": "SIM-MATCHUP-CLAMP-001",
+      "module": "Shared Core / Simulator",
+      "path": "script/run_fsffl_season_simulator_preproduction.py",
+      "parameter_name": "opponent matchup multiplier clamp",
+      "current_value_function": {
+        "min": 0.8,
+        "max": 1.2,
+        "neutral": 1
+      },
+      "runtime_authority": "ACTIVE_ONLY_WHEN_OPPONENT_ADJUSTMENT_SOURCE_PRESENT; OTHERWISE_NEUTRAL",
+      "downstream_consumers": [
+        "weekly player means",
+        "team scoring",
+        "wins/playoffs/title"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set numerical/sanity bounds around optional opponent adjustment source; absence or invalid source is neutral",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "SOURCE_DEPENDENT",
+      "sensitivity_level": "LOW_WHEN_NEUTRAL_NO_SOURCE; MEDIUM_WHEN_ACTIVE",
+      "estimated_decision_impact": "CONDITIONAL",
+      "replacement_feasibility": "TEMPORAL_MATCHUP_RESIDUAL_VALIDATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Validate opponent adjustment residual lift and cap exceedance on temporal weekly forecasts before narrowing or expanding bounds; keep neutral behavior when evidence absent."
     }
   ]
 }
