@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Parameter-Authority-Policy-1.0",
+  "principles": {
+    "zero_is_a_parameter": true,
+    "uncertain_magnitude_is_not_evidence_of_zero_effect": true,
+    "credible_distinct_effects_may_use_bounded_provisional_priors": true,
+    "provisional_priors_must_expose_uncertainty": true,
+    "provisional_priors_must_support_sensitivity_analysis": true,
+    "duplicate_or_misclassified_signals_remain_zero_incremental_authority": true,
+    "production_promotion_requires_no_double_counting": true,
+    "empirical_recalibration_should_replace_or_narrow_priors_over_time": true
+  },
+  "authority_modes": {
+    "ACTIVE_STRUCTURAL_OR_EVIDENCE_DERIVED": "Active because the value is rule-, simulation-, market-, or evidence-derived in the intended semantic role.",
+    "ACTIVE_BOUNDED_PROVISIONAL_PRIOR": "Active with explicit bounds and uncertainty because the concept is credible but magnitude is not yet fully estimated.",
+    "DIAGNOSTIC_DUPLICATIVE": "Keep visible but zero incremental authority because the signal is already represented elsewhere or is same-source repricing.",
+    "DIAGNOSTIC_WRONG_SEMANTIC_ROLE": "Keep visible but zero economic authority because the signal belongs to search, behavior, negotiation, or explanation rather than value.",
+    "INACTIVE_UNCERTAIN_MAGNITUDE_REVIEW": "Concept may be economically real; zero authority is not presumed correct. Requires bounded-prior or residual-model design review.",
+    "SPLIT_REQUIRED_MIXED_FAMILY": "Registry family combines conceptually different effects that require separate authority decisions."
+  },
+  "family_reviews": [
+    {
+      "id": "CONSOLIDATION-PREMIUM-001",
+      "mode": "INACTIVE_UNCERTAIN_MAGNITUDE_REVIEW",
+      "concept_status": "CREDIBLE_DISTINCT_EFFECT",
+      "reason": "The old rank-derived implementation was circular, but that does not establish zero aggregation/concentration effect. Replacement should use package/roster/transaction evidence rather than same-source rank repricing.",
+      "next_step": "Design bounded aggregation/concentration prior and test residual value against current package economics and roster legalization."
+    },
+    {
+      "id": "PACKAGE-ECON-001",
+      "mode": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
+      "concept_status": "CREDIBLE_DISTINCT_EFFECT",
+      "reason": "The nonlinear second/third-asset discount is already an explicit approximation of quantity-for-quality economics. Exact coefficients remain uncertain and should be sensitivity-tested rather than treated as either exact or zero.",
+      "next_step": "Expose package-weight uncertainty set to downstream trade utility and calibrate from frozen historical transaction snapshots."
+    },
+    {
+      "id": "ROSTER-INTERACTION-001",
+      "mode": "INACTIVE_UNCERTAIN_MAGNITUDE_REVIEW",
+      "concept_status": "POSSIBLY_DISTINCT_RESIDUAL_EFFECT",
+      "reason": "Insurance/depth interaction is economically plausible. The current zero incremental authority is justified only to the extent canonical lineup/resilience modeling already captures it.",
+      "next_step": "Run ablation against replacement-resilience outputs; if residual effect remains, promote a bounded prior."
+    },
+    {
+      "id": "GM22-CONFIG-001",
+      "mode": "SPLIT_REQUIRED_MIXED_FAMILY",
+      "concept_status": "MIXED",
+      "reason": "This umbrella combines likely duplicative market repricing (performance/usage/injury/news) with potentially distinct owner/roster economics (endowment, starter dependency, thin-depth, need/window). One blanket diagnostic-only status is too coarse.",
+      "next_step": "Split into separate governed families and assign authority mode independently."
+    },
+    {
+      "id": "MARKET-MOMENTUM-001",
+      "mode": "DIAGNOSTIC_DUPLICATIVE",
+      "concept_status": "SAME_SOURCE_SIGNAL_REUSE",
+      "reason": "Current FantasyCalc value and its own recent trend are not independent value sources. Incremental repricing remains zero until residual predictive value is demonstrated.",
+      "next_step": "Keep diagnostic; only promote on time-ordered residual validation."
+    },
+    {
+      "id": "MARKET-TIER-SCARCITY-001",
+      "mode": "SPLIT_REQUIRED_MIXED_FAMILY",
+      "concept_status": "MIXED",
+      "reason": "Market percentile/tier scarcity can duplicate the market anchor, while roster-specific replacement drop is current-team evidence and may be distinct. These should not share one authority status.",
+      "next_step": "Separate market-tier descriptive scarcity from roster-specific replacement scarcity."
+    },
+    {
+      "id": "BEHAVIOR-001",
+      "mode": "DIAGNOSTIC_WRONG_SEMANTIC_ROLE",
+      "concept_status": "VALID_NON_ECONOMIC_SIGNAL",
+      "reason": "Manager behavior is useful for negotiation realism/search but should not create focal economic value without separate evidence.",
+      "next_step": "Keep in behavioral/negotiation layer and calibrate acceptance/ranking only with valid opportunity denominators."
+    },
+    {
+      "id": "ACCEPTANCE-GATE-001",
+      "mode": "DIAGNOSTIC_WRONG_SEMANTIC_ROLE",
+      "concept_status": "VALID_FEASIBILITY_SIGNAL",
+      "reason": "Acceptance fit is feasibility/negotiation evidence, not focal trade value. Buyer shared utility remains the economic feasibility signal.",
+      "next_step": "Keep economic utility and behavioral acceptance separated."
+    },
+    {
+      "id": "STATE-WEIGHTS-001",
+      "mode": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
+      "concept_status": "CREDIBLE_DISTINCT_EFFECT",
+      "reason": "Competitive-state preference weights are inherently decision-preference parameters and already use an explicit bounded expert-prior architecture.",
+      "next_step": "Continue planned historical/simulation recalibration rather than disabling while waiting for perfect evidence."
+    }
+  ],
+  "unregistered_or_underdecomposed_concepts": [
+    {
+      "concept": "optionality",
+      "status": "NEEDS_EXPLICIT_FAMILY",
+      "observation": "Shared Decision Utility exposes optionality_value_delta diagnostically but the registry does not give optionality its own material parameter family.",
+      "next_step": "Create an OPTIONALITY family separating true reversibility/upside optionality from market value, liquidity, and resilience overlap."
+    },
+    {
+      "concept": "asset_concentration_and_best_asset_premium",
+      "status": "NEEDS_EXPLICIT_FAMILY_OR_PACKAGE_ECON_SUBFAMILY",
+      "observation": "The current package curve approximates diminishing value of additional assets, but the governance registry does not separately state the residual economics of surrendering the best/scarcest asset in a multi-asset trade.",
+      "next_step": "Model as aggregation/concentration residual, not as a rank-derived market reprice."
+    }
+  ]
+}
