@@ -11,6 +11,7 @@ on:
       - 'script/audit_historical_team_outcome_evidence.py'
       - 'script/build_historical_trade_outcome_panel.py'
       - 'script/test_superflex_qb_opportunity_cost.py'
+      - 'script/test_simulator_backup_assignment_optimality.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -42,6 +43,8 @@ jobs:
         run: python script/build_historical_trade_outcome_panel.py
       - name: Test endogenous Superflex QB opportunity cost
         run: python script/test_superflex_qb_opportunity_cost.py
+      - name: Detect greedy backup-assignment suboptimality
+        run: python script/test_simulator_backup_assignment_optimality.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
