@@ -59,7 +59,7 @@ def main():
     shadow=load(DATA/"audit"/"state_weight_shadow_research.json",{}) or {}
     panel=load(DATA/"model_validation"/"historical_trade_outcome_panel.json",{}) or {}
     promo=load(DATA/"audit"/"state_weight_promotion_readiness.json",{}) or {}
-    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}
+    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}\n    cutoff_confirm=load(DATA/"audit"/"trade_search_hard_cutoff_shared_utility_confirmation.json",{}) or {}
 
     do_not_change=[
       {
@@ -90,11 +90,11 @@ def main():
     ]
 
     potential_promotions=[]
-    if (recall.get("summary") or {}).get("hard_cutoff_recall_failure_detected"):
+    if (cutoff_confirm.get("summary") or {}).get("evidence_against_hard_cutoff_detected"):
         potential_promotions.append({
             "parameter":"trade search low-value/low-need hard exclusion",
             "candidate_action":"STRUCTURAL_ELIMINATION",
-            "basis":"shadow targeted-price-discovery false negative(s) detected",
+            "basis":"excluded GM3 discovery target(s) confirmed bilaterally non-negative by canonical Shared Decision Utility",
             "evidence_tier_of_incumbent":"LEGACY_ARBITRARY_HEURISTIC",
             "requires_separate_production_pr":True
         })
@@ -132,7 +132,7 @@ def main():
         "state_weight_shadow_sign_changes":shadow.get("sign_change_count"),
         "historical_trade_panel":panel.get("summary"),
         "state_weight_promotion":promo,
-        "trade_search_hard_cutoff_recall":recall.get("summary")
+        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary")
       },
       "plain_language_assessment":{
         "what_is_already_defensible":[
