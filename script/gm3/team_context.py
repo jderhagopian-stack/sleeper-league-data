@@ -165,7 +165,7 @@ def build_team_context(
         "model_version": MODEL_VERSION,
         "authority": "GM3 Team Improvement",
         "team_improvement_model_version": TEAM_IMPROVEMENT_MODEL_VERSION,
-        "shared_decision_utility": "FSFFL-Shared-Decision-Utility-2.0",
+        "shared_decision_utility": "FSFFL-Shared-Decision-Utility-2.1",
         "focus_user_id": str(focus_user_id),
         "strategic_posture_request": str(strategic_posture or "AUTO"),
         "simulation_count": int(simulations),

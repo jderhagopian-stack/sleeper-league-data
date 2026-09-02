@@ -37,7 +37,7 @@ def main():
       'DECISION_UTILITY = SCRIPT / "decision_utility.py"' in v20
       and 'resolved = utility.score(sim)' in v20
       and all(x in utility for x in [
-        'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"',
+        'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.1"',
         'statistics.median(values.values())',
         'baseline_team_market_redraft_value',
         'ref = sim.get("league_reference") or {}',
@@ -131,7 +131,7 @@ def main():
 
     payload={
       "model_version":MODEL_VERSION,
-      "shared_decision_utility_model":"FSFFL-Shared-Decision-Utility-2.0",
+      "shared_decision_utility_model":"FSFFL-Shared-Decision-Utility-2.1",
       "production_behavior_changed":True,
       "policy":{
         "primitive_channels_only_in_final_score":True,

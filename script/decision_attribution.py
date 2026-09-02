@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 SCRIPT = Path(__file__).resolve().parent
-MODEL_VERSION = "FSFFL-Decision-Attribution-1.0"
+MODEL_VERSION = "FSFFL-Decision-Attribution-1.1"
 
 
 def _load_utility():
@@ -50,7 +50,11 @@ def reconcile(sim: Dict[str, Any]) -> Dict[str, Any]:
         "resilience": "resilience effect",
     }
     sources = {
-        "current": "canonical Simulator league-relative outcome deltas",
+        "current": (
+            "unweighted median of same-unit current-season evidence: canonical "
+            "Simulator league-relative outcomes, transaction market-redraft delta, "
+            "and optimized-starter redraft delta when available"
+        ),
         "future": "GM3 market-dynasty delta",
         "liquidity": "GM3 residual liquidity delta, only when independently authorized",
         "resilience": "GM3 residual resilience delta, only when independently authorized",

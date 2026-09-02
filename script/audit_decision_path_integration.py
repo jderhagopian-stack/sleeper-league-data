@@ -110,7 +110,7 @@ def main():
 
     findings = {
         "shared_utility_is_single_numeric_composer": (
-            'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"' in du
+            'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.1"' in du
             and "components = {k: w[k] * sf(blocks[k]) for k in required}" in du
         ),
         "age_scarcity_injury_are_not_independent_shared_utility_addends": (

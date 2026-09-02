@@ -3,15 +3,20 @@
 
 Trade Decision and GM3 Team Improvement consume the same primitive utility.
 
-Version 2 replaces the prior hand-set unit-conversion constants with data-derived
-scales:
-- current competitive impact is a median ensemble of league-relative Simulator
-  outcome changes, converted to value units using the focal roster's observed
-  market-redraft scale;
+Version 2.1 retains the evidence-governed four-channel objective while repairing
+current-season evidence reconciliation:
+- Simulator outcome changes are still normalized league-relatively and converted
+  to value units using the focal roster's observed market-redraft scale;
+- that Simulator-derived current value is then combined by an unweighted median
+  with any directly observed transaction market-redraft delta and optimized
+  starter-redraft delta available from the same hypothetical;
+- the median ensemble avoids double-counting correlated current-season signals,
+  introduces no fitted exchange coefficient, and prevents a small simulation
+  gain from automatically overriding two contradictory roster/value signals;
 - future value remains the observed market-dynasty delta;
 - liquidity and resilience retain their existing value-denominated deltas;
-- optionality is diagnostic only because the market anchor already embeds
-  expectations and no residual incremental value has been demonstrated;
+- optionality remains diagnostic only because residual incremental value has not
+  been independently demonstrated;
 - opponent title externality is folded directly into the championship outcome
   before normalization rather than receiving a separate coefficient.
 
@@ -24,7 +29,7 @@ from __future__ import annotations
 import statistics
 from typing import Any, Dict
 
-MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.0"
+MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.1"
 
 
 def sf(x, default=0.0):
@@ -84,12 +89,44 @@ def _relative_current_outcomes(sim):
     return signal, values
 
 
+def _current_value_evidence(sim, simulator_value):
+    """Return same-unit current-season evidence without inventing coefficients.
+
+    Each included observation is already denominated in market-redraft value
+    units. Missing sources are omitted rather than silently treated as zero.
+    """
+    evidence = {"simulator_outcome_value": sf(simulator_value)}
+    strategic = sim.get("strategic") or {}
+
+    if strategic.get("market_redraft_delta") is not None:
+        evidence["transaction_market_redraft_delta"] = sf(
+            strategic.get("market_redraft_delta")
+        )
+
+    diagnosis = sim.get("roster_diagnosis") or {}
+    before = diagnosis.get("before") or {}
+    after = diagnosis.get("after") or {}
+    if (
+        before.get("starter_redraft_value") is not None
+        and after.get("starter_redraft_value") is not None
+    ):
+        evidence["optimized_starter_redraft_delta"] = (
+            sf(after.get("starter_redraft_value"))
+            - sf(before.get("starter_redraft_value"))
+        )
+
+    return evidence
+
+
 def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
     s = sim.get("strategic") or {}
     current_signal, normalized_outcomes = _relative_current_outcomes(sim)
     redraft_scale, redraft_scale_source = _market_redraft_scale(s)
 
-    current_value = current_signal * redraft_scale
+    simulator_current_value = current_signal * redraft_scale
+    current_evidence = _current_value_evidence(sim, simulator_current_value)
+    current_value = statistics.median(current_evidence.values())
+
     future_value = sf(s.get("market_dynasty_delta"))
     liquidity_value = sf(s.get("liquidity_value_delta"))
     resilience_value = sf(s.get("resilience_value_delta"))
@@ -106,6 +143,12 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
             "current_relative_signal": round(current_signal, 6),
             "current_value_scale": round(redraft_scale, 2),
             "current_value_scale_source": redraft_scale_source,
+            "current_value_evidence": {
+                k: round(v, 2) for k, v in current_evidence.items()
+            },
+            "current_value_evidence_count": len(current_evidence),
+            "current_value_aggregation": "UNWEIGHTED_MEDIAN_SAME_UNIT_EVIDENCE",
+            "current_value_double_counting_avoided": True,
             "optionality_value_delta_diagnostic": sf(s.get("optionality_value_delta")),
             "optionality_incremental_value_authorized": False,
             "opponent_title_externality_has_separate_coefficient": False,
