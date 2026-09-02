@@ -1,0 +1,48 @@
+name: Simulator Exact Backup Assignment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/run_fsffl_season_simulator_preproduction.py'
+      - 'script/test_simulator_exact_backup_assignment.py'
+      - 'script/audit_simulator_backup_assignment_shadow.py'
+      - '.github/workflows/simulator-exact-backup-assignment.yml'
+
+jobs:
+  exact-backups:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test exact backup assignment mechanics
+        run: python script/test_simulator_exact_backup_assignment.py
+      - name: Compare exact and legacy assignment in shadow mode
+        run: python script/audit_simulator_backup_assignment_shadow.py
+      - name: Run Simulator smoke validation
+        env:
+          FSFFL_SIMULATIONS: '1000'
+        run: python script/run_fsffl_season_simulator_preproduction.py
+      - name: Validate shadow artifact
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('data/audit/simulator_backup_assignment_shadow.json'))
+          assert r['authority']=='SHADOW_VALIDATION_NON_AUTHORITATIVE'
+          assert r['production_outputs_mutated'] is False
+          assert r['common_random_numbers'] is True
+          assert r['summary']['structural_counterexample_exists_independently_of_current_league_impact'] is True
+          assert r['summary']['new_economic_coefficient_introduced'] is False
+          assert r['interpretation']['no_downstream_compensating_coefficient_should_be_added'] is True
+          print(json.dumps(r['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-simulator-backup-assignment-shadow
+          path: data/audit/simulator_backup_assignment_shadow.json
+          retention-days: 30
