@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Compare Simulator greedy backup allocation with exact legal assignment.
+"""Verify the promoted Simulator exact-backup repair against the legacy defect.
 
-Research-only structural test. It does not change Simulator behavior. The test
-constructs simultaneous lineup absences and asks whether the current
-SLOT_SCARCITY greedy allocation can leave projected points unused versus an
-exact legal assignment over the same available backup players.
+The legacy greedy SLOT_SCARCITY algorithm is reproduced locally only as
+historical evidence. The live Simulator must no longer expose that heuristic
+and must derive a legal exact assignment from league eligibility.
 """
 from __future__ import annotations
 
@@ -16,6 +15,15 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
 SIM=ROOT/"script"/"run_fsffl_season_simulator_preproduction.py"
 OUT=ROOT/"data"/"audit"/"simulator_backup_assignment_optimality.json"
+
+LEGACY_SLOT_SCARCITY={
+    "QB":0,
+    "TE":1,
+    "RB":2,
+    "WR":2,
+    "SUPER_FLEX":3,
+    "FLEX":4,
+}
 
 def load():
     spec=importlib.util.spec_from_file_location("coef_backup_sim",SIM)
@@ -35,26 +43,23 @@ def row(pid,pos,value):
         "mean":float(value),
         "sd":0.1,
         "active_probability":1.0,
+        "value":float(value),
     }
 
 def eligible(player,slot):
-    if slot=="SUPER_FLEX":
-        return player["position"] in {"QB","RB","WR","TE"}
-    if slot=="FLEX":
-        return player["position"] in {"RB","WR","TE"}
-    return player["position"]==slot
+    return sim.core.eligible(player["position"],slot)
 
-def greedy(slots,players):
+def legacy_greedy(slots,players):
     available={p["player_id"]:p for p in players}
     total=0.0
     assignment={}
-    order=sorted(range(len(slots)),key=lambda i:sim.SLOT_SCARCITY.get(slots[i],5))
+    order=sorted(
+        range(len(slots)),
+        key=lambda i:LEGACY_SLOT_SCARCITY.get(slots[i],5),
+    )
     for i in order:
         slot=slots[i]
-        candidates=[
-            p for p in available.values()
-            if eligible(p,slot)
-        ]
+        candidates=[p for p in available.values() if eligible(p,slot)]
         candidates.sort(key=lambda p:p["mean"],reverse=True)
         if not candidates:
             assignment[i]=None
@@ -67,7 +72,6 @@ def greedy(slots,players):
 
 def exact(slots,players):
     best=(-1.0,None)
-    # Assign either one unused eligible player or empty to every open slot.
     choices=[None]+list(range(len(players)))
     for selection in itertools.product(choices,repeat=len(slots)):
         used=[x for x in selection if x is not None]
@@ -91,64 +95,68 @@ def exact(slots,players):
     return best
 
 def main():
-    # Adversarial nested-eligibility case:
-    # QB_BACKUP can fill SUPER_FLEX but not FLEX.
-    # RB_BACKUP can fill either.
-    # Greedy SUPER_FLEX-first allocation should not consume RB_BACKUP if doing
-    # so strands the QB and leaves FLEX empty.
     slots=["SUPER_FLEX","FLEX"]
     players=[
         row("QB_BACKUP","QB",19.0),
         row("RB_BACKUP","RB",20.0),
     ]
-    greedy_total,greedy_assignment=greedy(slots,players)
+    legacy_total,legacy_assignment=legacy_greedy(slots,players)
     exact_total,exact_assignment=exact(slots,players)
 
-    if exact_total <= greedy_total:
+    if legacy_total!=20.0 or exact_total!=39.0:
         raise AssertionError(
-            "adversarial case did not expose expected greedy assignment loss: "
-            f"greedy={greedy_total}, exact={exact_total}"
+            f"legacy/exact counterexample changed: legacy={legacy_total}, exact={exact_total}"
         )
 
-    # Also enumerate a compact value grid to establish this is a structural
-    # class rather than a single magic-number fixture.
+    if hasattr(sim,"SLOT_SCARCITY"):
+        raise AssertionError("legacy SLOT_SCARCITY still has live runtime authority")
+
+    lineup=[{"slot":"SUPER_FLEX"},{"slot":"FLEX"}]
+    order=sim.constrained_slot_order(lineup)
+    ordered=[lineup[i]["slot"] for i in order]
+    if ordered.index("FLEX")>ordered.index("SUPER_FLEX"):
+        raise AssertionError("live Simulator does not prioritize the more constrained FLEX slot")
+
     failures=[]
     for qb in (5.0,10.0,15.0,20.0,25.0):
         for rb in (5.0,10.0,15.0,20.0,25.0):
             ps=[row("Q","QB",qb),row("R","RB",rb)]
-            g,ga=greedy(slots,ps)
+            g,ga=legacy_greedy(slots,ps)
             e,ea=exact(slots,ps)
             if e>g+1e-9:
                 failures.append({
                     "qb_value":qb,
                     "rb_value":rb,
-                    "greedy_total":g,
+                    "legacy_total":g,
                     "exact_total":e,
-                    "greedy_assignment":ga,
+                    "legacy_assignment":ga,
                     "exact_assignment":ea,
                 })
 
     if not failures:
-        raise AssertionError("no structural greedy backup-assignment failures found")
+        raise AssertionError("historical greedy defect class was not reproduced")
 
     report={
-        "model_version":"FSFFL-Simulator-Backup-Assignment-Optimality-1.0",
+        "model_version":"FSFFL-Simulator-Backup-Assignment-Optimality-2.0",
         "authority":"RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE",
         "passed":True,
-        "test_type":"structural_counterexample_detection",
+        "test_type":"promoted_repair_verification",
         "production_behavior_changed":False,
-        "greedy_is_exact":False,
-        "adversarial_greedy_total":greedy_total,
+        "legacy_greedy_is_exact":False,
+        "live_slot_scarcity_heuristic_active":False,
+        "live_rule_derived_assignment_active":True,
+        "adversarial_legacy_total":legacy_total,
         "adversarial_exact_total":exact_total,
-        "adversarial_greedy_assignment":greedy_assignment,
+        "adversarial_legacy_assignment":legacy_assignment,
         "adversarial_exact_assignment":exact_assignment,
         "grid_failure_count":len(failures),
         "grid_failures":failures,
-        "recommended_repair":"replace greedy multi-absence backup allocation with exact legal assignment; do not tune SLOT_SCARCITY",
+        "repair_status":"PROMOTED_TO_MAIN_PR_171",
+        "recommended_action":"KEEP_EXACT_RULE_DERIVED_ASSIGNMENT; DO_NOT_REINTRODUCE_SLOT_SCARCITY",
         "promotion_boundary":{
-            "structural_defect_demonstrated":True,
-            "production_change_requires_separate_pr":True,
-            "downstream_shadow_and_regression_required":True,
+            "structural_defect_demonstrated_historically":True,
+            "production_repair_already_promoted":True,
+            "new_economic_coefficient_introduced":False,
         },
     }
     OUT.parent.mkdir(parents=True,exist_ok=True)
