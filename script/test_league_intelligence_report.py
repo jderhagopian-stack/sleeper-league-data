@@ -48,6 +48,8 @@ with tempfile.TemporaryDirectory() as tmp:
         "your roster shape",
         "league strength / weakness heat map",
         "player value & rankings",
+        "where fsffl and the market differ",
+        "current-season available",
         "value to your team",
         "roster dependence & trade-partner intelligence",
         "decision inspector & source health",
@@ -73,6 +75,9 @@ with tempfile.TemporaryDirectory() as tmp:
     assert lower.count("free agent") < 5
     assert "..." not in text and "\u2026" not in text
     assert source["architecture"]["read_only"]["recommendation_authority"] is False
+    assert source["contract_health"]["native_player_value"]["compatible"] is True
+    assert source["capability_status"]["current_season_vs_dynasty_market"] is True
+    assert source["capability_status"]["long_term_model_vs_market"] is False
     assert source["views"]["trade_partner_intelligence"]["recommendation"] is False
     assert source["views"]["trade_partner_intelligence"]["acceptance_probability"] is False
 
