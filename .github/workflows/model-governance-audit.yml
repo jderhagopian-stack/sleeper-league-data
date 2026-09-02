@@ -36,6 +36,7 @@ jobs:
           python script/audit_legacy_governance_bypass.py
           python script/audit_heuristic_refinement_first_pass.py
           python script/audit_parameter_authority_missing_value.py
+          python script/package_concentration_sensitivity.py --cases data/model_validation/package_concentration_sensitivity_cases.json --output data/audit/package_concentration_sensitivity.json
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -53,6 +54,15 @@ jobs:
           assert pa['runtime_findings']['nonlinear_package_economics_exists_in_gm_discovery'] is True
           assert pa['runtime_findings']['shared_decision_utility_does_not_consume_package_effective_value'] is True
           assert pa['runtime_findings']['optionality_is_diagnostic_only_in_shared_utility'] is True
+          pcs=json.load(open('data/audit/package_concentration_sensitivity.json'))
+          assert pcs['production_scoring_changed'] is False
+          assert pcs['empirical_calibration_claimed'] is False
+          pres={x['case_id']:x for x in pcs['results']}
+          assert pres['WARREN_KYREN_2ND']['raw_additive_delta'] > 0
+          assert pres['WARREN_KYREN_2ND']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_SKATTEBO_FLOURNOY_3RD']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['gm22_strong_bound']['concentration_residual_vs_additive'] < -500
 
           r=json.load(open('data/audit/model_governance_audit.json'))
           assert r['summary']['numeric_assumptions_flagged'] > 50
