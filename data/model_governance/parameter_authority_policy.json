@@ -97,5 +97,25 @@
       "observation": "The current package curve approximates diminishing value of additional assets, but the governance registry does not separately state the residual economics of surrendering the best/scarcest asset in a multi-asset trade.",
       "next_step": "Model as aggregation/concentration residual, not as a rank-derived market reprice."
     }
+  ],
+  "high_leverage_systemic_findings": [
+    {
+      "id": "FINAL-UTILITY-SPARSITY-001",
+      "finding": "Shared Decision Utility currently reduces future value to raw additive market-dynasty delta. Strategic core/hold premiums, break-glass value, optionality, and nonlinear package economics do not independently enter final utility.",
+      "risk": "Upstream GM/search layers can recognize roster economics that disappear before final ranking, producing quantity-for-quality recommendations that look reasonable in discovery but are under-penalized at decision time.",
+      "required_action": "Audit every upstream economic signal for semantic uniqueness, then either map it into an existing final utility channel, authorize a bounded residual prior, or document why zero incremental authority is correct."
+    },
+    {
+      "id": "SEARCH-FINAL-AUTHORITY-PARITY-001",
+      "finding": "Nonlinear package weights are active in GM package discovery, while final Shared Decision Utility uses additive market value.",
+      "risk": "Candidate generation and candidate evaluation can disagree about aggregation economics.",
+      "required_action": "Create a single governed package/concentration evidence primitive consumable by both search and final utility, with uncertainty ranges and no same-source rank repricing."
+    },
+    {
+      "id": "OPTIONALITY-AUTHORITY-GAP-001",
+      "finding": "Option value is calculated in state-aware strategic summaries but is explicitly diagnostic-only in final utility and lacks its own material registry family.",
+      "risk": "A real asymmetry between an elite young asset and fragmented replacement assets may be omitted rather than merely uncertain.",
+      "required_action": "Split optionality into distinct components (upside/reversibility versus liquidity/resilience/market value overlap) and test bounded priors."
+    }
   ]
 }
