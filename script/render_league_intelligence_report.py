@@ -426,29 +426,29 @@ def render(payload: Mapping[str, Any], output: Path, focus_id: str) -> None:
     players = list(rankings.get("players") or [])
     story += [PageBreak()] + _title(s, "PLAYER VALUE & RANKINGS", "Long-term market and current-season projection perspectives are deliberately kept separate")
     long_rows = [["Rank", "Player", "Pos.", "Owner", "Long-term value", "2026 PPG", "Projection range"]]
-    for row in players[:18]:
+    for row in players[:15]:
         projection = _map(row.get("current_season_projection"))
         range_text = "Unavailable"
         if projection.get("available"):
-            range_text = f"{safe_float(projection.get('p25')):.1f} - {safe_float(projection.get('p75')):.1f}"
+            range_text = f"{safe_float(projection.get('mean_weekly_p25')):.1f} - {safe_float(projection.get('mean_weekly_p75')):.1f}"
         long_rows.append([
-            row.get("long_term_market_rank"), clean(row.get("name")), row.get("position"), clean(row.get("owner_team")) or "Free agent",
+            row.get("long_term_market_rank"), clean(row.get("name")), row.get("position"), clean(row.get("current_owner_team")) or "Free agent",
             f"{safe_float(row.get('long_term_market_value')):,.0f}",
-            f"{safe_float(projection.get('mean')):.1f}" if projection.get("available") else "-",
+            f"{safe_float(projection.get('mean_weekly_projection')):.1f}" if projection.get("available") else "-",
             range_text,
         ])
-    projection_players = sorted([row for row in players if row.get("current_season_projection_rank")], key=lambda row: int(row.get("current_season_projection_rank")))[:18]
+    projection_players = sorted([row for row in players if row.get("current_season_projection_rank")], key=lambda row: int(row.get("current_season_projection_rank")))[:15]
     projection_rows = [["2026 rank", "Player", "Pos.", "Owner", "Projected PPG", "25th-75th range", "Long-term rank"]]
     for row in projection_players:
         projection = _map(row.get("current_season_projection"))
         projection_rows.append([
-            row.get("current_season_projection_rank"), clean(row.get("name")), row.get("position"), clean(row.get("owner_team")) or "Free agent",
-            f"{safe_float(projection.get('mean')):.1f}", f"{safe_float(projection.get('p25')):.1f} - {safe_float(projection.get('p75')):.1f}", row.get("long_term_market_rank"),
+            row.get("current_season_projection_rank"), clean(row.get("name")), row.get("position"), clean(row.get("current_owner_team")) or "Free agent",
+            f"{safe_float(projection.get('mean_weekly_projection')):.1f}", f"{safe_float(projection.get('mean_weekly_p25')):.1f} - {safe_float(projection.get('mean_weekly_p75')):.1f}", row.get("long_term_market_rank"),
         ])
     story += [
         Table([
             [P(s, "LONG-TERM MARKET LEADERS", "FS_Section"), P(s, "CURRENT-SEASON PROJECTION LEADERS", "FS_Section")],
-            [_row_table(long_rows, [0.42 * inch, 1.45 * inch, 0.42 * inch, 1.52 * inch, 0.9 * inch, 0.72 * inch, 0.9 * inch], font_size=6.2), _row_table(projection_rows, [0.48 * inch, 1.45 * inch, 0.42 * inch, 1.48 * inch, 0.82 * inch, 0.92 * inch, 0.7 * inch], font_size=6.2)],
+            [_row_table(long_rows, [0.32 * inch, 1.15 * inch, 0.32 * inch, 1.3 * inch, 0.72 * inch, 0.52 * inch, 0.72 * inch], font_size=6.0), _row_table(projection_rows, [0.4 * inch, 1.15 * inch, 0.32 * inch, 1.25 * inch, 0.65 * inch, 0.78 * inch, 0.5 * inch], font_size=6.0)],
         ], colWidths=[5.25 * inch, 5.25 * inch], style=[("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 2), ("RIGHTPADDING", (0, 0), (-1, -1), 2)]),
         Spacer(1, 6),
         P(s, "Important limitation: a current independent FSFFL-versus-market ranking is not yet available. The old adjusted value field is quarantined because its provenance is no longer authorized. This report shows the governed market anchor and native current-season projection separately instead of manufacturing a disagreement score.", "FS_Small"),
