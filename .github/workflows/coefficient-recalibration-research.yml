@@ -9,6 +9,7 @@ on:
       - 'script/run_state_weight_shadow_research.py'
       - 'script/audit_simulator_calibration_chain.py'
       - 'script/audit_historical_team_outcome_evidence.py'
+      - 'script/build_historical_trade_outcome_panel.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -34,6 +35,8 @@ jobs:
         run: python script/audit_simulator_calibration_chain.py
       - name: Audit committed historical team outcome evidence
         run: python script/audit_historical_team_outcome_evidence.py
+      - name: Build non-causal historical trade outcome panel
+        run: python script/build_historical_trade_outcome_panel.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
@@ -69,6 +72,14 @@ jobs:
           assert hist['summary']['single_scalar_strategy_target_authorized'] is False
           assert hist['policy']['post_decision_team_outcome_is_not_causal_trade_effect'] is True
 
+          panel=json.load(open('data/model_validation/historical_trade_outcome_panel.json'))
+          assert panel['authority']=='RESEARCH_PANEL_NON_AUTHORITATIVE'
+          assert panel['production_behavior_changed'] is False
+          assert panel['summary']['rows_with_strategy_outcome_score']==0
+          assert panel['summary']['rows_with_counterfactual_regret']==0
+          assert panel['summary']['authoritative_training_rows']==0
+          assert panel['policy']['post_decision_outcome_is_not_causal_effect'] is True
+
           sim=json.load(open('data/audit/simulator_calibration_chain_audit.json'))
           assert sim['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
           assert sim['production_behavior_changed'] is False
@@ -89,4 +100,5 @@ jobs:
             data/audit/state_weight_shadow_research.json
             data/audit/simulator_calibration_chain_audit.json
             data/audit/historical_team_outcome_evidence.json
+            data/model_validation/historical_trade_outcome_panel.json
           retention-days: 30
