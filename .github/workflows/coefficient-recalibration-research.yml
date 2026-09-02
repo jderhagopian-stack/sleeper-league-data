@@ -38,6 +38,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install research runtime dependency
+        run: python -m pip install numpy
       - name: Audit historical strategy-outcome readiness
         run: python script/audit_strategy_outcome_readiness.py
       - name: Run independent coefficient invariance suite
@@ -127,8 +129,11 @@ jobs:
           backup=json.load(open('data/audit/simulator_backup_assignment_optimality.json'))
           assert backup['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
           assert backup['passed'] is True
-          assert backup['greedy_is_exact'] is False
-          assert backup['promotion_boundary']['production_change_requires_separate_pr'] is True
+          assert backup['legacy_greedy_is_exact'] is False
+          assert backup['live_slot_scarcity_heuristic_active'] is False
+          assert backup['live_rule_derived_assignment_active'] is True
+          assert backup['promotion_boundary']['production_repair_already_promoted'] is True
+          assert backup['promotion_boundary']['new_economic_coefficient_introduced'] is False
 
           shock=json.load(open('data/audit/simulator_team_shock_semantics.json'))
           assert shock['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
