@@ -1,0 +1,58 @@
+{
+  "model_version": "FSFFL-Coefficient-Provenance-1.0",
+  "purpose": "Govern exact-parameter provenance, identifiability, recalibration research, and evidence-tiered promotion without creating a second valuation or decision authority.",
+  "production_behavior_changed": false,
+  "evidence_hierarchy": [
+    "RULE_DEFINED",
+    "HISTORICALLY_STATISTICALLY_ESTIMATED",
+    "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+    "SIMULATION_DERIVED_ESTIMATE",
+    "REGULARIZED_OR_SHRINKAGE_ESTIMATE",
+    "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+    "UNVALIDATED_EXPERT_PRIOR",
+    "LEGACY_ARBITRARY_HEURISTIC"
+  ],
+  "identifiability_classes": [
+    "DIRECTLY_ESTIMABLE",
+    "SIMULATION_IDENTIFIABLE",
+    "NORMATIVE_STRATEGIC",
+    "UNIDENTIFIED_OR_DUPLICATE",
+    "RULE_OR_RUNTIME_MECHANIC"
+  ],
+  "recommended_actions": [
+    "KEEP",
+    "ELIMINATE",
+    "RE_ESTIMATE",
+    "SHRINK",
+    "REPLACE_WITH_DATA_DERIVED_SCALE",
+    "RETAIN_AS_GOVERNED_PRIOR",
+    "DIAGNOSTIC_ONLY"
+  ],
+  "promotion_policy": {
+    "strong_data_derived_incumbent_requires_material_out_of_sample_improvement": true,
+    "unvalidated_expert_prior_may_be_replaced_by_clearly_stronger_bounded_evidence": true,
+    "legacy_arbitrary_heuristic_has_no_special_incumbency_advantage": true,
+    "structural_elimination_preferred_for_duplicate_or_unidentified_signal": true,
+    "software_regression_equivalence_is_not_empirical_validation": true,
+    "candidate_outputs_are_non_authoritative_until_promoted": true
+  },
+  "calibration_policy": {
+    "independent_strategy_outcome_target_required_for_normative_weights": true,
+    "equal_weight_component_composite_is_not_an_independent_target": true,
+    "temporal_holdout_required_where_time_order_exists": true,
+    "simple_regularized_models_preferred_before_black_box_models": true,
+    "uncertainty_must_be_reported": true,
+    "hurts_so_good_is_regression_fixture_not_ground_truth": true
+  },
+  "architecture_policy": {
+    "existing_model_parameter_registry_remains_family_level_governance_authority": true,
+    "exact_parameter_inventory_is_a_provenance_subregistry_not_a_second_decision_system": true,
+    "engines_calculate": true,
+    "shared_core_owns_shared_primitives": true,
+    "gm3_owns_team_improvement_economics": true,
+    "trade_decision_owns_trade_execution_and_negotiation_frontier": true,
+    "opportunity_engine_may_not_create_utility": true,
+    "league_intelligence_is_read_only": true,
+    "reporting_is_presentation_only": true
+  }
+}

@@ -120,6 +120,10 @@ def main() -> None:
             errors.append(f"{pid}: invalid evidence_tier {p['evidence_tier']!r}")
         if not p["paths"] or not all(isinstance(x, str) and x for x in p["paths"]):
             errors.append(f"{pid}: paths must be non-empty strings")
+        else:
+            missing_paths = [x for x in p["paths"] if not (ROOT / x).exists()]
+            if missing_paths:
+                errors.append(f"{pid}: registered paths do not exist: {missing_paths}")
         if not p["downstream"] or not all(isinstance(x, str) and x for x in p["downstream"]):
             errors.append(f"{pid}: downstream must identify at least one consumer")
         for field in ("source", "validation", "uncertainty", "update_policy"):

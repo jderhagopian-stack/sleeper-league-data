@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Authoritative-Parameter-Site-Registry-1.0",
+  "purpose": "Require exact provenance/evidence classification for new likely model-parameter sites introduced after the coefficient provenance audit baseline.",
+  "production_behavior_changed": false,
+  "baseline_policy": {
+    "existing_sites_are_grandfathered_for_incremental_phase_1_adjudication": true,
+    "new_likely_model_parameter_sites_require_exact_registration": true,
+    "registration_does_not_by_itself_authorize_production_promotion": true
+  },
+  "required_fields": [
+    "site_signature",
+    "parameter_id",
+    "file_path",
+    "parameter_name",
+    "runtime_authority",
+    "evidence_classification",
+    "provenance",
+    "identifiability_class",
+    "recommended_action",
+    "uncertainty_status",
+    "downstream_consumers"
+  ],
+  "entries": []
+}

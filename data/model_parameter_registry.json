@@ -420,15 +420,16 @@
       "id": "WHAT-IF-001",
       "component": "What If / Alternate History",
       "paths": [
-        "script/alternate_history.py",
-        "script/alternate_history_publish.py"
+        "script/counterfactual/application.py",
+        "script/run_fsffl_gm30_counterfactual.py",
+        "script/run_fsffl_gm30_counterfactual_governed.py"
       ],
       "parameter_family": "counterfactual branch probabilities and decision policies",
       "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
       "status": "PRESERVE_WITH_QUALIFICATION",
-      "source": "Known historical facts plus model-generated counterfactual decisions",
-      "validation": "Validate factual inputs, no-hindsight information firewall, deterministic mechanics, sensitivity and probability calibration where observable; unknowable branches remain explicitly modeled inference",
-      "uncertainty": "structural/counterfactual uncertainty cannot be eliminated",
+      "source": "Current forward What-If uses the governed Counterfactual application family and GM3 counterfactual runner. Historical Alternate History shares the historical-state foundation but is not a full current production application on main.",
+      "validation": "Validate factual inputs, no-hindsight information firewall, deterministic mechanics, sensitivity and probability calibration where observable; unknowable branches remain explicitly modeled inference. Full historical Alternate History must not be implied to exist on main merely from legacy registry paths.",
+      "uncertainty": "Structural/counterfactual uncertainty cannot be eliminated; forward What-If exists, while the full historical Alternate History application remains not yet current production on main.",
       "update_policy": "Preserve functionality; improve evidence and calibration as historical analogues/data expand; never relabel modeled branches as historical fact",
       "downstream": [
         "alternate-history narratives",

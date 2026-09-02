@@ -1,0 +1,48 @@
+name: Coefficient Provenance Audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/**'
+      - 'data/model_parameter_registry.json'
+      - 'data/model_governance/**'
+      - '.github/workflows/coefficient-provenance-audit.yml'
+  workflow_call:
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout PR base for parameter-surface comparison
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .coefficient-base
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate existing family registry
+        run: python script/validate_model_parameter_registry.py
+      - name: Build exact parameter candidate inventory
+        run: python script/audit_authoritative_parameters.py
+      - name: Validate provenance audit
+        run: python script/validate_coefficient_provenance_audit.py
+      - name: Build base parameter inventory
+        if: github.event_name == 'pull_request'
+        run: |
+          python script/audit_authoritative_parameters.py             --root .coefficient-base             --output /tmp/base-authoritative-parameter-inventory.json
+      - name: Block new unclassified likely model parameters
+        if: github.event_name == 'pull_request'
+        run: |
+          python script/validate_new_authoritative_parameter_sites.py             --base /tmp/base-authoritative-parameter-inventory.json             --head data/audit/authoritative_parameter_inventory.json             --registry data/model_governance/authoritative_parameter_site_registry.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-coefficient-provenance-audit
+          path: data/audit/authoritative_parameter_inventory.json
+          retention-days: 30
