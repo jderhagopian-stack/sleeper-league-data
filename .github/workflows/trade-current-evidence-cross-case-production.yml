@@ -1,0 +1,141 @@
+name: Trade Current-Evidence Cross-Case Production Validation
+
+on:
+  push:
+    branches:
+      - fix/trade-current-evidence-ensemble
+    paths:
+      - '.github/workflows/trade-current-evidence-cross-case-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-cross-case:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout baseline main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+
+      - name: Materialize objective cases
+        run: |
+          mkdir -p /tmp/cases
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/cases')
+          cases=[
+            ("01_warren_veteran_package","known_conflicting_evidence_regression","844785316274483200","844785316274483200","850548458887704576",["12518"],["5012","5846"],[],["pick:2029:R2:orig11","pick:2029:R3:orig11","pick:2029:R3:orig4"]),
+            ("02_young_to_win_now","young_asset_for_win_now_veteran","846634401482792960","846634401482792960","845157822193872896",["13298"],["3198"],[],[]),
+            ("03_aging_to_young_future","aging_star_for_younger_long_term_asset","845157822193872896","845157822193872896","858530218330144768",["4034"],["12517"],[],[]),
+            ("04_young_to_aging_win_now","younger_asset_for_aging_high_redraft_star","858530218330144768","858530218330144768","845157822193872896",["12517"],["4034"],[],[]),
+            ("05_consolidation_two_for_one","consolidation_two_for_one","846634401482792960","846634401482792960","850548458887704576",["9997","7525"],["6794"],[],[]),
+            ("06_diversification_one_for_two","diversification_one_for_two","850548458887704576","850548458887704576","846634401482792960",["6794"],["9997","7525"],[],[]),
+            ("07_near_neutral_same_position","near_neutral_same_position","844785316274483200","844785316274483200","850548458887704576",["9224"],["8151"],[],[]),
+            ("08_obvious_bad","obvious_bad_same_position","844785316274483200","844785316274483200","850548458887704576",["7547"],["5846"],[],[]),
+            ("09_obvious_good","obvious_good_same_position","850548458887704576","850548458887704576","844785316274483200",["5846"],["7547"],[],[]),
+            ("10_positional_repair_candidate","cross_position_need_repair_candidate","846634401482792960","846634401482792960","709546576091090944",["6801"],["9484"],[],[]),
+            ("11_youth_age_without_current_gain","young_te_for_old_te_similar_redraft","725401251478605824","725401251478605824","844772511156670464",["12506"],["4217"],[],[]),
+          ]
+          manifest=[]
+          for cid,cat,focus,a,b,send,recv,sp,rp in cases:
+              payload={
+                "scenario_id":"cross_case_"+cid,
+                "description":"Objective production cross-case: "+cat,
+                "focus_user_id":focus,
+                "actions":[
+                  {"type":"trade","from_user_id":a,"to_user_id":b,"players":send,"picks":sp},
+                  {"type":"trade","from_user_id":b,"to_user_id":a,"players":recv,"picks":rp},
+                ],
+              }
+              (root/(cid+".json")).write_text(json.dumps(payload,indent=2)+"\n")
+              manifest.append({"id":cid,"category":cat,"focus_user_id":focus})
+          (root/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
+          PY
+
+      - name: Run 2.0 and 2.1 production Trade Decision paths
+        run: |
+          mkdir -p /tmp/out/baseline /tmp/out/candidate
+          for f in /tmp/cases/[0-9][0-9]_*.json; do
+            id="$(basename "$f" .json)"
+            (cd baseline && python script/run_trade_report.py               --scenario "$f" --out-dir /tmp/out/baseline --basename "$id"               --quick-sims 200 --adaptive-confirm-sims 5000 --search-depth 25)               > "/tmp/out/baseline/$id.pipeline.log"
+            (cd candidate && python script/run_trade_report.py               --scenario "$f" --out-dir /tmp/out/candidate --basename "$id"               --quick-sims 200 --adaptive-confirm-sims 5000 --search-depth 25)               > "/tmp/out/candidate/$id.pipeline.log"
+          done
+
+      - name: Compare production outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('/tmp/cases/manifest.json').read_text())
+          rows=[]
+          for m in manifest:
+              cid=m['id']
+              old=json.loads(Path(f'/tmp/out/baseline/{cid}.json').read_text())
+              new=json.loads(Path(f'/tmp/out/candidate/{cid}.json').read_text())
+              oc=old.get('current_offer_evaluation') or {}
+              nc=new.get('current_offer_evaluation') or {}
+              oa=oc.get('decision_attribution') or {}
+              na=nc.get('decision_attribution') or {}
+              nd=na.get('diagnostics') or {}
+              ev=nd.get('current_value_evidence') or {}
+              rows.append({
+                **m,
+                'baseline_action':old.get('recommended_next_action'),
+                'candidate_action':new.get('recommended_next_action'),
+                'action_changed':old.get('recommended_next_action')!=new.get('recommended_next_action'),
+                'baseline_score':oc.get('shared_decision_utility_score'),
+                'candidate_score':nc.get('shared_decision_utility_score'),
+                'baseline_utility_model':oa.get('shared_decision_utility_model_version'),
+                'candidate_utility_model':na.get('shared_decision_utility_model_version'),
+                'candidate_current_evidence':ev,
+                'candidate_current_primitive':next((x.get('primitive_value') for x in (na.get('channels') or []) if x.get('channel')=='current'),None),
+                'candidate_future_primitive':next((x.get('primitive_value') for x in (na.get('channels') or []) if x.get('channel')=='future'),None),
+                'candidate_evidence_count':nd.get('current_value_evidence_count'),
+                'baseline_confirmation_sims':(old.get('adaptive_confirmation') or {}).get('confirmation_sims'),
+                'candidate_confirmation_sims':(new.get('adaptive_confirmation') or {}).get('confirmation_sims'),
+              })
+          out={
+            'validation_type':'PRODUCTION_PATH_CROSS_CASE_NOT_COEFFICIENT_FITTING',
+            'case_count':len(rows),
+            'action_change_count':sum(r['action_changed'] for r in rows),
+            'owner_intuition_used_as_fitted_target':False,
+            'new_coefficients_introduced':False,
+            'player_specific_rules_introduced':False,
+            'position_specific_rules_introduced':False,
+            'cases':rows,
+          }
+          Path('/tmp/out/cross_case_production_comparison.json').write_text(json.dumps(out,indent=2)+'\n')
+          print(json.dumps(out,indent=2))
+          by={r['id']:r for r in rows}
+          assert by['08_obvious_bad']['candidate_action']!='ACCEPT_NOW'
+          assert by['09_obvious_good']['candidate_action']=='ACCEPT_NOW'
+          assert by['01_warren_veteran_package']['candidate_action']!='ACCEPT_NOW'
+          assert all(r['candidate_utility_model']=='FSFFL-Shared-Decision-Utility-2.1' for r in rows)
+          assert all(r['baseline_utility_model']=='FSFFL-Shared-Decision-Utility-2.0' for r in rows)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trade-current-evidence-cross-case-production
+          path: |
+            /tmp/cases/*
+            /tmp/out/cross_case_production_comparison.json
+            /tmp/out/baseline/*-summary.json
+            /tmp/out/candidate/*-summary.json
+          if-no-files-found: warn
+          retention-days: 30
