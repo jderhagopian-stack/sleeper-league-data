@@ -9,12 +9,14 @@ wrong mathematical target.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import numpy as np
 
 ROOT=Path(__file__).resolve().parent.parent
 SIM=ROOT/"script"/"run_fsffl_season_simulator_preproduction.py"
+OUT=ROOT/"data"/"audit"/"simulator_team_shock_semantics.json"
 
 def load():
     spec=importlib.util.spec_from_file_location("coef_team_shock_sim",SIM)
@@ -66,7 +68,9 @@ def main():
     if abs(cross)>0.025:
         raise AssertionError(f"cross-team draws unexpectedly correlated: {cross}")
 
-    print({
+    report={
+        "model_version":"FSFFL-Simulator-Team-Shock-Semantics-1.0",
+        "authority":"RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE",
         "passed":True,
         "production_behavior_changed":False,
         "calibration_performed":False,
@@ -78,7 +82,12 @@ def main():
         "marginal_qb_mean":round(qb_mean,4),
         "marginal_qb_sd":round(qb_sd,4),
         "interpretation":"TEAM_SHOCK_RHO values are shared-factor loadings, not direct pairwise correlations",
-    })
+        "calibration_status":"SEMANTICS_VERIFIED_MAGNITUDE_NOT_EMPIRICALLY_CALIBRATED",
+        "recommended_action":"RE_ESTIMATE_FROM_ARCHIVED_RESIDUAL_COVARIANCE_WHEN_AVAILABLE",
+    }
+    OUT.parent.mkdir(parents=True,exist_ok=True)
+    OUT.write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps(report,indent=2))
 
 if __name__=="__main__":
     main()
