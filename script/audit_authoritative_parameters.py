@@ -11,7 +11,8 @@ HINTS = (
     "prior","alpha","beta","gamma","sigma","variance","prob","rate","blend","shrink",
     "floor","cap","limit","offset","margin","band","cutoff","decay","horizon",
     "simulation","sample","percentile","quantile","replacement","scarcity","liquidity",
-    "resilience","current","future","acceptance","confidence"
+    "resilience","current","future","acceptance","confidence","anchor","bound",
+    "adjustment","smoothing","games","history","window"
 )
 
 def flatten_strings(x):
@@ -26,10 +27,24 @@ def flatten_strings(x):
 def governed_paths(root,reg):
     arch_path=root/"data/model_governance/application_architecture.json"
     arch=json.loads(arch_path.read_text())
-    paths={p for p in flatten_strings(arch) if p.endswith(".py")}
+    paths={p for p in flatten_strings(arch) if str(p).endswith((".py",".json"))}
     for fam in reg.get("parameters",[]):
-        paths.update(p for p in fam.get("paths",[]) if str(p).endswith(".py"))
-    return sorted(p for p in paths if (root/p).is_file())
+        paths.update(
+            str(p) for p in fam.get("paths",[])
+            if str(p).endswith((".py",".json"))
+        )
+    # Governance metadata describes authority but is not itself a runtime
+    # coefficient/config payload. Avoid recursively treating the registries as
+    # the model they govern.
+    excluded={
+        "data/model_parameter_registry.json",
+        "data/model_governance/application_architecture.json",
+        "data/model_governance/provisional_estimation_policy.json",
+        "data/model_governance/coefficient_provenance_policy.json",
+        "data/model_governance/authoritative_parameter_site_registry.json",
+        "data/model_governance/coefficient_provenance_seed_findings.json",
+    }
+    return sorted(p for p in paths if p not in excluded and (root/p).is_file())
 
 def family_ids(path,reg):
     return [str(f["id"]) for f in reg.get("parameters",[]) if path in f.get("paths",[])]
@@ -68,7 +83,7 @@ def signature(path,kind,n,value,line):
     raw=json.dumps([path,kind,n,value,normalized],sort_keys=True,separators=(",",":"))
     return hashlib.sha1(raw.encode()).hexdigest()
 
-def add(rows,path,lineno,kind,n,value,line,fids):
+def add(rows,path,lineno,kind,n,value,line,fids,provenance_source="STATIC_CODE_SITE"):
     if value is None or isinstance(value,(bool,str)): return
     sig=signature(path,kind,n,value,line)
     rows.append({
@@ -84,7 +99,7 @@ def add(rows,path,lineno,kind,n,value,line,fids):
         "downstream_consumers":[],
         "existing_family_registry_ids":fids,
         "evidence_classification":"UNCLASSIFIED",
-        "provenance_source":"STATIC_CODE_SITE",
+        "provenance_source":provenance_source,
         "originally_hand_set":None,
         "empirically_validated":None,
         "simulation_derived":None,
@@ -147,20 +162,60 @@ class Visitor(ast.NodeVisitor):
                     add(self.rows,self.path,node.lineno,"keyword_argument",f"{ast.unparse(node.func)[:60]}.{kw.arg}",v,self.line(node),self.fids)
         self.generic_visit(node)
 
+def json_pointer_escape(part):
+    return str(part).replace("~","~0").replace("/","~1")
+
+def scan_json(path,payload,fids):
+    rows=[]
+    def walk(node,pointer="",key_context="root"):
+        if isinstance(node,dict):
+            for key,value in node.items():
+                child=f"{pointer}/{json_pointer_escape(key)}"
+                walk(value,child,str(key))
+            return
+        if isinstance(node,list):
+            for i,value in enumerate(node):
+                child=f"{pointer}/{i}"
+                walk(value,child,key_context)
+            return
+        if isinstance(node,(int,float)) and not isinstance(node,bool):
+            parameter_name=pointer or "/"
+            # JSON pointer is both the stable source coordinate and excerpt.
+            add(
+                rows,path,0,"json_numeric_leaf",parameter_name,node,
+                f"{parameter_name}={node}",fids,
+                provenance_source="GOVERNED_JSON_SITE"
+            )
+    walk(payload)
+    return rows
+
 def build(root:Path):
     reg_path=root/"data/model_parameter_registry.json"
     reg=json.loads(reg_path.read_text())
     rows=[]; errors=[]; paths=governed_paths(root,reg)
+    py_count=json_count=0
     for path in paths:
-        src=(root/path).read_text()
-        try: tree=ast.parse(src,filename=path)
-        except SyntaxError as e:
-            errors.append({"path":path,"error":str(e)}); continue
-        v=Visitor(path,src,family_ids(path,reg)); v.visit(tree); rows.extend(v.rows)
+        full=root/path
+        if path.endswith(".py"):
+            py_count+=1
+            src=full.read_text()
+            try: tree=ast.parse(src,filename=path)
+            except SyntaxError as e:
+                errors.append({"path":path,"error":str(e)}); continue
+            v=Visitor(path,src,family_ids(path,reg)); v.visit(tree); rows.extend(v.rows)
+        elif path.endswith(".json"):
+            json_count+=1
+            try:
+                payload=json.loads(full.read_text(encoding="utf-8"))
+            except (OSError,ValueError,TypeError) as e:
+                errors.append({"path":path,"error":str(e)}); continue
+            rows.extend(scan_json(path,payload,family_ids(path,reg)))
     rows.sort(key=lambda r:(r["file_path"],r["line"],r["parameter_name"]))
     summary={
         "production_behavior_changed":False,
         "governed_paths_scanned":len(paths),
+        "governed_python_paths_scanned":py_count,
+        "governed_json_paths_scanned":json_count,
         "candidate_parameter_sites":len(rows),
         "likely_model_parameter_sites":sum(r["screening_class"]=="LIKELY_MODEL_PARAMETER" for r in rows),
         "runtime_budget_or_precision_sites":sum(r["screening_class"]=="RUNTIME_BUDGET_OR_PRECISION" for r in rows),
@@ -170,14 +225,16 @@ def build(root:Path):
         "family_registry_parameters":len(reg.get("parameters",[]))
     }
     return {
-        "schema_version":"1.1",
-        "model_version":"FSFFL-Coefficient-Provenance-Audit-1.1",
-        "purpose":"Candidate-site inventory beneath the existing family-level parameter registry.",
+        "schema_version":"1.2",
+        "model_version":"FSFFL-Coefficient-Provenance-Audit-1.2",
+        "purpose":"Candidate-site inventory beneath the existing family-level parameter registry, including governed Python and JSON parameter sites.",
         "authority":"AUDIT_ONLY_NON_AUTHORITATIVE",
         "policy":{
             "numeric_literal_is_not_automatically_a_model_coefficient":True,
             "every_candidate_requires_manual_authority_and_provenance_adjudication":True,
             "runtime_budgets_and_descriptive_thresholds_are_separate_from_economic_coefficients":True,
+            "governed_json_numeric_leaves_are_first_class_parameter_sites":True,
+            "governance_metadata_is_not_scanned_as_runtime_economics":True,
             "inventory_confers_promotion_authority":False,
             "site_signature_is_line_number_independent":True
         },
