@@ -1,0 +1,227 @@
+name: Coefficient Recalibration Research
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/test_coefficient_invariance_monotonicity.py'
+      - 'script/audit_strategy_outcome_readiness.py'
+      - 'script/run_state_weight_shadow_research.py'
+      - 'script/audit_simulator_calibration_chain.py'
+      - 'script/audit_historical_team_outcome_evidence.py'
+      - 'script/build_historical_trade_outcome_panel.py'
+      - 'script/test_superflex_qb_opportunity_cost.py'
+      - 'script/evaluate_state_weight_promotion_readiness.py'
+      - 'script/audit_behavioral_roster_parameter_provenance.py'
+      - 'script/audit_trade_search_parameter_provenance.py'
+      - 'script/audit_trade_search_hard_cutoff_recall.py'
+      - 'script/confirm_trade_search_cutoff_with_shared_utility.py'
+      - 'script/audit_cross_asset_parameter_provenance.py'
+      - 'script/audit_effective_objective_channel_authority.py'
+      - 'script/build_coefficient_recalibration_research_summary.py'
+      - 'data/model_governance/coefficient_family_research_findings.json'
+      - 'script/test_simulator_backup_assignment_optimality.py'
+      - 'script/audit_state_weight_identifiability.py'
+      - 'script/test_simulator_team_shock_semantics.py'
+      - 'data/model_governance/strategy_outcome_dataset_spec.json'
+      - '.github/workflows/coefficient-recalibration-research.yml'
+  workflow_call:
+
+jobs:
+  research-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit historical strategy-outcome readiness
+        run: python script/audit_strategy_outcome_readiness.py
+      - name: Run independent coefficient invariance suite
+        run: python script/test_coefficient_invariance_monotonicity.py
+      - name: Run non-authoritative state-weight shadow comparison
+        run: python script/run_state_weight_shadow_research.py
+      - name: Audit Simulator calibration chain
+        run: python script/audit_simulator_calibration_chain.py
+      - name: Audit committed historical team outcome evidence
+        run: python script/audit_historical_team_outcome_evidence.py
+      - name: Build non-causal historical trade outcome panel
+        run: python script/build_historical_trade_outcome_panel.py
+      - name: Test endogenous Superflex QB opportunity cost
+        run: python script/test_superflex_qb_opportunity_cost.py
+      - name: Evaluate evidence-tiered state-weight promotion readiness
+        run: python script/evaluate_state_weight_promotion_readiness.py
+      - name: Audit behavioral and roster exact parameter provenance
+        run: python script/audit_behavioral_roster_parameter_provenance.py
+      - name: Audit trade search and prescreen parameter provenance
+        run: python script/audit_trade_search_parameter_provenance.py
+      - name: Shadow-test hard trade target cutoff recall
+        run: python script/audit_trade_search_hard_cutoff_recall.py
+      - name: Canonically confirm flagged cutoff candidates
+        run: python script/confirm_trade_search_cutoff_with_shared_utility.py
+      - name: Audit cross-asset and future-pick parameter provenance
+        run: python script/audit_cross_asset_parameter_provenance.py
+      - name: Measure effective objective-channel authority
+        run: python script/audit_effective_objective_channel_authority.py
+      - name: Detect greedy backup-assignment suboptimality
+        run: python script/test_simulator_backup_assignment_optimality.py
+      - name: Audit objective-channel identifiability
+        run: python script/audit_state_weight_identifiability.py
+      - name: Test Simulator team-shock loading semantics
+        run: python script/test_simulator_team_shock_semantics.py
+      - name: Build consolidated coefficient research summary
+        run: python script/build_coefficient_recalibration_research_summary.py
+      - name: Assert non-authoritative research boundary
+        run: |
+          python - <<'PY'
+          import json
+          spec=json.load(open('data/model_governance/strategy_outcome_dataset_spec.json'))
+          assert spec['authority']=='RESEARCH_SPEC_NON_AUTHORITATIVE'
+          assert spec['production_behavior_changed'] is False
+          assert spec['target_policy']['equal_weight_current_future_liquidity_resilience_composite_forbidden'] is True
+          assert spec['target_policy']['candidate_weight_vector_may_not_define_target'] is True
+          assert spec['missingness_policy']['current_market_values_cannot_backfill_historical_market_values'] is True
+          assert spec['missingness_policy']['current_projections_cannot_backfill_historical_forecasts'] is True
+
+          shadow=json.load(open('data/audit/state_weight_shadow_research.json'))
+          assert shadow['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert shadow['production_behavior_changed'] is False
+          assert shadow['candidate_selection_performed'] is False
+          assert shadow['empirical_validation_claim'] is False
+          assert shadow['hurts_so_good_used_as_target'] is False
+
+          r=json.load(open('data/audit/strategy_outcome_readiness.json'))
+          assert r['authority']=='RESEARCH_READINESS_ONLY'
+          assert r['production_behavior_changed'] is False
+          assert r['summary']['authoritative_empirical_state_weight_claim_allowed'] is False
+          assert r['summary']['pristine_temporal_state_weight_calibration_ready'] is False
+          assert r['summary']['pristine_frozen_projection_archive_detected'] is False
+          assert r['summary']['pristine_frozen_market_archive_detected'] is False
+          assert r['summary']['pristine_frozen_gm3_bundle_archive_detected'] is False
+          assert r['policy']['filename_or_path_name_is_not_evidence_of_frozen_archive_status'] is True
+
+          s=json.load(open('data/audit/state_weight_shadow_research.json'))
+          assert s['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert s['production_behavior_changed'] is False
+          assert s['candidate_selection_performed'] is False
+          assert s['empirical_validation_claim'] is False
+          assert s['hurts_so_good_used_as_target'] is False
+
+          hist=json.load(open('data/audit/historical_team_outcome_evidence.json'))
+          assert hist['authority']=='RESEARCH_DISCOVERY_ONLY'
+          assert hist['production_behavior_changed'] is False
+          assert hist['summary']['single_scalar_strategy_target_authorized'] is False
+          assert hist['policy']['post_decision_team_outcome_is_not_causal_trade_effect'] is True
+
+          panel=json.load(open('data/model_validation/historical_trade_outcome_panel.json'))
+          assert panel['authority']=='RESEARCH_PANEL_NON_AUTHORITATIVE'
+          assert panel['production_behavior_changed'] is False
+          assert panel['summary']['rows_with_strategy_outcome_score']==0
+          assert panel['summary']['rows_with_counterfactual_regret']==0
+          assert panel['summary']['authoritative_training_rows']==0
+          assert panel['policy']['post_decision_outcome_is_not_causal_effect'] is True
+
+          backup=json.load(open('data/audit/simulator_backup_assignment_optimality.json'))
+          assert backup['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
+          assert backup['passed'] is True
+          assert backup['greedy_is_exact'] is False
+          assert backup['promotion_boundary']['production_change_requires_separate_pr'] is True
+
+          shock=json.load(open('data/audit/simulator_team_shock_semantics.json'))
+          assert shock['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
+          assert shock['passed'] is True
+          assert shock['calibration_performed'] is False
+          assert shock['calibration_status']=='SEMANTICS_VERIFIED_MAGNITUDE_NOT_EMPIRICALLY_CALIBRATED'
+
+          summary=json.load(open('data/model_validation/coefficient_recalibration_research_summary.json'))
+          assert summary['authority']=='RESEARCH_SUMMARY_NON_AUTHORITATIVE'
+          assert summary['production_behavior_changed'] is False
+          assert summary['summary']['production_promotions_made']==0
+          assert summary['summary']['legacy_arbitrary_count'] >= 1
+          assert len(summary['do_not_change_yet']) >= 1
+
+          channels=json.load(open('data/audit/effective_objective_channel_authority.json'))
+          assert channels['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert channels['production_behavior_changed'] is False
+          assert channels['conclusions']['all_final_utility_contract_checks_pass'] is True
+          assert channels['conclusions']['nominal_weight_does_not_imply_effective_weight'] is True
+
+          ca=json.load(open('data/audit/cross_asset_parameter_provenance.json'))
+          assert ca['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert ca['production_behavior_changed'] is False
+          assert ca['summary']['explicit_final_qb_multiplier_active'] is False
+          assert ca['summary']['market_tier_scarcity_incremental_premium_active'] is False
+
+          confirmed=json.load(open('data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json'))
+          assert confirmed['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert confirmed['production_behavior_changed'] is False
+          assert confirmed['summary']['production_change_authorized'] is False
+          assert confirmed['policy']['upstream_package_band_is_not_final_authority'] is True
+          assert confirmed['policy']['focal_and_counterparty_confirmation_use_shared_decision_utility'] is True
+
+          recall=json.load(open('data/audit/trade_search_hard_cutoff_recall.json'))
+          assert recall['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert recall['production_behavior_changed'] is False
+          assert recall['summary']['production_change_authorized_by_this_artifact'] is False
+          assert recall['interpretation']['hurts_so_good_rankings_used_as_ground_truth'] is False
+
+          ts=json.load(open('data/audit/trade_search_parameter_provenance.json'))
+          assert ts['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert ts['production_behavior_changed'] is False
+          assert ts['summary']['hard_exclusion_count'] >= 1
+          assert ts['policy']['search_budget_can_still_create_omission_bias'] is True
+
+          br=json.load(open('data/audit/behavioral_roster_parameter_provenance.json'))
+          assert br['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert br['production_behavior_changed'] is False
+          assert br['summary']['production_changes_recommended_now']==0
+          assert br['summary']['legacy_arbitrary_count'] >= 1
+
+          promo=json.load(open('data/audit/state_weight_promotion_readiness.json'))
+          assert promo['authority']=='GOVERNANCE_RESEARCH_ONLY'
+          assert promo['production_behavior_changed'] is False
+          assert promo['calibrator_promotion_flag_is_sufficient_for_production'] is False
+          assert promo['production_promotion_allowed'] is False
+
+          ident=json.load(open('data/audit/state_weight_identifiability.json'))
+          assert ident['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert ident['summary']['four_channel_empirical_fit_ready'] is False
+          assert ident['summary']['current_future_only_research_is_better_identified'] is True
+          assert ident['summary']['authoritative_promotion_allowed'] is False
+
+          sim=json.load(open('data/audit/simulator_calibration_chain_audit.json'))
+          assert sim['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert sim['production_behavior_changed'] is False
+          assert sim['summary']['structural_chain_passed'] is True
+          assert sim['summary']['arbitrary_points_to_wins_coefficient_detected'] is False
+          assert sim['summary']['arbitrary_wins_to_title_coefficient_detected'] is False
+          assert sim['summary']['authoritative_empirical_magnitude_claim_allowed'] is False
+
+          print(json.dumps(r['summary'],indent=2))
+          print(json.dumps({'shadow_sign_change_count':s['sign_change_count']},indent=2))
+          print(json.dumps(sim['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-coefficient-recalibration-research
+          path: |
+            data/audit/strategy_outcome_readiness.json
+            data/audit/state_weight_shadow_research.json
+            data/audit/simulator_calibration_chain_audit.json
+            data/audit/historical_team_outcome_evidence.json
+            data/model_validation/historical_trade_outcome_panel.json
+            data/audit/state_weight_identifiability.json
+            data/audit/state_weight_promotion_readiness.json
+            data/audit/behavioral_roster_parameter_provenance.json
+            data/audit/trade_search_parameter_provenance.json
+            data/audit/trade_search_hard_cutoff_recall.json
+            data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json
+            data/audit/cross_asset_parameter_provenance.json
+            data/audit/effective_objective_channel_authority.json
+            data/audit/simulator_backup_assignment_optimality.json
+            data/audit/simulator_team_shock_semantics.json
+            data/model_validation/coefficient_recalibration_research_summary.json
+          retention-days: 30
