@@ -10,10 +10,12 @@ from __future__ import annotations
 
 import importlib.util
 import itertools
+import json
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent.parent
 SIM=ROOT/"script"/"run_fsffl_season_simulator_preproduction.py"
+OUT=ROOT/"data"/"audit"/"simulator_backup_assignment_optimality.json"
 
 def load():
     spec=importlib.util.spec_from_file_location("coef_backup_sim",SIM)
@@ -129,7 +131,9 @@ def main():
     if not failures:
         raise AssertionError("no structural greedy backup-assignment failures found")
 
-    print({
+    report={
+        "model_version":"FSFFL-Simulator-Backup-Assignment-Optimality-1.0",
+        "authority":"RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE",
         "passed":True,
         "test_type":"structural_counterexample_detection",
         "production_behavior_changed":False,
@@ -139,8 +143,17 @@ def main():
         "adversarial_greedy_assignment":greedy_assignment,
         "adversarial_exact_assignment":exact_assignment,
         "grid_failure_count":len(failures),
+        "grid_failures":failures,
         "recommended_repair":"replace greedy multi-absence backup allocation with exact legal assignment; do not tune SLOT_SCARCITY",
-    })
+        "promotion_boundary":{
+            "structural_defect_demonstrated":True,
+            "production_change_requires_separate_pr":True,
+            "downstream_shadow_and_regression_required":True,
+        },
+    }
+    OUT.parent.mkdir(parents=True,exist_ok=True)
+    OUT.write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps(report,indent=2))
 
 if __name__=="__main__":
     main()
