@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install Simulator runtime dependency
+        run: python -m pip install numpy
       - name: Test exact backup assignment mechanics
         run: python script/test_simulator_exact_backup_assignment.py
       - name: Compare exact and legacy assignment in shadow mode
