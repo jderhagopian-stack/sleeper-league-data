@@ -92,8 +92,51 @@ def main() -> None:
     semantic = [x for x in findings if x["authority_mode"] == "DIAGNOSTIC_WRONG_SEMANTIC_ROLE"]
     active_prior = [x for x in findings if x["authority_mode"] == "ACTIVE_BOUNDED_PROVISIONAL_PRIOR"]
 
+    utility_text = (ROOT / "script" / "decision_utility.py").read_text(encoding="utf-8")
+    state_aware_text = (ROOT / "script" / "decision_lab_state_aware.py").read_text(encoding="utf-8")
+    gm_text = (ROOT / "script" / "build_fsffl_gm_engine.py").read_text(encoding="utf-8")
+    override_text = (ROOT / "script" / "nonprojection_high_priority_overrides.py").read_text(encoding="utf-8")
+
+    runtime_findings = {
+        "shared_future_block_is_raw_additive_market_dynasty_delta": (
+            'future_value = sf(s.get("market_dynasty_delta"))' in utility_text
+        ),
+        "state_aware_market_dynasty_delta_is_additive_asset_sum": (
+            '"market_dynasty_delta": round(total(rec_rows, "market_dynasty") - total(sent_rows, "market_dynasty"), 2)' in state_aware_text
+        ),
+        "nonlinear_package_economics_exists_in_gm_discovery": (
+            "def _u_package_effective_value" in gm_text and '"package_weights": [1.0, 0.78, 0.62, 0.50, 0.42]' in gm_text
+        ),
+        "shared_decision_utility_does_not_consume_package_effective_value": (
+            "_u_package_effective_value" not in utility_text and "package_effective_value" not in utility_text
+        ),
+        "optionality_is_computed_in_state_aware_summary": (
+            '"optionality_value_delta":' in state_aware_text
+        ),
+        "optionality_is_diagnostic_only_in_shared_utility": (
+            '"optionality_value_delta_diagnostic"' in utility_text
+            and '"optionality_incremental_value_authorized": False' in utility_text
+        ),
+        "legacy_premium_components_zero_optionality_tier_scarcity_liquidity_resilience": (
+            '"tier_scarcity": 0.0' in override_text
+            and '"optionality": 0.0' in override_text
+            and '"liquidity": 0.0' in override_text
+            and '"resilience": 0.0' in override_text
+        ),
+        "liquidity_and_resilience_require_explicit_authorization": (
+            '"liquidity": any(' in state_aware_text
+            and '"resilience": any(' in state_aware_text
+            and "unauthorized channels are diagnostic-only" in state_aware_text
+        ),
+    }
+    if not all(runtime_findings.values()):
+        errors.append(
+            "runtime authority markers changed; re-audit required: "
+            + ", ".join(k for k, v in runtime_findings.items() if not v)
+        )
+
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "audit_family": "parameter authority and missing value",
         "model_version": pol.get("model_version"),
         "production_behavior_changed": False,
@@ -116,6 +159,13 @@ def main() -> None:
             "them as historical/simulation evidence accumulates."
         ),
         "findings": findings,
+        "runtime_findings": runtime_findings,
+        "high_leverage_runtime_observation": (
+            "The production Shared Decision Utility future block currently consumes raw additive market-dynasty delta, "
+            "while nonlinear package economics exist upstream in GM discovery but are not consumed by final shared utility. "
+            "Therefore aggregation/concentration can affect which packages are found without necessarily affecting the final "
+            "economic ranking of those packages. Optionality is also calculated but explicitly diagnostic-only."
+        ),
         "unregistered_or_underdecomposed_concepts": under,
         "recommended_sequence": [
             "Decompose mixed umbrella families before changing production authority.",
