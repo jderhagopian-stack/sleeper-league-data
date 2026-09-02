@@ -126,7 +126,9 @@ def main():
         "trade_decision_prescreen_coefficients_implicated":0
       },
       "policy":{
-        "search_heuristic_is_not_final_decision_authority":True,\n        "trade_decision_current_prescreen_is_separate_and_coefficient_free":True,\n        "these_findings_apply_to_gm3_proactive_discovery_and_price_search":True,
+        "search_heuristic_is_not_final_decision_authority":True,
+        "trade_decision_current_prescreen_is_separate_and_coefficient_free":True,
+        "these_findings_apply_to_gm3_proactive_discovery_and_price_search":True,
         "search_budget_can_still_create_omission_bias":True,
         "hard_search_cliffs_require_recall_evidence":True,
         "prefer_multi_lane_coverage_over_single_composite_search_score":True,
@@ -134,7 +136,8 @@ def main():
       }
     }
     OUT.parent.mkdir(parents=True,exist_ok=True)
-    OUT.write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+    OUT.write_text(json.dumps(report,indent=2)+"
+",encoding="utf-8")
     print(json.dumps(report["summary"],indent=2))
 
 if __name__=="__main__":main()
