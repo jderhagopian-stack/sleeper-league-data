@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """Build an exact-site candidate inventory for governed FSFFL parameters."""
 from __future__ import annotations
-import ast, hashlib, json
+import argparse, ast, hashlib, json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-ARCH = ROOT / "data/model_governance/application_architecture.json"
-REGISTRY = ROOT / "data/model_parameter_registry.json"
-OUT = ROOT / "data/audit/authoritative_parameter_inventory.json"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 HINTS = (
     "weight","threshold","multiplier","scale","factor","penalty","premium","discount",
@@ -26,12 +23,13 @@ def flatten_strings(x):
         for v in x: out |= flatten_strings(v)
     return out
 
-def governed_paths(reg):
-    arch=json.loads(ARCH.read_text())
+def governed_paths(root,reg):
+    arch_path=root/"data/model_governance/application_architecture.json"
+    arch=json.loads(arch_path.read_text())
     paths={p for p in flatten_strings(arch) if p.endswith(".py")}
     for fam in reg.get("parameters",[]):
         paths.update(p for p in fam.get("paths",[]) if str(p).endswith(".py"))
-    return sorted(p for p in paths if (ROOT/p).is_file())
+    return sorted(p for p in paths if (root/p).is_file())
 
 def family_ids(path,reg):
     return [str(f["id"]) for f in reg.get("parameters",[]) if path in f.get("paths",[])]
@@ -65,11 +63,17 @@ def screening(n,line):
         return "LIKELY_MODEL_PARAMETER"
     return "REVIEW_REQUIRED"
 
+def signature(path,kind,n,value,line):
+    normalized=" ".join(line.strip().split())
+    raw=json.dumps([path,kind,n,value,normalized],sort_keys=True,separators=(",",":"))
+    return hashlib.sha1(raw.encode()).hexdigest()
+
 def add(rows,path,lineno,kind,n,value,line,fids):
     if value is None or isinstance(value,(bool,str)): return
-    pid=hashlib.sha1(f"{path}:{lineno}:{kind}:{n}:{value}".encode()).hexdigest()[:12]
+    sig=signature(path,kind,n,value,line)
     rows.append({
-        "parameter_id":f"AUTO-{pid}",
+        "parameter_id":f"AUTO-{sig[:12]}",
+        "site_signature":sig,
         "module":path,
         "file_path":path,
         "line":lineno,
@@ -143,11 +147,12 @@ class Visitor(ast.NodeVisitor):
                     add(self.rows,self.path,node.lineno,"keyword_argument",f"{ast.unparse(node.func)[:60]}.{kw.arg}",v,self.line(node),self.fids)
         self.generic_visit(node)
 
-def main():
-    reg=json.loads(REGISTRY.read_text())
-    rows=[]; errors=[]; paths=governed_paths(reg)
+def build(root:Path):
+    reg_path=root/"data/model_parameter_registry.json"
+    reg=json.loads(reg_path.read_text())
+    rows=[]; errors=[]; paths=governed_paths(root,reg)
     for path in paths:
-        src=(ROOT/path).read_text()
+        src=(root/path).read_text()
         try: tree=ast.parse(src,filename=path)
         except SyntaxError as e:
             errors.append({"path":path,"error":str(e)}); continue
@@ -164,24 +169,34 @@ def main():
         "parse_errors":len(errors),
         "family_registry_parameters":len(reg.get("parameters",[]))
     }
-    artifact={
-        "schema_version":"1.0",
-        "model_version":"FSFFL-Coefficient-Provenance-Audit-1.0",
+    return {
+        "schema_version":"1.1",
+        "model_version":"FSFFL-Coefficient-Provenance-Audit-1.1",
         "purpose":"Candidate-site inventory beneath the existing family-level parameter registry.",
         "authority":"AUDIT_ONLY_NON_AUTHORITATIVE",
         "policy":{
             "numeric_literal_is_not_automatically_a_model_coefficient":True,
             "every_candidate_requires_manual_authority_and_provenance_adjudication":True,
             "runtime_budgets_and_descriptive_thresholds_are_separate_from_economic_coefficients":True,
-            "inventory_confers_promotion_authority":False
+            "inventory_confers_promotion_authority":False,
+            "site_signature_is_line_number_independent":True
         },
         "summary":summary,
         "parse_errors":errors,
         "parameters":rows
     }
-    OUT.parent.mkdir(parents=True,exist_ok=True)
-    OUT.write_text(json.dumps(artifact,indent=2)+"\n")
-    print(json.dumps(summary,indent=2))
+
+def main():
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--root",default=str(DEFAULT_ROOT))
+    ap.add_argument("--output",default=None)
+    args=ap.parse_args()
+    root=Path(args.root).resolve()
+    output=Path(args.output).resolve() if args.output else root/"data/audit/authoritative_parameter_inventory.json"
+    artifact=build(root)
+    output.parent.mkdir(parents=True,exist_ok=True)
+    output.write_text(json.dumps(artifact,indent=2)+"\n")
+    print(json.dumps(artifact["summary"],indent=2))
 
 if __name__=="__main__":
     main()
