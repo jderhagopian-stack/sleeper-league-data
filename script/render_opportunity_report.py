@@ -56,7 +56,10 @@ def target_name(row):
 
 
 def target_id(row):
-    return str((row.get("target") or {}).get("asset_id") or "")
+    target = row.get("target") or {}
+    raw = target.get("player_id") or target.get("asset_id") or ""
+    raw = str(raw)
+    return raw.split(":", 1)[1] if raw.startswith("player:") else raw
 
 
 def structure(row):
@@ -343,6 +346,19 @@ def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFA
     assets = load(assets_path)
     projections = load(projections_path)
     rosters = load(rosters_path)
+    if not board.get("focus_user_id"):
+        team_name = str(board.get("team_name") or "")
+        owner = next(
+            (
+                p.get("current_owner_user_id")
+                for p in (assets.get("players") or [])
+                if str(p.get("current_owner_team") or "") == team_name and p.get("current_owner_user_id")
+            ),
+            None,
+        )
+        if owner:
+            board = dict(board)
+            board["focus_user_id"] = str(owner)
     indexes = build_player_indexes(assets, projections)
     s = styles()
 
