@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Sensitivity diagnostics only; not historical calibration.",
+  "cases": [
+    {
+      "case_id": "WARREN_KYREN_2ND",
+      "label": "Tyler Warren for Kyren Williams + 2029 2nd",
+      "sent_assets": [
+        "player:12518"
+      ],
+      "received_assets": [
+        "player:8150",
+        "pick:2029:R2:orig11"
+      ]
+    },
+    {
+      "case_id": "WARREN_SKATTEBO_FLOURNOY_3RD",
+      "label": "Tyler Warren for Cam Skattebo + Ryan Flournoy + 2029 3rd",
+      "sent_assets": [
+        "player:12518"
+      ],
+      "received_assets": [
+        "player:12481",
+        "player:11783",
+        "pick:2029:R3:orig2"
+      ]
+    },
+    {
+      "case_id": "WARREN_MONTGOMERY_NUSSMEIER_3RDS",
+      "label": "Tyler Warren for David Montgomery + Garrett Nussmeier + three 3rds",
+      "sent_assets": [
+        "player:12518"
+      ],
+      "received_assets": [
+        "player:5892",
+        "player:13404",
+        "pick:2029:R3:orig5",
+        "pick:2027:R3:orig11",
+        "pick:2028:R3:orig11"
+      ]
+    }
+  ]
+}
