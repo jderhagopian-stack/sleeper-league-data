@@ -42,14 +42,54 @@ TEAM_SHOCK_RHO = {
     "RB": 0.08,
 }
 
-SLOT_SCARCITY = {
-    "QB": 0,
-    "TE": 1,
-    "RB": 2,
-    "WR": 2,
-    "SUPER_FLEX": 3,
-    "FLEX": 4,
-}
+BACKUP_POSITION_UNIVERSE = ("QB", "RB", "WR", "TE", "K", "DEF")
+
+
+def slot_eligibility_set(slot: str) -> frozenset[str]:
+    """Rule-derived eligible positions for one lineup slot."""
+    return frozenset(
+        pos for pos in BACKUP_POSITION_UNIVERSE
+        if core.eligible(pos, slot)
+    )
+
+
+def slot_family_is_laminar(slots: List[str]) -> bool:
+    """Whether every pair of slot-eligibility sets is nested or disjoint.
+
+    In a laminar family, assigning the most constrained slot first is exact for
+    non-negative player values. FSFFL's QB/RB/WR/TE/FLEX/SUPER_FLEX structure is
+    laminar: FLEX is a subset of SUPER_FLEX and fixed-position slots are nested
+    within or disjoint from those flex sets.
+    """
+    sets = [slot_eligibility_set(slot) for slot in slots]
+    sets = [s for s in sets if s]
+    for i, left in enumerate(sets):
+        for right in sets[i + 1:]:
+            if left & right and not (left <= right or right <= left):
+                return False
+    return True
+
+
+def constrained_slot_order(lineup: List[Dict[str, Any]]) -> List[int]:
+    """Rule-derived most-constrained-first order for laminar slot families."""
+    return sorted(
+        range(len(lineup)),
+        key=lambda i: (
+            len(slot_eligibility_set(lineup[i]["slot"])) or 999,
+            tuple(sorted(slot_eligibility_set(lineup[i]["slot"]))),
+            i,
+        ),
+    )
+
+
+def projected_backup_value(row: Dict[str, Any]) -> float:
+    """Preserve the existing pregame backup-ranking semantics."""
+    if row.get("value") is not None:
+        return float(row["value"])
+    return float(row.get("mean") or 0.0) * float(
+        row.get("active_probability", 1.0) or 0.0
+    )
+
 
 # Compatibility facade for Shared Core consumers such as Decision Lab.
 # These aliases expose canonical helper contracts without restoring legacy
@@ -361,6 +401,116 @@ def generate_player_draws(
     return points, available
 
 
+def exact_nonlaminar_backup_selection(
+    open_slots: Tuple[str, ...],
+    available_rows: Tuple[Dict[str, Any], ...],
+) -> Tuple[str, ...]:
+    """Exact maximum-projected-value legal backup set for a non-laminar layout.
+
+    This fallback is used only when supported flex eligibility sets overlap
+    without nesting (for example WR/RB FLEX together with WR/TE FLEX). It
+    optimizes projected backup value, never realized simulated points.
+    """
+    rows = tuple(
+        sorted(
+            available_rows,
+            key=lambda row: (
+                -projected_backup_value(row),
+                str(row.get("player_id") or ""),
+            ),
+        )
+    )
+    memo = {}
+
+    def solve(slot_index: int, remaining: Tuple[int, ...]):
+        key = (slot_index, remaining)
+        if key in memo:
+            return memo[key]
+        if slot_index >= len(open_slots):
+            return (0.0, ())
+
+        slot = open_slots[slot_index]
+        best_score, best_ids = solve(slot_index + 1, remaining)
+
+        for j, row_index in enumerate(remaining):
+            row = rows[row_index]
+            if not core.eligible(row.get("position"), slot):
+                continue
+            next_remaining = remaining[:j] + remaining[j + 1:]
+            tail_score, tail_ids = solve(slot_index + 1, next_remaining)
+            score = projected_backup_value(row) + tail_score
+            ids = (str(row.get("player_id")),) + tail_ids
+            if score > best_score + 1e-12 or (
+                abs(score - best_score) <= 1e-12 and ids < best_ids
+            ):
+                best_score, best_ids = score, ids
+
+        memo[key] = (best_score, best_ids)
+        return memo[key]
+
+    return solve(0, tuple(range(len(rows))))[1]
+
+
+def simulate_team_week_exact_nonlaminar(
+    lineup: List[Dict[str, Any]],
+    all_rows: Dict[str, Dict[str, Any]],
+    points: Dict[str, np.ndarray],
+    available: Dict[str, np.ndarray],
+    n_sims: int,
+) -> np.ndarray:
+    """Exact cached substitution for non-laminar supported slot families."""
+    starter_ids = {
+        str(row.get("player_id"))
+        for row in lineup
+        if row.get("player_id") is not None
+    }
+    bench_rows = {
+        str(pid): row
+        for pid, row in all_rows.items()
+        if str(pid) not in starter_ids
+    }
+    total = np.zeros(n_sims, dtype=np.float32)
+    selection_cache: Dict[
+        Tuple[Tuple[str, ...], Tuple[str, ...]], Tuple[str, ...]
+    ] = {}
+
+    for sim_index in range(n_sims):
+        open_slots = []
+        for starter in lineup:
+            pid = starter.get("player_id")
+            if pid is not None and available[str(pid)][sim_index]:
+                total[sim_index] += points[str(pid)][sim_index]
+            else:
+                open_slots.append(str(starter["slot"]))
+
+        if not open_slots:
+            continue
+
+        available_bench_ids = tuple(
+            sorted(
+                pid
+                for pid in bench_rows
+                if available[pid][sim_index]
+            )
+        )
+        if not available_bench_ids:
+            continue
+
+        key = (tuple(open_slots), available_bench_ids)
+        selected = selection_cache.get(key)
+        if selected is None:
+            selected = exact_nonlaminar_backup_selection(
+                tuple(open_slots),
+                tuple(bench_rows[pid] for pid in available_bench_ids),
+            )
+            selection_cache[key] = selected
+
+        for pid in selected:
+            total[sim_index] += points[pid][sim_index]
+
+    return total
+
+
 def simulate_team_week(
     roster: Dict[str, Any],
     week: int,
@@ -397,11 +547,17 @@ def simulate_team_week(
     used = {pid: np.zeros(n_sims, dtype=bool) for pid in all_rows}
     total = np.zeros(n_sims, dtype=np.float32)
 
-    # Scarce slots first reduces bad fallback collisions.
-    slot_order = sorted(
-        range(len(lineup)),
-        key=lambda i: SLOT_SCARCITY.get(lineup[i]["slot"], 5),
-    )
+    slot_names = [str(row["slot"]) for row in lineup]
+    if not slot_family_is_laminar(slot_names):
+        return simulate_team_week_exact_nonlaminar(
+            lineup, all_rows, points, available, n_sims
+        )
+
+    # For a laminar eligibility family, most-constrained-first assignment is
+    # exact for the existing non-negative projected backup values. This removes
+    # the former hand-set SLOT_SCARCITY ordering, which incorrectly processed
+    # SUPER_FLEX before the more restrictive FLEX slot.
+    slot_order = constrained_slot_order(lineup)
 
     for i in slot_order:
         starter = lineup[i]
