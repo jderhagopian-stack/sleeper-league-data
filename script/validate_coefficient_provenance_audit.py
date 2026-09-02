@@ -7,6 +7,8 @@ ROOT=Path(__file__).resolve().parent.parent
 POLICY=ROOT/"data/model_governance/coefficient_provenance_policy.json"
 INVENTORY=ROOT/"data/audit/authoritative_parameter_inventory.json"
 SEED=ROOT/"data/model_governance/coefficient_provenance_seed_findings.json"
+FAMILY_MAP=ROOT/"data/model_governance/coefficient_family_adjudication_map.json"
+FAMILY_REGISTRY=ROOT/"data/model_parameter_registry.json"
 
 EXPECTED=[
  "RULE_DEFINED","HISTORICALLY_STATISTICALLY_ESTIMATED","EVIDENCE_BASED_EXTERNAL_ANCHOR",
@@ -95,6 +97,26 @@ def main():
     if "STATE-WEIGHT-ANCHORS-001" not in seen: fail("state weight anchor adjudication missing")
     if "DECISION-CURRENT-SCALE-001" not in seen: fail("current utility scale adjudication missing")
     if "BI-REDUNDANCY-BLEND-001" not in seen: fail("behavioral arbitrary blend adjudication missing")
+
+    family_registry=json.loads(FAMILY_REGISTRY.read_text())
+    family_map=json.loads(FAMILY_MAP.read_text())
+    if family_map.get("production_behavior_changed") is not False:
+        fail("family adjudication map cannot change production behavior")
+    registered={str(x.get("id")) for x in family_registry.get("parameters",[])}
+    coverage=family_map.get("coverage") or {}
+    mapped=set(coverage)
+    missing_families=sorted(registered-mapped)
+    stale_families=sorted(mapped-registered)
+    if missing_families:
+        fail(f"registry families without provenance adjudication mapping: {missing_families}")
+    if stale_families:
+        fail(f"family map contains nonexistent registry families: {stale_families}")
+    for family_id,finding_ids in coverage.items():
+        if not finding_ids:
+            fail(f"{family_id}: no adjudication findings mapped")
+        missing_findings=sorted(set(finding_ids)-seen)
+        if missing_findings:
+            fail(f"{family_id}: mapped findings missing from seed registry: {missing_findings}")
     print(json.dumps({**inv["summary"],"seed_adjudications":len(findings)},indent=2))
 
 if __name__=="__main__": main()
