@@ -21,7 +21,7 @@ def main():
       "market_scarcity_zero": "scarcity_premium = 0.0" in e,
       "final_utility_no_position_multiplier":"position_multiplier" not in u and "qb_multiplier" not in u.lower(),
       "final_utility_uses_four_channels":'required = ("current", "future", "liquidity", "resilience")' in u,
-      "qb_search_liquidity_adjustment":'if pos == "QB":\\n        base += 0.08' in e,
+      "qb_search_liquidity_adjustment":'if pos == "QB":\n        base += 0.08' in e,
       "fallback_pick_tier_constants":'{"early": 1.18, "mid": 1.0, "late": 0.84}' in e,
       "fallback_pick_time_constant":"0.88 **" in e,
       "last_resort_pick_mids":"1: 5200.0" in e and "2: 2350.0" in e and "3: 1050.0" in e,
