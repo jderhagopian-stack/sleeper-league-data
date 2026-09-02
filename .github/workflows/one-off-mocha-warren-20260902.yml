@@ -1,0 +1,46 @@
+name: One-off MochaSmevs Trade Analysis 2026-09-02
+
+on:
+  push:
+    branches:
+      - analysis/mocha-warren-20260902
+    paths:
+      - .github/workflows/one-off-mocha-warren-20260902.yml
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Run standardized FSFFL trade pipeline
+        run: |
+          mkdir -p /tmp/fsffl-trade-output
+          python script/run_trade_report.py             --scenario data/decision_lab/mochasmevs_warren_trade_20260902.json             --out-dir /tmp/fsffl-trade-output             --basename FSFFL_MochaSmevs_Warren_Trade_Report             --quick-sims 200             --adaptive-confirm-sims 50000             --search-depth 60             | tee /tmp/fsffl-trade-output/pipeline.log
+      - name: Smoke-check outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          root=Path('/tmp/fsffl-trade-output')
+          report=json.loads((root/'FSFFL_MochaSmevs_Warren_Trade_Report.json').read_text())
+          summary=json.loads((root/'FSFFL_MochaSmevs_Warren_Trade_Report-summary.json').read_text())
+          pdf=root/'FSFFL_MochaSmevs_Warren_Trade_Report.pdf'
+          assert report['focus_user_id']=='844785316274483200'
+          assert pdf.exists() and pdf.stat().st_size>2500
+          assert len(PdfReader(str(pdf)).pages)>=1
+          print(summary['short_answer'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-mochasmevs-warren-trade-20260902
+          path: /tmp/fsffl-trade-output/*
+          if-no-files-found: error
+          retention-days: 30
