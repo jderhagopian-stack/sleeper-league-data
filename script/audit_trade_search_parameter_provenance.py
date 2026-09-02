@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit exact trade-search/prescreen heuristics separately from final utility."""
+"""Audit exact GM3 proactive-discovery heuristics separately from Trade Decision and final utility."""
 from __future__ import annotations
 import json,re
 from pathlib import Path
@@ -43,7 +43,7 @@ def main():
         "parameter_id":"TRADE-SEARCH-TARGET-SCORE-001",
         "parameter_name":"target prescreen weighted score",
         "current_value":{"need":0.30,"redraft":0.24,"dynasty":0.22,"owner_gap":0.14,"seller_strategic_inverse":0.10,"redraft_scale":8000.0,"dynasty_scale":8500.0},
-        "runtime_authority":"TARGET_SEARCH_ORDERING_ONLY",
+        "runtime_authority":"ACTIVE_GM3_PROACTIVE_TARGET_SEARCH_ORDERING_ONLY; NOT_TRADE_DECISION_PRESCREEN",
         "evidence_classification":"LEGACY_ARBITRARY_HEURISTIC",
         "identifiability_class":"UNIDENTIFIED_OR_DUPLICATE",
         "decision_impact":"HIGH_IF_TOP_30_TRUNCATION_OMITS_VALID_TARGETS",
@@ -55,7 +55,7 @@ def main():
         "parameter_id":"TRADE-SEARCH-TARGET-CUTOFF-001",
         "parameter_name":"low dynasty / low need exclusion",
         "current_value":{"dynasty_value_floor":1000.0,"need_floor":0.68},
-        "runtime_authority":"HARD_SEARCH_EXCLUSION",
+        "runtime_authority":"ACTIVE_GM3_PROACTIVE_DISCOVERY_HARD_EXCLUSION; NOT_TRADE_DECISION_PRESCREEN",
         "evidence_classification":"LEGACY_ARBITRARY_HEURISTIC",
         "identifiability_class":"RULE_OR_RUNTIME_MECHANIC",
         "decision_impact":"HIGH_FOR_FALSE_NEGATIVE_RECALL",
@@ -67,7 +67,7 @@ def main():
         "parameter_id":"TRADE-SEARCH-TARGET-BUDGET-001",
         "parameter_name":"target_screen top-k",
         "current_value":30,
-        "runtime_authority":"COMPUTATIONAL_SEARCH_BUDGET",
+        "runtime_authority":"ACTIVE_GM3_PROACTIVE_DISCOVERY_COMPUTATIONAL_BUDGET",
         "evidence_classification":"UNVALIDATED_EXPERT_PRIOR",
         "identifiability_class":"RULE_OR_RUNTIME_MECHANIC",
         "decision_impact":"MEDIUM_HIGH_THROUGH_RECALL",
@@ -91,7 +91,7 @@ def main():
         "parameter_id":"TRADE-SEARCH-SELLER-RATIO-FLOOR-001",
         "parameter_name":"static seller ratio floor",
         "current_value":0.68,
-        "runtime_authority":"HARD_PACKAGE_SEARCH_EXCLUSION_BEFORE_FULL_GM3_EVALUATION",
+        "runtime_authority":"ACTIVE_GM3_PRICE_DISCOVERY_HARD_PACKAGE_EXCLUSION_BEFORE_FULL_GM3_EVALUATION",
         "evidence_classification":"UNVALIDATED_EXPERT_PRIOR",
         "identifiability_class":"DIRECTLY_ESTIMABLE",
         "decision_impact":"HIGH_NEAR_PRICE_FRONTIER",
@@ -103,7 +103,7 @@ def main():
         "parameter_id":"TRADE-SEARCH-PRELIM-SCORE-001",
         "parameter_name":"package preliminary weighted score",
         "current_value":{"focal_surplus":0.45,"fairness":0.22,"need":0.18,"motivation":0.15},
-        "runtime_authority":"SEARCH_ORDERING_NOT_FINAL_UTILITY",
+        "runtime_authority":"ACTIVE_GM3_DISCOVERY_ORDERING_NOT_FINAL_UTILITY_OR_TRADE_DECISION_PRESCREEN",
         "evidence_classification":"LEGACY_ARBITRARY_HEURISTIC",
         "identifiability_class":"UNIDENTIFIED_OR_DUPLICATE",
         "decision_impact":"LOW_IF_ALL_PRELIM_ROWS_FLOW_DOWNSTREAM_HIGH_IF_LATER_BUDGETED",
@@ -122,10 +122,10 @@ def main():
         "hard_exclusion_count":sum("HARD" in x["runtime_authority"] for x in findings),
         "legacy_arbitrary_count":sum(x["evidence_classification"]=="LEGACY_ARBITRARY_HEURISTIC" for x in findings),
         "final_utility_coefficients_created":0,
-        "production_changes_recommended_in_this_pr":0
+        "production_changes_recommended_in_this_pr":0,\n        "trade_decision_prescreen_coefficients_implicated":0
       },
       "policy":{
-        "search_heuristic_is_not_final_decision_authority":True,
+        "search_heuristic_is_not_final_decision_authority":True,\n        "trade_decision_current_prescreen_is_separate_and_coefficient_free":True,\n        "these_findings_apply_to_gm3_proactive_discovery_and_price_search":True,
         "search_budget_can_still_create_omission_bias":True,
         "hard_search_cliffs_require_recall_evidence":True,
         "prefer_multi_lane_coverage_over_single_composite_search_score":True,
