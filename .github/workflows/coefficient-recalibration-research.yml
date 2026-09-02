@@ -6,6 +6,7 @@ on:
     paths:
       - 'script/test_coefficient_invariance_monotonicity.py'
       - 'script/audit_strategy_outcome_readiness.py'
+      - 'script/run_state_weight_shadow_research.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -25,6 +26,8 @@ jobs:
         run: python script/audit_strategy_outcome_readiness.py
       - name: Run independent coefficient invariance suite
         run: python script/test_coefficient_invariance_monotonicity.py
+      - name: Run non-authoritative state-weight shadow comparison
+        run: python script/run_state_weight_shadow_research.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
@@ -41,10 +44,20 @@ jobs:
           assert r['authority']=='RESEARCH_READINESS_ONLY'
           assert r['production_behavior_changed'] is False
           assert r['summary']['authoritative_empirical_state_weight_claim_allowed'] is False
+
+          s=json.load(open('data/audit/state_weight_shadow_research.json'))
+          assert s['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert s['production_behavior_changed'] is False
+          assert s['candidate_selection_performed'] is False
+          assert s['empirical_validation_claim'] is False
+          assert s['hurts_so_good_used_as_target'] is False
           print(json.dumps(r['summary'],indent=2))
+          print(json.dumps({'shadow_sign_change_count':s['sign_change_count']},indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: fsffl-coefficient-recalibration-research
-          path: data/audit/strategy_outcome_readiness.json
+          path: |
+            data/audit/strategy_outcome_readiness.json
+            data/audit/state_weight_shadow_research.json
           retention-days: 30
