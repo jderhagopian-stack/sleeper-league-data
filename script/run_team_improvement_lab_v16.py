@@ -17,6 +17,7 @@ DEFAULT_TRADE_PACKAGES_PER_TARGET=8
 DEFAULT_PRICE_FRONTIER_TARGETS=16
 DEFAULT_PRICE_FRONTIER_PACKAGES_PER_TARGET=18
 _TARGETED_GM_CACHE={}
+_GM_STRENGTH_CORE=None
 
 def load_base():
     spec=importlib.util.spec_from_file_location('team_improvement_lab_base16',BASE); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
@@ -315,6 +316,43 @@ def waiver_candidates(base,focus_uid,players_catalog,model_inputs,limit):
     for i,r in enumerate(selected,1): r['pre_screen_rank']=i; r['pre_screen_score']=None; r['pre_screen_weighted_score_used']=False
     return selected
 
+def _optimized_team_strength_snapshots(base, rosters):
+    """Expose the same governed GM3 roster-strength evidence used by Trade Decision.
+
+    This is deterministic roster/value context, not a simulation-derived coefficient.
+    Computing it here makes Shared Decision Utility 2.1 see the same available
+    optimized-starter redraft evidence in GM3 / Opportunity Engine that Trade Decision
+    already exposes through roster_diagnosis.
+    """
+    global _GM_STRENGTH_CORE
+    if _GM_STRENGTH_CORE is None:
+        _GM_STRENGTH_CORE=base.load_module(
+            Path(__file__).resolve().parent/'build_fsffl_gm_engine.py',
+            'gm3_team_improvement_strength_snapshot',
+        )
+    players_catalog,_=base.asset_catalog()
+    player_values={
+        str(row.get('player_id')):{
+            'market_redraft':float(row.get('market_redraft') or 0.0),
+            'market_dynasty':float(row.get('market_dynasty') or 0.0),
+            'position':row.get('position'),
+        }
+        for row in players_catalog.values()
+        if row.get('player_id') is not None
+    }
+    teams=_GM_STRENGTH_CORE.optimized_team_strengths(rosters,player_values,{})
+    return {
+        str(uid):{
+            'position_need':dict((row or {}).get('position_need') or {}),
+            'contender_score':(row or {}).get('contender_score'),
+            'dynasty_roster_score':(row or {}).get('dynasty_roster_score'),
+            'starter_redraft_value':(row or {}).get('starter_redraft_value'),
+            'starter_dynasty_value':(row or {}).get('starter_dynasty_value'),
+        }
+        for uid,row in (teams or {}).items()
+    }
+
+
 def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,baseline_lineups,baseline,focus_uid,actions,sims,seed):
     simmod,league,canonical_rosters,users,players,season,projections,raw_schedule=model_inputs
     trade_actions_only=[a for a in actions if str(a.get('type') or '').lower().strip()=='trade']
@@ -346,6 +384,8 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
         vals=[float(x.get(key) or 0.0) for x in baseline_teams]
         return (sum(vals)/len(vals)) if vals else 0.0
     league_reference={'team_count':len(baseline_teams),'expected_wins_mean':mean_metric('expected_wins'),'expected_points_for_mean':mean_metric('expected_points_for'),'playoff_probability_mean':mean_metric('playoff_probability'),'championship_probability_mean':mean_metric('championship_probability'),'source':'canonical_baseline_simulator_league_mean'}
+    roster_strength_before=_optimized_team_strength_snapshots(base,canonical_rosters)
+    roster_strength_after=_optimized_team_strength_snapshots(base,legal)
     def perspective(uid):
         uid=str(uid); before,after=bidx[uid],hidx[uid]
         focus_delta={k:base.delta(before.get(k),after.get(k)) for k in ['expected_wins','expected_points_for','playoff_probability','bye_probability','championship_probability']}
@@ -366,6 +406,20 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
                 'net_title_equity_swing_against_focus':round(net_swing,5),
             },
             'strategic':dl.strategic_summary(uid,effective),'roster_resolution':resolutions,
+            'roster_diagnosis':{
+                'model_source':'GM3 optimized_team_strengths',
+                'before':copy.deepcopy(roster_strength_before.get(uid) or {}),
+                'after':copy.deepcopy(roster_strength_after.get(uid) or {}),
+                'position_need_delta':{
+                    pos:round(
+                        float(((roster_strength_after.get(uid) or {}).get('position_need') or {}).get(pos,0.0))-
+                        float(((roster_strength_before.get(uid) or {}).get('position_need') or {}).get(pos,0.0)),
+                        3,
+                    )
+                    for pos in ('QB','RB','WR','TE')
+                },
+                'lower_need_score_is_better':True,
+            },
             'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims,
             'simulator_features':{
                 **copy.deepcopy(hyp.get('features') or {}),
@@ -416,7 +470,7 @@ def main():
         m=list(mi); p=copy.deepcopy(m[6]); pid=str(row['target']['player_id']); native_ids={str(x) for x in (p.get('players') or {})}; p.setdefault('players',{})[pid]=copy.deepcopy(row['native_full_projection']); p['_decision_lab_projection_augmentation']={'source_model':'FSFFL-Full-Projection-Universe-1.0','added_player_ids':[pid] if pid not in native_ids else [],'native_player_count':len(native_ids),'final_player_count':len(p.get('players') or {}),'unrelated_full_universe_players_added':False}; m[6]=p; result=saved(row,uid,dl,lo,ra,tuple(m),bl,b,s,seed); result['decision_attribution']=attribution.reconcile(result.get('simulation') or {}); return result
     base.evaluate_row=ev; base.main()
     if out and out.exists():
-        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['strategic_posture']=posture; report['search_summary']['strategic_posture_changes_search_coverage_only']=True; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report['search_summary']['price_frontier_packages_per_target_considered']=int(pfpt); report['search_summary']['targeted_adaptive_price_discovery_enabled']=bool(pft and pfpt); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'hypothetical_simulator_uses_same_projection_universe_as_lineup_optimizer':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'targeted_price_discovery_package_economics_owned_by_gm3':True,'targeted_price_discovery_target_selection_is_search_orchestration':True,'targeted_price_discovery_creates_new_trade_value':False,'targeted_price_discovery_rows_are_search_only_not_broad_ranking':True,'counterparty_trade_feasibility_uses_same_shared_decision_utility_as_focal':True,'team_improvement_simulation_exposes_league_reference_for_current_utility':True,'trade_rows_expose_shared_utility_attribution':True,'decision_attribution_reconciles_authoritative_shared_utility_without_rescoring':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True,'outbound_future_value_discovery_uses_inverted_existing_gm3_packages':True,'outbound_future_value_discovery_creates_new_trade_value':False,'outbound_future_value_candidates_recomputed_through_shared_decision_utility':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.0','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.0','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
+        report=json.loads(out.read_text()); league=base.load_json(base.DATA/'league.json',{}) or {}; full,path=full_projection_doc(base,str(league.get('season') or '')); report['model_version']=MODEL_VERSION; report['projection_universe']={'model_version':full.get('model_version'),'path':str(path),'coverage':full.get('coverage') or {},'waiver_candidates_use_canonical_full_projection':True}; report.setdefault('search_summary',{})['strategic_posture']=posture; report['search_summary']['strategic_posture_changes_search_coverage_only']=True; report.setdefault('search_summary',{})['trade_packages_per_target_considered']=int(ppt); report['search_summary']['price_frontier_targets_expanded']=int(pft); report['search_summary']['price_frontier_packages_per_target_considered']=int(pfpt); report['search_summary']['targeted_adaptive_price_discovery_enabled']=bool(pft and pfpt); report.setdefault('policy',{}).update({'waiver_candidates_use_canonical_full_projection_universe':True,'hypothetical_simulator_uses_same_projection_universe_as_lineup_optimizer':True,'waiver_pre_screen_uses_fixed_cross_unit_coefficients':False,'waiver_discovery_is_scale_free_multilane':True,'trade_discovery_is_governed_multilane':True,'trade_discovery_preserves_bilateral_utility_lane':True,'trade_discovery_preserves_negotiation_fit_lane':True,'trade_discovery_preserves_seller_motivation_lane':True,'trade_discovery_preserves_target_diversity_lane':True,'trade_package_pre_screen_score_owned_by_upstream_gm3':True,'targeted_price_discovery_package_economics_owned_by_gm3':True,'targeted_price_discovery_target_selection_is_search_orchestration':True,'targeted_price_discovery_creates_new_trade_value':False,'targeted_price_discovery_rows_are_search_only_not_broad_ranking':True,'counterparty_trade_feasibility_uses_same_shared_decision_utility_as_focal':True,'team_improvement_simulation_exposes_league_reference_for_current_utility':True,'trade_rows_expose_shared_utility_attribution':True,'decision_attribution_reconciles_authoritative_shared_utility_without_rescoring':True,'seller_motivation_is_search_coverage_only':True,'negotiation_fit_is_search_coverage_only':True,'outbound_future_value_discovery_uses_inverted_existing_gm3_packages':True,'outbound_future_value_discovery_creates_new_trade_value':False,'outbound_future_value_candidates_recomputed_through_shared_decision_utility':True}); report['ranking_calibration']={'version':'shared-decision-utility-2.1','principle':'Team Improvement and Trade Decision use the same continuous primitive utility','shared_utility_model':'FSFFL-Shared-Decision-Utility-2.1','categorical_state_weights_active':False,'legacy_championship_diminishing_return_rule_active':False,'legacy_dynasty_value_guardrail_authoritative':False,'scale_status':'DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS','notes':'Displayed football outcomes remain raw Simulator results. Recommendation ranking uses one shared current/future/liquidity/resilience utility; acceptance remains separate. GM3 1.6 broadens discovery through governed lanes without creating a new ranking score.'}
         frontier={}
         for row in evaluated_trade_rows:
             target=row.get('target') or {}; key=(
