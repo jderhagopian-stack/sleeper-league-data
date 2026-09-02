@@ -51,7 +51,7 @@ from fsffl_report_style import (
 from reporting import league_title_odds_chart, team_state
 
 
-MODEL_VERSION = "FSFFL-League-Intelligence-Report-1.0"
+MODEL_VERSION = "FSFFL-League-Intelligence-Report-1.1"
 PAGE_WIDTH, PAGE_HEIGHT = landscape_page(letter)
 CONTENT_WIDTH = PAGE_WIDTH - 0.8 * inch
 FOCUS_DEFAULT = "846634401482792960"
@@ -87,11 +87,13 @@ def _rank(rows: list[Mapping[str, Any]], focus_id: str, key: str) -> int | None:
 def _source_health(payload: Mapping[str, Any]) -> dict[str, Any]:
     health = _map(payload.get("contract_health"))
     player = _map(health.get("player_value_authority"))
+    native = _map(health.get("native_player_value"))
     context = _map(health.get("gm3_team_context"))
     return {
         "player_quarantined": int(player.get("quarantined_player_count") or 0),
         "market_aliases": int(player.get("market_anchor_alias_count") or 0),
-        "model_vs_market_available": bool(player.get("authoritative_model_vs_market_available")),
+        "model_vs_market_available": bool(native.get("current_season_authority_available")),
+        "long_term_model_vs_market_available": bool(native.get("long_term_authority_available")),
         "team_context_compatible": bool(context.get("compatible")),
         "team_context_source": context.get("source_path"),
     }
@@ -424,9 +426,9 @@ def render(payload: Mapping[str, Any], output: Path, focus_id: str) -> None:
     # Page 5 - rankings.
     rankings = _map(views.get("player_value_rankings"))
     players = list(rankings.get("players") or [])
-    story += [PageBreak()] + _title(s, "PLAYER VALUE & RANKINGS", "Long-term market and current-season projection perspectives are deliberately kept separate")
+    story += [PageBreak()] + _title(s, "PLAYER VALUE & RANKINGS", "Independent FSFFL current-season contribution compared with long-term dynasty-market standing")
     long_rows = [["Rank", "Player", "Pos.", "Owner", "Long-term value", "2026 PPG", "Projection range"]]
-    for row in players[:15]:
+    for row in players[:10]:
         projection = _map(row.get("current_season_projection"))
         range_text = "Unavailable"
         if projection.get("available"):
@@ -437,21 +439,40 @@ def render(payload: Mapping[str, Any], output: Path, focus_id: str) -> None:
             f"{safe_float(projection.get('mean_weekly_projection')):.1f}" if projection.get("available") else "-",
             range_text,
         ])
-    projection_players = sorted([row for row in players if row.get("current_season_projection_rank")], key=lambda row: int(row.get("current_season_projection_rank")))[:15]
-    projection_rows = [["2026 rank", "Player", "Pos.", "Owner", "Projected PPG", "25th-75th range", "Long-term rank"]]
+    projection_players = sorted(
+        [row for row in players if row.get("fsffl_current_season_rank")],
+        key=lambda row: (int(row.get("fsffl_current_season_rank")), -safe_float(row.get("fsffl_current_season_value"))),
+    )[:10]
+    projection_rows = [["FSFFL rank", "Player", "Pos.", "Owner", "Value pts.", "Proj. pts.", "Mkt. rank"]]
     for row in projection_players:
-        projection = _map(row.get("current_season_projection"))
+        context = _map(row.get("fsffl_value_context"))
         projection_rows.append([
-            row.get("current_season_projection_rank"), clean(row.get("name")), row.get("position"), clean(row.get("current_owner_team")) or "Free agent",
-            f"{safe_float(projection.get('mean_weekly_projection')):.1f}", f"{safe_float(projection.get('mean_weekly_p25')):.1f} - {safe_float(projection.get('mean_weekly_p75')):.1f}", row.get("long_term_market_rank"),
+            row.get("fsffl_current_season_rank"), clean(row.get("name")), row.get("position"), clean(row.get("current_owner_team")) or "Free agent",
+            f"{safe_float(row.get('fsffl_current_season_value')):.1f}", f"{safe_float(context.get('regular_season_expected_points')):.1f}", row.get("long_term_market_rank"),
         ])
     story += [
         Table([
-            [P(s, "LONG-TERM MARKET LEADERS", "FS_Section"), P(s, "CURRENT-SEASON PROJECTION LEADERS", "FS_Section")],
-            [_row_table(long_rows, [0.32 * inch, 1.15 * inch, 0.32 * inch, 1.3 * inch, 0.72 * inch, 0.52 * inch, 0.72 * inch], font_size=6.0), _row_table(projection_rows, [0.4 * inch, 1.15 * inch, 0.32 * inch, 1.25 * inch, 0.65 * inch, 0.78 * inch, 0.5 * inch], font_size=6.0)],
+            [P(s, "LONG-TERM MARKET LEADERS", "FS_Section"), P(s, "FSFFL CURRENT-SEASON LEADERS", "FS_Section")],
+            [_row_table(long_rows, [0.32 * inch, 1.15 * inch, 0.32 * inch, 1.3 * inch, 0.72 * inch, 0.52 * inch, 0.72 * inch], font_size=6.0), _row_table(projection_rows, [0.58 * inch, 1.02 * inch, 0.32 * inch, 1.2 * inch, 0.68 * inch, 0.75 * inch, 0.5 * inch], font_size=6.0)],
         ], colWidths=[5.25 * inch, 5.25 * inch], style=[("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 2), ("RIGHTPADDING", (0, 0), (-1, -1), 2)]),
         Spacer(1, 6),
-        P(s, "Important limitation: a current independent FSFFL-versus-market ranking is not yet available. The old adjusted value field is quarantined because its provenance is no longer authorized. This report shows the governed market anchor and native current-season projection separately instead of manufacturing a disagreement score.", "FS_Small"),
+    ]
+    comparable = [row for row in players if row.get("fsffl_current_minus_market_percentile") is not None]
+    fsffl_higher = sorted(comparable, key=lambda row: safe_float(row.get("fsffl_current_minus_market_percentile")), reverse=True)[:4]
+    market_higher = sorted(comparable, key=lambda row: safe_float(row.get("fsffl_current_minus_market_percentile")))[:4]
+    gap_rows = [["Direction", "Player", "Pos.", "FSFFL pct.", "Market pct.", "Gap"]]
+    for direction, selected in (("Immediate value higher", fsffl_higher), ("Dynasty market higher", market_higher)):
+        for row in selected:
+            gap_rows.append([
+                direction, clean(row.get("name")), row.get("position"),
+                _pct(row.get("fsffl_current_season_percentile")), _pct(row.get("market_dynasty_percentile")),
+                _signed_pct(row.get("fsffl_current_minus_market_percentile"), 0),
+            ])
+    story += [
+        P(s, "WHERE FSFFL AND THE MARKET DIFFER", "FS_Section"),
+        _row_table(gap_rows, [1.5 * inch, 2.0 * inch, 0.45 * inch, 1.0 * inch, 1.0 * inch, 0.75 * inch], font_size=6.5),
+        Spacer(1, 4),
+        P(s, "The gap compares immediate, rule-adjusted 2026 contribution with long-term dynasty-market standing. Positive does not mean 'buy' and negative does not mean 'sell.' Young players will often rank higher in the dynasty market because the governed FSFFL model does not yet claim a validated multi-year value.", "FS_Small"),
     ]
 
     # Page 6 - team-relative value.
@@ -544,15 +565,16 @@ def render(payload: Mapping[str, Any], output: Path, focus_id: str) -> None:
 
     status_rows = [
         ["Source / capability", "Status", "What the report does"],
-        ["Player rankings", "Safe", "Shows market dynasty value and native projection rankings separately."],
+        ["Player rankings", "Safe", "Shows independent FSFFL current contribution and market dynasty standing separately."],
         ["Team-relative context", "Safe" if health["team_context_compatible"] else "Unavailable", "Consumes the fresh GM3/Simulator scenario artifact only when all source hashes match."],
         ["Old adjusted player values", f"{health['player_quarantined']} quarantined", "Excludes them from rankings because current authority/provenance is missing."],
         ["Old team profiles", "Quarantined", "Excludes profiles that mixed calculated team strength with manager posture."],
-        ["FSFFL vs. market", "Unavailable", "Does not fabricate an independent model ranking from a market alias."],
+        ["FSFFL vs. market", "Current-season available", "Compares independent immediate contribution percentile with dynasty-market percentile."],
+        ["Long-term FSFFL vs. market", "Validation pending", "Waits for a native multi-year model to clear temporal holdout testing."],
         ["Acceptance probability", "Not created", "Leaves counterparty feasibility and negotiation policy to their owning applications."],
     ]
     story += [P(s, "SOURCE HEALTH / FAIL-CLOSED BEHAVIOR", "FS_Section"), _row_table(status_rows, [1.85 * inch, 1.55 * inch, 6.85 * inch], font_size=7.0), Spacer(1, 7)]
-    story += [P(s, "What this report proves useful today: league position, roster shape, separate present/future player perspectives, roster-specific player impact, owner dependence, structural trade-partner investigation, and transparent decision attribution. What remains unfinished: an independent governed FSFFL player-value-versus-market view and an adaptable interactive interface.", "LI_Lead")]
+    story += [P(s, "What this report proves useful today: league position, roster shape, independent current-season player contribution, current-versus-market disagreements, roster-specific player impact, owner dependence, structural trade-partner investigation, and transparent decision attribution. What remains unfinished: a validated native multi-year value and an adaptable interactive interface.", "LI_Lead")]
 
     document.build(story, onFirstPage=_footer, onLaterPages=_footer)
 
