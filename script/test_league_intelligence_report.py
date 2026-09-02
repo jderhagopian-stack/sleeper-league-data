@@ -53,6 +53,9 @@ with tempfile.TemporaryDirectory() as tmp:
         "decision inspector & source health",
         "not player prices",
         "53 quarantined",
+        "hungry dawgs",
+        "23.3",
+        "17.0 - 29.7",
     ):
         assert phrase in lower, phrase
     for banned in (
@@ -67,6 +70,7 @@ with tempfile.TemporaryDirectory() as tmp:
     ):
         assert banned not in lower, banned
     assert "do not establish a fair price" in lower
+    assert lower.count("free agent") < 5
     assert "..." not in text and "\u2026" not in text
     assert source["architecture"]["read_only"]["recommendation_authority"] is False
     assert source["views"]["trade_partner_intelligence"]["recommendation"] is False
