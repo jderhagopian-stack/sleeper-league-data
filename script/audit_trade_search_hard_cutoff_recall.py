@@ -84,7 +84,7 @@ def main():
                 "packages_fully_evaluated":len(packages),
                 "viable_package_count":len(viable),
                 "best_viable_package":viable[0] if viable else None,
-                "hard_cutoff_false_negative":bool(viable),
+                "candidate_recall_risk":bool(viable),\n                "canonical_shared_utility_confirmed":False,
             }
             tested.append(row)
             if viable:
@@ -96,7 +96,7 @@ def main():
             "team_name":(ctx["owners"].get(uid) or {}).get("team_name"),
             "excluded_target_count":len(excluded),
             "excluded_targets_tested":len(test_rows),
-            "false_negative_count":sum(x["hard_cutoff_false_negative"] for x in tested),
+            "candidate_recall_risk_count":sum(x["candidate_recall_risk"] for x in tested),
             "tested_targets":tested,
         })
 
@@ -114,10 +114,10 @@ def main():
             "hard_cutoff_recall_failure_detected":bool(false_negative_rows),
             "production_change_authorized_by_this_artifact":False
         },
-        "false_negative_targets":false_negative_rows,
+        "candidate_recall_risk_targets":false_negative_rows,
         "teams":team_rows,
         "interpretation":{
-            "viable_excluded_target_is_evidence_against_hard_cutoff":True,
+            "upstream_viable_excluded_target_requires_canonical_confirmation":True,\n            "upstream_viability_alone_is_not_promotion_evidence":True,
             "no_false_negative_found_is_not_proof_of_perfect_recall":True,
             "targeted_price_discovery_remains_existing_gm3_economics":True,
             "hurts_so_good_rankings_used_as_ground_truth":False
