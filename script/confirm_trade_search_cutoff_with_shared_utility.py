@@ -72,7 +72,7 @@ def main():
         )
         evaluators[focus_uid]=evaluator
         for c in by_focus[focus_uid]:
-            pkg=c.get("best_viable_package") or {}
+            pkg=c.get("best_upstream_viable_package") or {}
             outgoing_ids=[str(x) for x in (pkg.get("focal_outgoing_asset_ids") or [])]
             target_id=str(c.get("asset_id") or "")
             seller=str(c.get("seller_user_id") or "")
