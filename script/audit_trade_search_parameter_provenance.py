@@ -122,7 +122,8 @@ def main():
         "hard_exclusion_count":sum("HARD" in x["runtime_authority"] for x in findings),
         "legacy_arbitrary_count":sum(x["evidence_classification"]=="LEGACY_ARBITRARY_HEURISTIC" for x in findings),
         "final_utility_coefficients_created":0,
-        "production_changes_recommended_in_this_pr":0,\n        "trade_decision_prescreen_coefficients_implicated":0
+        "production_changes_recommended_in_this_pr":0,
+        "trade_decision_prescreen_coefficients_implicated":0
       },
       "policy":{
         "search_heuristic_is_not_final_decision_authority":True,\n        "trade_decision_current_prescreen_is_separate_and_coefficient_free":True,\n        "these_findings_apply_to_gm3_proactive_discovery_and_price_search":True,
