@@ -17,6 +17,7 @@ on:
       - 'script/audit_trade_search_hard_cutoff_recall.py'
       - 'script/confirm_trade_search_cutoff_with_shared_utility.py'
       - 'script/audit_cross_asset_parameter_provenance.py'
+      - 'script/audit_effective_objective_channel_authority.py'
       - 'script/build_coefficient_recalibration_research_summary.py'
       - 'data/model_governance/coefficient_family_research_findings.json'
       - 'script/test_simulator_backup_assignment_optimality.py'
@@ -63,6 +64,8 @@ jobs:
         run: python script/confirm_trade_search_cutoff_with_shared_utility.py
       - name: Audit cross-asset and future-pick parameter provenance
         run: python script/audit_cross_asset_parameter_provenance.py
+      - name: Measure effective objective-channel authority
+        run: python script/audit_effective_objective_channel_authority.py
       - name: Build consolidated coefficient research summary
         run: python script/build_coefficient_recalibration_research_summary.py
       - name: Detect greedy backup-assignment suboptimality
@@ -127,6 +130,12 @@ jobs:
           assert summary['summary']['production_promotions_made']==0
           assert summary['summary']['legacy_arbitrary_count'] >= 1
           assert len(summary['do_not_change_yet']) >= 1
+
+          channels=json.load(open('data/audit/effective_objective_channel_authority.json'))
+          assert channels['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert channels['production_behavior_changed'] is False
+          assert channels['conclusions']['all_final_utility_contract_checks_pass'] is True
+          assert channels['conclusions']['nominal_weight_does_not_imply_effective_weight'] is True
 
           ca=json.load(open('data/audit/cross_asset_parameter_provenance.json'))
           assert ca['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
@@ -199,5 +208,6 @@ jobs:
             data/audit/trade_search_hard_cutoff_recall.json
             data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json
             data/audit/cross_asset_parameter_provenance.json
+            data/audit/effective_objective_channel_authority.json
             data/model_validation/coefficient_recalibration_research_summary.json
           retention-days: 30
