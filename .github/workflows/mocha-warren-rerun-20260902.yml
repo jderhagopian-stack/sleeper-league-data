@@ -1,0 +1,94 @@
+name: Mocha Warren Trade Rerun 2026-09-02
+
+on:
+  push:
+    branches:
+      - analysis/mocha-warren-rerun-20260902
+    paths:
+      - '.github/workflows/mocha-warren-rerun-20260902.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Build scenario
+        run: |
+          cat > /tmp/mocha.json <<'JSON'
+          {
+            "scenario_id":"mocha_warren_offer_rerun_20260902",
+            "description":"Incoming offer to MochaSmevs: receive Mark Andrews, DK Metcalf, Drigs24 2029 2nd, Drigs24 2029 3rd, and The Associate 2029 3rd; send Tyler Warren.",
+            "focus_user_id":"844785316274483200",
+            "actions":[
+              {
+                "type":"trade",
+                "from_user_id":"844785316274483200",
+                "to_user_id":"850548458887704576",
+                "players":["12518"],
+                "picks":[]
+              },
+              {
+                "type":"trade",
+                "from_user_id":"850548458887704576",
+                "to_user_id":"844785316274483200",
+                "players":["5012","5846"],
+                "picks":["pick:2029:R2:orig11","pick:2029:R3:orig11","pick:2029:R3:orig4"]
+              }
+            ]
+          }
+          JSON
+      - name: Run production Trade Decision
+        run: |
+          mkdir -p /tmp/mocha-out
+          python script/run_trade_report.py \
+            --scenario /tmp/mocha.json \
+            --out-dir /tmp/mocha-out \
+            --basename mocha-warren-rerun \
+            --quick-sims 200 \
+            --adaptive-confirm-sims 50000 \
+            --search-depth 60 \
+            > /tmp/mocha-out/pipeline.log
+      - name: Extract key results
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/mocha-out/mocha-warren-rerun.json').read_text())
+          cur=r.get('current_offer_evaluation') or {}
+          sim=cur.get('simulation') or {}
+          attr=cur.get('decision_attribution') or {}
+          diag=attr.get('diagnostics') or {}
+          out={
+            'recommended_next_action':r.get('recommended_next_action'),
+            'shared_decision_utility_score':cur.get('shared_decision_utility_score'),
+            'shared_decision_utility_model_version':attr.get('shared_decision_utility_model_version'),
+            'current_value_evidence':diag.get('current_value_evidence'),
+            'current_value_evidence_count':diag.get('current_value_evidence_count'),
+            'current_value_aggregation':diag.get('current_value_aggregation'),
+            'focus_delta':sim.get('focus_delta'),
+            'strategic':sim.get('strategic'),
+            'roster_diagnosis':sim.get('roster_diagnosis'),
+            'forced_cuts':sim.get('automatic_roster_cut_actions'),
+            'simulation_count':sim.get('simulation_count'),
+            'short_answer':json.loads(Path('/tmp/mocha-out/mocha-warren-rerun-summary.json').read_text()).get('short_answer'),
+          }
+          Path('/tmp/mocha-out/key-results.json').write_text(json.dumps(out,indent=2)+'\n')
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mocha-warren-rerun-20260902
+          path: /tmp/mocha-out/*
+          if-no-files-found: error
+          retention-days: 30
