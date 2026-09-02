@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "High-impact seed adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, and Behavioral Intelligence. Full Phase 1 exact-site review remains in progress.",
+  "scope_note": "High-impact adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, Behavioral Intelligence, roster-cut resolution, negotiation frontier/ranking, and future-pick economics. Full Phase 1 exact-site review remains in progress.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -367,6 +367,184 @@
       "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
       "recommended_action": "DIAGNOSTIC_ONLY",
       "evidence_needed_for_further_promotion": "Prefer exposing need and surplus separately. Any combined redundancy score should require held-out predictive evidence before receiving authority."
+    },
+    {
+      "parameter_id": "ROSTER-CUT-RETENTION-COST-001",
+      "module": "Shared Core roster resolution",
+      "path": "script/roster_aware_trade.py",
+      "parameter_name": "cut_profile retention_cost coefficients",
+      "current_value_function": {
+        "redraft_fallback_weight": 0.25,
+        "break_glass_weight": 0.12,
+        "depth_weight": 0.06,
+        "market_liquidity_weight": 0.04,
+        "starter_multiplier": 1.75,
+        "core_status_multipliers": {
+          "franchise_cornerstone": 2,
+          "core_high_hold": 1.7,
+          "core_pick": 1.35,
+          "liquid_asset": 1.12
+        }
+      },
+      "runtime_authority": "PRESCREEN_CUT_ORDERING; CAN_RETAIN FINAL AUTHORITY IN LARGE_OR_NON_FOCAL_PLAN_SPACES",
+      "downstream_consumers": [
+        "post-trade roster legalization",
+        "Simulator hypothetical roster",
+        "GM3/Trade Decision utility through selected cut plan"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "legacy hand-set retention-cost ordering retained as search acceleration/fallback; tractable final focal plans are re-evaluated through canonical downstream Trade Score",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "PARTIAL_OVERLAP_WITH_BASE_VALUE_BREAK_GLASS_DEPTH_LIQUIDITY_AND_STARTER_STATUS",
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "HIGH_WHEN_CUT_CHOICE_DIFFERS",
+      "estimated_decision_impact": "MEDIUM_HIGH_IN_OVERFLOW_TRADES; LOWER_WHERE_FINAL_PLAN_ENUMERATION_IS_EXACT",
+      "replacement_feasibility": "SIMULATION_IDENTIFIABLE_BY_CUT_PLAN_ENUMERATION_OR_TOP_K_SEARCH",
+      "identifiability_class": "SIMULATION_IDENTIFIABLE",
+      "recommended_action": "REPLACE_WITH_DATA_DERIVED_SCALE",
+      "evidence_needed_for_further_promotion": "Prefer canonical downstream utility to select among legal cut plans. Expand exact/top-k enumeration until retention-cost formula is search-only; if a prescreen remains, estimate recall against exact cut-plan winners rather than fitting intuitive multipliers."
+    },
+    {
+      "parameter_id": "ROSTER-CUT-SHORTLIST-001",
+      "module": "Shared Core roster resolution",
+      "path": "script/roster_aware_trade.py",
+      "parameter_name": "CUT_SHORTLIST_SIZE",
+      "current_value_function": 3,
+      "runtime_authority": "COMPUTATIONAL_SEARCH_BUDGET_NOT_FRANCHISE_ECONOMIC_WEIGHT",
+      "downstream_consumers": [
+        "cut-plan candidate coverage"
+      ],
+      "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
+      "provenance": "runtime shortlist budget for exposing low-retention-cost alternatives; does not itself assign economic value",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": true,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "SEARCH_RECALL_MEASURABLE",
+      "sensitivity_level": "MEDIUM_IF_TRUE_BEST_CUT_FALLS_OUTSIDE_SHORTLIST",
+      "estimated_decision_impact": "INDIRECT_VIA_SEARCH_COVERAGE",
+      "replacement_feasibility": "EXACT_PLAN_RECALL_BENCHMARK",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Benchmark top-k recall against exact canonical cut-plan winners across representative rosters; choose smallest budget that meets a documented recall/convergence target."
+    },
+    {
+      "parameter_id": "NEGOTIATION-RANKING-WEIGHTS-001",
+      "module": "Trade Decision",
+      "path": "script/negotiation_ranking.py",
+      "parameter_name": "STRATEGIC_WEIGHT / ACCEPTANCE_WEIGHT / OWNER_BEHAVIOR_WEIGHT",
+      "current_value_function": {
+        "focal_utility": 1,
+        "acceptance_fit": 0,
+        "owner_behavior": 0
+      },
+      "runtime_authority": "ACTIVE_RANKING_IDENTITY_AFTER_BILATERAL_VIABILITY",
+      "downstream_consumers": [
+        "Trade Decision negotiation ordering",
+        "Opportunity Engine routed trade presentation"
+      ],
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "governance/architecture de-duplication: canonical focal Shared Decision Utility remains ranking authority; acceptance and behavioral evidence are diagnostic rather than assigned arbitrary exchange rates",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "POSITIVE_ACCEPTANCE_OR_BEHAVIOR_WEIGHTS_WOULD_DUPLICATE_FEASIBILITY_EVIDENCE",
+      "uncertainty_status": "NOT_A_CALIBRATION_CLAIM",
+      "sensitivity_level": "STRUCTURAL",
+      "estimated_decision_impact": "HIGH_GOVERNANCE_SAFEGUARD",
+      "replacement_feasibility": "NOT_A_PARAMETER_FIT_TARGET_UNLESS_NEW_INDEPENDENT_DECISION_OBJECTIVE_IS_GOVERNED",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "None for zero incremental acceptance/behavior authority. Any future positive exchange weight would require independent evidence plus architecture review and exact provenance registration."
+    },
+    {
+      "parameter_id": "NEGOTIATION-FRONTIER-SIGN-001",
+      "module": "Trade Decision",
+      "path": "script/trade_decision/negotiation_frontier.py",
+      "parameter_name": "bilateral and focal utility sign boundary",
+      "current_value_function": {
+        "counterparty_viable": "shared_utility >= 0",
+        "focal_viable": "team_improvement_utility > 0"
+      },
+      "runtime_authority": "ACTIVE_DISCRETE_MUTUAL_BENEFIT_BOUNDARY",
+      "downstream_consumers": [
+        "seller clearing package set",
+        "focal ceiling package set",
+        "deal zone",
+        "negotiation bucket"
+      ],
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "zero is the semantic indifference point of the canonical utility delta, not a fitted acceptance threshold",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "INHERITS_UNCERTAINTY_OF_UNDERLYING_UTILITIES",
+      "sensitivity_level": "HIGH_NEAR_ZERO",
+      "estimated_decision_impact": "HIGH_NEAR_FRONTIER",
+      "replacement_feasibility": "UNCERTAINTY_AWARE_DECISION_POLICY_RESEARCH_NOT_THRESHOLD_TUNING",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Validate uncertainty around utilities and near-zero stability. Do not move the zero boundary merely to create more intuitive deals."
+    },
+    {
+      "parameter_id": "PICK-CONTINUOUS-QUALITY-001",
+      "module": "Shared Core valuation / future-pick economics",
+      "path": "script/nonprojection_high_priority_overrides.py",
+      "parameter_name": "Simulator percentile interpolation across external early/mid/late pick cells",
+      "current_value_function": "piecewise linear early→mid for percentile <=0.5 and mid→late for percentile >0.5",
+      "runtime_authority": "ACTIVE_FUTURE_PICK_POINT_ESTIMATE",
+      "downstream_consumers": [
+        "pick market value",
+        "GM3 utility",
+        "trade economics",
+        "Opportunity Engine routed proposals"
+      ],
+      "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
+      "provenance": "canonical Simulator competitive percentile supplies continuous original-owner quality coordinate; observed external early/mid/late market cells supply value anchors; legacy categorical valuation cliff removed",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": true,
+      "externally_anchored": true,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "EARLY_MID_LATE_CELLS_EXPOSED_AS_SCENARIO_BOUNDS_NOT_PROBABILITIES",
+      "sensitivity_level": "MEDIUM_HIGH_FOR_FUTURE_PICKS",
+      "estimated_decision_impact": "HIGH_WHEN_PICK_ASSETS_ARE_MATERIAL",
+      "replacement_feasibility": "TEMPORAL_OWNER_STRENGTH_TO_REALIZED_SLOT_CALIBRATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Frozen preseason owner-state cohorts versus realized draft slots across horizons; validate percentile persistence and interval coverage before claiming calibrated slot probabilities."
+    },
+    {
+      "parameter_id": "PICK-MARKET-SCALE-001",
+      "module": "Shared Core valuation / future-pick economics",
+      "path": "script/nonprojection_high_priority_overrides.py",
+      "parameter_name": "Stats Guy to active market scale normalization",
+      "current_value_function": "median FantasyCalc/Stats Guy ratio over overlapping player values",
+      "runtime_authority": "ACTIVE_EXTERNAL_PICK_ANCHOR_SCALE_WHEN_STATS_GUY_AVAILABLE",
+      "downstream_consumers": [
+        "future-pick external market anchor"
+      ],
+      "evidence_classification": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "provenance": "data-derived median scale normalization across contemporaneous overlapping player values; no manually selected conversion coefficient",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": true,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "CROSS_SOURCE_SCALE_AND_COVERAGE_UNCERTAINTY",
+      "sensitivity_level": "MEDIUM",
+      "estimated_decision_impact": "MEDIUM_HIGH_FOR_PICK_HEAVY_PACKAGES",
+      "replacement_feasibility": "DIRECT_CROSS_SOURCE_ROBUSTNESS_TEST",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Track overlap count, ratio dispersion, temporal stability, and alternative robust scales; replace only if held-out/current cross-source calibration improves."
     }
   ]
 }
