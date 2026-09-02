@@ -87,15 +87,15 @@
   "unregistered_or_underdecomposed_concepts": [
     {
       "concept": "optionality",
-      "status": "NEEDS_EXPLICIT_FAMILY",
+      "status": "REGISTERED_RESIDUAL_FAMILY_PRODUCTION_DISABLED",
       "observation": "Shared Decision Utility exposes optionality_value_delta diagnostically but the registry does not give optionality its own material parameter family.",
-      "next_step": "Create an OPTIONALITY family separating true reversibility/upside optionality from market value, liquidity, and resilience overlap."
+      "next_step": "Use OPTIONALITY-RESIDUAL-001 to decompose overlap and test bounded priors before production authority."
     },
     {
       "concept": "asset_concentration_and_best_asset_premium",
-      "status": "NEEDS_EXPLICIT_FAMILY_OR_PACKAGE_ECON_SUBFAMILY",
+      "status": "REGISTERED_RESIDUAL_FAMILY_SENSITIVITY_ACTIVE_PRODUCTION_DISABLED",
       "observation": "The current package curve approximates diminishing value of additional assets, but the governance registry does not separately state the residual economics of surrendering the best/scarcest asset in a multi-asset trade.",
-      "next_step": "Model as aggregation/concentration residual, not as a rank-derived market reprice."
+      "next_step": "Use PACKAGE-CONCENTRATION-RESIDUAL-001 sensitivity envelope; calibrate only from frozen residual evidence."
     }
   ],
   "high_leverage_systemic_findings": [
