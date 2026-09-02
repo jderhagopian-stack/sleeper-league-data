@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "High-impact adjudication expanded across all major registry families: rules, projection mean/uncertainty, state weights, market and pick economics, package/cut/search mechanics, behavioral/acceptance context, Shared Decision Utility, Team Improvement, negotiation frontier/ranking, scarcity, Simulator stochastic mechanics, and counterfactual governance. Exact static-site adjudication remains incremental.",
+  "scope_note": "Major-family high-impact adjudication now covers every family in the current model parameter registry. Exact Python/JSON static-site adjudication remains incremental and is tracked separately by the generated inventory.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -1090,6 +1090,112 @@
       "identifiability_class": "SIMULATION_IDENTIFIABLE",
       "recommended_action": "RETAIN_AS_GOVERNED_PRIOR",
       "evidence_needed_for_further_promotion": "Preserve functionality with explicit modeled-inference labels; calibrate only observable branch probabilities and never imply the not-yet-production historical Alternate History application exists."
+    },
+    {
+      "parameter_id": "LEAGUE-RULES-AUTHORITY-001",
+      "module": "Shared Core league rules",
+      "path": "script/league_rules.py",
+      "parameter_name": "league scoring, lineup, roster, draft and playoff configuration",
+      "current_value_function": "Sleeper-synced rule values normalized through governed league-rule helpers",
+      "runtime_authority": "AUTHORITATIVE_RULE_MECHANICS",
+      "downstream_consumers": [
+        "scoring",
+        "lineup optimization",
+        "Simulator",
+        "roster legality",
+        "draft logic",
+        "Trade Decision"
+      ],
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "league configuration and standard Sleeper rule semantics, not fitted coefficients",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": true,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "NONE_WHEN_RULES_CORRECTLY_ENCODED",
+      "sensitivity_level": "HIGH_BUT_RULE_DEFINED",
+      "estimated_decision_impact": "VERY_HIGH",
+      "replacement_feasibility": "NOT_A_CALIBRATION_TARGET",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Maintain portability tests for alternate league formats and verify external semantics before supporting undocumented/nonstandard rules."
+    },
+    {
+      "parameter_id": "MARKET-RANK-REPRICING-001",
+      "module": "Shared Core market valuation",
+      "path": "script/build_fsffl_gm_engine.py",
+      "parameter_name": "same-source market rank elite/depth repricing",
+      "current_value_function": "inactive; market rank remains descriptive and multiplier is neutral",
+      "runtime_authority": "NO_INCREMENTAL_VALUE_AUTHORITY",
+      "downstream_consumers": [
+        "market context only"
+      ],
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "provenance": "former hand-set FantasyCalc rank-tier premium/discount structurally removed because it repriced the same external market anchor using its own rank",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": true,
+      "duplicated_elsewhere": "YES_SAME_SOURCE_MARKET_SIGNAL",
+      "uncertainty_status": "REMOVED_FROM_AUTHORITY",
+      "sensitivity_level": "NONE_CURRENT_AUTHORITY",
+      "estimated_decision_impact": "NONE_CURRENT_AUTHORITY",
+      "replacement_feasibility": "ONLY_IF_HELD_OUT_RESIDUAL_MODEL_ADDS_INCREMENTAL_VALUE",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "ELIMINATE",
+      "evidence_needed_for_further_promotion": "Keep inactive. Reintroduce only a versioned residual model that improves future outcomes/value beyond the contemporaneous market anchor."
+    },
+    {
+      "parameter_id": "MARKET-MOMENTUM-DIAGNOSTIC-001",
+      "module": "Shared Core market valuation",
+      "path": "script/nonprojection_high_priority_overrides.py",
+      "parameter_name": "30-day same-source market trend incremental adjustment",
+      "current_value_function": "zero incremental valuation adjustment; proposed adjustment retained diagnostically",
+      "runtime_authority": "DIAGNOSTIC_ONLY",
+      "downstream_consumers": [
+        "market momentum explanation/context"
+      ],
+      "evidence_classification": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "provenance": "FantasyCalc 30-day trend comes from the same source as current FantasyCalc value; governed override removes incremental repricing to prevent same-source signal reuse",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": true,
+      "duplicated_elsewhere": "POTENTIALLY_YES_CURRENT_MARKET_VALUE_MAY_ALREADY_EMBED_TREND_INFORMATION",
+      "uncertainty_status": "INCREMENTAL_PREDICTIVE_VALUE_UNKNOWN",
+      "sensitivity_level": "NONE_CURRENT_AUTHORITY",
+      "estimated_decision_impact": "DIAGNOSTIC_ONLY",
+      "replacement_feasibility": "TEMPORAL_MARKET_RESIDUAL_TEST",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "evidence_needed_for_further_promotion": "Test whether trend predicts future FSFFL-relevant value/outcomes after conditioning on current market value; keep zero incremental authority unless held-out residual lift is stable."
+    },
+    {
+      "parameter_id": "GM22-LEGACY-MULTIPLIERS-001",
+      "module": "Legacy GM mechanics provider",
+      "path": "script/build_fsffl_gm_engine.py",
+      "parameter_name": "owner need/preference/window/endowment/starter/depth and football repricing multipliers",
+      "current_value_function": "legacy calculations preserved for diagnostics/reproducibility but governed overrides remove independent current market-value authority",
+      "runtime_authority": "LEGACY_DIAGNOSTIC_OR_MECHANICS_PROVIDER_ONLY; NO_INDEPENDENT_REPRICING_AUTHORITY",
+      "downstream_consumers": [
+        "diagnostic GM context",
+        "legacy reproducibility"
+      ],
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "provenance": "historical hand-set multipliers; governance audit confirms owner-specific and football-market repricing is disabled in current authoritative path",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "YES_WITH_GM3_UTILITY_PROJECTIONS_SIMULATOR_AND_BEHAVIORAL_INTELLIGENCE_IF_REENABLED",
+      "uncertainty_status": "HIGH_BUT_DEAUTHORIZED",
+      "sensitivity_level": "NONE_CURRENT_INCREMENTAL_AUTHORITY",
+      "estimated_decision_impact": "NONE_AS_INDEPENDENT_REPRICING",
+      "replacement_feasibility": "STRUCTURAL_ELIMINATION_PREFERRED_OVER_RECALIBRATION",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "evidence_needed_for_further_promotion": "Do not recalibrate as a bundle. Any individual signal must demonstrate time-ordered incremental value beyond its canonical owner before reintroduction."
     }
   ]
 }
