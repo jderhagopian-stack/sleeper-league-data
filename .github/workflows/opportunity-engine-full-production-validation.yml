@@ -81,6 +81,10 @@ jobs:
           python script/render_opportunity_engine_report.py \
             --input /tmp/oe-full/opportunity-board.json \
             --output /tmp/oe-full/Opportunity_Engine_Report.md
+          python script/render_opportunity_report.py \
+            --input /tmp/oe-full/opportunity-board.json \
+            --focus-user-id 846634401482792960 \
+            --output /tmp/oe-full/Hurts_So_Good_Opportunity_Report.pdf
           python script/audit_contender_state_utility_calibration.py \
             --input /tmp/oe-full/opportunity-board.json \
             --output /tmp/oe-full/contender-state-utility-audit.json \
