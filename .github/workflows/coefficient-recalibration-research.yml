@@ -47,6 +47,11 @@ jobs:
           assert r['authority']=='RESEARCH_READINESS_ONLY'
           assert r['production_behavior_changed'] is False
           assert r['summary']['authoritative_empirical_state_weight_claim_allowed'] is False
+          assert r['summary']['pristine_temporal_state_weight_calibration_ready'] is False
+          assert r['summary']['pristine_frozen_projection_archive_detected'] is False
+          assert r['summary']['pristine_frozen_market_archive_detected'] is False
+          assert r['summary']['pristine_frozen_gm3_bundle_archive_detected'] is False
+          assert r['policy']['filename_or_path_name_is_not_evidence_of_frozen_archive_status'] is True
 
           s=json.load(open('data/audit/state_weight_shadow_research.json'))
           assert s['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
