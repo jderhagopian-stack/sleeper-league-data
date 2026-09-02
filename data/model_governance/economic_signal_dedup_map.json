@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Economic-Signal-Dedup-1.0",
+  "policy": {
+    "one_economic_effect_one_authoritative_path": true,
+    "same_source_market_repricing_cannot_be_residual_value": true,
+    "search_or_behavior_signals_cannot_be_economic_value_without_separate_validation": true,
+    "roster_legalization_cost_is_not_package_concentration": true,
+    "lineup_replacement_loss_is_not_package_concentration": true,
+    "market_value_is_not_team_specific_replacement_value": true,
+    "bounded_priors_apply_only_to_residual_effects": true
+  },
+  "concepts": [
+    {
+      "concept": "package_concentration_and_aggregation",
+      "economic_question": "How much less useful is a collection of lower-tier assets than an equal additive market-value amount concentrated in a superior asset?",
+      "already_captured": [
+        "forced roster cuts and exact roster legalization",
+        "current-season optimized lineup changes",
+        "raw additive market dynasty value"
+      ],
+      "not_equivalent_to": [
+        "forced-cut cost",
+        "starter replacement loss",
+        "same-source market rank premium",
+        "behavioral acceptance fit"
+      ],
+      "current_paths": {
+        "search_discovery": "build_fsffl_gm_engine._u_package_effective_value",
+        "final_shared_utility": "raw additive market_dynasty_delta"
+      },
+      "residual_candidate": true,
+      "double_count_guard": "Any promoted concentration effect must be computed only after excluding forced-cut and lineup effects and must not use market rank to reprice the same market anchor."
+    },
+    {
+      "concept": "optionality",
+      "economic_question": "What asymmetric future/reversibility value remains after current dynasty market value, liquidity, and replacement resilience are accounted for?",
+      "already_captured": [
+        "current dynasty market value",
+        "separate liquidity channel when authorized",
+        "separate resilience channel when authorized"
+      ],
+      "not_equivalent_to": [
+        "generic youth premium",
+        "market momentum",
+        "forecast variance by itself"
+      ],
+      "current_paths": {
+        "diagnostic": "decision_lab_state_aware optionality_value_delta",
+        "final_shared_utility": "diagnostic only"
+      },
+      "residual_candidate": true,
+      "double_count_guard": "Only residual asymmetric value not contained in market value/liquidity/resilience may be promoted."
+    },
+    {
+      "concept": "liquidity",
+      "economic_question": "What value comes from ease of converting an asset into other useful assets without large price concession?",
+      "already_captured": [
+        "some liquidity embedded in market prices"
+      ],
+      "not_equivalent_to": [
+        "optionality",
+        "manager willingness to trade",
+        "market trend"
+      ],
+      "current_paths": {
+        "diagnostic_and_channel": "state-aware liquidity_value_delta",
+        "final_shared_utility": "authorized only when explicit residual authorization exists"
+      },
+      "residual_candidate": true,
+      "double_count_guard": "Estimate only residual transaction/reversibility value beyond the market anchor."
+    },
+    {
+      "concept": "replacement_resilience_and_depth",
+      "economic_question": "How much roster-specific value comes from maintaining viable replacements under injury/availability stress?",
+      "already_captured": [
+        "lineup reoptimization",
+        "current-season simulator substitution",
+        "some GM3 replacement-resilience calculations"
+      ],
+      "not_equivalent_to": [
+        "market positional scarcity",
+        "generic bench depth premium"
+      ],
+      "current_paths": {
+        "diagnostic_and_channel": "replacement_resilience_score / resilience_value_delta",
+        "roster_interaction": "same-team/position insurance diagnostic"
+      },
+      "residual_candidate": true,
+      "double_count_guard": "A promoted residual must improve stress/replacement outcomes beyond canonical lineup/simulator resilience."
+    },
+    {
+      "concept": "starter_dependency",
+      "economic_question": "Does surrendering a uniquely important starter create team-specific loss not captured by additive market value?",
+      "already_captured": [
+        "optimized starter redraft delta",
+        "simulated current-season outcomes",
+        "position-need diagnosis"
+      ],
+      "not_equivalent_to": [
+        "endowment",
+        "market tier scarcity"
+      ],
+      "current_paths": {
+        "legacy": "owner hold starter_dependency_premium disabled",
+        "canonical": "lineup/simulator evidence active"
+      },
+      "residual_candidate": false,
+      "double_count_guard": "Do not add a generic starter premium on top of lineup/simulator evidence unless a distinct future-horizon residual is demonstrated."
+    },
+    {
+      "concept": "endowment_or_hold_friction",
+      "economic_question": "Should an incumbent owner require compensation merely because the asset is already held?",
+      "already_captured": [
+        "none structurally required"
+      ],
+      "not_equivalent_to": [
+        "scarcity",
+        "optionality",
+        "seller behavioral reluctance"
+      ],
+      "current_paths": {
+        "legacy": "owner endowment multipliers disabled",
+        "behavior": "seller/owner tendencies remain descriptive"
+      },
+      "residual_candidate": false,
+      "double_count_guard": "Behavioral reluctance belongs to feasibility/negotiation, not focal economic value. Do not revive generic endowment value without transaction evidence."
+    },
+    {
+      "concept": "market_momentum",
+      "economic_question": "Does recent price direction add predictive value beyond current market price?",
+      "already_captured": [
+        "same FantasyCalc market source current value"
+      ],
+      "not_equivalent_to": [
+        "football news context"
+      ],
+      "current_paths": {
+        "diagnostic": "market momentum diagnostic only"
+      },
+      "residual_candidate": false,
+      "double_count_guard": "Same-source trend cannot reprice current same-source value without time-ordered residual improvement."
+    },
+    {
+      "concept": "manager_behavior_and_acceptance",
+      "economic_question": "How likely is a counterparty to engage with or accept a structure?",
+      "already_captured": [
+        "behavioral intelligence",
+        "buyer shared utility feasibility"
+      ],
+      "not_equivalent_to": [
+        "focal economic value",
+        "market value"
+      ],
+      "current_paths": {
+        "search_and_negotiation": "behavioral/acceptance layers",
+        "final_shared_utility": "zero economic weight"
+      },
+      "residual_candidate": false,
+      "double_count_guard": "Keep as search/feasibility evidence unless a separately defined economic effect is established."
+    }
+  ]
+}
