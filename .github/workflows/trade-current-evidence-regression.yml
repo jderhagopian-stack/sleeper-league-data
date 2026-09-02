@@ -1,0 +1,90 @@
+name: Trade Current-Evidence Regression
+
+on:
+  push:
+    branches:
+      - fix/trade-current-evidence-ensemble
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Compile and unit regressions
+        run: |
+          python -m py_compile script/decision_utility.py script/decision_attribution.py
+          python script/test_decision_utility_current_evidence.py
+          python script/test_focal_utility_stability.py
+      - name: Run Warren regression through production trade path
+        run: |
+          mkdir -p /tmp/current-evidence
+          python script/run_trade_report.py \
+            --scenario data/decision_lab/mochasmevs_warren_current_evidence_regression.json \
+            --out-dir /tmp/current-evidence \
+            --basename mocha-warren-regression \
+            --quick-sims 200 \
+            --adaptive-confirm-sims 50000 \
+            --search-depth 60 \
+            | tee /tmp/current-evidence/mocha-warren.log
+      - name: Validate model-driven regression semantics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/current-evidence/mocha-warren-regression.json')
+          r=json.loads(p.read_text())
+          cur=r['current_offer_evaluation']
+          sim=cur['simulation']
+          util=cur['decision_attribution']
+          diag=util['diagnostics']
+          ev=diag['current_value_evidence']
+          assert util['shared_decision_utility_model_version']=='FSFFL-Shared-Decision-Utility-2.1'
+          assert diag['current_value_aggregation']=='UNWEIGHTED_MEDIAN_SAME_UNIT_EVIDENCE'
+          assert diag['current_value_evidence_count']==3
+          assert ev['simulator_outcome_value'] > 0
+          assert ev['transaction_market_redraft_delta'] < 0
+          assert ev['optimized_starter_redraft_delta'] < 0
+          assert util['channels'][0]['primitive_value'] < 0
+          assert cur['shared_decision_utility_score'] < 0
+          assert r['recommended_next_action'] != 'ACCEPT_NOW'
+          assert diag['optionality_incremental_value_authorized'] is False
+          assert (sim['roster_diagnosis']['position_need_delta']['TE']) > 0
+          print(r['recommended_next_action'], cur['shared_decision_utility_score'], ev)
+          PY
+      - name: Smoke another existing production scenario
+        run: |
+          python script/run_trade_report.py \
+            --scenario data/decision_lab/example_scenario.json \
+            --out-dir /tmp/current-evidence \
+            --basename generic-smoke \
+            --quick-sims 100 \
+            --adaptive-confirm-sims 50000 \
+            --search-depth 20 \
+            > /tmp/current-evidence/generic-smoke.log
+          python - <<'PY'
+          import json, math
+          r=json.load(open('/tmp/current-evidence/generic-smoke.json'))
+          cur=r['current_offer_evaluation']
+          score=float(cur['shared_decision_utility_score'])
+          assert math.isfinite(score)
+          d=(cur['decision_attribution']['diagnostics'])
+          assert d['current_value_evidence_count'] >= 1
+          assert d['current_value_aggregation']=='UNWEIGHTED_MEDIAN_SAME_UNIT_EVIDENCE'
+          print(r['recommended_next_action'], score)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trade-current-evidence-regression
+          path: /tmp/current-evidence/*
+          if-no-files-found: warn
+          retention-days: 30
