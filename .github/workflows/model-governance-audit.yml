@@ -35,10 +35,21 @@ jobs:
           python script/audit_final_trade_ranking.py
           python script/audit_legacy_governance_bypass.py
           python script/audit_heuristic_refinement_first_pass.py
+          python script/audit_parameter_authority_missing_value.py
       - name: Validate audit
         run: |
           python - <<'PY'
           import json
+          pa=json.load(open('data/audit/parameter_authority_missing_value_audit.json'))
+          assert pa['summary']['passed'] is True
+          assert pa['policy']['zero_is_a_parameter'] is True
+          assert pa['policy']['uncertain_magnitude_is_not_evidence_of_zero_effect'] is True
+          assert pa['summary']['credible_effects_at_zero_authority_needing_review'] >= 2
+          assert pa['summary']['mixed_families_needing_decomposition'] >= 2
+          assert any(x['id']=='CONSOLIDATION-PREMIUM-001' and x['zero_may_be_unjustified_point_estimate'] for x in pa['findings'])
+          assert any(x['id']=='GM22-CONFIG-001' and x['family_decomposition_required'] for x in pa['findings'])
+          assert any(x['concept']=='optionality' for x in pa['unregistered_or_underdecomposed_concepts'])
+
           r=json.load(open('data/audit/model_governance_audit.json'))
           assert r['summary']['numeric_assumptions_flagged'] > 50
           ids={x['id'] for x in r['curated_findings']}
