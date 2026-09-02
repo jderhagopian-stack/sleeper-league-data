@@ -22,7 +22,7 @@ IDENTIFIABILITY={
  "UNIDENTIFIED_OR_DUPLICATE","RULE_OR_RUNTIME_MECHANIC"
 }
 REQUIRED={
- "parameter_id","module","file_path","line","parameter_name","current_value_or_function",
+ "parameter_id","site_signature","module","file_path","line","parameter_name","current_value_or_function",
  "runtime_authority","downstream_consumers","evidence_classification","provenance_source",
  "originally_hand_set","empirically_validated","simulation_derived","externally_anchored",
  "duplicated_elsewhere","uncertainty_status","sensitivity_level","estimated_decision_impact",
