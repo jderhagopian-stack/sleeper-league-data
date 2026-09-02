@@ -66,14 +66,14 @@ jobs:
         run: python script/audit_cross_asset_parameter_provenance.py
       - name: Measure effective objective-channel authority
         run: python script/audit_effective_objective_channel_authority.py
-      - name: Build consolidated coefficient research summary
-        run: python script/build_coefficient_recalibration_research_summary.py
       - name: Detect greedy backup-assignment suboptimality
         run: python script/test_simulator_backup_assignment_optimality.py
       - name: Audit objective-channel identifiability
         run: python script/audit_state_weight_identifiability.py
       - name: Test Simulator team-shock loading semantics
         run: python script/test_simulator_team_shock_semantics.py
+      - name: Build consolidated coefficient research summary
+        run: python script/build_coefficient_recalibration_research_summary.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
@@ -123,6 +123,18 @@ jobs:
           assert panel['summary']['rows_with_counterfactual_regret']==0
           assert panel['summary']['authoritative_training_rows']==0
           assert panel['policy']['post_decision_outcome_is_not_causal_effect'] is True
+
+          backup=json.load(open('data/audit/simulator_backup_assignment_optimality.json'))
+          assert backup['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
+          assert backup['passed'] is True
+          assert backup['greedy_is_exact'] is False
+          assert backup['promotion_boundary']['production_change_requires_separate_pr'] is True
+
+          shock=json.load(open('data/audit/simulator_team_shock_semantics.json'))
+          assert shock['authority']=='RESEARCH_STRUCTURAL_TEST_NON_AUTHORITATIVE'
+          assert shock['passed'] is True
+          assert shock['calibration_performed'] is False
+          assert shock['calibration_status']=='SEMANTICS_VERIFIED_MAGNITUDE_NOT_EMPIRICALLY_CALIBRATED'
 
           summary=json.load(open('data/model_validation/coefficient_recalibration_research_summary.json'))
           assert summary['authority']=='RESEARCH_SUMMARY_NON_AUTHORITATIVE'
@@ -209,5 +221,7 @@ jobs:
             data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json
             data/audit/cross_asset_parameter_provenance.json
             data/audit/effective_objective_channel_authority.json
+            data/audit/simulator_backup_assignment_optimality.json
+            data/audit/simulator_team_shock_semantics.json
             data/model_validation/coefficient_recalibration_research_summary.json
           retention-days: 30
