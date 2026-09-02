@@ -210,7 +210,29 @@ def build(root:Path):
             except (OSError,ValueError,TypeError) as e:
                 errors.append({"path":path,"error":str(e)}); continue
             rows.extend(scan_json(path,payload,family_ids(path,reg)))
-    rows.sort(key=lambda r:(r["file_path"],r["line"],r["parameter_name"]))
+    rows.sort(key=lambda r:(r["file_path"],r["line"],r["parameter_name"],r["site_kind"]))
+    # A semantic signature intentionally excludes absolute line numbers so simple
+    # insertions do not churn registry IDs. Identical repeated statements can
+    # nevertheless share that semantic signature. Disambiguate only those
+    # collisions by stable source order rather than weakening duplicate-ID CI.
+    signature_totals={}
+    for row in rows:
+        sig=row["site_signature"]
+        signature_totals[sig]=signature_totals.get(sig,0)+1
+    signature_seen={}
+    for row in rows:
+        base_sig=row["site_signature"]
+        if signature_totals.get(base_sig,0) <= 1:
+            continue
+        occurrence=signature_seen.get(base_sig,0)+1
+        signature_seen[base_sig]=occurrence
+        unique_sig=hashlib.sha1(
+            f"{base_sig}:semantic_occurrence:{occurrence}".encode()
+        ).hexdigest()
+        row["site_signature_base"]=base_sig
+        row["site_semantic_occurrence"]=occurrence
+        row["site_signature"]=unique_sig
+        row["parameter_id"]=f"AUTO-{unique_sig[:12]}"
     summary={
         "production_behavior_changed":False,
         "governed_paths_scanned":len(paths),
