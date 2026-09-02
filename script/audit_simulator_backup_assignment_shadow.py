@@ -184,6 +184,13 @@ def main():
         )
         for key in metrics
     }
+    exact_runtime = float((exact.get("runtime") or {}).get("total_seconds") or 0.0)
+    legacy_runtime = float((legacy.get("runtime") or {}).get("total_seconds") or 0.0)
+    runtime_ratio = (
+        exact_runtime / legacy_runtime
+        if legacy_runtime > 0
+        else None
+    )
     changed = [
         x
         for x in rows
@@ -204,6 +211,11 @@ def main():
             "max_absolute_delta": max_abs,
             "structural_counterexample_exists_independently_of_current_league_impact": True,
             "new_economic_coefficient_introduced": False,
+            "exact_runtime_seconds": round(exact_runtime, 4),
+            "legacy_runtime_seconds": round(legacy_runtime, 4),
+            "exact_to_legacy_runtime_ratio": (
+                round(runtime_ratio, 4) if runtime_ratio is not None else None
+            ),
         },
         "teams": rows,
         "interpretation": {
