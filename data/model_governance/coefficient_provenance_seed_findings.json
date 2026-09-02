@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "High-impact adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, Behavioral Intelligence, roster-cut resolution, negotiation frontier/ranking, and future-pick economics. Full Phase 1 exact-site review remains in progress.",
+  "scope_note": "High-impact adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, Behavioral Intelligence, roster-cut resolution, negotiation frontier/ranking, future-pick economics, and projection uncertainty/availability. Full Phase 1 exact-site review remains in progress.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -545,6 +545,233 @@
       "identifiability_class": "DIRECTLY_ESTIMABLE",
       "recommended_action": "KEEP",
       "evidence_needed_for_further_promotion": "Track overlap count, ratio dispersion, temporal stability, and alternative robust scales; replace only if held-out/current cross-source calibration improves."
+    },
+    {
+      "parameter_id": "PROJECTION-VOLATILITY-HISTORY-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "HISTORY_SEASONS / realized weekly score dispersion",
+      "current_value_function": {
+        "history_seasons": 3,
+        "target": "realized weekly scoring CV"
+      },
+      "runtime_authority": "ACTIVE_UNCERTAINTY_WIDTH_INPUT",
+      "downstream_consumers": [
+        "weekly score distributions",
+        "Simulator wins/playoffs/title",
+        "GM3 current utility through Simulator"
+      ],
+      "evidence_classification": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "provenance": "three seasons of realized NFL weekly FSFFL scoring outcomes; useful volatility proxy but not conditional forecast-error residuals",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "REALIZED_OUTCOME_DISPERSION_NOT_FORECAST_UNCERTAINTY",
+      "sensitivity_level": "HIGH",
+      "estimated_decision_impact": "HIGH_THROUGH_SIMULATOR",
+      "replacement_feasibility": "DIRECTLY_ESTIMABLE_ONCE_FROZEN_FORECASTS_OR_LEAKAGE_SAFE_RECREATED_FORECASTS_EXIST",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Forecast residual distributions by position/horizon with expanding-window holdouts; compare 1/2/3+ season windows and coverage rather than assuming three seasons."
+    },
+    {
+      "parameter_id": "PROJECTION-SD-FLOORS-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "POSITION_SD_FLOOR",
+      "current_value_function": {
+        "QB": 4,
+        "RB": 3.5,
+        "WR": 3.8,
+        "TE": 3
+      },
+      "runtime_authority": "ACTIVE_MINIMUM_WEEKLY_SD",
+      "downstream_consumers": [
+        "weekly score distributions",
+        "Simulator outcome variance"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set position-specific lower bounds; no independent forecast-residual validation identified",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "MEDIUM_HIGH_FOR_LOW_PPG_OR_LOW_CV_PLAYERS",
+      "estimated_decision_impact": "MEDIUM_HIGH_THROUGH_TAIL_AND_WIN_PROBABILITY",
+      "replacement_feasibility": "RESIDUAL_QUANTILE_OR_HIERARCHICAL_VARIANCE_MODEL",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Estimate forecast-error floor/heteroskedastic variance by position and mean projection using temporal residuals; shrink sparse groups."
+    },
+    {
+      "parameter_id": "PROJECTION-CV-ROBUSTNESS-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "robust_cv winsorization and CV bounds",
+      "current_value_function": {
+        "winsorize_lower_quantile": 0.05,
+        "winsorize_upper_quantile": 0.95,
+        "mean_minimum": 0.25,
+        "cv_min": 0.15,
+        "cv_max": 1.35
+      },
+      "runtime_authority": "ACTIVE_REALIZED_VOLATILITY_TRANSFORM",
+      "downstream_consumers": [
+        "player and position volatility CV",
+        "Simulator score distributions"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set robustification/bounds around realized weekly scoring dispersion",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "MEDIUM",
+      "estimated_decision_impact": "MEDIUM",
+      "replacement_feasibility": "ROBUST_RESIDUAL_MODEL_COMPARISON",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Compare robust variance estimators and clipping domains on temporal forecast residual coverage; retain bounds only as broad numerical safety constraints if not identified."
+    },
+    {
+      "parameter_id": "PROJECTION-CV-SHRINKAGE-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "player CV shrinkage weight",
+      "current_value_function": "weight = min(0.75, n / 32.0)",
+      "runtime_authority": "ACTIVE_PLAYER_TO_POSITION_VARIANCE_PARTIAL_POOLING",
+      "downstream_consumers": [
+        "player-specific weekly SD",
+        "Simulator outcome variance"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set sample-size shrinkage rule; concept is statistically defensible but constants are not estimated",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "MODERATE_HIGH",
+      "sensitivity_level": "MEDIUM",
+      "estimated_decision_impact": "MEDIUM",
+      "replacement_feasibility": "EMPIRICAL_BAYES_OR_HIERARCHICAL_PARTIAL_POOLING",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "SHRINK",
+      "evidence_needed_for_further_promotion": "Estimate player/position variance components with hierarchical or empirical-Bayes shrinkage on temporally held-out forecast residuals rather than choosing n/32 and a 75% cap."
+    },
+    {
+      "parameter_id": "PROJECTION-DISTRIBUTION-SHAPE-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "Normal weekly outcome distribution",
+      "current_value_function": "Normal(mean, sd) with fixed z=±0.67448975 for p25/p75",
+      "runtime_authority": "ACTIVE_DISTRIBUTION_SHAPE",
+      "downstream_consumers": [
+        "weekly percentiles",
+        "Simulator sampled points"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "simple parametric distribution assumption; quartile z values are mathematically rule-defined conditional on Normality, but Normality itself is unvalidated",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "TAIL_AND_ZERO_MASS_MISSPECIFICATION_POSSIBLE",
+      "sensitivity_level": "HIGH_FOR_TAIL_EVENTS",
+      "estimated_decision_impact": "MEDIUM_HIGH_FOR_WIN_AND_TITLE_TAILS",
+      "replacement_feasibility": "HELD_OUT_DISTRIBUTIONAL_CALIBRATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Compare Normal, truncated/mixture, empirical residual and monotone quantile approaches on held-out interval coverage, PIT/calibration, tails and zero/availability mass."
+    },
+    {
+      "parameter_id": "PROJECTION-MEDIAN-OFFSET-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "median offset",
+      "current_value_function": "median = max(0, mean - 0.08 * weekly_sd)",
+      "runtime_authority": "ACTIVE_REPORTED_MEDIAN; VERIFY_SIMULATOR_CONSUMPTION_BEFORE_ASSIGNING_FULL_DECISION_IMPACT",
+      "downstream_consumers": [
+        "weekly projection payload",
+        "any median-consuming downstream diagnostics"
+      ],
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "provenance": "fixed 8% SD offset with no evidentiary source identified; internally inconsistent with a symmetric Normal distribution if interpreted as its median",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "POTENTIAL_INTERNAL_INCONSISTENCY_WITH_NORMAL_SHAPE",
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "UNKNOWN_UNTIL_RUNTIME_CONSUMER_TRACE",
+      "estimated_decision_impact": "UNKNOWN_POSSIBLY_DIAGNOSTIC",
+      "replacement_feasibility": "STRUCTURAL_ELIMINATION_OR_EMPIRICAL_QUANTILE_MODEL",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "ELIMINATE",
+      "evidence_needed_for_further_promotion": "Trace all median consumers. If Normal distribution remains, median should equal mean absent truncation/mixture semantics; if an asymmetric model is justified, estimate median directly rather than retain 0.08."
+    },
+    {
+      "parameter_id": "PROJECTION-ACTIVE-PROBABILITY-001",
+      "module": "Shared Core projection uncertainty/availability",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "active_probability",
+      "current_value_function": "0.0 on bye; 1.0 on every non-bye week",
+      "runtime_authority": "ACTIVE_AVAILABILITY_ASSUMPTION",
+      "downstream_consumers": [
+        "Simulator lineup substitution and weekly scoring",
+        "wins/playoffs/title"
+      ],
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "provenance": "known simplification explicitly disclosed by weekly projection audit: no injury/availability adjustment beyond byes",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "MATERIAL_SYSTEMATIC_UNDERESTIMATION_OF_MISSED_GAME_RISK",
+      "sensitivity_level": "HIGH_FOR_FRAGILE_OR_INJURED_PLAYERS_AND_ROSTER_DEPTH",
+      "estimated_decision_impact": "HIGH_THROUGH_RESILIENCE_AND_SIMULATOR",
+      "replacement_feasibility": "HISTORICALLY_STATISTICALLY_ESTIMATED_WITH_POINT_IN_TIME_STATUS_FEATURES_OR_BASE_RATES",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "REPLACE_WITH_DATA_DERIVED_SCALE",
+      "evidence_needed_for_further_promotion": "Estimate non-bye active/start probability using historical weekly availability with position/age/status/horizon features where timestamp-safe; use hierarchical base rates when specific injury information is unavailable."
+    },
+    {
+      "parameter_id": "PROJECTION-HISTORY-GATES-001",
+      "module": "Shared Core projection uncertainty",
+      "path": "script/build_fsffl_weekly_projections.py",
+      "parameter_name": "MIN_PLAYER_GAMES / MIN_POSITION_GAMES / MIN_HISTORY_ROWS",
+      "current_value_function": {
+        "min_player_games": 8,
+        "min_position_games": 80,
+        "min_history_rows": 1000
+      },
+      "runtime_authority": "SAMPLE_ADEQUACY_AND_BUILD_QUALITY_GATES",
+      "downstream_consumers": [
+        "choice of player-specific versus position volatility",
+        "production build pass/fail"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set sample sufficiency thresholds; primarily governance/runtime stability rather than direct economic coefficients",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "THRESHOLD_SENSITIVITY_MEASURABLE",
+      "sensitivity_level": "LOW_TO_MEDIUM_INDIRECT",
+      "estimated_decision_impact": "INDIRECT",
+      "replacement_feasibility": "CONVERGENCE_AND_PARTIAL_POOLING_STUDY",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Use stability/coverage curves to justify minimum sample thresholds; hierarchical models may eliminate hard player/position cutoffs."
     }
   ]
 }
