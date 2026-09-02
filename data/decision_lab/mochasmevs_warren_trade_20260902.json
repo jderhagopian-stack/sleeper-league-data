@@ -1,0 +1,25 @@
+{
+  "scenario_id": "mochasmevs_tyler_warren_for_andrews_metcalf_picks_20260902",
+  "description": "Evaluate the proposed trade from MochaSmevs' point of view: MochaSmevs sends Tyler Warren to jder52 and receives Mark Andrews, DK Metcalf, the 2029 2nd and 3rd originally belonging to Drigs24, and the 2029 3rd originally belonging to chuckthegoat77.",
+  "focus_user_id": "844785316274483200",
+  "actions": [
+    {
+      "type": "trade",
+      "from_user_id": "844785316274483200",
+      "to_user_id": "850548458887704576",
+      "players": ["12518"],
+      "picks": []
+    },
+    {
+      "type": "trade",
+      "from_user_id": "850548458887704576",
+      "to_user_id": "844785316274483200",
+      "players": ["5012", "5846"],
+      "picks": [
+        "pick:2029:R2:orig11",
+        "pick:2029:R3:orig11",
+        "pick:2029:R3:orig4"
+      ]
+    }
+  ]
+}
