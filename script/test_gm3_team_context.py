@@ -36,7 +36,7 @@ assert available["creates_trade_price"] is False
 assert available["creates_acceptance_probability"] is False
 assert available["recommendation"] is False
 focal = available["focal_team_context"]
-assert focal["shared_decision_utility"]["model_version"] == "FSFFL-Shared-Decision-Utility-2.0"
+assert focal["shared_decision_utility"]["model_version"] == "FSFFL-Shared-Decision-Utility-2.1"
 assert focal["decision_attribution"]["reconciles"] is True
 assert focal["strategic_posture"]
 assert focal["strategic_posture_source"]
