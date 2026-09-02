@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "Seed findings for high-impact families. This is not yet the complete Phase 1 inventory.",
+  "scope_note": "High-impact seed adjudication expanded across state weights, Shared Decision Utility, package search, Simulator precision, and Behavioral Intelligence. Full Phase 1 exact-site review remains in progress.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -11,7 +11,12 @@
       "parameter_name": "anchor_points[*].weights",
       "current_value_function": "piecewise-linear current/future/liquidity/resilience curve over Simulator competitive-strength percentile",
       "runtime_authority": "ACTIVE_FOR_AUTO_AND_OWNER_POSTURE_WEIGHT_RESOLUTION",
-      "downstream_consumers": ["GM3", "Team Improvement", "Trade Decision", "Opportunity Engine through governed utility"],
+      "downstream_consumers": [
+        "GM3",
+        "Team Improvement",
+        "Trade Decision",
+        "Opportunity Engine through governed utility"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "legacy GM objective-weight anchors preserved as a governed prior; artifact explicitly says empirically_validated=false",
       "originally_hand_set": true,
@@ -32,9 +37,16 @@
       "module": "Shared Core / GM state weighting",
       "path": "data/gm/state_weight_calibration.json",
       "parameter_name": "classification_thresholds",
-      "current_value_function": {"elite_contender": 0.78, "contender": 0.55, "retool": 0.35},
+      "current_value_function": {
+        "elite_contender": 0.78,
+        "contender": 0.55,
+        "retool": 0.35
+      },
       "runtime_authority": "DESCRIPTIVE_IN_AUTO; INDIRECTLY_SELECTS_CURVE_LOCATION_FOR_EXPLICIT_STRATEGIC_POSTURE_OVERRIDES",
-      "downstream_consumers": ["competitive-state labels", "strategic posture explicit overrides"],
+      "downstream_consumers": [
+        "competitive-state labels",
+        "strategic posture explicit overrides"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "legacy GM state boundaries; continuous AUTO economics do not step at these boundaries",
       "originally_hand_set": true,
@@ -55,9 +67,16 @@
       "module": "Shared Core / GM state weighting",
       "path": "data/gm/state_weight_calibration.json",
       "parameter_name": "adjustments.weak_dynasty",
-      "current_value_function": {"threshold": 0.30, "max_shift_current_to_future": 0.05},
+      "current_value_function": {
+        "threshold": 0.3,
+        "max_shift_current_to_future": 0.05
+      },
       "runtime_authority": "ACTIVE_BOUNDED_ADJUSTMENT",
-      "downstream_consumers": ["state weights", "GM3 utility", "trade/team-improvement ranking"],
+      "downstream_consumers": [
+        "state weights",
+        "GM3 utility",
+        "trade/team-improvement ranking"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "hand-set legacy strategic adjustment",
       "originally_hand_set": true,
@@ -78,9 +97,16 @@
       "module": "Shared Core / GM state weighting",
       "path": "data/gm/state_weight_calibration.json",
       "parameter_name": "adjustments.championship_probability",
-      "current_value_function": {"reference_probability": 0.08, "slope": 0.25, "max_shift_future_to_current": 0.04, "max_shift_current_to_future": 0.03},
+      "current_value_function": {
+        "reference_probability": 0.08,
+        "slope": 0.25,
+        "max_shift_future_to_current": 0.04,
+        "max_shift_current_to_future": 0.03
+      },
       "runtime_authority": "FALLBACK_ONLY_WHEN_SIMULATOR_COMPETITIVE_STRENGTH_UNAVAILABLE",
-      "downstream_consumers": ["state weights in degraded/fallback runtime"],
+      "downstream_consumers": [
+        "state weights in degraded/fallback runtime"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "legacy hand-set title-probability adjustment; explicitly suppressed during normal Simulator-derived competitive-state resolution to avoid double counting",
       "originally_hand_set": true,
@@ -101,9 +127,28 @@
       "module": "Shared Core / GM state weighting",
       "path": "data/gm/state_weight_calibration.json",
       "parameter_name": "bounds",
-      "current_value_function": {"current": [0.05, 0.60], "future": [0.18, 0.68], "liquidity": [0.07, 0.24], "resilience": [0.08, 0.18]},
+      "current_value_function": {
+        "current": [
+          0.05,
+          0.6
+        ],
+        "future": [
+          0.18,
+          0.68
+        ],
+        "liquidity": [
+          0.07,
+          0.24
+        ],
+        "resilience": [
+          0.08,
+          0.18
+        ]
+      },
       "runtime_authority": "ACTIVE_CONSTRAINT",
-      "downstream_consumers": ["all state-weighted franchise utility"],
+      "downstream_consumers": [
+        "all state-weighted franchise utility"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "bounded expert policy constraints",
       "originally_hand_set": true,
@@ -125,12 +170,32 @@
       "path": "script/package_curve_robustness.py",
       "parameter_name": "CURVES",
       "current_value_function": {
-        "production_steep": [1.0, 0.78, 0.62, 0.50, 0.42],
-        "shallow": [1.0, 0.92, 0.84, 0.78, 0.72],
-        "neutral": [1.0, 1.0, 1.0, 1.0, 1.0]
+        "production_steep": [
+          1,
+          0.78,
+          0.62,
+          0.5,
+          0.42
+        ],
+        "shallow": [
+          1,
+          0.92,
+          0.84,
+          0.78,
+          0.72
+        ],
+        "neutral": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
       },
       "runtime_authority": "SEARCH_RECALL_ONLY; SINGLE_CURVE_NOT_FINAL_ECONOMIC_AUTHORITY",
-      "downstream_consumers": ["candidate discovery before GM3/Trade Decision evaluation"],
+      "downstream_consumers": [
+        "candidate discovery before GM3/Trade Decision evaluation"
+      ],
       "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
       "provenance": "governed uncertainty set around legacy package discount curve; explicitly marked economic_coefficients_fitted=false",
       "originally_hand_set": true,
@@ -153,7 +218,9 @@
       "parameter_name": "run_preproduction_simulation.n_sims",
       "current_value_function": 50000,
       "runtime_authority": "COMPUTATIONAL_PRECISION_BUDGET_NOT_ECONOMIC_WEIGHT",
-      "downstream_consumers": ["Monte Carlo precision of expected wins/playoff/bye/title estimates"],
+      "downstream_consumers": [
+        "Monte Carlo precision of expected wins/playoff/bye/title estimates"
+      ],
       "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
       "provenance": "runtime precision choice documented in application architecture and simulator implementation",
       "originally_hand_set": true,
@@ -168,6 +235,138 @@
       "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
       "recommended_action": "KEEP",
       "evidence_needed_for_further_promotion": "Empirically measure convergence/error versus simulation count; tune computational budget without treating it as franchise economics."
+    },
+    {
+      "parameter_id": "DECISION-CURRENT-AGGREGATION-001",
+      "module": "Shared Decision Utility",
+      "path": "script/decision_utility.py",
+      "parameter_name": "median normalized current outcomes",
+      "current_value_function": "unweighted median of league-relative expected points, wins, playoff probability, and net championship-equity deltas",
+      "runtime_authority": "ACTIVE_SHARED_UTILITY_PRIMITIVE",
+      "downstream_consumers": [
+        "GM3 Team Improvement",
+        "Trade Decision",
+        "Opportunity Engine via GM3"
+      ],
+      "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
+      "provenance": "structural de-duplication choice: correlated Simulator outcomes are combined by median specifically to avoid assigning hand-set exchange weights",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": true,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "INHERITS_SIMULATOR_INPUT_UNCERTAINTY",
+      "sensitivity_level": "HIGH",
+      "estimated_decision_impact": "HIGH",
+      "replacement_feasibility": "ABLATION_AND_TEMPORAL_OUTCOME_VALIDATION",
+      "identifiability_class": "SIMULATION_IDENTIFIABLE",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Compare median aggregation with simpler single-outcome and robust alternatives on temporal historical decision outcomes; do not add correlated current-outcome weights without incremental evidence."
+    },
+    {
+      "parameter_id": "DECISION-CURRENT-SCALE-001",
+      "module": "Shared Decision Utility",
+      "path": "script/decision_utility.py",
+      "parameter_name": "current_value_scale",
+      "current_value_function": "baseline_team_market_redraft_value; transaction redraft exposure fallback; unit fallback only when no redraft evidence",
+      "runtime_authority": "ACTIVE_UNIT_SCALE_FOR_CURRENT_PRIMITIVE",
+      "downstream_consumers": [
+        "shared franchise utility"
+      ],
+      "evidence_classification": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "provenance": "observed focal roster market-redraft scale replaces prior fixed hand-set current/future conversion constants",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": true,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "MARKET_ANCHOR_AND_FALLBACK_UNCERTAINTY",
+      "sensitivity_level": "HIGH",
+      "estimated_decision_impact": "HIGH",
+      "replacement_feasibility": "DIRECT_TEMPORAL_RESIDUAL_VALIDATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "KEEP",
+      "evidence_needed_for_further_promotion": "Validate redraft-scale stability and fallback frequency over frozen historical snapshots; challenge only with a simpler data-derived scale that improves held-out decision calibration."
+    },
+    {
+      "parameter_id": "BI-OPPORTUNITY-SMOOTHING-001",
+      "module": "Behavioral Intelligence 3.0",
+      "path": "script/behavioral_intelligence_v3.py",
+      "parameter_name": "OPPORTUNITY_SMOOTHING",
+      "current_value_function": 1,
+      "runtime_authority": "RESEARCH_BEHAVIORAL_CONTEXT_ONLY; ZERO_SEPARATE_TRADE_VALUE_OR_NEGOTIATION_RANKING_WEIGHT",
+      "downstream_consumers": [
+        "descriptive manager preference context"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set additive smoothing for leave-one-manager-out position opportunity shares",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": false,
+      "uncertainty_status": "HIGH_BUT_AUTHORITY_BOUNDED",
+      "sensitivity_level": "MEDIUM_FOR_BEHAVIOR_PROFILE_LOW_FOR_FINAL_ECONOMICS",
+      "estimated_decision_impact": "LOW_CURRENT_FINAL_AUTHORITY",
+      "replacement_feasibility": "REGULARIZED_OR_EMPIRICAL_BAYES_ESTIMATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "SHRINK",
+      "evidence_needed_for_further_promotion": "Time-ordered manager-action prediction versus unsmoothed and data-derived smoothing baselines; preserve zero franchise-utility authority unless incremental predictive value is established."
+    },
+    {
+      "parameter_id": "BI-NEED-FLOOR-001",
+      "module": "Behavioral Intelligence 3.0",
+      "path": "script/behavioral_intelligence_v3.py",
+      "parameter_name": "NEED_FLOOR",
+      "current_value_function": 0.3,
+      "runtime_authority": "RESEARCH_BEHAVIORAL_CONTEXT_ONLY",
+      "downstream_consumers": [
+        "expected position choice share",
+        "descriptive preference residual"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "hand-set lower bound on how strongly roster need can suppress expected acquisition share",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "POSSIBLE_OVERLAP_WITH_OBSERVED_OPPORTUNITY_AND_POSITION_NEED",
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "MEDIUM_FOR_BEHAVIOR_PROFILE",
+      "estimated_decision_impact": "LOW_CURRENT_FINAL_AUTHORITY",
+      "replacement_feasibility": "REGULARIZED_HELD_OUT_MANAGER_ACTION_ESTIMATION",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Held-out action-choice likelihood/ranking with shrinkage; eliminate the floor if observed need/opportunity terms identify behavior without it."
+    },
+    {
+      "parameter_id": "BI-REDUNDANCY-BLEND-001",
+      "module": "Behavioral Intelligence 3.0",
+      "path": "script/behavioral_intelligence_v3.py",
+      "parameter_name": "redundancy blend",
+      "current_value_function": {
+        "need_complement_weight": 0.72,
+        "surplus_weight": 0.28
+      },
+      "runtime_authority": "DESCRIPTIVE_RESEARCH_CONTEXT",
+      "downstream_consumers": [
+        "surplus_or_redundant_accumulation",
+        "draft redundancy diagnostics"
+      ],
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "provenance": "hand-set blend with no independent validation identified",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "LIKELY_COMPOSITE_OF_TWO_RELATED_ROSTER_STATE_SIGNALS",
+      "uncertainty_status": "HIGH",
+      "sensitivity_level": "LOW_FOR_FINAL_AUTHORITY",
+      "estimated_decision_impact": "DIAGNOSTIC_ONLY_CURRENTLY",
+      "replacement_feasibility": "STRUCTURAL_ELIMINATION_OR_REGULARIZED_ESTIMATION",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "evidence_needed_for_further_promotion": "Prefer exposing need and surplus separately. Any combined redundancy score should require held-out predictive evidence before receiving authority."
     }
   ]
 }
