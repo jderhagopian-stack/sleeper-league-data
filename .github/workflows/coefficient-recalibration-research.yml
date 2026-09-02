@@ -42,8 +42,6 @@ jobs:
         run: python script/test_coefficient_invariance_monotonicity.py
       - name: Run non-authoritative state-weight shadow comparison
         run: python script/run_state_weight_shadow_research.py
-      - name: Run non-authoritative state-weight shadow comparison
-        run: python script/run_state_weight_shadow_research.py
       - name: Audit Simulator calibration chain
         run: python script/audit_simulator_calibration_chain.py
       - name: Audit committed historical team outcome evidence
