@@ -171,21 +171,45 @@ def focal_roster(board, rosters, focus_user_id=None):
 
 
 def current_position_reference(profile, board, rosters, indexes, focus_user_id=None):
+    """Return the most relevant same-position roster benchmark.
+
+    Prefer the lowest-projected current starter at the target position because
+    that is the more decision-relevant benchmark for an acquisition: the
+    incoming player normally has to beat the marginal starter, not the best
+    player already on the roster. If the focal team has no current starter at
+    that position, fall back to its best active non-taxi/non-reserve player.
+
+    This is presentation context only; it does not assert the exact player
+    displaced after multi-position lineup reoptimization.
+    """
     by_id, _, proj_by_id, _, _, ppg_rank = indexes
     roster = focal_roster(board, rosters, focus_user_id)
     taxi = {str(x) for x in (roster.get("taxi") or [])}
     reserve = {str(x) for x in (roster.get("reserve") or [])}
     active_ids = [str(x) for x in (roster.get("players") or []) if str(x) not in taxi and str(x) not in reserve]
-    candidates = []
-    for pid in active_ids:
-        asset = by_id.get(pid) or {}
-        if str(asset.get("position")) != profile.get("position"):
-            continue
-        proj = proj_by_id.get(pid) or {}
-        candidates.append((safe_float(proj.get("season_baseline_ppg")), pid, asset, proj))
-    if not candidates:
-        return {}
-    _, pid, asset, proj = max(candidates, key=lambda x: x[0])
+    starter_ids = [str(x) for x in (roster.get("starters") or []) if str(x) in active_ids]
+
+    def same_position(ids):
+        rows = []
+        for pid in ids:
+            asset = by_id.get(pid) or {}
+            if str(asset.get("position")) != profile.get("position"):
+                continue
+            proj = proj_by_id.get(pid) or {}
+            rows.append((safe_float(proj.get("season_baseline_ppg")), pid, asset, proj))
+        return rows
+
+    starter_candidates = same_position(starter_ids)
+    if starter_candidates:
+        _, pid, asset, proj = min(starter_candidates, key=lambda x: x[0])
+        basis = "marginal_same_position_starter"
+    else:
+        active_candidates = same_position(active_ids)
+        if not active_candidates:
+            return {}
+        _, pid, asset, proj = max(active_candidates, key=lambda x: x[0])
+        basis = "best_active_same_position_fallback"
+
     return {
         "player_id": pid,
         "name": asset.get("name"),
@@ -193,6 +217,7 @@ def current_position_reference(profile, board, rosters, indexes, focus_user_id=N
         "projected_ppg": proj.get("season_baseline_ppg"),
         "projection_position_rank": ppg_rank.get(pid),
         "market_dynasty": asset.get("market_dynasty"),
+        "comparison_basis": basis,
     }
 
 
@@ -217,9 +242,14 @@ def profile_sentence(profile, ref, focal_team_name):
         age_text = ""
         if age_delta is not None and abs(age_delta) >= 0.5:
             age_text = f" The target is {abs(age_delta):.0f} year{'s' if abs(age_delta) != 1 else ''} {'older' if age_delta > 0 else 'younger'}."
+        if ref.get("comparison_basis") == "marginal_same_position_starter":
+            benchmark = f"{clean(focal_team_name)}'s marginal current {pos} starter"
+        else:
+            benchmark = f"{clean(focal_team_name)}'s best active {pos} fallback"
         parts.append(
-            f"Compared with {clean(focal_team_name)}'s strongest active {pos} projection, {clean(ref.get('name'))} "
-            f"({safe_float(ref.get('projected_ppg')):.1f} PPG), that is {delta:+.1f} PPG.{age_text}"
+            f"Compared with {benchmark}, {clean(ref.get('name'))} "
+            f"({safe_float(ref.get('projected_ppg')):.1f} PPG), that is {delta:+.1f} PPG.{age_text} "
+            "This same-position comparison is context only; the full simulation includes every outgoing asset and lineup reoptimization."
         )
     return " ".join(parts)
 
@@ -449,7 +479,7 @@ def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFA
     story += [stbl, Spacer(1,7)]
     story += [
         P(s, "HOW TO READ PLAYER CONTEXT", "FS_Section"),
-        P(s, f"Dynasty position rank and overall rank come from the governed FSFFL asset-value layer. 2026 projected PPG and projection position rank come from the canonical simulator weekly-projection input. The comparison player is the highest projected active {clean(focal_team_name)} player at the same position, excluding taxi and reserve. These fields explain the opportunity; they do not create a second ranking or change Opportunity Engine utility.", "FS_Small"),
+        P(s, f"Dynasty position rank and overall rank come from the governed FSFFL asset-value layer. 2026 projected PPG and projection position rank come from the canonical simulator weekly-projection input. The comparison player is the lowest-projected current {clean(focal_team_name)} starter at the same position when one exists, otherwise the best active same-position fallback; taxi and reserve are excluded. These fields explain the opportunity; they do not create a second ranking or change Opportunity Engine utility.", "FS_Small"),
         Spacer(1,4),
         P(s, "REPORTING NOTE", "FS_Section"),
         P(s, "This PDF is presentation only. Opportunity rankings, Shared Decision Utility, player and pick values, simulation results, Trade Decision authority and bilateral-stability rules remain unchanged.", "FS_Small"),
