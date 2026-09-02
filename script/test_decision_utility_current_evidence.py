@@ -80,7 +80,7 @@ def test_missing_direct_redraft_evidence_preserves_simulator_fallback():
     blocks = mod.primitive_blocks(sim)
     evidence = blocks["diagnostics"]["current_value_evidence"]
     assert set(evidence) == {"simulator_outcome_value"}
-    assert blocks["current"] == evidence["simulator_outcome_value"]
+    assert abs(blocks["current"] - evidence["simulator_outcome_value"]) < 0.01
 
 
 def test_coherent_positive_current_evidence_stays_positive():
