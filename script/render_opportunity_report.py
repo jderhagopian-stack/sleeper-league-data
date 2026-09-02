@@ -160,17 +160,19 @@ def player_profile(row, indexes):
     }
 
 
-def focal_roster(board, rosters):
-    uid = str(board.get("focus_user_id") or board.get("focus_user") or "")
+def focal_roster(board, rosters, focus_user_id=None):
+    uid = str(focus_user_id or board.get("focus_user_id") or board.get("focus_user") or "")
+    if not uid:
+        raise ValueError("Opportunity report requires a focal user id; pass --focus-user-id or publish it in the Opportunity board.")
     for r in rosters:
         if str(r.get("owner_id")) == uid:
             return r
-    return {}
+    raise ValueError(f"Focal user {uid} was not found in the supplied roster data.")
 
 
-def current_position_reference(profile, board, rosters, indexes):
+def current_position_reference(profile, board, rosters, indexes, focus_user_id=None):
     by_id, _, proj_by_id, _, _, ppg_rank = indexes
-    roster = focal_roster(board, rosters)
+    roster = focal_roster(board, rosters, focus_user_id)
     taxi = {str(x) for x in (roster.get("taxi") or [])}
     reserve = {str(x) for x in (roster.get("reserve") or [])}
     active_ids = [str(x) for x in (roster.get("players") or []) if str(x) not in taxi and str(x) not in reserve]
@@ -194,7 +196,7 @@ def current_position_reference(profile, board, rosters, indexes):
     }
 
 
-def profile_sentence(profile, ref):
+def profile_sentence(profile, ref, focal_team_name):
     parts = []
     pos = profile.get("position") or "player"
     if profile.get("projected_ppg") is not None:
@@ -216,7 +218,7 @@ def profile_sentence(profile, ref):
         if age_delta is not None and abs(age_delta) >= 0.5:
             age_text = f" The target is {abs(age_delta):.0f} year{'s' if abs(age_delta) != 1 else ''} {'older' if age_delta > 0 else 'younger'}."
         parts.append(
-            f"Compared with Hurts So Good's strongest active {pos} projection, {clean(ref.get('name'))} "
+            f"Compared with {clean(focal_team_name)}'s strongest active {pos} projection, {clean(ref.get('name'))} "
             f"({safe_float(ref.get('projected_ppg')):.1f} PPG), that is {delta:+.1f} PPG.{age_text}"
         )
     return " ".join(parts)
@@ -276,7 +278,7 @@ def decision_rows(board):
     return rows
 
 
-def opportunity_story(s, row, action, profile, ref):
+def opportunity_story(s, row, action, profile, ref, focal_team_name):
     m = trade_metrics(row)
     current = focal_channel(row, "current")
     future = focal_channel(row, "future")
@@ -320,7 +322,7 @@ def opportunity_story(s, row, action, profile, ref):
     if stab:
         confidence = (
             f"{str(stab.get('classification') or '').replace('_',' ')}. "
-            f"Hurts So Good range {safe_float(stab.get('score_min')):+,.0f} to {safe_float(stab.get('score_max')):+,.0f}; "
+            f"{clean(focal_team_name)} range {safe_float(stab.get('score_min')):+,.0f} to {safe_float(stab.get('score_max')):+,.0f}; "
             f"seller range {safe_float(stab.get('counterparty_score_min')):+,.0f} to {safe_float(stab.get('counterparty_score_max')):+,.0f}."
         )
 
@@ -328,12 +330,12 @@ def opportunity_story(s, row, action, profile, ref):
         header, Spacer(1,4),
         P(s, f"<b>Structure:</b> {structure(row)}", "FS_Body"),
         Spacer(1,3), profile_table(s, profile, ref), Spacer(1,3),
-        P(s, profile_sentence(profile, ref), "FS_Small"),
+        P(s, profile_sentence(profile, ref, focal_team_name), "FS_Small"),
         Spacer(1,4), card_grid, Spacer(1,4),
         P(s, "ANALYST VIEW", "FS_Section"),
         P(s, tradeoff, "FS_Body"),
         P(s, "WHY THIS PLAYER SPECIFICALLY", "FS_Section"),
-        P(s, profile_sentence(profile, ref), "FS_Body"),
+        P(s, profile_sentence(profile, ref, focal_team_name), "FS_Body"),
         P(s, "WHY THE OTHER MANAGER MIGHT SAY YES", "FS_Section"),
         P(s, other + f" Negotiation fit: {m['acceptance_fit']}.", "FS_Body"),
         P(s, "CONFIDENCE", "FS_Section"),
@@ -341,7 +343,7 @@ def opportunity_story(s, row, action, profile, ref):
     ]
 
 
-def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFAULT_PROJECTIONS, rosters_path=DEFAULT_ROSTERS):
+def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFAULT_PROJECTIONS, rosters_path=DEFAULT_ROSTERS, focus_user_id=None):
     board = load(board_path)
     assets = load(assets_path)
     projections = load(projections_path)
@@ -369,6 +371,7 @@ def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFA
     )
 
     rows = decision_rows(board)
+    focal_team_name = str(board.get("team_name") or "Franchise")
     story = [
         P(s, "FSFFL OPPORTUNITY REPORT", "FS_Title"),
         P(s, f"{board.get('team_name') or 'Franchise'} | Competitive state: {board.get('competitive_state') or board.get('team_state') or 'N/A'} | Strategic posture: {(board.get('strategic_posture') or {}).get('selected_posture') or 'AUTO'} | {board.get('model_version') or ''}", "FS_Sub"),
@@ -418,8 +421,8 @@ def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFA
     for i, (row, action, _) in enumerate(rows):
         story += [PageBreak()]
         profile = player_profile(row, indexes)
-        ref = current_position_reference(profile, board, rosters, indexes)
-        story += opportunity_story(s, row, action, profile, ref)
+        ref = current_position_reference(profile, board, rosters, indexes, focus_user_id)
+        story += opportunity_story(s, row, action, profile, ref, focal_team_name)
 
     story += [PageBreak(), P(s, "WATCHLIST & REPORTING NOTES", "FS_Title")]
     sensitive = board.get("simulation_sensitive_trade_watchlist") or []
@@ -446,7 +449,7 @@ def render(board_path, output, assets_path=DEFAULT_ASSETS, projections_path=DEFA
     story += [stbl, Spacer(1,7)]
     story += [
         P(s, "HOW TO READ PLAYER CONTEXT", "FS_Section"),
-        P(s, "Dynasty position rank and overall rank come from the governed FSFFL asset-value layer. 2026 projected PPG and projection position rank come from the canonical simulator weekly-projection input. The comparison player is the highest projected active Hurts So Good player at the same position, excluding taxi and reserve. These fields explain the opportunity; they do not create a second ranking or change Opportunity Engine utility.", "FS_Small"),
+        P(s, f"Dynasty position rank and overall rank come from the governed FSFFL asset-value layer. 2026 projected PPG and projection position rank come from the canonical simulator weekly-projection input. The comparison player is the highest projected active {clean(focal_team_name)} player at the same position, excluding taxi and reserve. These fields explain the opportunity; they do not create a second ranking or change Opportunity Engine utility.", "FS_Small"),
         Spacer(1,4),
         P(s, "REPORTING NOTE", "FS_Section"),
         P(s, "This PDF is presentation only. Opportunity rankings, Shared Decision Utility, player and pick values, simulation results, Trade Decision authority and bilateral-stability rules remain unchanged.", "FS_Small"),
@@ -463,8 +466,9 @@ def main():
     ap.add_argument("--assets", default=DEFAULT_ASSETS)
     ap.add_argument("--projections", default=DEFAULT_PROJECTIONS)
     ap.add_argument("--rosters", default=DEFAULT_ROSTERS)
+    ap.add_argument("--focus-user-id")
     a = ap.parse_args()
-    render(a.input, Path(a.output), a.assets, a.projections, a.rosters)
+    render(a.input, Path(a.output), a.assets, a.projections, a.rosters, a.focus_user_id)
     print(json.dumps({"renderer_model_version": MODEL_VERSION, "pdf": a.output}, indent=2))
 
 
