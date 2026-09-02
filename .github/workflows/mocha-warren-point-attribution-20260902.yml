@@ -1,0 +1,157 @@
+name: Mocha Warren Point Attribution 2026-09-02
+
+on:
+  push:
+    branches:
+      - analysis/mocha-warren-point-attribution-20260902
+    paths:
+      - '.github/workflows/mocha-warren-point-attribution-20260902.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  attribute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy
+      - name: Run paired attribution diagnostic
+        run: |
+          python - <<'PY'
+          import copy, json
+          from pathlib import Path
+          import importlib.util
+
+          def load(path,name):
+              spec=importlib.util.spec_from_file_location(name,path)
+              mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+          v13=load(Path('script/run_trade_market_sweep_v13.py'),'v13_attr')
+          engine=load(Path('script/run_trade_market_sweep.py'),'base_trade_attr')
+          dl=engine.import_decision_lab()
+          rosteraware=load(Path('script/roster_aware_trade.py'),'rosteraware_attr')
+
+          focus='844785316274483200'
+          buyer='850548458887704576'
+          player_catalog,pick_catalog=engine.asset_catalog()
+          catalog={**player_catalog,**pick_catalog}
+
+          warren=catalog['player:12518']
+          andrews=catalog['player:5012']
+          dk=catalog['player:5846']
+          picks=[catalog['pick:2029:R2:orig11'],catalog['pick:2029:R3:orig11'],catalog['pick:2029:R3:orig4']]
+
+          mi=dl.load_model_inputs()
+          simmod,league,rosters,users,players,season,projections,raw_schedule=mi
+          baseline_lineups=dl.load_cached_lineups(season)
+          seed=simmod.deterministic_seed(league,season)
+          sims=50000
+          baseline=dl.simulate_from_lineups(simmod,league,rosters,users,raw_schedule,baseline_lineups,sims,seed)
+
+          def run(outgoing,incoming,label):
+              sim=v13.fast_simulate_candidate(
+                  engine,dl,mi,baseline_lineups,baseline,focus,buyer,
+                  outgoing,incoming,sims,seed
+              )
+              return {
+                  'label':label,
+                  'expected_points_for_delta':sim['focus_delta']['expected_points_for'],
+                  'expected_wins_delta':sim['focus_delta']['expected_wins'],
+                  'playoff_probability_delta':sim['focus_delta']['playoff_probability'],
+                  'championship_probability_delta':sim['focus_delta']['championship_probability'],
+                  'effective_actions':sim.get('effective_actions') or sim.get('actions') or [],
+                  'automatic_roster_cut_actions':sim.get('automatic_roster_cut_actions') or [],
+                  'roster_resolution':sim.get('roster_resolution') or {},
+                  'simulation_count':sim.get('simulation_count'),
+              },sim
+
+          full,fullsim=run([warren],[andrews,dk,*picks],'FULL_TRADE')
+          swap,swapsim=run([warren],[andrews],'WARREN_FOR_ANDREWS_ONLY')
+          dkonly,dkonlysim=run([],[dk],'DK_ZERO_PRICE_ROSTER_TRANSFER')
+
+          # Reconstruct the exact full-trade legal roster from the effective actions,
+          # then compare the optimizer's weekly starting lineups.
+          full_effective=fullsim.get('actions') or fullsim.get('effective_actions') or []
+          # v13 returns "actions" as effective_actions.
+          legal_rosters,_=dl.apply_actions(rosters,full_effective)
+          touched=dl.touched_users(focus,full_effective)
+          after_lineups,reopt=v13.fast_reoptimize_touched_lineups(
+              dl,simmod,baseline_lineups,legal_rosters,touched,
+              league,users,players,projections
+          )
+
+          by_uid,_=dl.roster_maps(rosters)
+          focus_rid=int(by_uid[focus]['roster_id'])
+
+          weekly=[]
+          for week in sorted(baseline_lineups[focus_rid],key=lambda x:int(x)):
+              before=baseline_lineups[focus_rid][week]
+              after=after_lineups[focus_rid][week]
+              def rowbits(rows):
+                  return [{
+                      'slot':r.get('slot'),
+                      'player_id':r.get('player_id'),
+                      'name':r.get('name'),
+                      'position':r.get('position'),
+                      'mean':round(float(r.get('mean') or 0),3),
+                      'active_probability':round(float(r.get('active_probability') or 0),4),
+                      'weighted_mean':round(float(r.get('mean') or 0)*float(r.get('active_probability') or 0),3),
+                  } for r in rows]
+              b=rowbits(before); a=rowbits(after)
+              btot=sum(x['weighted_mean'] for x in b); atot=sum(x['weighted_mean'] for x in a)
+              changed=[]
+              slots=sorted(set(x['slot'] for x in b+a))
+              for slot in slots:
+                  br=[x for x in b if x['slot']==slot]
+                  ar=[x for x in a if x['slot']==slot]
+                  # slots can repeat (WR/RB); compare whole slot groups by player IDs.
+                  bp=[x['player_id'] for x in br]; ap=[x['player_id'] for x in ar]
+                  if bp!=ap:
+                      changed.append({'slot':slot,'before':br,'after':ar})
+              weekly.append({
+                  'week':int(week),
+                  'before_weighted_lineup_mean':round(btot,3),
+                  'after_weighted_lineup_mean':round(atot,3),
+                  'optimizer_mean_delta':round(atot-btot,3),
+                  'changed_slot_groups':changed,
+              })
+
+          out={
+              'full_trade':full,
+              'sequential_decomposition_warren_for_andrews_then_dk':{
+                  'warren_for_andrews_points':swap['expected_points_for_delta'],
+                  'incremental_dk_given_swap_points':round(full['expected_points_for_delta']-swap['expected_points_for_delta'],2),
+                  'sum':full['expected_points_for_delta'],
+              },
+              'reverse_order_diagnostic_dk_then_swap':{
+                  'dk_zero_price_transfer_points':dkonly['expected_points_for_delta'],
+                  'incremental_warren_for_andrews_given_dk_points':round(full['expected_points_for_delta']-dkonly['expected_points_for_delta'],2),
+                  'sum':full['expected_points_for_delta'],
+                  'note':'Order dependence reflects lineup/roster interactions and endogenous cuts; components are not independent.'
+              },
+              'component_runs':{
+                  'warren_for_andrews_only':swap,
+                  'dk_zero_price_roster_transfer':dkonly,
+              },
+              'weekly_optimizer_lineup_deltas':weekly,
+              'optimizer_weighted_mean_delta_total':round(sum(x['optimizer_mean_delta'] for x in weekly),3),
+              'simulator_expected_points_delta':full['expected_points_for_delta'],
+              'note':'Optimizer weighted means explain starting-lineup changes; Simulator expected points also include uncertainty, availability, substitution, correlation, and matchup effects.'
+          }
+          Path('/tmp').joinpath('mocha-point-attribution.json').write_text(json.dumps(out,indent=2)+'\n')
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mocha-warren-point-attribution
+          path: /tmp/mocha-point-attribution.json
+          if-no-files-found: error
+          retention-days: 30
