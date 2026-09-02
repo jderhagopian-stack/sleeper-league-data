@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Strategy-Outcome-Spec-1.0",
+  "authority": "RESEARCH_SPEC_NON_AUTHORITATIVE",
+  "purpose": "Define leakage-safe historical decision examples and independent outcomes for coefficient calibration without using the candidate utility components as their own target.",
+  "production_behavior_changed": false,
+  "unit_of_observation": "team decision opportunity at a point in time",
+  "eligible_action_families": [
+    "TRADE",
+    "WAIVER_ADD_DROP",
+    "ROSTER_CUT",
+    "DRAFT_PICK"
+  ],
+  "required_predecision_state": {
+    "identity": [
+      "league_id",
+      "season",
+      "decision_timestamp_ms",
+      "decision_id",
+      "team_id"
+    ],
+    "league_configuration": [
+      "team_count",
+      "scoring_rules",
+      "starting_lineup_rules",
+      "active_roster_limit",
+      "taxi_rules",
+      "draft_rounds",
+      "playoff_structure"
+    ],
+    "team_state": [
+      "roster_player_ids",
+      "taxi_player_ids",
+      "reserve_player_ids",
+      "owned_pick_ids",
+      "faab_available",
+      "standings_to_date_if_in_season",
+      "schedule_to_date_if_in_season"
+    ],
+    "point_in_time_model_inputs": [
+      "projection_snapshot_or_missing_reason",
+      "market_value_snapshot_or_missing_reason",
+      "player_availability_snapshot_or_missing_reason",
+      "manager_behavior_history_cutoff_at_decision_time"
+    ],
+    "action": [
+      "chosen_action",
+      "assets_sent",
+      "assets_received",
+      "forced_roster_resolution"
+    ],
+    "alternatives": {
+      "required_when_defensibly_reconstructable": true,
+      "must_not_be_hindsight_generated": true,
+      "allowed_sources": [
+        "documented contemporaneous offer/counter",
+        "rule-defined waiver alternatives",
+        "draft board actually available at pick time",
+        "algorithmically generated alternatives using only timestamp-safe inputs"
+      ]
+    }
+  },
+  "outcomes": {
+    "current_season": [
+      "realized_points_contributed",
+      "realized_points_above_replacement",
+      "starter_games_contributed",
+      "team_wins_after_decision",
+      "playoff_qualification",
+      "bye_result",
+      "championship_result"
+    ],
+    "medium_long_term": {
+      "horizons_months": [6, 12, 24],
+      "measures": [
+        "frozen_market_value_change",
+        "realized_pick_outcomes",
+        "retained_franchise_value",
+        "age_adjusted_value_preservation",
+        "roster_depth_resilience",
+        "replacement_cost_after_attrition"
+      ]
+    }
+  },
+  "target_policy": {
+    "equal_weight_current_future_liquidity_resilience_composite_forbidden": true,
+    "candidate_weight_vector_may_not_define_target": true,
+    "single_strategy_outcome_score_optional": true,
+    "single_score_must_be_independently_defined_before_candidate_fit": true,
+    "multi_objective_validation_preferred_when_scalarization_is_not_defensible": true,
+    "hindsight_information_forbidden_in_features": true
+  },
+  "missingness_policy": {
+    "current_market_values_cannot_backfill_historical_market_values": true,
+    "current_projections_cannot_backfill_historical_forecasts": true,
+    "missing_point_in_time_inputs_must_be_explicit": true,
+    "reconstructed_non_pristine_rows_may_be_used_for_sensitivity_but_not_pristine_holdout_claims": true
+  },
+  "temporal_validation": {
+    "preferred": "expanding_window_train_through_N_validate_N_plus_1",
+    "fallback": "leave_one_season_out",
+    "random_future_leakage_split_forbidden": true
+  },
+  "evaluation_metrics": [
+    "MAE",
+    "calibration_error",
+    "ranking_quality",
+    "sign_accuracy",
+    "decision_ordering",
+    "realized_franchise_outcome",
+    "regret_vs_defensible_alternatives",
+    "fold_stability",
+    "uncertainty_interval_coverage"
+  ],
+  "baseline_requirements": [
+    "current_production_parameter_or_prior",
+    "neutral_or_equal_weight_baseline_where_meaningful",
+    "simpler_data_driven_alternative",
+    "existing_historical_benchmark_where_available",
+    "reasonable_sensitivity_variants"
+  ],
+  "promotion_boundary": {
+    "dataset_builder_may_not_modify_production_coefficients": true,
+    "research_output_may_not_become_runtime_input_by_path_alias_or_default": true,
+    "promotion_requires_separate_reviewable_change": true
+  }
+}
