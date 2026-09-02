@@ -132,7 +132,10 @@ def main():
         "state_weight_shadow_sign_changes":shadow.get("sign_change_count"),
         "historical_trade_panel":panel.get("summary"),
         "state_weight_promotion":promo,
-        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary"),\n        "effective_objective_channel_authority":channel_authority.get("conclusions"),\n        "state_weight_identifiability":state_ident.get("summary"),\n        "simulator_backup_assignment_optimality":{\n            "passed":backup_opt.get("passed"),\n            "greedy_is_exact":backup_opt.get("greedy_is_exact"),\n            "grid_failure_count":backup_opt.get("grid_failure_count"),\n            "recommended_repair":backup_opt.get("recommended_repair"),\n        },\n        "simulator_team_shock_semantics":{\n            "passed":team_shock.get("passed"),\n            "calibration_status":team_shock.get("calibration_status"),\n            "recommended_action":team_shock.get("recommended_action"),\n        }
+        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary"),\n        "effective_objective_channel_authority":channel_authority.get("conclusions"),\n        "state_weight_identifiability":state_ident.get("summary"),\n        "simulator_backup_assignment_optimality":{\n            "passed":backup_opt.get("passed"),\n            "legacy_greedy_is_exact":backup_opt.get("legacy_greedy_is_exact"),
+            "live_slot_scarcity_heuristic_active":backup_opt.get("live_slot_scarcity_heuristic_active"),
+            "live_rule_derived_assignment_active":backup_opt.get("live_rule_derived_assignment_active"),\n            "grid_failure_count":backup_opt.get("grid_failure_count"),\n            "repair_status":backup_opt.get("repair_status"),
+            "recommended_action":backup_opt.get("recommended_action"),\n        },\n        "simulator_team_shock_semantics":{\n            "passed":team_shock.get("passed"),\n            "calibration_status":team_shock.get("calibration_status"),\n            "recommended_action":team_shock.get("recommended_action"),\n        }
       },
       "plain_language_assessment":{
         "what_is_already_defensible":[
