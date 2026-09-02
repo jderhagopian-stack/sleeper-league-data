@@ -7,6 +7,7 @@ on:
       - 'script/test_coefficient_invariance_monotonicity.py'
       - 'script/audit_strategy_outcome_readiness.py'
       - 'script/run_state_weight_shadow_research.py'
+      - 'script/audit_simulator_calibration_chain.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -28,6 +29,8 @@ jobs:
         run: python script/test_coefficient_invariance_monotonicity.py
       - name: Run non-authoritative state-weight shadow comparison
         run: python script/run_state_weight_shadow_research.py
+      - name: Audit Simulator calibration chain
+        run: python script/audit_simulator_calibration_chain.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
@@ -51,8 +54,18 @@ jobs:
           assert s['candidate_selection_performed'] is False
           assert s['empirical_validation_claim'] is False
           assert s['hurts_so_good_used_as_target'] is False
+
+          sim=json.load(open('data/audit/simulator_calibration_chain_audit.json'))
+          assert sim['authority']=='RESEARCH_AUDIT_NON_AUTHORITATIVE'
+          assert sim['production_behavior_changed'] is False
+          assert sim['summary']['structural_chain_passed'] is True
+          assert sim['summary']['arbitrary_points_to_wins_coefficient_detected'] is False
+          assert sim['summary']['arbitrary_wins_to_title_coefficient_detected'] is False
+          assert sim['summary']['authoritative_empirical_magnitude_claim_allowed'] is False
+
           print(json.dumps(r['summary'],indent=2))
           print(json.dumps({'shadow_sign_change_count':s['sign_change_count']},indent=2))
+          print(json.dumps(sim['summary'],indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -60,4 +73,5 @@ jobs:
           path: |
             data/audit/strategy_outcome_readiness.json
             data/audit/state_weight_shadow_research.json
+            data/audit/simulator_calibration_chain_audit.json
           retention-days: 30
