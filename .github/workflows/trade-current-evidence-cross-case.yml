@@ -139,13 +139,13 @@ jobs:
           mkdir -p /tmp/fsffl-cross-output/baseline /tmp/fsffl-cross-output/candidate
           for f in /tmp/fsffl-cross-cases/[0-9][0-9]_*.json; do
             id="$(basename "$f" .json)"
-            python baseline/script/run_roster_decision_lab.py \
+            (cd baseline && python script/run_roster_decision_lab.py \
               --scenario "$f" --sims 2500 \
-              --output "/tmp/fsffl-cross-output/baseline/$id.json" \
+              --output "/tmp/fsffl-cross-output/baseline/$id.json") \
               > "/tmp/fsffl-cross-output/baseline/$id.log"
-            python candidate/script/run_roster_decision_lab.py \
+            (cd candidate && python script/run_roster_decision_lab.py \
               --scenario "$f" --sims 2500 \
-              --output "/tmp/fsffl-cross-output/candidate/$id.json" \
+              --output "/tmp/fsffl-cross-output/candidate/$id.json") \
               > "/tmp/fsffl-cross-output/candidate/$id.log"
           done
 
@@ -208,13 +208,13 @@ jobs:
           mkdir -p /tmp/fsffl-cross-output/confirmed
           for f in /tmp/fsffl-cross-cases/[0-9][0-9]_*.json; do
             id="$(basename "$f" .json)"
-            python candidate/script/run_trade_report.py \
+            (cd candidate && python script/run_trade_report.py \
               --scenario "$f" \
               --out-dir /tmp/fsffl-cross-output/confirmed \
               --basename "$id" \
               --quick-sims 200 \
               --adaptive-confirm-sims 10000 \
-              --search-depth 30 \
+              --search-depth 30) \
               > "/tmp/fsffl-cross-output/confirmed/$id.pipeline.log"
           done
 
