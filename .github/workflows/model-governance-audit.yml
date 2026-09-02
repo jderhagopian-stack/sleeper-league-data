@@ -37,6 +37,7 @@ jobs:
           python script/audit_heuristic_refinement_first_pass.py
           python script/audit_parameter_authority_missing_value.py
           python script/package_concentration_sensitivity.py --cases data/model_validation/package_concentration_sensitivity_cases.json --output data/audit/package_concentration_sensitivity.json
+          python script/audit_trade_package_topology.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -63,6 +64,11 @@ jobs:
           assert pres['WARREN_SKATTEBO_FLOURNOY_3RD']['curves']['legacy_mild_bound']['effective_delta'] < 0
           assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['legacy_mild_bound']['effective_delta'] < 0
           assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['gm22_strong_bound']['concentration_residual_vs_additive'] < -500
+          topo=json.load(open('data/audit/trade_package_topology_audit.json'))
+          assert topo['coefficient_fit_performed'] is False
+          assert topo['current_value_backfill_used'] is False
+          assert topo['policy']['completed_trade_topology_supports_concept_existence_not_coefficient_magnitude'] is True
+          assert topo['summary']['one_for_many'] > 0
 
           r=json.load(open('data/audit/model_governance_audit.json'))
           assert r['summary']['numeric_assumptions_flagged'] > 50
