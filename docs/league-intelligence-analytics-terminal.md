@@ -230,6 +230,26 @@ python script/league_intelligence/application.py \
 The team-context artifact includes hashes of the current model/data inputs it
 consumed. The Terminal fails closed and quarantines it if those inputs change.
 
+### Polished manager report
+
+The shared FSFFL Reporting layer can render the Terminal payload as a finished,
+plain-language PDF. The report includes the competitive landscape, focus-team
+roster profile, league heat maps, separate long-term and current-season player
+rankings, team-relative player context, structural trade-partner intelligence,
+an optional selected-decision inspection, and source-health limitations.
+
+```bash
+python script/render_league_intelligence_report.py \
+  --input data/league_intelligence/terminal.json \
+  --focus-user-id 846634401482792960 \
+  --output output/pdf/FSFFL_League_Intelligence_Report.pdf
+```
+
+The PDF performs presentation-only sorting, formatting, percentiles, and
+plain-language explanation over fields already published by League
+Intelligence. It does not calculate value, utility, simulation outcomes,
+counterparty feasibility, or recommendations.
+
 ### Decision / Utility Inspector
 
 The Inspector accepts one explicitly selected governed decision record from
