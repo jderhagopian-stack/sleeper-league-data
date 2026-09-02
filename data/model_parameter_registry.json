@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "model_governance_version": "FSFFL-Model-Governance-2.1",
   "evidence_hierarchy": [
     "RULE_DEFINED",
@@ -20,7 +20,9 @@
     "learned_parameter_promotion_requires_validation_improvement": true,
     "software_validation_is_not_empirical_validation": true,
     "provisional_parameters_may_replace_weaker_legacy_heuristics_when_basis_is_stronger": true,
-    "empirical_promotion_still_requires_validation_improvement": true
+    "empirical_promotion_still_requires_validation_improvement": true,
+    "uncertain_distinct_effects_may_use_bounded_priors": true,
+    "zero_incremental_authority_requires_duplicate_wrong_role_or_explicit_uncertainty_rationale": true
   },
   "parameters": [
     {
@@ -463,6 +465,101 @@
       "authoritative_use": false,
       "bounds_required": true,
       "notes": "Structural de-duplication removes market-tier scarcity from incremental GM premiums without changing projection means or uncertainty."
+    },
+    {
+      "id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
+      "component": "Residual package concentration / aggregation economics",
+      "paths": [
+        "script/package_concentration_sensitivity.py",
+        "data/model_governance/economic_signal_dedup_map.json"
+      ],
+      "parameter_family": "diminishing substitutability of second and later assets after excluding forced-cut and lineup effects",
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "BOUNDED_PRIOR_CANDIDATE_SENSITIVITY_ACTIVE_PRODUCTION_DISABLED",
+      "source": "Two inherited FSFFL package curves (legacy mild and GM2.2 stronger) define a transparent sensitivity envelope; completed trade topology supports concept existence but not coefficient magnitude.",
+      "validation": "Current sensitivity suite tests sign/decision fragility without altering production. Empirical promotion requires frozen contemporaneous trade values and preferably offer/choice-frontier evidence, with residual testing after exact roster legalization and lineup effects.",
+      "uncertainty": "Material. The residual aggregation effect is credible, but the correct curve magnitude and dependence on roster size, asset tier and package composition are not yet empirically identified.",
+      "update_policy": "Begin with inherited bounded sensitivity envelope; narrow or replace the prior using time-ordered frozen transaction evidence and ablation against roster/legalization/lineup channels.",
+      "downstream": [
+        "trade package economics",
+        "Trade Decision future utility",
+        "Opportunity Engine candidate ranking",
+        "counteroffer generation"
+      ],
+      "authoritative_use": false,
+      "bounds_required": true,
+      "notes": "Never use same-source market rank to generate this residual premium; raw market value remains the base coordinate."
+    },
+    {
+      "id": "OPTIONALITY-RESIDUAL-001",
+      "component": "Residual asset optionality",
+      "paths": [
+        "script/decision_lab_state_aware.py",
+        "script/decision_utility.py",
+        "data/model_governance/economic_signal_dedup_map.json"
+      ],
+      "parameter_family": "asymmetric upside/reversibility value remaining after market dynasty value, liquidity and resilience",
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "RESIDUAL_DECOMPOSITION_REQUIRED_PRODUCTION_DISABLED",
+      "source": "State-aware GM profiles already compute optionality diagnostics; final Shared Decision Utility currently assigns zero incremental authority.",
+      "validation": "Decompose overlap with market value, liquidity, resilience and expected appreciation. Evaluate bounded residual priors using historical outcome distributions and trade-choice sensitivity before any production promotion.",
+      "uncertainty": "High because much of perceived optionality may already be embedded in current dynasty market prices.",
+      "update_policy": "Keep diagnostic until a residual definition is frozen; then use bounded prior sensitivity and shrink/update as time-ordered player and transaction evidence accumulates.",
+      "downstream": [
+        "Trade Decision future utility",
+        "hold/sell decisions",
+        "asset concentration decisions"
+      ],
+      "authoritative_use": false,
+      "bounds_required": true
+    },
+    {
+      "id": "LIQUIDITY-RESIDUAL-001",
+      "component": "Residual transaction liquidity / reversibility",
+      "paths": [
+        "script/decision_lab_state_aware.py",
+        "script/decision_utility.py",
+        "data/model_governance/economic_signal_dedup_map.json"
+      ],
+      "parameter_family": "conversion flexibility not already embedded in market price or optionality",
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "CHANNEL_EXISTS_RESIDUAL_AUTHORIZATION_REVIEW",
+      "source": "Shared Decision Utility contains a liquidity channel, but state-aware profiles require explicit residual authorization and many current assets therefore contribute diagnostic value only.",
+      "validation": "Separate observed transaction ease/spread/retradeability from market price and manager behavior; test whether residual liquidity improves decision outcomes after market-value controls.",
+      "uncertainty": "Moderate to high; liquid assets tend also to have strong market values, creating substantial overlap risk.",
+      "update_policy": "Estimate bounded residual from trade frequency, spread/clearing evidence and cross-manager demand when available; shrink toward zero as overlap uncertainty rises.",
+      "downstream": [
+        "Trade Decision",
+        "Team Improvement",
+        "portfolio reversibility"
+      ],
+      "authoritative_use": false,
+      "bounds_required": true
+    },
+    {
+      "id": "RESILIENCE-RESIDUAL-001",
+      "component": "Residual roster replacement resilience",
+      "paths": [
+        "script/decision_lab_state_aware.py",
+        "script/decision_utility.py",
+        "script/roster_interaction.py",
+        "data/model_governance/economic_signal_dedup_map.json"
+      ],
+      "parameter_family": "future/stress replacement value beyond current lineup reoptimization and simulator substitution",
+      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
+      "status": "CHANNEL_EXISTS_ABLATION_REQUIRED",
+      "source": "Replacement resilience and roster-interaction diagnostics exist; final authority is limited because current lineup/simulator paths already capture substantial replacement effects.",
+      "validation": "Ablate against canonical lineup optimization, injury/availability substitution and current-season Simulator results; only residual stress-horizon improvement may receive bounded authority.",
+      "uncertainty": "High until the overlap with current-season simulation and starter-depth metrics is measured directly.",
+      "update_policy": "Use stress tests and time-ordered availability outcomes to estimate only residual value; retain zero for any component shown to be duplicated.",
+      "downstream": [
+        "Trade Decision",
+        "roster construction",
+        "cut decisions",
+        "team improvement"
+      ],
+      "authoritative_use": false,
+      "bounds_required": true
     }
   ]
 }
