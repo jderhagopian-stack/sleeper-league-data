@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "status": "INITIAL_HIGH_IMPACT_ADJUDICATION",
   "production_behavior_changed": false,
-  "scope_note": "Major-family high-impact adjudication now covers every family in the current model parameter registry. Exact Python/JSON static-site adjudication remains incremental and is tracked separately by the generated inventory.",
+  "scope_note": "Major-family high-impact adjudication covers every registry family, including residual economic families added by the parameter-authority audit. Exact static-site adjudication remains incremental.",
   "findings": [
     {
       "parameter_id": "STATE-WEIGHT-ANCHORS-001",
@@ -1196,6 +1196,130 @@
       "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
       "recommended_action": "DIAGNOSTIC_ONLY",
       "evidence_needed_for_further_promotion": "Do not recalibrate as a bundle. Any individual signal must demonstrate time-ordered incremental value beyond its canonical owner before reintroduction."
+    },
+    {
+      "parameter_id": "PACKAGE-CONCENTRATION-RESIDUAL-001-AUDIT",
+      "module": "Shared Core / package concentration residual",
+      "path": "script/package_concentration_sensitivity.py",
+      "parameter_name": "LEGACY_MILD / GM22_STRONG bounded sensitivity envelope",
+      "current_value_function": {
+        "legacy_mild": [
+          1,
+          0.92,
+          0.84,
+          0.78,
+          0.72
+        ],
+        "gm22_strong": [
+          1,
+          0.78,
+          0.62,
+          0.5,
+          0.42
+        ],
+        "production_authority": "DISABLED"
+      },
+      "runtime_authority": "AUDIT_AND_SENSITIVITY_ONLY; NO FINAL_SHARED_UTILITY_AUTHORITY",
+      "downstream_consumers": [
+        "parameter governance",
+        "future package-economics calibration",
+        "Trade Decision design"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "two pre-existing FSFFL package curves retained as an explicit uncertainty envelope; completed trade topology supports concept existence but not coefficient magnitude",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "MUST_EXCLUDE_FORCED_CUT_AND_LINEUP_EFFECTS; SAME_SOURCE_MARKET_RANK_REPRICING_FORBIDDEN",
+      "uncertainty_status": "EXPLICIT_BOUNDED_RANGE_HIGH_UNCERTAINTY",
+      "sensitivity_level": "HIGH_FOR_ONE_FOR_MANY_ELITE_ASSET_TRADES",
+      "estimated_decision_impact": "POTENTIALLY_HIGH_IF_PROMOTED; CURRENTLY_NONE",
+      "replacement_feasibility": "FROZEN_CONTEMPORANEOUS_TRANSACTION_RESIDUAL_MODEL",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Frozen contemporaneous package values, exact roster/legalization and lineup controls, and preferably accepted/rejected or choice-frontier evidence. Estimate only the residual aggregation effect."
+    },
+    {
+      "parameter_id": "OPTIONALITY-RESIDUAL-001-AUDIT",
+      "module": "Shared Decision Utility / state-aware GM",
+      "path": "script/decision_utility.py",
+      "parameter_name": "residual optionality authority",
+      "current_value_function": "optionality_value_delta is computed upstream and reported diagnostically; final incremental authority is zero",
+      "runtime_authority": "DIAGNOSTIC_ONLY_CURRENTLY",
+      "downstream_consumers": [
+        "Trade Decision explanations",
+        "future optionality calibration"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "legacy GM optionality concepts survive as diagnostics after de-duplication; no distinct residual coefficient is currently authorized",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "POSSIBLE_OVERLAP_WITH_MARKET_DYNASTY_LIQUIDITY_RESILIENCE_AND_EXPECTED_APPRECIATION",
+      "uncertainty_status": "HIGH_AND_UNDECOMPOSED",
+      "sensitivity_level": "POTENTIALLY_HIGH_FOR_YOUNG_HIGH_UPSIDE_ASSETS",
+      "estimated_decision_impact": "NONE_CURRENT_AUTHORITY; POTENTIALLY_HIGH_IF_RESIDUAL_EXISTS",
+      "replacement_feasibility": "RESIDUAL_DECOMPOSITION_PLUS_TIME_ORDERED_OUTCOME_AND_TRANSACTION_TESTS",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "evidence_needed_for_further_promotion": "Freeze a residual definition that excludes market price, liquidity and resilience overlap; then test bounded priors and update with time-ordered player/transaction evidence."
+    },
+    {
+      "parameter_id": "LIQUIDITY-RESIDUAL-001-AUDIT",
+      "module": "Shared Decision Utility / liquidity channel",
+      "path": "script/decision_lab_state_aware.py",
+      "parameter_name": "explicit residual liquidity authorization",
+      "current_value_function": "liquidity_value_delta exists but only consumes objective weight when an asset explicitly authorizes residual liquidity value",
+      "runtime_authority": "SPARSE_CONDITIONAL_AUTHORITY; OTHERWISE_DIAGNOSTIC",
+      "downstream_consumers": [
+        "Trade Decision",
+        "GM3 Team Improvement",
+        "portfolio reversibility"
+      ],
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "provenance": "liquidity concept retained but guarded against double counting current market price and optionality",
+      "originally_hand_set": true,
+      "empirically_validated": false,
+      "simulation_derived": false,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "LIKELY_PARTIAL_OVERLAP_WITH_MARKET_PRICE_AND_OPTIONALITY",
+      "uncertainty_status": "MODERATE_HIGH",
+      "sensitivity_level": "MEDIUM_HIGH_FOR_PICKS_AND_HIGH_DEMAND_ASSETS",
+      "estimated_decision_impact": "LIMITED_CURRENTLY_BY_AUTHORIZATION_GATE",
+      "replacement_feasibility": "TRADE_FREQUENCY_SPREAD_AND_RETRADEABILITY_RESIDUAL_MODEL",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Estimate residual conversion/retradeability after controlling for current market value and manager-specific behavior; shrink toward zero under weak evidence."
+    },
+    {
+      "parameter_id": "RESILIENCE-RESIDUAL-001-AUDIT",
+      "module": "Shared Decision Utility / replacement resilience",
+      "path": "script/decision_lab_state_aware.py",
+      "parameter_name": "residual resilience authorization",
+      "current_value_function": "replacement_resilience diagnostics exist; final channel authority requires explicit residual authorization",
+      "runtime_authority": "CONDITIONAL_OR_DIAGNOSTIC; DUPLICATE CURRENT-SEASON EFFECTS MUST REMAIN ZERO",
+      "downstream_consumers": [
+        "Trade Decision",
+        "roster construction",
+        "cut decisions",
+        "Team Improvement"
+      ],
+      "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
+      "provenance": "canonical lineup optimization and Simulator already identify substantial replacement effects; only future/stress residual beyond those paths is eligible for separate authority",
+      "originally_hand_set": false,
+      "empirically_validated": false,
+      "simulation_derived": true,
+      "externally_anchored": false,
+      "duplicated_elsewhere": "PARTIAL_OVERLAP_WITH_LINEUP_REOPTIMIZATION_SIMULATOR_SUBSTITUTION_AND_ROSTER_INTERACTION",
+      "uncertainty_status": "RESIDUAL_MAGNITUDE_UNKNOWN",
+      "sensitivity_level": "HIGH_FOR_FRAGILE_SHALLOW_ROSTERS",
+      "estimated_decision_impact": "CURRENTLY_BOUNDED_BY_AUTHORIZATION; POTENTIAL_RESIDUAL_MEDIUM_HIGH",
+      "replacement_feasibility": "SIMULATION_ABLATION_AND_HISTORICAL_AVAILABILITY_STRESS_TEST",
+      "identifiability_class": "SIMULATION_IDENTIFIABLE",
+      "recommended_action": "RE_ESTIMATE",
+      "evidence_needed_for_further_promotion": "Ablate current lineup/Simulator replacement effects and estimate only the remaining stress/future-horizon resilience value."
     }
   ]
 }
