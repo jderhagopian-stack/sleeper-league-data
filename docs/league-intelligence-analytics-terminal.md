@@ -22,7 +22,8 @@ No report or terminal view may introduce a hidden weighted blend, rescore govern
 
 ## Authority map
 
-- **Shared valuation / player-value sources** own canonical model values and market-value inputs.
+- **FSFFL Player Value** owns independent, league-specific player contribution values. Its current-season authority consumes Projection System output and rule-defined league configuration, not market value.
+- **External market sources** own observed dynasty-market values; they remain separate from FSFFL model value.
 - **GM3** owns team-specific franchise utility, roster construction context, team needs, break-glass values, and cross-channel improvement utility.
 - **Simulator** owns competitive outcome simulation and season-strength outcomes.
 - **Trade Decision** owns generated-trade review, negotiation policy, and counterparty-feasibility interpretation.
@@ -37,9 +38,9 @@ No report or terminal view may introduce a hidden weighted blend, rescore govern
 
 Expose, overall and by position:
 
-- canonical FSFFL model value/rank;
+- canonical current-season FSFFL model value/rank;
 - canonical external/market value/rank when available;
-- model-versus-market delta as a transparent subtraction of two governed values;
+- FSFFL-versus-market percentile gaps with their horizon mismatch explicitly labeled;
 - team-specific value or retention context sourced from GM3 rather than recomputed by League Intelligence;
 - current owner and league availability state;
 - provenance for every displayed field.
@@ -166,24 +167,38 @@ Do not promote League Intelligence-specific view schemas or transforms into Shar
 
 ## Current first-slice implementation
 
-Run the read-only application from the repository root:
+Generate the independent current-season value artifact, then run the read-only
+Terminal from the repository root:
 
 ```bash
+python script/player_value/application.py
+
 python script/league_intelligence/application.py \
   --output data/league_intelligence/terminal.json \
   --markdown-output reports/league_intelligence/player_value_rankings.md
 ```
 
-The first runnable slice exposes two separate ranking perspectives:
+The player-value application uses only published Projection System output,
+FSFFL roster rules, and the league's current rosters. For each player, it
+calculates the exact expected lineup-point gain from adding him to every actual
+non-owner roster, with legal QB, RB, WR, TE, FLEX, and Superflex optimization,
+then takes the unweighted league average. This captures real replacement depth
+without privileging one manager's roster. The result is a contribution value,
+not a trade price, recommendation, or GM3 team-fit score. Its source hashes are
+checked before the Terminal consumes it.
+
+The runnable slice exposes two separate ranking perspectives:
 
 - long-term market value from the published dynasty market anchor;
-- current-season ranking from the published weekly projection distribution.
+- independent current-season FSFFL contribution from the Player Value application.
 
-It deliberately does not blend those horizons. The checked-in `fsffl_value`
+It compares their percentiles without blending those horizons. This is useful
+for finding immediate-production versus dynasty-market disagreements, but is
+not yet a like-for-like native dynasty ranking. The checked-in `fsffl_value`
 field is not used as ranking authority: values equal to the market are disclosed
 as aliases, while older adjusted values are quarantined until a current
-canonical FSFFL player-value contract authorizes their provenance. Consequently,
-model-versus-market rankings are reported as unavailable rather than fabricated.
+canonical FSFFL player-value contract authorizes their provenance. A native
+multi-year value remains unavailable until it clears time-ordered validation.
 
 The application also excludes all legacy team-profile artifacts that still
 combine competitive state and strategic posture.
@@ -234,8 +249,8 @@ consumed. The Terminal fails closed and quarantines it if those inputs change.
 
 The shared FSFFL Reporting layer can render the Terminal payload as a finished,
 plain-language PDF. The report includes the competitive landscape, focus-team
-roster profile, league heat maps, separate long-term and current-season player
-rankings, team-relative player context, structural trade-partner intelligence,
+roster profile, league heat maps, market and independent current-season player
+rankings, the largest current-versus-market percentile gaps, team-relative player context, structural trade-partner intelligence,
 an optional selected-decision inspection, and source-health limitations.
 
 ```bash
