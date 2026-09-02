@@ -1,0 +1,50 @@
+name: Coefficient Recalibration Research
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'script/test_coefficient_invariance_monotonicity.py'
+      - 'script/audit_strategy_outcome_readiness.py'
+      - 'data/model_governance/strategy_outcome_dataset_spec.json'
+      - '.github/workflows/coefficient-recalibration-research.yml'
+  workflow_call:
+
+jobs:
+  research-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit historical strategy-outcome readiness
+        run: python script/audit_strategy_outcome_readiness.py
+      - name: Run independent coefficient invariance suite
+        run: python script/test_coefficient_invariance_monotonicity.py
+      - name: Assert non-authoritative research boundary
+        run: |
+          python - <<'PY'
+          import json
+          spec=json.load(open('data/model_governance/strategy_outcome_dataset_spec.json'))
+          assert spec['authority']=='RESEARCH_SPEC_NON_AUTHORITATIVE'
+          assert spec['production_behavior_changed'] is False
+          assert spec['target_policy']['equal_weight_current_future_liquidity_resilience_composite_forbidden'] is True
+          assert spec['target_policy']['candidate_weight_vector_may_not_define_target'] is True
+          assert spec['missingness_policy']['current_market_values_cannot_backfill_historical_market_values'] is True
+          assert spec['missingness_policy']['current_projections_cannot_backfill_historical_forecasts'] is True
+
+          r=json.load(open('data/audit/strategy_outcome_readiness.json'))
+          assert r['authority']=='RESEARCH_READINESS_ONLY'
+          assert r['production_behavior_changed'] is False
+          assert r['summary']['authoritative_empirical_state_weight_claim_allowed'] is False
+          print(json.dumps(r['summary'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsffl-coefficient-recalibration-research
+          path: data/audit/strategy_outcome_readiness.json
+          retention-days: 30
