@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Git-History-Calibration-Evidence-1.0",
+  "authority": "RESEARCH_EVIDENCE_MANIFEST_NON_AUTHORITATIVE",
+  "production_behavior_changed": false,
+  "purpose": "Register immutable repository-history states that preserve point-in-time model inputs and forecasts without claiming that current-season snapshots constitute completed temporal validation.",
+  "evidence_policy": {
+    "git_commit_is_immutable_point_in_time_container": true,
+    "commit_timestamp_alone_does_not_prove_no_hindsight": true,
+    "internal_source_and_dynamic_update_metadata_must_be_checked": true,
+    "preseason_regular_season_update_active_false_is_eligible_as_preseason_forecast_state": true,
+    "in_season_dynamic_snapshot_requires_outcome_cutoff_review_before_use": true,
+    "single_current_season_does_not_satisfy_multi_season_temporal_holdout": true,
+    "current_file_cannot_substitute_for_historical_blob": true
+  },
+  "snapshots": [
+    {
+      "snapshot_label": "2026-08-22-preseason",
+      "commit_sha": "04f954bd7120ca245608438bfa621859255f6e82",
+      "qualification": "QUALIFIED_POINT_IN_TIME_PRESEASON_INPUT_BUNDLE",
+      "projection": {
+        "path": "data/simulator/2026/inputs/player_weekly_projections.json",
+        "blob_sha": "1a877e9037d16bcaa27e6ca5342157c29bb7ad45",
+        "season": "2026",
+        "model_stage": "preseason_weekly_baseline_v2",
+        "season_type": "pre",
+        "regular_season_update_active": false,
+        "player_count": 234,
+        "source": "Razzball season projection scored under FSFFL rules; weekly distribution width calibrated from 3 seasons of known NFL weekly outcomes; bye weeks from preseason prior"
+      },
+      "market": {
+        "path": "data/fsffl_asset_values.json",
+        "blob_sha": "8ff286708c08e3babb36e4432db99b18dd58ae11",
+        "generated_at_utc": "2026-08-22T02:11:35.192494+00:00",
+        "model_version": "GM-2.2"
+      },
+      "franchise": {
+        "path": "data/gm/franchise_index.json",
+        "blob_sha": "366f1d4940780bcd56607772d31767f066183ca0",
+        "generated_at_utc": "2026-08-22T02:12:59.074208+00:00",
+        "model_version": "GM-2.2"
+      },
+      "simulator_forecast": {
+        "path": "data/simulator/2026/outputs/standings_projection.json",
+        "blob_sha": "47f7e143ea488162016d1ded8fe66b6368dfdbca",
+        "generated_at_utc": "2026-08-22T02:11:33.091091+00:00",
+        "model_version": "FSFFL-Season-Simulator-1.0"
+      }
+    },
+    {
+      "snapshot_label": "2026-08-28-preseason",
+      "commit_sha": "b09b920d51d212a75d6c0df238462bbb9d435499",
+      "qualification": "QUALIFIED_POINT_IN_TIME_PRESEASON_INPUT_BUNDLE",
+      "projection": {
+        "path": "data/simulator/2026/inputs/player_weekly_projections.json",
+        "blob_sha": "885806bc23f58b3a1d081fb1990371066e256af7",
+        "season": "2026",
+        "model_stage": "preseason_weekly_baseline_v2",
+        "season_type": "pre",
+        "regular_season_update_active": false,
+        "player_count": 231,
+        "source": "Razzball season projection scored under FSFFL rules; weekly distribution width calibrated from 3 seasons of known NFL weekly outcomes; bye weeks from preseason prior"
+      },
+      "market": {
+        "path": "data/fsffl_asset_values.json",
+        "blob_sha": "34c56c46e7759292d0a9b054646560ffefed4c72",
+        "generated_at_utc": "2026-08-28T21:51:18.575172+00:00",
+        "model_version": "GM-2.2"
+      },
+      "franchise": {
+        "path": "data/gm/franchise_index.json",
+        "blob_sha": "7bee202facd9822e5450a12f08841747dbaa211d",
+        "generated_at_utc": "2026-08-28T21:53:33.372856+00:00",
+        "model_version": "FSFFL-GM-3.0"
+      },
+      "simulator_forecast": {
+        "path": "data/simulator/2026/outputs/standings_projection.json",
+        "blob_sha": "4e23a3eb3bdca8f5ad60b470c1835ae2ce3a99b9",
+        "generated_at_utc": "2026-08-28T21:50:51.616726+00:00",
+        "model_version": "FSFFL-Season-Simulator-1.0"
+      }
+    },
+    {
+      "snapshot_label": "2026-08-30-dynamic",
+      "commit_sha": "d5ad604c4e46e11aad943752c05bc516be282164",
+      "qualification": "POINT_IN_TIME_BUNDLE_REQUIRES_OUTCOME_CUTOFF_REVIEW",
+      "projection": {
+        "path": "data/simulator/2026/inputs/player_weekly_projections.json",
+        "blob_sha": "1272abc48d0b80e0765fb98cefd241061a95dede",
+        "season": "2026",
+        "model_stage": "preseason_weekly_baseline_v2",
+        "season_type": "regular",
+        "regular_season_update_active": true,
+        "player_count": 231,
+        "source": "Razzball season projection scored under FSFFL rules; weekly distribution width calibrated from 3 seasons of known NFL weekly outcomes; bye weeks from preseason prior"
+      },
+      "market": {
+        "path": "data/fsffl_asset_values.json",
+        "blob_sha": "cc4ffc42981bbd4aab21932c17f424745844a6da",
+        "generated_at_utc": "2026-08-30T10:23:26.468665+00:00",
+        "model_version": "GM-2.2"
+      },
+      "franchise": {
+        "path": "data/gm/franchise_index.json",
+        "blob_sha": "9af590a85a51ba1e9a2d7aa11ff46b14a528c554",
+        "generated_at_utc": "2026-08-30T10:28:48.697487+00:00",
+        "model_version": "FSFFL-GM-3.0"
+      },
+      "simulator_forecast": {
+        "path": "data/simulator/2026/outputs/standings_projection.json",
+        "blob_sha": "d019fcb60f58c7ff940a4a9dc101c83026df5873",
+        "generated_at_utc": "2026-08-30T10:23:01.107482+00:00",
+        "model_version": "FSFFL-Season-Simulator-1.0"
+      }
+    }
+  ],
+  "current_evidence_status": {
+    "qualified_preseason_point_in_time_bundles": 2,
+    "dynamic_bundles_requiring_cutoff_review": 1,
+    "completed_seasons_represented": 0,
+    "projection_residual_calibration_ready_now": false,
+    "simulator_probability_calibration_ready_now": false,
+    "state_weight_temporal_holdout_ready_now": false,
+    "future_value_preservation_holdout_ready_now": false,
+    "value_of_manifest": "Preserves verifiable source coordinates now so 2026 realized outcomes can later be joined without relying on mutable current files."
+  }
+}
