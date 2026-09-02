@@ -1,0 +1,212 @@
+name: Trade Current-Evidence Parallel Cross-Case
+
+on:
+  push:
+    branches:
+      - fix/trade-current-evidence-ensemble
+    paths:
+      - '.github/workflows/trade-current-evidence-parallel-cross-case.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  case:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: 01_warren_veteran_package
+            category: known_conflicting_evidence_regression
+            focus: "844785316274483200"
+            a: "844785316274483200"
+            b: "850548458887704576"
+            send: '["12518"]'
+            receive: '["5012","5846"]'
+            send_picks: '[]'
+            receive_picks: '["pick:2029:R2:orig11","pick:2029:R3:orig11","pick:2029:R3:orig4"]'
+          - id: 02_young_to_win_now
+            category: young_asset_for_win_now_veteran
+            focus: "846634401482792960"
+            a: "846634401482792960"
+            b: "845157822193872896"
+            send: '["13298"]'
+            receive: '["3198"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 03_aging_to_young_future
+            category: aging_star_for_younger_long_term_asset
+            focus: "845157822193872896"
+            a: "845157822193872896"
+            b: "858530218330144768"
+            send: '["4034"]'
+            receive: '["12517"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 04_young_to_aging_win_now
+            category: younger_asset_for_aging_high_redraft_star
+            focus: "858530218330144768"
+            a: "858530218330144768"
+            b: "845157822193872896"
+            send: '["12517"]'
+            receive: '["4034"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 05_consolidation_two_for_one
+            category: consolidation_two_for_one
+            focus: "846634401482792960"
+            a: "846634401482792960"
+            b: "850548458887704576"
+            send: '["9997","7525"]'
+            receive: '["6794"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 06_diversification_one_for_two
+            category: diversification_one_for_two
+            focus: "850548458887704576"
+            a: "850548458887704576"
+            b: "846634401482792960"
+            send: '["6794"]'
+            receive: '["9997","7525"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 07_near_neutral_same_position
+            category: near_neutral_same_position
+            focus: "844785316274483200"
+            a: "844785316274483200"
+            b: "850548458887704576"
+            send: '["9224"]'
+            receive: '["8151"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 08_obvious_bad
+            category: obvious_bad_same_position
+            focus: "844785316274483200"
+            a: "844785316274483200"
+            b: "850548458887704576"
+            send: '["7547"]'
+            receive: '["5846"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 09_obvious_good
+            category: obvious_good_same_position
+            focus: "850548458887704576"
+            a: "850548458887704576"
+            b: "844785316274483200"
+            send: '["5846"]'
+            receive: '["7547"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 10_positional_repair_candidate
+            category: cross_position_need_repair_candidate
+            focus: "846634401482792960"
+            a: "846634401482792960"
+            b: "709546576091090944"
+            send: '["6801"]'
+            receive: '["9484"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+          - id: 11_youth_age_without_current_gain
+            category: young_te_for_old_te_similar_redraft
+            focus: "725401251478605824"
+            a: "725401251478605824"
+            b: "844772511156670464"
+            send: '["12506"]'
+            receive: '["4217"]'
+            send_picks: '[]'
+            receive_picks: '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout baseline
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Build scenario
+        env:
+          CID: ${{ matrix.id }}
+          CAT: ${{ matrix.category }}
+          FOCUS: ${{ matrix.focus }}
+          A: ${{ matrix.a }}
+          B: ${{ matrix.b }}
+          SEND: ${{ matrix.send }}
+          RECEIVE: ${{ matrix.receive }}
+          SEND_PICKS: ${{ matrix.send_picks }}
+          RECEIVE_PICKS: ${{ matrix.receive_picks }}
+        run: |
+          mkdir -p /tmp/case /tmp/out/baseline /tmp/out/candidate
+          python - <<'PY'
+          import os,json
+          p={
+            "scenario_id":"parallel_cross_case_"+os.environ["CID"],
+            "description":"Objective parallel cross-case: "+os.environ["CAT"],
+            "focus_user_id":os.environ["FOCUS"],
+            "actions":[
+              {"type":"trade","from_user_id":os.environ["A"],"to_user_id":os.environ["B"],"players":json.loads(os.environ["SEND"]),"picks":json.loads(os.environ["SEND_PICKS"])},
+              {"type":"trade","from_user_id":os.environ["B"],"to_user_id":os.environ["A"],"players":json.loads(os.environ["RECEIVE"]),"picks":json.loads(os.environ["RECEIVE_PICKS"])},
+            ],
+          }
+          open("/tmp/case/scenario.json","w").write(json.dumps(p,indent=2)+"\n")
+          PY
+      - name: Run baseline production path
+        run: |
+          (cd baseline && python script/run_trade_report.py             --scenario /tmp/case/scenario.json --out-dir /tmp/out/baseline --basename result             --quick-sims 200 --adaptive-confirm-sims 50000 --search-depth 25)             > /tmp/out/baseline/pipeline.log
+      - name: Run candidate production path
+        run: |
+          (cd candidate && python script/run_trade_report.py             --scenario /tmp/case/scenario.json --out-dir /tmp/out/candidate --basename result             --quick-sims 200 --adaptive-confirm-sims 50000 --search-depth 25)             > /tmp/out/candidate/pipeline.log
+      - name: Compare
+        env:
+          CID: ${{ matrix.id }}
+          CAT: ${{ matrix.category }}
+        run: |
+          python - <<'PY'
+          import os,json
+          old=json.load(open('/tmp/out/baseline/result.json'))
+          new=json.load(open('/tmp/out/candidate/result.json'))
+          oc=old.get('current_offer_evaluation') or {}
+          nc=new.get('current_offer_evaluation') or {}
+          oa=oc.get('decision_attribution') or {}
+          na=nc.get('decision_attribution') or {}
+          nd=na.get('diagnostics') or {}
+          out={
+            "id":os.environ["CID"],"category":os.environ["CAT"],
+            "baseline_action":old.get("recommended_next_action"),
+            "candidate_action":new.get("recommended_next_action"),
+            "action_changed":old.get("recommended_next_action")!=new.get("recommended_next_action"),
+            "baseline_score":oc.get("shared_decision_utility_score"),
+            "candidate_score":nc.get("shared_decision_utility_score"),
+            "baseline_model":oa.get("shared_decision_utility_model_version"),
+            "candidate_model":na.get("shared_decision_utility_model_version"),
+            "current_evidence":nd.get("current_value_evidence"),
+            "evidence_count":nd.get("current_value_evidence_count"),
+            "current_primitive":next((x.get("primitive_value") for x in (na.get("channels") or []) if x.get("channel")=="current"),None),
+            "future_primitive":next((x.get("primitive_value") for x in (na.get("channels") or []) if x.get("channel")=="future"),None),
+            "baseline_summary":json.load(open('/tmp/out/baseline/result-summary.json')),
+            "candidate_summary":json.load(open('/tmp/out/candidate/result-summary.json')),
+          }
+          open('/tmp/out/comparison.json','w').write(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          assert out["baseline_model"]=="FSFFL-Shared-Decision-Utility-2.0"
+          assert out["candidate_model"]=="FSFFL-Shared-Decision-Utility-2.1"
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-case-${{ matrix.id }}
+          path: |
+            /tmp/case/scenario.json
+            /tmp/out/comparison.json
+            /tmp/out/baseline/result-summary.json
+            /tmp/out/candidate/result-summary.json
+          if-no-files-found: warn
+          retention-days: 30
