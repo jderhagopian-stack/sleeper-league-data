@@ -59,7 +59,7 @@ def main():
     shadow=load(DATA/"audit"/"state_weight_shadow_research.json",{}) or {}
     panel=load(DATA/"model_validation"/"historical_trade_outcome_panel.json",{}) or {}
     promo=load(DATA/"audit"/"state_weight_promotion_readiness.json",{}) or {}
-    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}\n    cutoff_confirm=load(DATA/"audit"/"trade_search_hard_cutoff_shared_utility_confirmation.json",{}) or {}\n    channel_authority=load(DATA/"audit"/"effective_objective_channel_authority.json",{}) or {}
+    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}\n    cutoff_confirm=load(DATA/"audit"/"trade_search_hard_cutoff_shared_utility_confirmation.json",{}) or {}\n    channel_authority=load(DATA/"audit"/"effective_objective_channel_authority.json",{}) or {}\n    state_ident=load(DATA/"audit"/"state_weight_identifiability.json",{}) or {}\n    backup_opt=load(DATA/"audit"/"simulator_backup_assignment_optimality.json",{}) or {}\n    team_shock=load(DATA/"audit"/"simulator_team_shock_semantics.json",{}) or {}
 
     do_not_change=[
       {
@@ -132,7 +132,7 @@ def main():
         "state_weight_shadow_sign_changes":shadow.get("sign_change_count"),
         "historical_trade_panel":panel.get("summary"),
         "state_weight_promotion":promo,
-        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary"),\n        "effective_objective_channel_authority":channel_authority.get("conclusions")
+        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary"),\n        "effective_objective_channel_authority":channel_authority.get("conclusions"),\n        "state_weight_identifiability":state_ident.get("summary"),\n        "simulator_backup_assignment_optimality":{\n            "passed":backup_opt.get("passed"),\n            "greedy_is_exact":backup_opt.get("greedy_is_exact"),\n            "grid_failure_count":backup_opt.get("grid_failure_count"),\n            "recommended_repair":backup_opt.get("recommended_repair"),\n        },\n        "simulator_team_shock_semantics":{\n            "passed":team_shock.get("passed"),\n            "calibration_status":team_shock.get("calibration_status"),\n            "recommended_action":team_shock.get("recommended_action"),\n        }
       },
       "plain_language_assessment":{
         "what_is_already_defensible":[
@@ -144,7 +144,7 @@ def main():
         "what_remains_weak":[
           "Competitive-state objective weights remain an unvalidated expert prior; nominal liquidity/resilience weights may have less final authority than their labels imply when those channels are structurally unauthorized.",
           "Projection uncertainty relies on realized-score dispersion proxies and fallback heuristics rather than archived forecast residuals.",
-          "Several search/prescreen coefficients and hard cutoffs are arbitrary and can create omission risk.",
+          "Several GM3 proactive-search coefficients and hard cutoffs are arbitrary and can create omission risk.",\n          "Simulator simultaneous-absence backup allocation has a deterministic greedy-assignment counterexample; structural exact-assignment repair is preferable to tuning slot-priority constants.",\n          "Same-team shock loadings have verified mathematical semantics but their magnitudes are not yet empirically calibrated from forecast residual covariance.",
           "Roster-cut prescreen coefficients are arbitrary where exact downstream plan evaluation is not used.",
           "Fallback future-pick tier/time/base constants remain provisional when external market coverage is insufficient."
         ],
