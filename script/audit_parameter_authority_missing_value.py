@@ -166,6 +166,7 @@ def main() -> None:
             "Therefore aggregation/concentration can affect which packages are found without necessarily affecting the final "
             "economic ranking of those packages. Optionality is also calculated but explicitly diagnostic-only."
         ),
+        "systemic_findings": pol.get("high_leverage_systemic_findings") or [],
         "unregistered_or_underdecomposed_concepts": under,
         "recommended_sequence": [
             "Decompose mixed umbrella families before changing production authority.",
