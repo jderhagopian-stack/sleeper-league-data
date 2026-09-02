@@ -59,7 +59,7 @@ def main():
     shadow=load(DATA/"audit"/"state_weight_shadow_research.json",{}) or {}
     panel=load(DATA/"model_validation"/"historical_trade_outcome_panel.json",{}) or {}
     promo=load(DATA/"audit"/"state_weight_promotion_readiness.json",{}) or {}
-    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}\n    cutoff_confirm=load(DATA/"audit"/"trade_search_hard_cutoff_shared_utility_confirmation.json",{}) or {}
+    recall=load(DATA/"audit"/"trade_search_hard_cutoff_recall.json",{}) or {}\n    cutoff_confirm=load(DATA/"audit"/"trade_search_hard_cutoff_shared_utility_confirmation.json",{}) or {}\n    channel_authority=load(DATA/"audit"/"effective_objective_channel_authority.json",{}) or {}
 
     do_not_change=[
       {
@@ -132,7 +132,7 @@ def main():
         "state_weight_shadow_sign_changes":shadow.get("sign_change_count"),
         "historical_trade_panel":panel.get("summary"),
         "state_weight_promotion":promo,
-        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary")
+        "trade_search_hard_cutoff_recall":recall.get("summary"),\n        "trade_search_hard_cutoff_canonical_confirmation":cutoff_confirm.get("summary"),\n        "effective_objective_channel_authority":channel_authority.get("conclusions")
       },
       "plain_language_assessment":{
         "what_is_already_defensible":[
@@ -142,7 +142,7 @@ def main():
           "Manager-specific behavioral signals are adaptively shrunk and do not receive a separate final trade-value vote."
         ],
         "what_remains_weak":[
-          "Competitive-state objective weights remain an unvalidated expert prior.",
+          "Competitive-state objective weights remain an unvalidated expert prior; nominal liquidity/resilience weights may have less final authority than their labels imply when those channels are structurally unauthorized.",
           "Projection uncertainty relies on realized-score dispersion proxies and fallback heuristics rather than archived forecast residuals.",
           "Several search/prescreen coefficients and hard cutoffs are arbitrary and can create omission risk.",
           "Roster-cut prescreen coefficients are arbitrary where exact downstream plan evaluation is not used.",
