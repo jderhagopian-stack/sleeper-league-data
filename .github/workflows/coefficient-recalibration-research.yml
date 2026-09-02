@@ -15,6 +15,7 @@ on:
       - 'script/audit_behavioral_roster_parameter_provenance.py'
       - 'script/audit_trade_search_parameter_provenance.py'
       - 'script/audit_trade_search_hard_cutoff_recall.py'
+      - 'script/confirm_trade_search_cutoff_with_shared_utility.py'
       - 'script/audit_cross_asset_parameter_provenance.py'
       - 'script/build_coefficient_recalibration_research_summary.py'
       - 'data/model_governance/coefficient_family_research_findings.json'
@@ -58,6 +59,8 @@ jobs:
         run: python script/audit_trade_search_parameter_provenance.py
       - name: Shadow-test hard trade target cutoff recall
         run: python script/audit_trade_search_hard_cutoff_recall.py
+      - name: Canonically confirm flagged cutoff candidates
+        run: python script/confirm_trade_search_cutoff_with_shared_utility.py
       - name: Audit cross-asset and future-pick parameter provenance
         run: python script/audit_cross_asset_parameter_provenance.py
       - name: Build consolidated coefficient research summary
@@ -131,6 +134,13 @@ jobs:
           assert ca['summary']['explicit_final_qb_multiplier_active'] is False
           assert ca['summary']['market_tier_scarcity_incremental_premium_active'] is False
 
+          confirmed=json.load(open('data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json'))
+          assert confirmed['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
+          assert confirmed['production_behavior_changed'] is False
+          assert confirmed['summary']['production_change_authorized'] is False
+          assert confirmed['policy']['upstream_package_band_is_not_final_authority'] is True
+          assert confirmed['policy']['focal_and_counterparty_confirmation_use_shared_decision_utility'] is True
+
           recall=json.load(open('data/audit/trade_search_hard_cutoff_recall.json'))
           assert recall['authority']=='SHADOW_RESEARCH_NON_AUTHORITATIVE'
           assert recall['production_behavior_changed'] is False
@@ -187,6 +197,7 @@ jobs:
             data/audit/behavioral_roster_parameter_provenance.json
             data/audit/trade_search_parameter_provenance.json
             data/audit/trade_search_hard_cutoff_recall.json
+            data/audit/trade_search_hard_cutoff_shared_utility_confirmation.json
             data/audit/cross_asset_parameter_provenance.json
             data/model_validation/coefficient_recalibration_research_summary.json
           retention-days: 30
