@@ -10,6 +10,7 @@ on:
       - 'script/audit_simulator_calibration_chain.py'
       - 'script/audit_historical_team_outcome_evidence.py'
       - 'script/build_historical_trade_outcome_panel.py'
+      - 'script/test_superflex_qb_opportunity_cost.py'
       - 'data/model_governance/strategy_outcome_dataset_spec.json'
       - '.github/workflows/coefficient-recalibration-research.yml'
   workflow_call:
@@ -37,6 +38,8 @@ jobs:
         run: python script/audit_historical_team_outcome_evidence.py
       - name: Build non-causal historical trade outcome panel
         run: python script/build_historical_trade_outcome_panel.py
+      - name: Test endogenous Superflex QB opportunity cost
+        run: python script/test_superflex_qb_opportunity_cost.py
       - name: Assert non-authoritative research boundary
         run: |
           python - <<'PY'
