@@ -131,7 +131,7 @@ def evaluate_case(case, values):
         "raw_additive_received": round(raw_recv, 2),
         "raw_additive_delta": round(raw_delta, 2),
         "curves": curves,
-        "robust_nonadditive_sign": list(signs)[0].upper() if len(signs) == 1 else "SENSITIVE_TO_PRIOR_RANGE",
+        "robust_nonadditive_sign": robust_sign,
         "forced_cut_and_lineup_effects_included": False,
         "interpretation": (
             "This isolates package concentration only. Actual trade utility must combine it "
