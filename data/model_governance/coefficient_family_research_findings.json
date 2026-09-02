@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Coefficient-Family-Research-1.0",
+  "authority": "RESEARCH_ONLY_NON_AUTHORITATIVE",
+  "production_behavior_changed": false,
+  "findings": [
+    {
+      "parameter_family": "PROJECTION_UNCERTAINTY",
+      "paths": ["script/build_fsffl_weekly_projections.py"],
+      "current_basis": "realized historical weekly scoring dispersion with player/position shrinkage, hand-set SD floors, bounded CV fallbacks, and heuristic availability assumptions",
+      "evidence_classification": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "decision_impact": "HIGH_THROUGH_SIMULATOR_DISTRIBUTIONS",
+      "key_issue": "realized cross-player or within-player score dispersion is not equivalent to conditional forecast residual uncertainty",
+      "recommended_action": "RE_ESTIMATE",
+      "promotion_evidence": "Archived point-in-time forecasts paired with realized weekly outcomes; temporal residual calibration, interval coverage, distributional scoring, and position/horizon partial pooling."
+    },
+    {
+      "parameter_family": "PROJECTION_SD_FLOORS_AND_CV_FALLBACKS",
+      "paths": ["script/build_fsffl_weekly_projections.py"],
+      "current_basis": {
+        "sd_floors": {"QB": 4.0, "RB": 3.5, "WR": 3.8, "TE": 3.0},
+        "cv_fallbacks": {"QB": 0.34, "RB": 0.62, "WR": 0.68, "TE": 0.72}
+      },
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "decision_impact": "MEDIUM_HIGH_WHEN_HISTORY_IS_SPARSE",
+      "key_issue": "fallbacks can dominate sparse/new-player uncertainty and therefore downstream win/title tails",
+      "recommended_action": "SHRINK",
+      "promotion_evidence": "Hierarchical residual model with posterior/shrinkage estimates by position, experience, role and forecast horizon; retain broad safety floors only if needed for coverage."
+    },
+    {
+      "parameter_family": "LEGACY_GM22_OWNER_AND_FOOTBALL_MULTIPLIERS",
+      "paths": ["data/valuation_model_config.json", "script/build_fsffl_gm_engine.py"],
+      "current_basis": "hand-set need, preference, window, endowment, depth, recent-performance, usage, injury, market-momentum and pick adjustments",
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "decision_impact": "LOW_CURRENT_AUTHORITY_BECAUSE_GOVERNANCE_HAS_MADE_MANY_DIAGNOSTIC_ONLY",
+      "key_issue": "many coefficients overlap market anchors, Simulator outcomes, Behavioral Intelligence or GM3 state-aware utility",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "promotion_evidence": "Only re-enable individual signals after time-ordered residual evidence demonstrates incremental value beyond canonical market/projection/simulation inputs."
+    },
+    {
+      "parameter_family": "SHARED_CURRENT_OUTCOME_AGGREGATOR",
+      "paths": ["script/decision_utility.py"],
+      "current_basis": "median of league-relative expected-points, wins, playoff-probability and net-title-equity deltas; scaled by observed focal market-redraft value",
+      "evidence_classification": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "identifiability_class": "SIMULATION_IDENTIFIABLE",
+      "decision_impact": "HIGH",
+      "key_issue": "median avoids arbitrary correlation weights and obvious double counting, but the choice of median itself is a structural aggregation prior rather than empirically established optimal mapping",
+      "recommended_action": "KEEP",
+      "promotion_evidence": "Compare median against simpler robust alternatives and direct Simulator marginal outcome targets; change only if held-out decision/outcome evidence demonstrates meaningful improvement without reintroducing correlated double counting."
+    },
+    {
+      "parameter_family": "CURRENT_VALUE_SCALE",
+      "paths": ["script/decision_utility.py"],
+      "current_basis": "baseline team market-redraft value, with transaction redraft exposure as compatibility fallback",
+      "evidence_classification": "EVIDENCE_BASED_EXTERNAL_ANCHOR",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "decision_impact": "HIGH_AS_UNIT_SCALE",
+      "key_issue": "data-derived and preferable to a fixed exchange-rate constant, but the economic mapping from relative Simulator movement to redraft-market units remains an anchoring choice",
+      "recommended_action": "KEEP",
+      "promotion_evidence": "Validate stability across teams/seasons and compare against observed marginal roster redraft replacement scales; avoid introducing a new hand-set position multiplier."
+    },
+    {
+      "parameter_family": "LIQUIDITY_AND_RESILIENCE_INCREMENTAL_CHANNELS",
+      "paths": ["script/decision_utility.py", "script/decision_lab_state_aware.py", "script/roster_interaction.py"],
+      "current_basis": "value-denominated GM3 residual channels that can be structurally disabled; duplicate pair-insurance and acceptance mappings are disabled",
+      "evidence_classification": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "identifiability_class": "NORMATIVE_STRATEGIC",
+      "decision_impact": "POTENTIALLY_HIGH_WHEN_AUTHORIZED",
+      "key_issue": "incremental identifiability beyond future value and Simulator replacement resilience is not yet demonstrated",
+      "recommended_action": "RE_ESTIMATE",
+      "promotion_evidence": "Ablations against current/future-only baseline using independent future outcomes. If no stable incremental value is found, make diagnostic-only or structurally eliminate rather than assigning precise weights."
+    },
+    {
+      "parameter_family": "ROSTER_INTERACTION_PAIR_INSURANCE",
+      "paths": ["script/roster_interaction.py"],
+      "current_basis": "hand-set uncertainty blend and pair capture/cap mechanics retained as diagnostic context; incremental acceptance shift disabled",
+      "evidence_classification": "LEGACY_ARBITRARY_HEURISTIC",
+      "identifiability_class": "UNIDENTIFIED_OR_DUPLICATE",
+      "decision_impact": "LOW_CURRENT_FINAL_AUTHORITY",
+      "key_issue": "canonical Simulator lineup reoptimization and availability sampling already capture much of the roster-insurance concept",
+      "recommended_action": "DIAGNOSTIC_ONLY",
+      "promotion_evidence": "Incremental simulation or historical evidence beyond canonical replacement-resilience effects."
+    },
+    {
+      "parameter_family": "PACKAGE_SEARCH_CURVES",
+      "paths": ["script/package_curve_robustness.py"],
+      "current_basis": "multiple hand-set curves used to improve candidate recall rather than final economic scoring",
+      "evidence_classification": "UNVALIDATED_EXPERT_PRIOR",
+      "identifiability_class": "DIRECTLY_ESTIMABLE",
+      "decision_impact": "INDIRECT_THROUGH_SEARCH_COVERAGE",
+      "key_issue": "a search heuristic can still create omission bias even when it has no final utility vote",
+      "recommended_action": "RE_ESTIMATE",
+      "promotion_evidence": "Search-recall benchmark against exhaustive tractable package spaces plus frozen contemporaneous transaction/value evidence."
+    },
+    {
+      "parameter_family": "SIMULATOR_MONTE_CARLO_COUNTS",
+      "paths": ["script/run_fsffl_season_simulator_preproduction.py", "script/gm3/team_improvement.py"],
+      "current_basis": "hand-selected computational precision budgets with common random numbers for comparisons",
+      "evidence_classification": "SIMULATION_DERIVED_ESTIMATE",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "decision_impact": "PRECISION_AND_RUNTIME_NOT_ECONOMIC_PREFERENCE",
+      "key_issue": "should be governed by convergence and decision-stability error rather than treated as model calibration",
+      "recommended_action": "KEEP",
+      "promotion_evidence": "Convergence curves for expected wins/playoff/title estimates and decision rank/sign stability versus simulation count."
+    }
+  ],
+  "do_not_change_yet": [
+    "Shared Decision Utility median current-outcome aggregator",
+    "data-derived market-redraft current-value scale",
+    "state objective-weight curve",
+    "projection uncertainty fallbacks",
+    "package search curves"
+  ],
+  "reason": "Each requires either independent historical targets, residual forecast archives, exhaustive recall benchmarks, or convergence evidence before a production change is justified."
+}
