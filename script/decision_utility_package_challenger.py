@@ -90,14 +90,24 @@ def package_future_value(sim: Dict[str, Any], curve_name: str) -> Dict[str, Any]
 
     effective_sent, sent_parts = PACKAGE.effective(sent, curve)
     effective_received, received_parts = PACKAGE.effective(received, curve)
-    effective_delta = round(effective_received - effective_sent, 2)
-    raw_delta = sf(strategic.get("market_dynasty_delta"))
-    residual = round(effective_delta - raw_delta, 2)
+    effective_trade_delta = round(effective_received - effective_sent, 2)
+    raw_trade_delta = round(
+        sum(x["market_dynasty"] for x in received)
+        - sum(x["market_dynasty"] for x in sent),
+        2,
+    )
+    raw_total_future = sf(strategic.get("market_dynasty_delta"))
+    non_trade_future_delta = round(raw_total_future - raw_trade_delta, 2)
+    effective_total_future = round(effective_trade_delta + non_trade_future_delta, 2)
+    residual = round(effective_total_future - raw_total_future, 2)
 
     return {
         "curve_name": curve_name,
-        "raw_additive_future_value": round(raw_delta, 2),
-        "package_effective_future_value": effective_delta,
+        "raw_additive_future_value": round(raw_total_future, 2),
+        "raw_trade_package_future_value": raw_trade_delta,
+        "non_trade_future_value_preserved": non_trade_future_delta,
+        "package_effective_trade_future_value": effective_trade_delta,
+        "package_effective_future_value": effective_total_future,
         "concentration_residual_vs_additive": residual,
         "sent_parts": sent_parts,
         "received_parts": received_parts,
@@ -106,6 +116,7 @@ def package_future_value(sim: Dict[str, Any], curve_name: str) -> Dict[str, Any]
         "forced_cut_or_lineup_adjustment_in_this_block": False,
         "trade_asset_filter_applied": trade_filter_applied,
         "automatic_cuts_excluded_from_package_concentration": trade_filter_applied,
+        "non_trade_future_effects_preserved_exactly_once": True,
     }
 
 
