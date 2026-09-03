@@ -1,0 +1,108 @@
+name: TEMP Warren Provisional Package Validation
+
+on:
+  pull_request:
+
+jobs:
+  warren-provisional-package:
+    if: github.head_ref == 'feature/provisional-package-concentration'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Run Warren report with provisional package authority
+        run: |
+          rm -rf /tmp/warren-provisional
+          python script/run_trade_report.py \
+            --scenario data/model_validation/warren_current_main_regression.json \
+            --out-dir /tmp/warren-provisional \
+            --basename Warren_Provisional_Package \
+            --quick-sims 200 \
+            --disable-adaptive-confirmation \
+            --search-depth 60
+      - name: Validate package authority, uncertainty, and option governance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report=json.load(open('/tmp/warren-provisional/Warren_Provisional_Package.json'))
+          current=report.get('current_offer_evaluation') or {}
+          attr=current.get('decision_attribution') or {}
+          diag=attr.get('diagnostics') or {}
+          pkg=diag.get('package_concentration') or {}
+          prior_scores=attr.get('package_concentration_prior_scores') or {}
+          robustness=attr.get('package_concentration_prior_range_decision_robustness')
+          final=float(attr.get('final_shared_decision_utility') or current.get('shared_decision_utility_score') or 0)
+
+          assert diag.get('current_value_evidence_count',0) >= 3
+          ev=diag.get('current_value_evidence') or {}
+          assert set(ev) >= {'simulator_outcome_value','transaction_market_redraft_delta','optimized_starter_redraft_delta'}
+          assert diag.get('package_concentration_authority') == 'ACTIVE_BOUNDED_PROVISIONAL_PRIOR'
+          assert diag.get('package_concentration_empirically_calibrated') is False
+          assert diag.get('package_concentration_replaces_future_additivity') is True
+          assert diag.get('package_concentration_new_channel_created') is False
+          assert pkg.get('package_transform_applied') is True
+          assert pkg.get('automatic_cuts_excluded_from_package_concentration') is True
+          assert pkg.get('non_trade_future_effects_preserved_exactly_once') is True
+          assert (pkg.get('commercial_provenance') or {}).get('material_external_calibration_dependency') is False
+          assert set(prior_scores) == {'mild','center','strong'}
+          assert abs(float(prior_scores['center'])-final) <= 0.03
+          assert robustness == 'ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
+          assert all(float(prior_scores[k]) < 0 for k in ('mild','center','strong'))
+          assert final < -300
+
+          policy=report.get('policy') or {}
+          assert policy.get('search_visibility_separate_from_action_authority') is True
+
+          alternatives=[]
+          for role,key in [('counter','suggested_counteroffers'),('market','market_sweep_alternatives')]:
+              for row in report.get(key) or []:
+                  a=row.get('decision_attribution') or {}
+                  item={
+                      'role':role,
+                      'return_asset_names':row.get('return_asset_names'),
+                      'outgoing_asset_names':row.get('outgoing_asset_names'),
+                      'score':row.get('shared_decision_utility_score'),
+                      'action_eligible':row.get('generated_option_action_eligible'),
+                      'report_role':row.get('report_role'),
+                      'market_test_status':row.get('market_test_status'),
+                      'actionable_better_than_current_offer':row.get('actionable_better_than_current_offer'),
+                      'better_than_current_offer_but_market_test_only':row.get('better_than_current_offer_but_market_test_only'),
+                      'prior_scores':a.get('package_concentration_prior_scores') or {},
+                      'prior_robustness':a.get('package_concentration_prior_range_decision_robustness'),
+                  }
+                  if item['action_eligible'] is False:
+                      assert item['actionable_better_than_current_offer'] is False
+                  alternatives.append(item)
+
+          summary={
+              'model_version':report.get('model_version'),
+              'decision_utility_model_version':current.get('decision_utility_model_version'),
+              'recommended_next_action':report.get('recommended_next_action'),
+              'current_offer':{
+                  'final_score':final,
+                  'prior_scores':prior_scores,
+                  'prior_robustness':robustness,
+                  'current_value_evidence':ev,
+                  'future_primitive':next((x.get('primitive_value') for x in attr.get('channels') or [] if x.get('channel')=='future'),None),
+                  'package':pkg,
+                  'automatic_roster_cut_actions':(current.get('simulation') or {}).get('automatic_roster_cut_actions') or current.get('automatic_roster_cut_actions') or [],
+              },
+              'alternatives':alternatives,
+          }
+          Path('/tmp/warren-provisional/warren-provisional-summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True))
+          print(json.dumps(summary,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warren-provisional-package-validation
+          path: /tmp/warren-provisional/*
+          if-no-files-found: error
+          retention-days: 3
