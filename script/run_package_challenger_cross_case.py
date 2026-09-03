@@ -9,8 +9,8 @@ frozen production score when liquidity/resilience were suppressed.
 
 For each case:
 1. infer the current/future weight split from the confirmed 2.1 score;
-2. reconstruct raw negotiated trade-package dynasty delta from frozen asset IDs
-   using the current canonical market-value file;
+2. reconstruct raw negotiated trade-package dynasty delta from asset values
+   frozen inside the regression fixture;
 3. treat any difference between production future primitive and raw trade delta
    as non-trade future effects (e.g. forced cuts) and preserve it exactly once;
 4. replace only raw trade-package additivity with each inherited package curve;
@@ -24,7 +24,6 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "data" / "fsffl_asset_values.json"
 DEFAULT_CASES = ROOT / "data" / "model_validation" / "package_challenger_cross_case.json"
 
 spec = importlib.util.spec_from_file_location(
@@ -35,31 +34,35 @@ pkg = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(pkg)
 
-MODEL_VERSION = "FSFFL-Package-Challenger-Cross-Case-1.0"
+MODEL_VERSION = "FSFFL-Package-Challenger-Cross-Case-1.1"
 
 
 def sf(x):
     return float(x or 0.0)
 
 
-def values():
-    raw = json.loads(ASSETS.read_text(encoding="utf-8"))
+def values(src):
+    """Load the immutable market snapshot embedded in the fixture.
+
+    The cross-case utility primitives are frozen outputs from a specific source
+    run. Repricing only the package legs from today's mutable market catalog
+    would convert ordinary snapshot drift into a fake package-concentration
+    residual. The fixture therefore owns the asset values used by this test.
+    """
+    raw = src.get("frozen_asset_values") or {}
     out = {}
-    for p in raw.get("players") or []:
-        aid = f"player:{p.get('player_id')}"
-        out[aid] = {
-            "asset_id": aid,
-            "name": p.get("name") or aid,
-            "market_dynasty": sf(p.get("market_dynasty") or p.get("fsffl_value")),
+    for aid, row in raw.items():
+        if isinstance(row, dict):
+            name = row.get("name") or aid
+            market = row.get("market_dynasty")
+        else:
+            name = aid
+            market = row
+        out[str(aid)] = {
+            "asset_id": str(aid),
+            "name": name,
+            "market_dynasty": sf(market),
         }
-    for p in raw.get("picks") or []:
-        aid = str(p.get("asset_id") or "")
-        if aid:
-            out[aid] = {
-                "asset_id": aid,
-                "name": p.get("name") or aid,
-                "market_dynasty": sf(p.get("market_dynasty") or p.get("fsffl_value")),
-            }
     return out
 
 
@@ -91,6 +94,14 @@ def evaluate(case, catalog):
     wf = inferred_future_weight(current, future, score)
     wc = 1.0 - wf
     non_trade_future = round(future - raw_trade_delta, 2)
+    if "expected_non_trade_future_value" in case:
+        expected = round(sf(case["expected_non_trade_future_value"]), 2)
+        assert non_trade_future == expected, (
+            case["id"],
+            "non_trade_future_value",
+            non_trade_future,
+            expected,
+        )
 
     curves = {}
     for name, curve in pkg.CURVES.items():
@@ -139,7 +150,11 @@ def main():
     args = ap.parse_args()
 
     src = json.loads(Path(args.cases).read_text(encoding="utf-8"))
-    catalog = values()
+    catalog = values(src)
+    if not catalog:
+        raise SystemExit("frozen_asset_values is required for reproducible cross-case evaluation")
+    if not src.get("source_market_value_ref"):
+        raise SystemExit("source_market_value_ref is required for reproducible cross-case evaluation")
     missing = sorted({
         aid
         for case in src.get("cases") or []
@@ -173,6 +188,8 @@ def main():
         "model_version": MODEL_VERSION,
         "source_run_id": src.get("source_run_id"),
         "source_model": src.get("source_model"),
+        "source_market_value_ref": src.get("source_market_value_ref"),
+        "market_values_frozen_with_fixture": True,
         "production_behavior_changed": False,
         "empirical_coefficient_fit_performed": False,
         "weight_inference_note": (
