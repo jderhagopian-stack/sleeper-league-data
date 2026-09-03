@@ -74,6 +74,9 @@ jobs:
           challenger=json.load(open('data/audit/package_challenger_cross_case.json'))
           assert challenger['production_behavior_changed'] is False
           assert challenger['empirical_coefficient_fit_performed'] is False
+          assert challenger['market_values_frozen_with_fixture'] is True
+          assert challenger['source_market_value_ref']
+          assert challenger['summary']['case_count'] >= 18
           assert challenger['summary']['one_for_one_all_unchanged'] is True
           assert challenger['summary']['fragmentation_all_worsen_across_nonadditive_bounds'] is True
           assert challenger['summary']['consolidation_all_improve_across_nonadditive_bounds'] is True
