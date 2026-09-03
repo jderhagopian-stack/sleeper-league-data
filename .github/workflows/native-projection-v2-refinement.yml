@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'script/run_native_projection_v2_refinement_benchmark.py'
+      - 'script/run_native_role_opportunity_challenger.py'
+      - 'data/model_validation/native_role_opportunity_challenger_spec.json'
       - '.github/workflows/native-projection-v2-refinement.yml'
   workflow_dispatch:
 
@@ -15,9 +17,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Compile Native V2 challengers
+        run: |
+          python -m py_compile script/run_native_projection_v2_refinement_benchmark.py
+          python -m py_compile script/run_native_role_opportunity_challenger.py
+      - name: Run deterministic role/opportunity regression test
+        run: python script/run_native_role_opportunity_challenger.py --self-test
+      - name: Validate role/opportunity governance spec
+        run: python -m json.tool data/model_validation/native_role_opportunity_challenger_spec.json > /dev/null
       - name: Run targeted V2 refinement benchmark
         run: python script/run_native_projection_v2_refinement_benchmark.py
+      - name: Run role/opportunity challenger benchmark
+        run: python script/run_native_role_opportunity_challenger.py
       - uses: actions/upload-artifact@v4
         with:
           name: native-projection-v2-refinement
-          path: data/model_validation/native_projection_v2_refinement_benchmark.json
+          path: |
+            data/model_validation/native_projection_v2_refinement_benchmark.json
+            data/model_validation/native_role_opportunity_challenger.json
