@@ -25,6 +25,11 @@ on:
         required: false
         default: '60'
         type: string
+  push:
+    branches: [main]
+    paths:
+      - '.trade-analysis-request.json'
+      - '.github/workflows/run-trade-analysis.yml'
 jobs:
   trade-analysis:
     runs-on: ubuntu-latest
@@ -46,12 +51,37 @@ jobs:
           python - <<'PY'
           import json,os
           from pathlib import Path
-          s=json.loads(os.environ['SCENARIO_JSON']);assert s.get('focus_user_id');assert s.get('actions');Path('/tmp/fsffl-trade-scenario.json').write_text(json.dumps(s,indent=2))
+          raw=(os.environ.get('SCENARIO_JSON') or '').strip()
+          if raw:
+              s=json.loads(raw)
+          else:
+              req=Path('.trade-analysis-request.json')
+              assert req.exists(), 'workflow_dispatch scenario_json or .trade-analysis-request.json is required'
+              payload=json.loads(req.read_text())
+              s=payload.get('scenario') or payload
+          assert s.get('focus_user_id');assert s.get('actions')
+          Path('/tmp/fsffl-trade-scenario.json').write_text(json.dumps(s,indent=2))
           PY
       - name: Run standardized trade pipeline
         run: |
           mkdir -p /tmp/fsffl-trade-output
-          python script/run_trade_report.py --scenario /tmp/fsffl-trade-scenario.json --out-dir /tmp/fsffl-trade-output --basename '${{ inputs.basename }}' --quick-sims '${{ inputs.quick_sims }}' --adaptive-confirm-sims '${{ inputs.adaptive_confirm_sims }}' --search-depth '${{ inputs.search_depth }}' > /tmp/fsffl-trade-output/pipeline.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          req=Path('.trade-analysis-request.json')
+          cfg=json.loads(req.read_text()) if req.exists() else {}
+          Path('/tmp/fsffl-trade-run-config.json').write_text(json.dumps({
+            'basename': cfg.get('basename') or '${{ inputs.basename }}' or 'trade-decision-report',
+            'quick_sims': str(cfg.get('quick_sims') or '${{ inputs.quick_sims }}' or '200'),
+            'adaptive_confirm_sims': str(cfg.get('adaptive_confirm_sims') or '${{ inputs.adaptive_confirm_sims }}' or '1000'),
+            'search_depth': str(cfg.get('search_depth') or '${{ inputs.search_depth }}' or '60'),
+          }))
+          PY
+          BASENAME=$(python -c "import json;print(json.load(open('/tmp/fsffl-trade-run-config.json'))['basename'])")
+          QUICK=$(python -c "import json;print(json.load(open('/tmp/fsffl-trade-run-config.json'))['quick_sims'])")
+          CONFIRM=$(python -c "import json;print(json.load(open('/tmp/fsffl-trade-run-config.json'))['adaptive_confirm_sims'])")
+          DEPTH=$(python -c "import json;print(json.load(open('/tmp/fsffl-trade-run-config.json'))['search_depth'])")
+          python script/run_trade_report.py --scenario /tmp/fsffl-trade-scenario.json --out-dir /tmp/fsffl-trade-output --basename "$BASENAME" --quick-sims "$QUICK" --adaptive-confirm-sims "$CONFIRM" --search-depth "$DEPTH" > /tmp/fsffl-trade-output/pipeline.log
       - name: Validate production output
         env:
           BASENAME: ${{ inputs.basename }}
@@ -60,15 +90,15 @@ jobs:
           import json,os
           from pathlib import Path
           from pypdf import PdfReader
-          base=os.environ['BASENAME'] or 'trade-decision-report';root=Path('/tmp/fsffl-trade-output');a=json.loads((root/f'{base}.json').read_text());s=json.loads((root/f'{base}-summary.json').read_text());pdf=root/f'{base}.pdf'
-          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.25';assert a['simulation']['canonical_state_mutated'] is False
+          cfgp=Path('/tmp/fsffl-trade-run-config.json');cfg=json.loads(cfgp.read_text()) if cfgp.exists() else {};base=cfg.get('basename') or os.environ.get('BASENAME') or 'trade-decision-report';root=Path('/tmp/fsffl-trade-output');a=json.loads((root/f'{base}.json').read_text());s=json.loads((root/f'{base}-summary.json').read_text());pdf=root/f'{base}.pdf'
+          assert a['model_version']=='FSFFL-Counter-Market-Sweep-1.26';assert a['simulation']['canonical_state_mutated'] is False
           p=a['policy'];assert p['behavioral_intelligence_version']=='FSFFL-Behavioral-Intelligence-3.0';assert p['counter_and_market_pools_separate'] is True;assert p['every_recommended_option_compared_to_current_offer'] is True;assert p['adaptive_deep_confirmation_enabled'] is True;assert p['roster_aware_trade_resolution'] is True;assert p['post_trade_active_roster_limit_enforced'] is True;assert p['forced_cuts_included_in_lineup_simulation'] is True;assert p['forced_cuts_included_in_strategic_valuation'] is True;assert p['forced_cuts_included_in_buyer_acceptance_analysis'] is True;assert p['roster_specific_correlated_asset_value_enabled'] is True;assert p['interaction_rules_generic_and_symmetric'] is True
           rows=[a.get('current_offer_evaluation') or {}]+(a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or [])
           for x in rows:
               rr=((x.get('simulation') or {}).get('roster_resolution') or {});assert rr;assert all(v.get('roster_legal') is True for v in rr.values())
           for x in (a.get('suggested_counteroffers') or [])+(a.get('market_sweep_alternatives') or []):
               c=x.get('comparison_to_current_offer') or {};assert c.get('verdict_vs_current_offer') in {'BETTER','MIXED','WORSE'};assert c.get('reason')
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.18';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.10';assert s['canonical_model_entry_point'].endswith('trade_engine.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.12';assert s['canonical_model_entry_point'].endswith('trade_engine.py');assert pdf.exists() and 1<=len(PdfReader(str(pdf)).pages)<=3
           print(s['short_answer'])
           PY
       - uses: actions/upload-artifact@v4
