@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "source_run_id": 33648665812,
   "source_branch": "fix/trade-current-evidence-ensemble",
   "source_model": "FSFFL-Shared-Decision-Utility-2.1",
@@ -140,6 +140,261 @@
       "received_assets": [
         "player:4217"
       ]
+    },
+    {
+      "id": "12_equal_three_for_one_consolidation",
+      "context": "RETOOL",
+      "purpose": "Generic equal-value 3-for-1 consolidation topology",
+      "current_primitive": 0,
+      "future_primitive": 0,
+      "production_score": 0,
+      "production_action": "REVIEW",
+      "sent_assets": [
+        "synthetic:a3000",
+        "synthetic:b2000",
+        "synthetic:c1000"
+      ],
+      "received_assets": [
+        "synthetic:elite6000"
+      ]
+    },
+    {
+      "id": "13_equal_one_for_three_fragmentation",
+      "context": "REBUILD",
+      "purpose": "Generic equal-value 1-for-3 fragmentation topology",
+      "current_primitive": 0,
+      "future_primitive": 0,
+      "production_score": 0,
+      "production_action": "REVIEW",
+      "sent_assets": [
+        "synthetic:elite6000"
+      ],
+      "received_assets": [
+        "synthetic:a3000",
+        "synthetic:b2000",
+        "synthetic:c1000"
+      ]
+    },
+    {
+      "id": "14_equal_player_plus_pick_fragmentation",
+      "context": "CONTENDER",
+      "purpose": "Equal-value player for player-plus-pick package",
+      "current_primitive": 0,
+      "future_primitive": 0,
+      "production_score": 0,
+      "production_action": "REVIEW",
+      "sent_assets": [
+        "synthetic:player5000"
+      ],
+      "received_assets": [
+        "synthetic:player4000",
+        "synthetic:pick1000"
+      ]
+    },
+    {
+      "id": "15_equal_player_plus_pick_consolidation",
+      "context": "CONTENDER",
+      "purpose": "Reverse equal-value player-plus-pick consolidation",
+      "current_primitive": 0,
+      "future_primitive": 0,
+      "production_score": 0,
+      "production_action": "REVIEW",
+      "sent_assets": [
+        "synthetic:player4000",
+        "synthetic:pick1000"
+      ],
+      "received_assets": [
+        "synthetic:player5000"
+      ]
+    },
+    {
+      "id": "16_unequal_two_for_one_consolidation",
+      "context": "CONTENDER",
+      "purpose": "Consolidation already positive on additive value; challenger should improve rather than reverse the topology effect",
+      "current_primitive": 0,
+      "future_primitive": 500,
+      "production_score": 250,
+      "production_action": "ACCEPT_NOW",
+      "sent_assets": [
+        "synthetic:asset4000",
+        "synthetic:b2000"
+      ],
+      "received_assets": [
+        "synthetic:asset6500"
+      ]
+    },
+    {
+      "id": "17_unequal_one_for_two_fragmentation",
+      "context": "REBUILD",
+      "purpose": "Fragmentation already negative on additive value; challenger should worsen rather than create a positive signal",
+      "current_primitive": 0,
+      "future_primitive": -500,
+      "production_score": -250,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "synthetic:asset6500"
+      ],
+      "received_assets": [
+        "synthetic:asset4000",
+        "synthetic:b2000"
+      ]
+    },
+    {
+      "id": "18_fragmentation_with_forced_cut_residual",
+      "context": "CONTENDER",
+      "purpose": "Verify non-trade future effect is preserved exactly once while package additivity is replaced",
+      "current_primitive": 100,
+      "future_primitive": -200,
+      "production_score": -50,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "synthetic:player5000"
+      ],
+      "received_assets": [
+        "synthetic:a3000",
+        "synthetic:asset2500"
+      ],
+      "expected_non_trade_future_value": -700
+    },
+    {
+      "id": "19_one_for_one_with_non_trade_future_effect",
+      "context": "RETOOL",
+      "purpose": "One-for-one package transform remains invariant even when a distinct non-trade future effect exists",
+      "current_primitive": 100,
+      "future_primitive": -400,
+      "production_score": -150,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "synthetic:player5000"
+      ],
+      "received_assets": [
+        "synthetic:player4000"
+      ],
+      "expected_non_trade_future_value": 600
     }
-  ]
+  ],
+  "source_market_value_ref": "15aa40a8eb419081543765fc1c7f961f5282ee90",
+  "market_value_snapshot_note": "Asset values below are frozen with the source-run regression inputs so future catalog refreshes cannot masquerade as package-concentration effects.",
+  "frozen_asset_values": {
+    "player:7547": {
+      "name": "Amon-Ra St. Brown",
+      "market_dynasty": 7434
+    },
+    "player:6794": {
+      "name": "Justin Jefferson",
+      "market_dynasty": 6742
+    },
+    "player:12517": {
+      "name": "Colston Loveland",
+      "market_dynasty": 5262
+    },
+    "player:9224": {
+      "name": "Chase Brown",
+      "market_dynasty": 4527
+    },
+    "player:4034": {
+      "name": "Christian McCaffrey",
+      "market_dynasty": 4632
+    },
+    "player:12518": {
+      "name": "Tyler Warren",
+      "market_dynasty": 4323
+    },
+    "player:8151": {
+      "name": "Kenneth Walker",
+      "market_dynasty": 4293
+    },
+    "player:7525": {
+      "name": "DeVonta Smith",
+      "market_dynasty": 3675
+    },
+    "player:9997": {
+      "name": "Zay Flowers",
+      "market_dynasty": 3727
+    },
+    "player:6801": {
+      "name": "Tee Higgins",
+      "market_dynasty": 3385
+    },
+    "player:9484": {
+      "name": "Tucker Kraft",
+      "market_dynasty": 3402
+    },
+    "player:12506": {
+      "name": "Harold Fannin",
+      "market_dynasty": 3094
+    },
+    "player:3198": {
+      "name": "Derrick Henry",
+      "market_dynasty": 2954
+    },
+    "player:13298": {
+      "name": "KC Concepcion",
+      "market_dynasty": 2786
+    },
+    "player:4217": {
+      "name": "George Kittle",
+      "market_dynasty": 2100
+    },
+    "player:5846": {
+      "name": "DK Metcalf",
+      "market_dynasty": 2003
+    },
+    "player:5012": {
+      "name": "Mark Andrews",
+      "market_dynasty": 1502
+    },
+    "pick:2029:R2:orig11": {
+      "name": "2029 Late 2nd — original BING BONG DRIGSY🍎",
+      "market_dynasty": 859.2
+    },
+    "pick:2029:R3:orig4": {
+      "name": "2029 Early 3rd — original The Associate",
+      "market_dynasty": 685.8
+    },
+    "pick:2029:R3:orig11": {
+      "name": "2029 Late 3rd — original BING BONG DRIGSY🍎",
+      "market_dynasty": 465.1
+    },
+    "synthetic:elite6000": {
+      "name": "Synthetic elite asset",
+      "market_dynasty": 6000
+    },
+    "synthetic:a3000": {
+      "name": "Synthetic asset A",
+      "market_dynasty": 3000
+    },
+    "synthetic:b2000": {
+      "name": "Synthetic asset B",
+      "market_dynasty": 2000
+    },
+    "synthetic:c1000": {
+      "name": "Synthetic asset C",
+      "market_dynasty": 1000
+    },
+    "synthetic:player5000": {
+      "name": "Synthetic player 5000",
+      "market_dynasty": 5000
+    },
+    "synthetic:player4000": {
+      "name": "Synthetic player 4000",
+      "market_dynasty": 4000
+    },
+    "synthetic:pick1000": {
+      "name": "Synthetic pick 1000",
+      "market_dynasty": 1000
+    },
+    "synthetic:asset6500": {
+      "name": "Synthetic asset 6500",
+      "market_dynasty": 6500
+    },
+    "synthetic:asset4000": {
+      "name": "Synthetic asset 4000",
+      "market_dynasty": 4000
+    },
+    "synthetic:asset2500": {
+      "name": "Synthetic asset 2500",
+      "market_dynasty": 2500
+    }
+  }
 }
