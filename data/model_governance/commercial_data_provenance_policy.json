@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Commercial-Data-Provenance-1.0",
+  "purpose": "Prevent research convenience from creating an unintended commercial licensing dependency while preserving evidence-informed model development.",
+  "principles": {
+    "production_parameter_may_use_first_party_owned_evidence": true,
+    "production_parameter_may_use_open_or_commercially_permitted_evidence": true,
+    "research_only_sources_may_inform_hypotheses_and_sensitivity_but_not_materially_determine_commercial_production_parameters": true,
+    "rights_unclear_defaults_to_research_only": true,
+    "deleting_raw_external_data_does_not_by_itself_cure_a_restricted_training_or_calibration_dependency": true,
+    "production_parameter_provenance_must_be_versioned": true,
+    "commercial_rights_review_must_be_revisited_when_terms_or_use_case_change": true
+  },
+  "source_classes": {
+    "FIRST_PARTY_OWNED": {
+      "production_parameter_dependency_allowed": true,
+      "examples": [
+        "FSFFL/Sleeper league transactions and roster states that the project is entitled to use",
+        "internally generated simulations and model diagnostics"
+      ]
+    },
+    "OPEN_OR_COMMERCIALLY_PERMITTED": {
+      "production_parameter_dependency_allowed": true,
+      "requirement": "License, terms, public-domain status, or other permission must support the intended commercial use."
+    },
+    "COMMERCIAL_LICENSED": {
+      "production_parameter_dependency_allowed": true,
+      "requirement": "License scope must cover the actual production/commercial use."
+    },
+    "RESEARCH_REFERENCE_ONLY": {
+      "production_parameter_dependency_allowed": false,
+      "allowed_use": [
+        "hypothesis generation",
+        "directional sanity checking",
+        "qualitative comparison",
+        "sensitivity-range challenge"
+      ],
+      "forbidden_use": [
+        "materially determining a commercial production coefficient",
+        "embedding restricted raw tables in production artifacts"
+      ]
+    },
+    "RIGHTS_UNCLEAR_OR_UNREVIEWED": {
+      "production_parameter_dependency_allowed": false,
+      "default_treatment": "RESEARCH_REFERENCE_ONLY until rights are reviewed"
+    },
+    "COMMERCIAL_LICENSE_REQUIRED": {
+      "production_parameter_dependency_allowed": false,
+      "requirement": "Provider terms/documentation indicate commercial use requires a separate license, written agreement, or explicit approval. Current private/non-commercial development may proceed only within the applicable terms; commercial launch requires the permission to be resolved.",
+      "promotion_after_resolution": "Reclassify as COMMERCIAL_LICENSED only after the applicable agreement/permission is documented."
+    }
+  },
+  "production_parameter_requirements": [
+    "record source class and provenance",
+    "record whether the production value materially depends on external source data",
+    "record applicable rights/license review status",
+    "retain a commercially safe fallback or independently reproducible basis where feasible",
+    "do not label a parameter commercially ready if a material source dependency is rights-unclear or research-only"
+  ],
+  "historical_calibration_policy": {
+    "temporary_external_research_use_allowed": true,
+    "raw_external_dataset_need_not_ship_with_production": true,
+    "commercial_safety_depends_on_rights_not_storage_location": true,
+    "preferred_calibration_sources": [
+      "first-party transaction history",
+      "open or commercially-permitted historical factual data",
+      "commercially licensed historical market data",
+      "internally reconstructed states and simulations"
+    ],
+    "research_only_external_sources": [
+      "may be consulted to challenge assumptions or prior bounds",
+      "must not become the material numerical basis of a commercial production parameter unless rights are cleared"
+    ]
+  },
+  "review_status": {
+    "current_external_sources": "SOURCE-BY-SOURCE RIGHTS REVIEW REQUIRED BEFORE COMMERCIAL LAUNCH",
+    "note": "This policy does not make a legal determination about any named provider. It creates the governance mechanism needed to track and resolve those determinations."
+  }
+}
