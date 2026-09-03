@@ -1,0 +1,109 @@
+name: Native V2 Authoritative System Integration
+
+on:
+  pull_request:
+    paths:
+      - 'script/publish_native_preseason_authority.py'
+      - 'script/run_native_preseason_production.py'
+      - 'script/build_native_preseason_projections.py'
+      - 'script/nativeize_no_history_output.py'
+      - '.github/workflows/native-v2-system-integration.yml'
+  workflow_dispatch:
+
+jobs:
+  full-system:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install simulator dependency
+        run: python -m pip install --disable-pip-version-check numpy
+      - name: Compile Native authority publication path
+        run: |
+          python -m py_compile script/run_native_preseason_production.py
+          python -m py_compile script/publish_native_preseason_authority.py
+      - name: Self-test authority publisher
+        run: python script/publish_native_preseason_authority.py --self-test
+      - name: Refresh mapping and ECR QC sources
+        run: python script/build_fsffl_player_projections.py
+      - name: Refresh external reference baseline
+        run: python script/build_fsffl_scoring_baseline.py
+      - name: Build validated FSFFL Native V2 preseason projections
+        run: python script/run_native_preseason_production.py --as-of "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      - name: Publish Native V2 to canonical Simulator projection contract
+        run: python script/publish_native_preseason_authority.py --season 2026
+      - name: Validate canonical projection authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/simulator/2026/sources/preseason_fsffl_points.json')
+          x=json.loads(p.read_text())
+          assert x['source'].startswith('FSFFL Native V2 authoritative')
+          assert x['authority']['role']=='SIMULATOR_PRESEASON_PLAYER_PROJECTION_AUTHORITY'
+          assert x['authority']['external_projection_values_used'] is False
+          assert x['audit']['canonical_projected_stats_from_native'] is True
+          assert x['audit']['external_reference_fields_stripped'] is True
+          assert x['audit']['published_players'] >= 220
+          assert float(x['audit']['native_coverage_pct']) >= 99.0
+          assert int(x['audit']['fallback_players']) == 0
+          for sid,row in x['players'].items():
+              assert row.get('projected_stats')
+              assert row.get('projected_stats_native')
+              assert 'razzball_half_ppr_points_reference' not in row
+              assert 'razzball_half_ppr_ppg_reference' not in row
+          ref=Path('data/simulator/2026/sources/razzball_preseason_fsffl_points_reference.json')
+          assert ref.exists(), 'Razzball reference baseline was not preserved'
+          print({'source':x['source'],'players':len(x['players']),'coverage':x['audit']['native_coverage_pct']})
+          PY
+      - name: Build NFL schedule and matchup layer
+        run: python script/build_fsffl_nfl_schedule_matchups.py
+      - name: Build FSFFL weekly projections from Native authority
+        run: python script/build_fsffl_weekly_projections.py
+      - name: Apply dynamic in-season updates
+        run: python script/apply_fsffl_dynamic_updates.py
+      - name: Run 50,000-simulation season model
+        env:
+          FSFFL_SIMULATIONS: '50000'
+        run: python script/run_fsffl_season_simulator.py
+      - name: Validate Simulator consumed Native authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=json.loads(Path('data/simulator/2026/sources/preseason_fsffl_points.json').read_text())
+          weekly=json.loads(Path('data/simulator/2026/inputs/player_weekly_projections.json').read_text())
+          assert src['source'].startswith('FSFFL Native V2 authoritative')
+          # Weekly layer must exist for a broad player cohort after canonical publication.
+          players=weekly.get('players') or weekly.get('player_projections') or {}
+          assert len(players) >= 200, len(players)
+          ctx=Path('data/gm/league/simulator_context.json')
+          assert ctx.exists(), 'Simulator context was not generated'
+          c=json.loads(ctx.read_text())
+          teams=c.get('teams') or []
+          assert len(teams)==12, len(teams)
+          print({'weekly_players':len(players),'simulator_teams':len(teams)})
+          PY
+      - name: Generate League Intelligence against refreshed Simulator context
+        run: |
+          python script/league_intelligence/application.py \
+            --focus-user-id 846634401482792960 \
+            --team-context data/league_intelligence/hurts_so_good_team_context.json \
+            --output /tmp/native-v2-league-intelligence.json
+      - name: Upload full Native V2 integration artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-v2-authoritative-system-run
+          path: |
+            data/simulator/2026/sources/preseason_fsffl_points.json
+            data/simulator/2026/sources/native_preseason_fsffl_points.json
+            data/simulator/2026/sources/native_raw_stat_projections.json
+            data/simulator/2026/sources/razzball_preseason_fsffl_points_reference.json
+            data/simulator/2026/inputs/player_weekly_projections.json
+            data/simulator/2026/outputs/
+            data/gm/league/simulator_context.json
+            /tmp/native-v2-league-intelligence.json
+          retention-days: 14
