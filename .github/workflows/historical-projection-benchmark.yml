@@ -8,6 +8,7 @@ on:
       - 'script/benchmark_historical_projections_common_cohort.py'
       - 'script/benchmark_native_vs_external_raw_stats.py'
       - 'script/run_native_vs_fftoday_historical_benchmark.py'
+      - 'script/run_2014_multisource_raw_stat_benchmark.py'
       - 'script/analyze_native_projection_residuals.py'
       - 'script/normalize_ffa_historical_projection_archive.py'
       - 'script/normalize_current_projection_source.py'
@@ -39,6 +40,7 @@ jobs:
           python -m py_compile script/benchmark_historical_projections_common_cohort.py
           python -m py_compile script/benchmark_native_vs_external_raw_stats.py
           python -m py_compile script/run_native_vs_fftoday_historical_benchmark.py
+          python -m py_compile script/run_2014_multisource_raw_stat_benchmark.py
           python -m py_compile script/analyze_native_projection_residuals.py
           python -m py_compile script/normalize_ffa_historical_projection_archive.py
           python -m py_compile script/normalize_current_projection_source.py
@@ -55,6 +57,7 @@ jobs:
           python script/analyze_native_projection_residuals.py --self-test
           python script/normalize_ffa_historical_projection_archive.py --self-test
           python script/normalize_current_projection_source.py --self-test
+          python script/run_2014_multisource_raw_stat_benchmark.py --self-test
           python script/audit_projection_source_sustainability.py
       - name: Validate source governance JSON
         run: |
@@ -98,4 +101,25 @@ jobs:
             data/model_validation/native_vs_fftoday_historical_benchmark.json
             data/model_validation/native_vs_fftoday_residual_cohort.csv
             data/model_validation/native_vs_fftoday_residual_diagnostic.json
+          retention-days: 14
+
+  real-2014-expanded-championship:
+    if: github.event_name == 'workflow_dispatch'
+    needs: benchmark-self-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run 2014 timestamp-qualified four-source raw-stat comparison
+        run: |
+          python script/run_2014_multisource_raw_stat_benchmark.py \
+            --output data/model_validation/projection_2014_multisource_raw_stat_scorecard.json
+          python -m json.tool data/model_validation/projection_2014_multisource_raw_stat_scorecard.json > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: projection-2014-multisource-raw-stat-scorecard
+          path: data/model_validation/projection_2014_multisource_raw_stat_scorecard.json
           retention-days: 14
