@@ -157,6 +157,15 @@ jobs:
                   assert float(nf.get('focal_team_improvement_utility') or 0)>0
                   st=row.get('focal_utility_stability_confirmation') or {}
                   assert st.get('confirmed_for_headline_action') is True
+                  pc=row.get('package_prior_confidence') or {}
+                  assert pc.get('classification') in {
+                      'ROBUST_ACROSS_GOVERNED_PRIOR_RANGE',
+                      'PROVISIONAL_PARAMETER_SENSITIVE',
+                      'NOT_APPLICABLE_OR_NOT_EXPOSED',
+                  }, pc
+                  assert pc.get('changes_economic_score') is False
+                  assert pc.get('changes_actionability') is False
+                  assert pc.get('confidence_only') is True
           for routed in b.get('trade_decision_reviews') or []:
               td=routed['trade_decision']
               assert td['trade_decision_model_version']=='FSFFL-Counter-Market-Sweep-1.26'
@@ -173,6 +182,15 @@ jobs:
           for row in b.get('simulation_sensitive_trade_watchlist') or []:
               st=row.get('focal_utility_stability_confirmation') or {}
               assert st.get('confirmed_for_headline_action') is False
+          for row in b.get('package_prior_sensitive_trade_watchlist') or []:
+              pc=row.get('package_prior_confidence') or {}
+              assert pc.get('classification')=='PROVISIONAL_PARAMETER_SENSITIVE'
+              assert pc.get('confidence_only') is True
+              assert pc.get('changes_economic_score') is False
+              assert pc.get('changes_actionability') is False
+          assert b['policy']['package_prior_confidence_changes_economic_score'] is False
+          assert b['policy']['package_prior_confidence_changes_actionability'] is False
+          assert b['policy']['package_prior_sensitive_trades_remain_visible_with_lower_parameter_confidence'] is True
           print('Opportunity Engine 2.3 live governed regression passed')
           PY
       - uses: actions/upload-artifact@v4
