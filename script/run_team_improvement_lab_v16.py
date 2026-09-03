@@ -424,6 +424,7 @@ def simulate_actions_protect_add(base,dl,lineupopt,rosteraware,model_inputs,base
                 },
                 'lower_need_score_is_better':True,
             },
+            'trade_actions':copy.deepcopy(trade_actions_only),
             'effective_actions':effective,'teams_reoptimized':reopt,'simulation_count':sims,
             'simulator_features':{
                 **copy.deepcopy(hyp.get('features') or {}),
