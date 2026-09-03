@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "status": "RESEARCH_CALIBRATION_ONLY",
+  "name": "FSFFL Projection Championship & Ensemble",
+  "purpose": "Select and blend preseason projection evidence by position and raw football statistic using leakage-safe historical holdouts, while preserving FSFFL Native as an independent model and keeping source rights/deployment context explicit.",
+  "principles": {
+    "raw_stats_before_fantasy_scoring": true,
+    "position_stat_specific": true,
+    "common_cohort_comparison": true,
+    "temporal_holdouts_only": true,
+    "no_target_season_actuals_in_weights": true,
+    "no_external_projection_as_native_training_target": true,
+    "source_independence_required": true,
+    "source_rights_separate_from_accuracy": true,
+    "personal_and_commercial_deployment_profiles_separate": true,
+    "production_behavior_changed": false
+  },
+  "categories": {
+    "QB": [
+      "attempts",
+      "completions",
+      "passing_yards",
+      "passing_tds",
+      "interceptions",
+      "rushing_attempts",
+      "rushing_yards",
+      "rushing_tds"
+    ],
+    "RB": [
+      "carries",
+      "rushing_yards",
+      "rushing_tds",
+      "targets",
+      "receptions",
+      "receiving_yards",
+      "receiving_tds"
+    ],
+    "WR": [
+      "targets",
+      "receptions",
+      "receiving_yards",
+      "receiving_tds",
+      "rushing_attempts",
+      "rushing_yards",
+      "rushing_tds"
+    ],
+    "TE": [
+      "targets",
+      "receptions",
+      "receiving_yards",
+      "receiving_tds"
+    ]
+  },
+  "v1_ensemble": {
+    "candidate_methods": [
+      "equal_weight",
+      "training_champion",
+      "shrunk_inverse_mae"
+    ],
+    "weight_learning": "For each position/stat/holdout season, use only earlier common-cohort seasons.",
+    "inverse_mae_shrinkage": "Blend inverse-MAE weights 50% toward equal weights by default; configurable in benchmark.",
+    "minimum_training_seasons": 2,
+    "minimum_training_rows_per_source": 20,
+    "promotion_rule": "A category method must improve leakage-safe holdout MAE versus both the incumbent production source and equal-weight blend without material coverage loss. Sparse categories remain provisional.",
+    "fallback": "If evidence gates are not met, retain the governed incumbent source for that category."
+  },
+  "native_learning_policy": {
+    "external_projections_are_training_targets": false,
+    "allowed_use": [
+      "benchmark Native against independent systems",
+      "identify position/stat residual weaknesses",
+      "motivate candidate preseason-known features",
+      "evaluate whether Native adds independent residual signal to an ensemble"
+    ],
+    "residual_learning_gate": "Any Native residual correction must be fit only on prior seasons and prove value on later temporal holdouts."
+  },
+  "deployment_profiles": {
+    "PERSONAL_RESEARCH": {
+      "description": "User's private noncommercial FSFFL use.",
+      "source_gate": "Source terms must permit the contemplated personal use; provenance and replacement status remain recorded."
+    },
+    "COMMERCIAL": {
+      "description": "Any paid, public, organizational, redistributed, or revenue-generating deployment.",
+      "source_gate": "Only sources with explicitly verified commercial/model/redistribution rights may be dependencies; otherwise replace, license, or exclude them."
+    }
+  }
+}
