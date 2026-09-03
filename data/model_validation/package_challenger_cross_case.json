@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "source_run_id": 33648665812,
+  "source_branch": "fix/trade-current-evidence-ensemble",
+  "source_model": "FSFFL-Shared-Decision-Utility-2.1",
+  "purpose": "Frozen cross-case challenger sensitivity; production scoring remains unchanged.",
+  "cases": [
+    {
+      "id": "01_warren_veteran_package",
+      "current_primitive": -917,
+      "future_primitive": 840.1,
+      "production_score": -89.38,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:12518"
+      ],
+      "received_assets": [
+        "player:5012",
+        "player:5846",
+        "pick:2029:R2:orig11",
+        "pick:2029:R3:orig11",
+        "pick:2029:R3:orig4"
+      ]
+    },
+    {
+      "id": "02_young_to_win_now",
+      "current_primitive": 4127,
+      "future_primitive": -409,
+      "production_score": 2663.76,
+      "production_action": "ACCEPT_NOW",
+      "sent_assets": [
+        "player:13298"
+      ],
+      "received_assets": [
+        "player:3198"
+      ]
+    },
+    {
+      "id": "03_aging_to_young_future",
+      "current_primitive": -3997,
+      "future_primitive": 630,
+      "production_score": -2735.09,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:4034"
+      ],
+      "received_assets": [
+        "player:12517"
+      ]
+    },
+    {
+      "id": "05_consolidation_two_for_one",
+      "current_primitive": 409,
+      "future_primitive": -660,
+      "production_score": 64.16,
+      "production_action": "ACCEPT_NOW",
+      "sent_assets": [
+        "player:9997",
+        "player:7525"
+      ],
+      "received_assets": [
+        "player:6794"
+      ]
+    },
+    {
+      "id": "06_diversification_one_for_two",
+      "current_primitive": -583,
+      "future_primitive": -746,
+      "production_score": -674.72,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:6794"
+      ],
+      "received_assets": [
+        "player:9997",
+        "player:7525"
+      ]
+    },
+    {
+      "id": "07_near_neutral_same_position",
+      "current_primitive": -479,
+      "future_primitive": -234,
+      "production_score": -363.6,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:9224"
+      ],
+      "received_assets": [
+        "player:8151"
+      ]
+    },
+    {
+      "id": "08_obvious_bad",
+      "current_primitive": -7246,
+      "future_primitive": -5431,
+      "production_score": -6391.1,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:7547"
+      ],
+      "received_assets": [
+        "player:5846"
+      ]
+    },
+    {
+      "id": "09_obvious_good",
+      "current_primitive": 7246,
+      "future_primitive": 5431,
+      "production_score": 6224.68,
+      "production_action": "ACCEPT_NOW",
+      "sent_assets": [
+        "player:5846"
+      ],
+      "received_assets": [
+        "player:7547"
+      ]
+    },
+    {
+      "id": "10_positional_repair_candidate",
+      "current_primitive": -1064,
+      "future_primitive": 17,
+      "production_score": -715.29,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:6801"
+      ],
+      "received_assets": [
+        "player:9484"
+      ]
+    },
+    {
+      "id": "11_youth_age_without_current_gain",
+      "current_primitive": -72,
+      "future_primitive": -994,
+      "production_score": -677.33,
+      "production_action": "DECLINE",
+      "sent_assets": [
+        "player:12506"
+      ],
+      "received_assets": [
+        "player:4217"
+      ]
+    }
+  ]
+}
