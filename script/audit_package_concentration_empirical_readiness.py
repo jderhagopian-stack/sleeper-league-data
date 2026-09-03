@@ -102,7 +102,8 @@ def main():
     ]
 
     temporal_holdout_possible = len(unique_snapshot_dates) >= 2
-    package_empirical_promotion_ready = False
+    package_empirical_calibration_ready = False
+    package_bounded_provisional_authority_possible = True
 
     payload = {
         "schema_version": "1.0",
@@ -121,11 +122,14 @@ def main():
             "exact_date_trade_match_count": len(exact_date_trade_matches),
             "exact_date_trade_match_transaction_ids": exact_date_trade_matches,
             "temporal_holdout_possible_from_current_frozen_sources": temporal_holdout_possible,
-            "production_promotion_ready": package_empirical_promotion_ready,
+            "empirical_calibration_ready": package_empirical_calibration_ready,
+            "bounded_provisional_authority_possible": package_bounded_provisional_authority_possible,
             "blocking_reason": (
                 "Completed package trades are plentiful, but the current repository does not yet contain "
                 "enough distinct frozen contemporaneous market snapshots to construct a leakage-safe temporal "
-                "holdout for package-clearing residuals. Current market values must not be backfilled."
+                "holdout for empirical coefficient calibration. This blocks an empirically calibrated point estimate, "
+                "not a bounded provisional prior when the residual is otherwise credible, isolated, and sensitivity-exposed. "
+                "Current market values must not be backfilled."
             ),
             "next_dataset": {
                 "reuse_existing_historical_state_provider": True,
@@ -223,7 +227,8 @@ def main():
         "historical_market_source_files": len(sources),
         "snapshot_dates": unique_snapshot_dates,
         "temporal_holdout_possible": temporal_holdout_possible,
-        "package_production_promotion_ready": package_empirical_promotion_ready,
+        "package_empirical_calibration_ready": package_empirical_calibration_ready,
+        "package_bounded_provisional_authority_possible": package_bounded_provisional_authority_possible,
     }, indent=2))
 
     assert len(completed) > 0
@@ -231,7 +236,8 @@ def main():
     assert payload["production_behavior_changed"] is False
     assert payload["coefficient_fit_performed"] is False
     assert payload["current_value_backfill_used"] is False
-    assert payload["package_concentration"]["production_promotion_ready"] is False
+    assert payload["package_concentration"]["empirical_calibration_ready"] is False
+    assert payload["package_concentration"]["bounded_provisional_authority_possible"] is True
     assert all(not x["production_ready"] for x in payload["residual_targets"].values())
 
 
