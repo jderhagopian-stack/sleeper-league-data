@@ -44,6 +44,7 @@ jobs:
           python script/validate_residual_evidence_contracts.py
           python script/audit_residual_evidence_readiness.py
           python script/validate_decision_channel_hierarchy.py
+          python script/validate_decision_channel_fit_audit.py
       - name: Validate audit
         run: |
           python - <<'PY'
