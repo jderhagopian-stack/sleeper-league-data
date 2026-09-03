@@ -1,6 +1,6 @@
 {
   "name": "FSFFL Reporting Layer",
-  "version": "1.5",
+  "version": "1.6",
   "principles": {
     "raw_model_output_is_source_of_truth": true,
     "chatgpt_reads_raw_output_not_pdf": true,
@@ -101,6 +101,11 @@
       "id": "league_intelligence_terminal",
       "status": "implemented",
       "page_guidance": "multi-page analytical report; preserve league context, visual comparisons, and source limitations"
+    },
+    {
+      "id": "preseason_media_guide",
+      "status": "implemented",
+      "page_guidance": "multi-page league publication; one profile page and one full roster/projection page per team, plus league overview and methodology"
     }
   ],
   "automatic_report_pack": {
@@ -119,7 +124,8 @@
       "league_power_rankings",
       "market_movement_breakout",
       "historical_record_book",
-      "multiverse_outliers"
+      "multiverse_outliers",
+      "preseason_media_guide"
     ],
     "player_dossier": "generated on demand for the queried player",
     "roster_decision": "generated on demand from the queried Decision Lab scenario"
@@ -190,5 +196,27 @@
     "decision_authority": false,
     "rescore_authority": false,
     "consumers": "all user-facing FSFFL report renderers"
+  },
+  "preseason_media_guide_contract": {
+    "level": "league",
+    "decision_authority": false,
+    "rescoring_authority": false,
+    "projection_authority": false,
+    "sources": [
+      "governed Season Simulator outcomes",
+      "read-only League Intelligence positional percentiles",
+      "current Sleeper roster/taxi/reserve snapshot",
+      "current player metadata",
+      "2026 preseason position-specific projection bridge"
+    ],
+    "projected_lineup_display_transform": {
+      "purpose": "organize roster pages into projected starters, bench, taxi, and reserve",
+      "lineup_rules": "QB / RB / RB / WR / WR / WR / TE / FLEX / SUPERFLEX",
+      "projection_basis": "supported preseason projected PPG",
+      "excludes_taxi_and_reserve": true,
+      "creates_new_model_score": false,
+      "creates_recommendation": false
+    },
+    "missing_projection_policy": "show unavailable; never invent or backfill a report-only estimate"
   }
 }

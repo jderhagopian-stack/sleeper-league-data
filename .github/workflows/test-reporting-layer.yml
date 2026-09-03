@@ -22,6 +22,8 @@ on:
       - 'script/render_trade_review_report.py'
       - 'script/render_historical_trade_report.py'
       - 'script/render_league_intelligence_report.py'
+      - 'script/render_preseason_media_guide.py'
+      - 'script/test_preseason_media_guide_report.py'
       - 'script/test_league_intelligence_report.py'
       - 'script/render_gm_action_report_v10.py'
       - 'data/reporting/fsffl_reporting_architecture.json'
@@ -46,7 +48,7 @@ jobs:
         run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
 
       - name: Compile reporting layer
-        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/run_roster_decision_lab.py script/decision_attribution.py script/decision_utility.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_league_intelligence_report.py script/render_gm_action_report_v10.py
+        run: python -m py_compile script/report_language.py script/report_context.py script/report_visuals.py script/reporting/__init__.py script/fsffl_report_style.py script/render_gm_franchise_report.py script/render_simulator_report.py script/render_roster_decision_report.py script/run_roster_decision_lab.py script/decision_attribution.py script/decision_utility.py script/render_league_power_report.py script/render_player_dossier.py script/render_market_movement_report.py script/render_draft_recap_report.py script/render_record_book_report.py script/render_multiverse_outliers_report.py script/render_trade_review_report.py script/render_historical_trade_report.py script/render_league_intelligence_report.py script/render_preseason_media_guide.py script/render_gm_action_report_v10.py
 
       - name: Render standardized reports
         run: |
@@ -64,6 +66,9 @@ jobs:
           python script/league_intelligence/application.py --focus-user-id 846634401482792960 --team-context data/league_intelligence/hurts_so_good_team_context.json --output /tmp/fsffl-reports/league-intelligence.json
           python script/render_league_intelligence_report.py --input /tmp/fsffl-reports/league-intelligence.json --output /tmp/fsffl-reports/league-intelligence.pdf --focus-user-id 846634401482792960
           python script/test_league_intelligence_report.py
+          python script/league_intelligence/application.py --focus-user-id 846634401482792960 --team-context data/league_intelligence/hurts_so_good_team_context.json --output /tmp/fsffl-reports/preseason-league-intelligence.json
+          python script/render_preseason_media_guide.py --league-intelligence /tmp/fsffl-reports/preseason-league-intelligence.json --output /tmp/fsffl-reports/preseason-media-guide.pdf
+          python script/test_preseason_media_guide_report.py
 
       - name: Validate reporting contract and readable output
         run: |
@@ -109,7 +114,7 @@ jobs:
           assert arch['narrative_contract']['language_policy']['narrative_must_be_derived_from_existing_model_outputs'] is True
           assert arch['narrative_contract']['language_policy']['renderer_must_not_create_new_model_scores'] is True
           assert 'avoid spreadsheet-dump layouts' in arch['design_system']['rules']
-          names=('gm-franchise.pdf','simulator-outlook.pdf','league-power.pdf','roster-decision.pdf','player-dossier.pdf','market-movement.pdf','draft-recap.pdf','record-book.pdf','multiverse-outliers.pdf','league-intelligence.pdf')
+          names=('gm-franchise.pdf','simulator-outlook.pdf','league-power.pdf','roster-decision.pdf','player-dossier.pdf','market-movement.pdf','draft-recap.pdf','record-book.pdf','multiverse-outliers.pdf','league-intelligence.pdf','preseason-media-guide.pdf')
           for name in names:
               p=Path('/tmp/fsffl-reports')/name
               assert p.exists() and p.stat().st_size > 2500
@@ -117,6 +122,8 @@ jobs:
               reader=PdfReader(str(p))
               if name == 'league-intelligence.pdf':
                   assert len(reader.pages) == 8, f"{name}: unexpected page count {len(reader.pages)}"
+              elif name == 'preseason-media-guide.pdf':
+                  assert 28 <= len(reader.pages) <= 32, f"{name}: unexpected page count {len(reader.pages)}"
               else:
                   assert 1 <= len(reader.pages) <= 3, f"{name}: unexpected page count {len(reader.pages)}"
               text='\\n'.join((pg.extract_text() or '') for pg in reader.pages).lower()
