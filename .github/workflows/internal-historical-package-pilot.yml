@@ -30,11 +30,16 @@ jobs:
           assert p['external_historical_market_source_used'] is False
           assert p['current_market_value_backfill_used'] is False
           assert p['completed_trade_implies_exact_fair_value'] is False
-          assert p['pilot_trade_count'] >= 4
+          assert p['pick_containing_trades_excluded_from_calibration'] is True
+          assert p['informative_unequal_package_trade_count'] >= 3
+          assert p['one_for_one_control_count'] >= 5
           print(json.dumps({
-              'pilot_trade_count':p['pilot_trade_count'],
-              'aggregate':p['aggregate'],
-              'descriptive_rank':p['descriptive_rank_by_mean_clearing_distance'],
+              'eligible_player_only_trade_count':p['eligible_player_only_trade_count'],
+              'informative_unequal_package_trade_count':p['informative_unequal_package_trade_count'],
+              'one_for_one_control_count':p['one_for_one_control_count'],
+              'equal_count_multi_asset_control_count':p['equal_count_multi_asset_control_count'],
+              'informative_aggregate':p['informative_aggregate'],
+              'descriptive_rank':p['descriptive_rank_on_unequal_packages'],
           },indent=2))
           PY
       - uses: actions/upload-artifact@v4
