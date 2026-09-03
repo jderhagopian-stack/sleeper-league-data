@@ -41,6 +41,9 @@ def _load_package_concentration():
     spec.loader.exec_module(mod)
     return mod
 
+
+PACKAGE_CONCENTRATION = _load_package_concentration()
+
 MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"
 
 
@@ -139,10 +142,9 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
     current_evidence = _current_value_evidence(sim, simulator_current_value)
     current_value = statistics.median(current_evidence.values())
 
-    package = _load_package_concentration()
-    package_center = package.transform_future_value(sim, "center")
+    package_center = PACKAGE_CONCENTRATION.transform_future_value(sim, "center")
     future_value = sf(package_center.get("package_effective_future_value"))
-    package_sensitivity = package.sensitivity(sim)
+    package_sensitivity = PACKAGE_CONCENTRATION.sensitivity(sim)
     liquidity_value = sf(s.get("liquidity_value_delta"))
     resilience_value = sf(s.get("resilience_value_delta"))
 
