@@ -85,6 +85,8 @@ def reconcile(sim: Dict[str, Any]) -> Dict[str, Any]:
         "reconciliation_tolerance": tol,
         "suppressed_unauthorized_objective_weight": scored.get("suppressed_unauthorized_objective_weight") or {},
         "diagnostics": scored.get("diagnostics") or {},
+        "package_concentration_prior_scores": scored.get("package_concentration_prior_scores") or {},
+        "package_concentration_prior_range_decision_robustness": scored.get("package_concentration_prior_range_decision_robustness"),
         "calculation_is_explanatory_only": True,
         "creates_independent_score": False,
     }
