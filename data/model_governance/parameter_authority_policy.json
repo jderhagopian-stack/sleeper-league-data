@@ -88,14 +88,14 @@
     {
       "concept": "optionality",
       "status": "REGISTERED_RESIDUAL_FAMILY_PRODUCTION_DISABLED",
-      "observation": "Shared Decision Utility exposes optionality_value_delta diagnostically but the registry does not give optionality its own material parameter family.",
-      "next_step": "Use OPTIONALITY-RESIDUAL-001 to decompose overlap and test bounded priors before production authority."
+      "observation": "Shared Decision Utility exposes optionality_value_delta diagnostically. OPTIONALITY-RESIDUAL-001 is registered, but production authority remains disabled because the legacy signal mixes age/pedigree with market spread, momentum, and hand-set bonuses.",
+      "next_step": "Define optionality as asymmetric future value conditional on current dynasty market value, then test residual predictive evidence and bounded priors before production authority."
     },
     {
       "concept": "asset_concentration_and_best_asset_premium",
       "status": "REGISTERED_RESIDUAL_FAMILY_SENSITIVITY_ACTIVE_PRODUCTION_DISABLED",
-      "observation": "The current package curve approximates diminishing value of additional assets, but the governance registry does not separately state the residual economics of surrendering the best/scarcest asset in a multi-asset trade.",
-      "next_step": "Use PACKAGE-CONCENTRATION-RESIDUAL-001 sensitivity envelope; calibrate only from frozen residual evidence."
+      "observation": "PACKAGE-CONCENTRATION-RESIDUAL-001 is registered and has a non-production sensitivity envelope. The remaining gap is evidentiary promotion of the residual transform, not registry coverage.",
+      "next_step": "Use the frozen package-concentration sensitivity envelope; calibrate only from frozen residual evidence and preserve one-for-one invariance."
     }
   ],
   "high_leverage_systemic_findings": [
@@ -113,9 +113,9 @@
     },
     {
       "id": "OPTIONALITY-AUTHORITY-GAP-001",
-      "finding": "Option value is calculated in state-aware strategic summaries but is explicitly diagnostic-only in final utility and lacks its own material registry family.",
+      "finding": "Option value is calculated in state-aware strategic summaries but remains diagnostic-only in final utility; OPTIONALITY-RESIDUAL-001 is registered but not yet decomposed enough for production authority.",
       "risk": "A real asymmetry between an elite young asset and fragmented replacement assets may be omitted rather than merely uncertain.",
-      "required_action": "Split optionality into distinct components (upside/reversibility versus liquidity/resilience/market value overlap) and test bounded priors."
+      "required_action": "Define a residual optionality target conditional on current dynasty market value, separating upside asymmetry from liquidity, resilience, and same-source market effects before bounded-prior testing."
     }
   ],
   "baseline_integration": {
