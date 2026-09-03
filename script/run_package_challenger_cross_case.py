@@ -105,6 +105,17 @@ def evaluate(case, catalog):
             "score_delta_vs_production": round(challenger_score - score, 2),
         }
 
+    nonadditive_scores = [
+        curves[name]["challenger_score"]
+        for name in ("legacy_mild_bound", "inherited_curve_midpoint", "gm22_strong_bound")
+    ]
+    if all(x > 0 for x in nonadditive_scores):
+        robust = "ROBUST_POSITIVE_ACROSS_PRIOR_RANGE"
+    elif all(x < 0 for x in nonadditive_scores):
+        robust = "ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE"
+    else:
+        robust = "SENSITIVE_TO_PRIOR_RANGE"
+
     return {
         **case,
         "raw_trade_package_delta": raw_trade_delta,
@@ -114,6 +125,7 @@ def evaluate(case, catalog):
             "future": round(wf, 6),
         },
         "curve_results": curves,
+        "prior_range_decision_robustness": robust,
         "one_for_one": len(sent) == 1 and len(received) == 1,
         "fragmentation": len(sent) == 1 and len(received) > 1,
         "consolidation": len(sent) > 1 and len(received) == 1,
@@ -153,6 +165,10 @@ def main():
         for name in ("legacy_mild_bound", "inherited_curve_midpoint", "gm22_strong_bound"):
             assert row["curve_results"][name]["score_delta_vs_production"] > 0.0, (row["id"], name)
 
+    robust_positive = [x["id"] for x in results if x["prior_range_decision_robustness"] == "ROBUST_POSITIVE_ACROSS_PRIOR_RANGE"]
+    robust_negative = [x["id"] for x in results if x["prior_range_decision_robustness"] == "ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE"]
+    prior_sensitive = [x["id"] for x in results if x["prior_range_decision_robustness"] == "SENSITIVE_TO_PRIOR_RANGE"]
+
     payload = {
         "model_version": MODEL_VERSION,
         "source_run_id": src.get("source_run_id"),
@@ -177,6 +193,9 @@ def main():
             "one_for_one_all_unchanged": True,
             "fragmentation_all_worsen_across_nonadditive_bounds": True,
             "consolidation_all_improve_across_nonadditive_bounds": True,
+            "robust_positive_cases": robust_positive,
+            "robust_negative_cases": robust_negative,
+            "prior_sensitive_cases": prior_sensitive,
         },
         "results": results,
     }
