@@ -178,7 +178,13 @@ jobs:
               if row:
                   assert row.get('specialist_view_is_recommendation') is False
                   assert row.get('opportunity_routing_status')
-          assert Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md').stat().st_size > 800
+          md=Path('/tmp/opportunity-engine/Opportunity_Engine_Report.md')
+          assert md.stat().st_size > 800
+          report_text=md.read_text(encoding='utf-8')
+          if b.get('best_actionable_trade'):
+              pc=(b['best_actionable_trade'].get('package_prior_confidence') or {})
+              if pc.get('classification') in {'ROBUST_ACROSS_GOVERNED_PRIOR_RANGE','PROVISIONAL_PARAMETER_SENSITIVE'}:
+                  assert 'Package-prior confidence' in report_text
           for row in b.get('simulation_sensitive_trade_watchlist') or []:
               st=row.get('focal_utility_stability_confirmation') or {}
               assert st.get('confirmed_for_headline_action') is False
