@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "status": "VALIDATION_CHALLENGER_ONLY",
   "purpose": "Test whether prior offensive snap participation adds independent preseason projection signal beyond the current Native V2 and the newly validated WR/TE role-opportunity bundle.",
   "source": {
@@ -16,19 +16,19 @@
     "TE": "current Native V2 plus retained provisional TE target-share/vacated-opportunity/role interaction bundle"
   },
   "candidate_families": {
-    "additive_snap": [
-      "lag1_offense_snaps",
-      "lag1_offense_snap_pct_mean"
-    ],
-    "role_conditioned_snap": [
-      "first_team_x_lag1_offense_snap_pct",
-      "depth_rank_x_lag1_offense_snap_pct"
-    ],
-    "snap_adjusted_volume": {
+    "additive_snap": ["lag1_offense_snaps", "lag1_offense_snap_pct_mean"],
+    "role_conditioned_snap": ["first_team_x_lag1_offense_snap_pct", "depth_rank_x_lag1_offense_snap_pct"],
+    "snap_adjusted_rate": {
       "QB": ["lag1_attempts_per_100_offense_snaps", "lag1_qb_rushes_per_100_offense_snaps"],
       "RB": ["lag1_carries_per_100_offense_snaps", "lag1_targets_per_100_offense_snaps"],
       "WR": ["lag1_targets_per_100_offense_snaps"],
       "TE": ["lag1_targets_per_100_offense_snaps"]
+    },
+    "snap_conditioned_volume": {
+      "QB": ["snap_pct_x_lag1_attempts", "snap_pct_x_lag1_qb_rushes"],
+      "RB": ["snap_pct_x_lag1_carries", "snap_pct_x_lag1_targets"],
+      "WR": ["snap_pct_x_lag1_targets"],
+      "TE": ["snap_pct_x_lag1_targets"]
     }
   },
   "anti_double_counting": "Every snap challenger is evaluated on top of the currently accepted/provisional position-specific base. A snap feature must improve that stronger base; it does not receive credit for reproducing already retained opening-role or target-share information.",
