@@ -40,6 +40,7 @@ jobs:
           python script/audit_trade_package_topology.py
           python script/test_decision_utility_package_challenger.py
           python script/run_package_challenger_cross_case.py --output data/audit/package_challenger_cross_case.json
+          python script/audit_residual_signal_decomposition.py
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -76,6 +77,14 @@ jobs:
           assert rows['01_warren_veteran_package']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['01_warren_veteran_package']['production_score']
           assert rows['05_consolidation_two_for_one']['curve_results']['legacy_mild_bound']['challenger_score'] > rows['05_consolidation_two_for_one']['production_score']
           assert rows['06_diversification_one_for_two']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['06_diversification_one_for_two']['production_score']
+
+          residual=json.load(open('data/audit/residual_signal_decomposition_audit.json'))
+          assert residual['production_behavior_changed'] is False
+          assert residual['coefficient_fit_performed'] is False
+          assert residual['gates']['no_current_disabled_formula_is_blanket_reenabled'] is True
+          assert residual['gates']['liquidity_market_value_dependency_blocks_direct_activation'] is True
+          assert residual['gates']['optionality_mixed_signal_requires_decomposition'] is True
+          assert residual['gates']['resilience_dependency_component_must_not_be_counted_again'] is True
 
           topo=json.load(open('data/audit/trade_package_topology_audit.json'))
           assert topo['coefficient_fit_performed'] is False
