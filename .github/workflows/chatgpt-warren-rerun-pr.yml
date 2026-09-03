@@ -21,9 +21,9 @@ jobs:
         run: |
           mkdir -p /tmp/fsffl-trade-output
           python script/run_trade_report.py \
-            --scenario data/model_validation/warren_current_main_regression.json \
+            --scenario data/model_validation/warren_current_jder_focus_20260903.json \
             --out-dir /tmp/fsffl-trade-output \
-            --basename warren-current-rerun \
+            --basename warren-jder52-current-rerun \
             --quick-sims 500 \
             --adaptive-confirm-sims 50000 \
             --search-depth 60 \
@@ -35,9 +35,9 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           root=Path('/tmp/fsffl-trade-output')
-          a=json.loads((root/'warren-current-rerun.json').read_text())
-          s=json.loads((root/'warren-current-rerun-summary.json').read_text())
-          pdf=root/'warren-current-rerun.pdf'
+          a=json.loads((root/'warren-jder52-current-rerun.json').read_text())
+          s=json.loads((root/'warren-jder52-current-rerun-summary.json').read_text())
+          pdf=root/'warren-jder52-current-rerun.pdf'
           assert pdf.exists()
           assert a['simulation']['canonical_state_mutated'] is False
           print(json.dumps({
@@ -50,7 +50,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: warren-current-rerun
+          name: warren-jder52-current-rerun
           path: /tmp/fsffl-trade-output/*
           if-no-files-found: error
           retention-days: 7
