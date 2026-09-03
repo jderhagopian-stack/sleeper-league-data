@@ -15,7 +15,7 @@ SCRIPT = ROOT / "script"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.3"
+MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.4"
 
 
 def text(name: str) -> str:
@@ -137,7 +137,12 @@ def main():
             "statistics.median(values.values())" in utility
             and 'ref = sim.get("league_reference") or {}' in utility
         ),
-        "market_dynasty_delta_in_final_score": 'future_value = sf(s.get("market_dynasty_delta"))' in utility,
+        "package_adjusted_future_value_in_final_score": (
+            'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in utility
+            and '"package_effective_future_value"' in utility
+            and '"package_concentration_replaces_future_additivity": True' in utility
+            and '"package_concentration_new_channel_created": False' in utility
+        ),
         "liquidity_delta_in_final_score": 'liquidity_value = sf(s.get("liquidity_value_delta"))' in utility,
         "resilience_delta_in_final_score": 'resilience_value = sf(s.get("resilience_value_delta"))' in utility,
         "optionality_diagnostic_only": '"optionality_incremental_value_authorized": False' in utility,
@@ -158,7 +163,7 @@ def main():
     primitive_final_score = all(final_overlap_tokens[k] for k in (
         "shared_utility_called",
         "league_relative_current_signal",
-        "market_dynasty_delta_in_final_score",
+        "package_adjusted_future_value_in_final_score",
         "liquidity_delta_in_final_score",
         "resilience_delta_in_final_score",
         "optionality_diagnostic_only",
@@ -245,7 +250,7 @@ def main():
             "severity": "HIGH",
             "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
             "observation": (
-                "The final score uses Shared Decision Utility 2.0: league-relative Simulator current outcomes plus market-dynasty future value and direct liquidity/replacement-resilience channels. Optionality, strategic and break-glass composites remain diagnostic only, and fixed cross-unit conversion constants are absent."
+                "The final score uses Shared Decision Utility 2.2: league-relative Simulator current outcomes plus package-adjusted FUTURE ASSET VALUE and direct liquidity/replacement-resilience channels. Package concentration replaces negotiated package additivity inside the future channel only; optionality, strategic and break-glass composites remain diagnostic, and fixed cross-unit conversion constants are absent."
             ),
             "detected_components": final_overlap_tokens,
             "authoritative_empirical_claim_allowed": False,
