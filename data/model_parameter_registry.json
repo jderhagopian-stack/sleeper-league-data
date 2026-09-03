@@ -473,25 +473,28 @@
       "id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
       "component": "Residual package concentration / aggregation economics",
       "paths": [
+        "script/package_concentration.py",
+        "script/decision_utility.py",
+        "data/gm/package_concentration_prior.json",
         "script/package_concentration_sensitivity.py",
         "data/model_governance/economic_signal_dedup_map.json"
       ],
       "parameter_family": "diminishing substitutability of second and later assets after excluding forced-cut and lineup effects",
-      "evidence_tier": "ASSUMPTION_SENSITIVE_PROVISIONAL",
-      "status": "BOUNDED_PRIOR_CANDIDATE_SENSITIVITY_ACTIVE_PRODUCTION_DISABLED",
-      "source": "Two inherited FSFFL package curves (legacy mild and GM2.2 stronger) define a transparent sensitivity envelope; completed trade topology supports concept existence but not coefficient magnitude.",
-      "validation": "Current sensitivity suite tests sign/decision fragility without altering production. Empirical promotion requires frozen contemporaneous trade values and preferably offer/choice-frontier evidence, with residual testing after exact roster legalization and lineup effects.",
-      "uncertainty": "Material. The residual aggregation effect is credible, but the correct curve magnitude and dependence on roster size, asset tier and package composition are not yet empirically identified.",
-      "update_policy": "Begin with inherited bounded sensitivity envelope; narrow or replace the prior using time-ordered frozen transaction evidence and ablation against roster/legalization/lineup channels.",
+      "evidence_tier": "EVIDENCE_SUPPORTED_PROVISIONAL_PRIOR",
+      "status": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR_EMPIRICAL_RECALIBRATION_PENDING",
+      "source": "Inherited internal FSFFL mild and stronger package curves define a governed uncertainty envelope; the arithmetic midpoint is the provisional center. No external proprietary historical table materially determines the production coefficients.",
+      "validation": "Structural challenger/regression coverage establishes one-for-one invariance, consolidation/fragmentation direction, forced-cut de-duplication, preservation of non-trade future effects, and prior-range recommendation sensitivity. Empirical recalibration remains required to narrow or replace the provisional prior, not to justify a zero effect.",
+      "uncertainty": "Material and explicit. Mild/center/strong curves are all propagated to full Shared Decision Utility; recommendations that change sign across the range are labeled prior-sensitive.",
+      "update_policy": "Continuously seek commercially-permitted historical transaction/choice evidence; replace or narrow the internal bounded prior when stronger evidence is available. Never add package concentration as a fifth channel or use same-source market rank repricing.",
       "downstream": [
-        "trade package economics",
         "Trade Decision future utility",
         "Opportunity Engine candidate ranking",
-        "counteroffer generation"
+        "counteroffer generation",
+        "decision attribution"
       ],
       "authoritative_use": false,
       "bounds_required": true,
-      "notes": "Never use same-source market rank to generate this residual premium; raw market value remains the base coordinate."
+      "notes": "Active provisional production prior inside FUTURE ASSET VALUE. Exact empirical magnitude is not claimed; uncertainty is exposed at decision time."
     },
     {
       "id": "OPTIONALITY-RESIDUAL-001",
