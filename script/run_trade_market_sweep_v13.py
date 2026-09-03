@@ -36,7 +36,11 @@ ROSTER_AWARE = Path("script/roster_aware_trade.py")
 GM_CORE = Path("script/build_fsffl_gm_engine.py")
 FINAL_CUT_PLAN_MAX_COMBINATIONS = 27
 FINAL_CUT_PLAN_SCREEN_SIMS = 1000
-MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3.1"
+MODEL_VERSION = "FSFFL-Counter-Market-Sweep-1.3.2"
+
+_GM_CORE_POSITION_NEED = None
+_GM_CORE_PLAYER_VALUES = None
+_GM_BASELINE_POSITION_NEED_CACHE = {}
 
 
 def load_module(path: Path, name: str):
@@ -126,25 +130,30 @@ _GM_CORE_POSITION_NEED = None
 def position_need_snapshot(engine, rosters, focus_uid):
     """Recompute GM3 positional need for a hypothetical roster state.
 
+    This snapshot is deterministic with respect to roster + canonical asset
+    values and does not depend on Monte Carlo simulation count. It therefore
+    belongs in both quick candidate evaluation and 50k finalist confirmation.
+
     Uses the same optimized-team-strength and league-relative starter/depth
     formula that produces GM3 command-center position needs. This is model
     output, not report-layer inference.
     """
-    global _GM_CORE_POSITION_NEED
+    global _GM_CORE_POSITION_NEED, _GM_CORE_PLAYER_VALUES
     if _GM_CORE_POSITION_NEED is None:
         _GM_CORE_POSITION_NEED = load_module(GM_CORE, "gm_core_position_need_for_trade")
     gm = _GM_CORE_POSITION_NEED
-    pc, _ = engine.asset_catalog()
-    player_values = {
-        str(row.get("player_id")): {
-            "market_redraft": float(row.get("market_redraft") or 0.0),
-            "market_dynasty": float(row.get("market_dynasty") or 0.0),
-            "position": row.get("position"),
+    if _GM_CORE_PLAYER_VALUES is None:
+        pc, _ = engine.asset_catalog()
+        _GM_CORE_PLAYER_VALUES = {
+            str(row.get("player_id")): {
+                "market_redraft": float(row.get("market_redraft") or 0.0),
+                "market_dynasty": float(row.get("market_dynasty") or 0.0),
+                "position": row.get("position"),
+            }
+            for row in pc.values()
+            if row.get("player_id") is not None
         }
-        for row in pc.values()
-        if row.get("player_id") is not None
-    }
-    teams = gm.optimized_team_strengths(rosters, player_values, {})
+    teams = gm.optimized_team_strengths(rosters, _GM_CORE_PLAYER_VALUES, {})
     row = teams.get(str(focus_uid)) or {}
     return {
         "position_need": dict(row.get("position_need") or {}),
@@ -200,8 +209,17 @@ def _simulate_resolved_candidate(engine, dl, model_inputs, baseline_lineups, bas
         "championship_probability_mean": mean_metric("championship_probability"),
         "source": "canonical_baseline_simulator_league_mean",
     }
-    needs_before = position_need_snapshot(engine, canonical_rosters, focus_uid) if sims >= 50000 else {}
-    needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid) if sims >= 50000 else {}
+    # Deterministic roster diagnosis is valid at every simulation budget.
+    # Suppressing it for quick market-sweep candidates changes the Shared
+    # Decision Utility evidence set (2 signals instead of 3) and can materially
+    # over-rank alternatives. Cache only the immutable baseline snapshot.
+    baseline_cache_key = str(focus_uid)
+    if baseline_cache_key not in _GM_BASELINE_POSITION_NEED_CACHE:
+        _GM_BASELINE_POSITION_NEED_CACHE[baseline_cache_key] = position_need_snapshot(
+            engine, canonical_rosters, focus_uid
+        )
+    needs_before = copy.deepcopy(_GM_BASELINE_POSITION_NEED_CACHE[baseline_cache_key])
+    needs_after = position_need_snapshot(engine, hypothetical_rosters, focus_uid)
     title_delta = dl.delta(b.get("championship_probability"), h.get("championship_probability"))
     buyer_title_delta = dl.delta(ob.get("championship_probability"), oh.get("championship_probability")) if ob and oh else 0.0
     buyer_delta = {
