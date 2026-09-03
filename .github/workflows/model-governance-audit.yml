@@ -62,9 +62,9 @@ jobs:
           assert any(x['id']=='CONSOLIDATION-PREMIUM-001' and x['zero_may_be_unjustified_point_estimate'] for x in pa['findings'])
           assert any(x['id']=='GM22-CONFIG-001' and x['family_decomposition_required'] for x in pa['findings'])
           assert any(x['concept']=='optionality' for x in pa['unregistered_or_underdecomposed_concepts'])
-          assert pa['runtime_findings']['shared_future_block_is_raw_additive_market_dynasty_delta'] is True
+          assert pa['runtime_findings']['shared_future_block_uses_bounded_package_concentration'] is True
           assert pa['runtime_findings']['nonlinear_package_economics_exists_in_gm_discovery'] is True
-          assert pa['runtime_findings']['shared_decision_utility_does_not_consume_package_effective_value'] is True
+          assert pa['runtime_findings']['shared_decision_utility_consumes_package_transform_only_inside_future_value'] is True
           assert pa['runtime_findings']['optionality_is_diagnostic_only_in_shared_utility'] is True
           pcs=json.load(open('data/audit/package_concentration_sensitivity.json'))
           assert pcs['production_scoring_changed'] is False
