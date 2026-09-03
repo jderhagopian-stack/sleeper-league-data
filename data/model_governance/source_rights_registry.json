@@ -8,11 +8,13 @@
       "provider": "Sleeper",
       "role": "league configuration, rosters, transactions, draft picks and historical league facts",
       "current_model_use": "production and historical reconstruction",
-      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
-      "commercial_readiness": "REVIEW_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "COMMERCIAL_LICENSE_OR_WRITTEN_APPROVAL_REQUIRED",
       "material_production_dependency": true,
       "legal_determination_made": false,
-      "action": "Review applicable API/platform terms and intended commercial use; preserve first-party user-authorized league-data provenance."
+      "action": "Before commercial launch, obtain the applicable Sleeper commercial license/written approval or replace the dependency with a commercially permitted integration/data path. Do not interpret private-development use as commercial authorization.",
+      "rights_review_basis": "Official Sleeper API documentation states the read-only API is free for non-commercial purposes and directs commercial users to contact Sleeper for licensing; current General Terms also restrict commercial/business use and unauthorized third-party data retrieval.",
+      "rights_reviewed_at": "2026-09-03"
     },
     {
       "source_id": "FANTASYCALC-MARKET",
