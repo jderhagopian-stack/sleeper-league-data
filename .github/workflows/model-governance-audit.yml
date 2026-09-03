@@ -43,6 +43,7 @@ jobs:
           python script/audit_residual_signal_decomposition.py
           python script/validate_residual_evidence_contracts.py
           python script/audit_residual_evidence_readiness.py
+          python script/audit_package_concentration_empirical_readiness.py
           python script/validate_decision_channel_hierarchy.py
           python script/validate_decision_channel_fit_audit.py
       - name: Validate audit
@@ -87,6 +88,15 @@ jobs:
           assert rows['01_warren_veteran_package']['prior_range_decision_robustness'] == 'ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
           assert rows['05_consolidation_two_for_one']['prior_range_decision_robustness'] == 'ROBUST_POSITIVE_ACROSS_PRIOR_RANGE'
           assert rows['06_diversification_one_for_two']['prior_range_decision_robustness'] == 'ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
+
+          empirical_residual=json.load(open('data/audit/package_concentration_empirical_readiness.json'))
+          assert empirical_residual['production_behavior_changed'] is False
+          assert empirical_residual['coefficient_fit_performed'] is False
+          assert empirical_residual['current_value_backfill_used'] is False
+          assert empirical_residual['package_concentration']['completed_trade_count'] > 0
+          assert empirical_residual['package_concentration']['package_trade_count'] > 0
+          assert empirical_residual['package_concentration']['production_promotion_ready'] is False
+          assert all(not x['production_ready'] for x in empirical_residual['residual_targets'].values())
 
           residual=json.load(open('data/audit/residual_signal_decomposition_audit.json'))
           assert residual['production_behavior_changed'] is False
