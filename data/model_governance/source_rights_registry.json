@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Source-Rights-Registry-1.0",
+  "policy_ref": "data/model_governance/commercial_data_provenance_policy.json",
+  "sources": [
+    {
+      "source_id": "SLEEPER-LEAGUE-DATA",
+      "provider": "Sleeper",
+      "role": "league configuration, rosters, transactions, draft picks and historical league facts",
+      "current_model_use": "production and historical reconstruction",
+      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
+      "commercial_readiness": "REVIEW_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+      "material_production_dependency": true,
+      "legal_determination_made": false,
+      "action": "Review applicable API/platform terms and intended commercial use; preserve first-party user-authorized league-data provenance."
+    },
+    {
+      "source_id": "FANTASYCALC-MARKET",
+      "provider": "FantasyCalc",
+      "role": "current dynasty market anchor and market diagnostics",
+      "current_model_use": "production market coordinate",
+      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
+      "commercial_readiness": "REVIEW_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+      "material_production_dependency": true,
+      "legal_determination_made": false,
+      "action": "Resolve commercial-use rights or replace/license the market-value source before representing the model as commercially ready."
+    },
+    {
+      "source_id": "PFF-HISTORICAL-VALUES",
+      "provider": "PFF",
+      "role": "dated historical market-reference material",
+      "current_model_use": "historical research/reconstruction reference where present",
+      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_PENDING_REVIEW",
+      "material_production_dependency": false,
+      "legal_determination_made": false,
+      "action": "May challenge hypotheses/sensitivity in research; do not materially determine a commercial production parameter unless rights are cleared."
+    },
+    {
+      "source_id": "FANTASYPROS-HISTORICAL-VALUES",
+      "provider": "FantasyPros",
+      "role": "dated historical market-reference material",
+      "current_model_use": "historical research/reference where present",
+      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_PENDING_REVIEW",
+      "material_production_dependency": false,
+      "legal_determination_made": false,
+      "action": "May challenge hypotheses/sensitivity in research; do not materially determine a commercial production parameter unless rights are cleared."
+    }
+  ],
+  "invariants": {
+    "research_reference_only_cannot_be_material_production_dependency": true,
+    "material_production_dependency_requires_commercial_review_before_commercial_launch": true,
+    "source_status_is_not_a_legal_opinion": true
+  }
+}
