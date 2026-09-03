@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the one-page FSFFL GM Action Report 1.0 from Team Improvement Lab JSON."""
+"""Render the authority-aligned FSFFL GM Action Report from Team Improvement Lab JSON."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-MODEL_VERSION = "FSFFL-GM-Action-Report-1.2"
+MODEL_VERSION = "FSFFL-GM-Action-Report-1.3"
 NAVY = colors.HexColor("#132238")
 LIGHT = colors.HexColor("#F2F5F8")
 MID = colors.HexColor("#D9E1E8")
@@ -52,11 +52,67 @@ def styles():
     }
 
 
+
+def decision_attribution(rec):
+    return rec.get("focal_decision_attribution") or rec.get("decision_attribution") or {}
+
+
+def decision_channel(rec, name):
+    for row in decision_attribution(rec).get("channels") or []:
+        if str(row.get("channel") or "") == str(name):
+            return row
+    return {}
+
+
+def future_asset_value(rec):
+    return sf(decision_channel(rec, "future").get("primitive_value"))
+
+
+def overall_decision_value(rec):
+    a=decision_attribution(rec)
+    return sf(a.get("final_shared_decision_utility"), sf(rec.get("team_improvement_score")))
+
+
+def package_prior_profile(rec):
+    a=decision_attribution(rec)
+    scores=a.get("package_concentration_prior_scores") or {}
+    return {
+        "mild": scores.get("mild"),
+        "center": scores.get("center"),
+        "strong": scores.get("strong"),
+        "robustness": a.get("package_concentration_prior_range_decision_robustness"),
+    }
+
+
+def package_confidence_sentence(rec):
+    if str(rec.get("channel") or "") != "TRADE":
+        return ""
+    p=package_prior_profile(rec)
+    r=str(p.get("robustness") or "")
+    if r=="SENSITIVE_TO_PRIOR_RANGE":
+        return (
+            f"Package-value confidence is lower: mild/center/strong overall values are "
+            f"{sf(p.get('mild')):+,.0f}, {sf(p.get('center')):+,.0f}, and {sf(p.get('strong')):+,.0f}; "
+            "the sign changes across the governed provisional range."
+        )
+    if r=="ROBUST_POSITIVE_ACROSS_PRIOR_RANGE":
+        return (
+            f"Package-value result is robust: mild/center/strong overall values are "
+            f"{sf(p.get('mild')):+,.0f}, {sf(p.get('center')):+,.0f}, and {sf(p.get('strong')):+,.0f}, all positive."
+        )
+    if r=="ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE":
+        return (
+            f"Package-value result is robust: mild/center/strong overall values are "
+            f"{sf(p.get('mild')):+,.0f}, {sf(p.get('center')):+,.0f}, and {sf(p.get('strong')):+,.0f}, all negative."
+        )
+    return ""
+
+
 def metric_cards(rec, s):
-    sim = rec.get("simulation") or {}; d = sim.get("focus_delta") or {}; st = sim.get("strategic") or {}
+    sim = rec.get("simulation") or {}; d = sim.get("focus_delta") or {}
     cards = [("Expected wins", num(d.get("expected_wins"),2)), ("Playoff odds", pct(d.get("playoff_probability"))),
              ("Championship odds", pct(d.get("championship_probability"))), ("Expected points", num(d.get("expected_points_for"),1)),
-             ("Long-term trade value", money(st.get("market_dynasty_delta"))), ("Value to this team", money(st.get("base_franchise_value_delta")))]
+             ("Future Asset Value", money(future_asset_value(rec))), ("Overall Decision Value", money(overall_decision_value(rec)))]
     data=[]
     for i in range(0,6,3):
         row=[]
@@ -84,7 +140,7 @@ def rationale(rec):
 
 
 def alternative_table(report,s):
-    rows=[[Paragraph("Rank",s["small"]),Paragraph("Alternative",s["small"]),Paragraph("Title",s["small"]),Paragraph("Wins",s["small"]),Paragraph("Overall Fit",s["small"])]]
+    rows=[[Paragraph("Rank",s["small"]),Paragraph("Alternative",s["small"]),Paragraph("Title",s["small"]),Paragraph("Wins",s["small"]),Paragraph("Decision Value",s["small"])]]
     rec_desc=(report.get("recommended_action") or {}).get("description")
     alts=[x for x in (report.get("top_cross_channel_options") or []) if x.get("description")!=rec_desc][:4]
     if not alts: rows.append(["-",Paragraph("No superior alternative cleared the model threshold.",s["alt"]),"-","-","-"])
@@ -107,9 +163,11 @@ def build(report,output):
         ("BACKGROUND",(0,0),(-1,-1),NAVY),("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),6)]))
     story += [hero,Spacer(1,.10*inch),metric_cards(rec,s),Paragraph("WHY THIS RANKS FIRST",s["section"])]
     sim=rec.get("simulation") or {}; rr=sim.get("roster_resolution") or {}; focus_uid=str(report.get("generated_for_user_id") or ""); focal_rr=rr.get(focus_uid) or {}; cuts=[x.get("name") for x in (focal_rr.get("selected_cuts") or []) if x.get("name")]
-    score=sf(rec.get("team_improvement_score")); text=f"Overall team-fit score: <b>{score:,.0f}</b>. The move was compared with simply holding the roster. The model included any required cuts, rebuilt the best lineup, and simulated the season before ranking the options."
+    score=overall_decision_value(rec); text=f"Overall Decision Value: <b>{score:,.0f}</b>. The move was compared with simply holding the roster using the same four-channel Shared Decision Utility used by Trade Decision. The model included any required cuts, rebuilt the best lineup, and simulated the season before ranking the options."
     if cuts: text += f" Required roster move for {clean(team,35)}: <b>{clean(', '.join(cuts),65)}</b>."
     if rec.get("channel")=="TRADE" and rec.get("acceptance_fit"): text += f" The offer's fit for the other manager is <b>{rec.get('acceptance_fit')}</b> This is a guide to how well the deal matches that manager, not a literal acceptance probability."
+    confidence=package_confidence_sentence(rec)
+    if confidence: text += " " + confidence
     story += [Paragraph(text,s["body"]),Spacer(1,.07*inch),Paragraph("NEXT-BEST OPTIONS",s["section"]),alternative_table(report,s),Spacer(1,.07*inch)]
     summary=report.get("search_summary") or {}; pu=report.get("projection_universe") or {}; cov=pu.get("coverage") or {}; waiver_count=len(report.get("best_waiver_options") or [])
     footer=(f"Search: {summary.get('trade_candidates_screened',0)} trades + {summary.get('waiver_candidates_screened',0)} waiver candidates; top {summary.get('deep_confirmed_candidates',0)} confirmed at {summary.get('deep_confirm_sims',0)} simulations. "
