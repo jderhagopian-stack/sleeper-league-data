@@ -99,8 +99,10 @@ def main() -> None:
 
     runtime_findings = {
         "shared_future_block_uses_bounded_package_concentration": (
-            'package.transform_future_value(sim, "center")' in utility_text
+            'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in utility_text
             and '"package_concentration_authority": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR"' in utility_text
+            and '"package_concentration_replaces_future_additivity": True' in utility_text
+            and '"package_concentration_new_channel_created": False' in utility_text
         ),
         "state_aware_market_dynasty_delta_is_additive_asset_sum": (
             '"market_dynasty_delta": round(total(rec_rows, "market_dynasty") - total(sent_rows, "market_dynasty"), 2)' in state_aware_text
