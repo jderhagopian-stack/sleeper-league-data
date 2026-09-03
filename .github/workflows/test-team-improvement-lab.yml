@@ -138,6 +138,14 @@ jobs:
           assert len(reader.pages)==1
           text=' '.join((p.extract_text() or '') for p in reader.pages)
           assert 'FSFFL GM ACTION REPORT' in text
+          assert 'Future Asset Value' in text
+          assert 'Overall Decision Value' in text
+          assert 'Long-term trade value' not in text
+          assert 'Overall team-fit score' not in text
+          if r['recommended_action'].get('channel')=='TRADE':
+              robust=(r['recommended_action'].get('focal_decision_attribution') or r['recommended_action'].get('decision_attribution') or {}).get('package_concentration_prior_range_decision_robustness')
+              assert robust in {'ROBUST_POSITIVE_ACROSS_PRIOR_RANGE','ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE','SENSITIVE_TO_PRIOR_RANGE'}
+              assert 'Package-value' in text
           assert '...' not in text and '\u2026' not in text, text
           samples=[]
           for row in (r.get('top_cross_channel_options') or [])[:3]:
