@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "purpose": "Govern projection-source selection so predictive evidence, source independence, access cost, and intended-use rights are evaluated separately before any source becomes a production dependency.",
   "default_external_projection_license_budget_usd": 0,
   "selection_policy": {
@@ -8,7 +8,10 @@
     "rights_gate": "Benchmark access, public accessibility, or open-source retrieval code does not by itself establish production, redistribution, or commercial-use rights. Intended-use rights must be verified separately before production dependency.",
     "independence_gate": "Only independently produced fantasy projection systems may count as independent projection-source votes. Underlying football data used to build an FSFFL-native model does not count as a second projection source.",
     "native_model_preference": "Prefer a simple FSFFL-native challenger built from legally usable underlying football data when it can match or materially improve held-out accuracy without paid projection licensing.",
-    "promotion_rule": "Production promotion requires leakage-safe held-out evidence, sufficient player/position coverage, operational reliability, and intended-use rights consistent with the deployment context."
+    "promotion_rule": "Production promotion requires leakage-safe held-out evidence, sufficient player/position coverage, operational reliability, and intended-use rights consistent with the deployment context.",
+    "category_specific_championship": "Evaluate independently by position and raw-stat target; do not assume one projection provider is best across all categories.",
+    "ensemble_gate": "Blends must be learned only from earlier time-frozen seasons on exact common cohorts and must beat the incumbent/equal-weight baseline on later temporal holdouts.",
+    "native_independence": "External forecasts may benchmark Native and diagnose residual weaknesses, but may not become FSFFL Native training targets."
   },
   "candidates": [
     {
@@ -19,7 +22,9 @@
       "historical_benchmark_status": "PARTIALLY_VERIFIED",
       "production_rights_status": "PENDING_TERMS_REVIEW",
       "production_default_eligible": false,
-      "notes": "Multiple dated historical preseason snapshots are already in the leakage-safe inventory. Predictive superiority and intended-use rights are not assumed."
+      "notes": "Multiple dated historical preseason snapshots are already in the leakage-safe inventory. Predictive superiority and intended-use rights are not assumed.",
+      "personal_research_eligible": false,
+      "commercial_default_eligible": false
     },
     {
       "source": "ESPN",
@@ -29,17 +34,25 @@
       "historical_benchmark_status": "SNAPSHOT_FREEZE_UNVERIFIED",
       "production_rights_status": "PENDING_TERMS_REVIEW",
       "production_default_eligible": false,
-      "notes": "Open-source ffespn tooling demonstrates season-level Week 0 projection retrieval, but that alone does not prove historical values are immutable contemporaneous snapshots or establish production rights."
+      "notes": "Open-source ffespn tooling demonstrates season-level Week 0 projection retrieval, but that alone does not prove historical values are immutable contemporaneous snapshots or establish production rights.",
+      "personal_research_eligible": false,
+      "commercial_default_eligible": false
     },
     {
       "source": "FantasyPros",
       "role": "OPTIONAL_EXTERNAL_BENCHMARK",
       "independence_family": "FANTASYPROS_PROPRIETARY_METHOD",
-      "access_cost_status": "RESTRICTED_OR_PAID_FOR_FULL_USE",
+      "access_cost_status": "FREE_API_FOR_PERSONAL_NONCOMMERCIAL_PROTOTYPING_OBSERVED; PREMIUM_PERSONAL_PRODUCTION_AVAILABLE",
       "historical_benchmark_status": "OPTIONAL_NOT_REQUIRED",
-      "production_rights_status": "RESTRICTED_REQUIRES_SEPARATE_REVIEW",
+      "production_rights_status": "PERSONAL_NONCOMMERCIAL_API_USE_AVAILABLE; COMMERCIAL_REQUIRES_SEPARATE_AGREEMENT",
       "production_default_eligible": false,
-      "notes": "Do not make FSFFL dependent on this source under the zero-cost default. It may be used only where access and terms legitimately permit."
+      "notes": "Do not make FSFFL dependent on this source under the zero-cost default. It may be used only where access and terms legitimately permit.",
+      "personal_research_eligible": true,
+      "commercial_default_eligible": false,
+      "terms_evidence": {
+        "verified": "2026-09-03",
+        "note": "FantasyPros support documentation states free API access is for personal non-commercial building/testing/prototyping and commercial use requires a separate agreement."
+      }
     },
     {
       "source": "nflverse",
@@ -50,7 +63,9 @@
       "production_rights_status": "VERIFY_PER_DATASET_LICENSE",
       "production_default_eligible": false,
       "counts_as_independent_projection_source": false,
-      "notes": "Preferred candidate ecosystem for underlying historical football data. Dataset-specific licensing still must be checked; it cannot satisfy an independent projection-source authority gate."
+      "notes": "Preferred candidate ecosystem for underlying historical football data. Dataset-specific licensing still must be checked; it cannot satisfy an independent projection-source authority gate.",
+      "personal_research_eligible": false,
+      "commercial_default_eligible": false
     },
     {
       "source": "CBS",
@@ -60,7 +75,37 @@
       "historical_benchmark_status": "ARCHIVE_CANDIDATE_UNVERIFIED",
       "production_rights_status": "UNVERIFIED",
       "production_default_eligible": false,
-      "notes": "Retain only as a fallback archive candidate unless clean time-frozen historical coverage can be established quickly."
+      "notes": "Retain only as a fallback archive candidate unless clean time-frozen historical coverage can be established quickly.",
+      "personal_research_eligible": false,
+      "commercial_default_eligible": false
+    },
+    {
+      "source": "Razzball",
+      "role": "CURRENT_EXTERNAL_PROJECTION_ANCHOR_AND_ENSEMBLE_CANDIDATE",
+      "independence_family": "RAZZBALL_PROPRIETARY_NFL_MODEL",
+      "access_cost_status": "CURRENT_PUBLIC_OR_SUBSCRIPTION_ACCESS_OBSERVED",
+      "historical_benchmark_status": "CURRENT_2026_RAW_STATS_AVAILABLE; HISTORICAL_TIME_FROZEN_SERIES_NOT_YET_VERIFIED",
+      "production_rights_status": "PERSONAL_USE_REVIEW_PARTIALLY_VERIFIED; COMMERCIAL_REQUIRES_SEPARATE_PERMISSION_REVIEW",
+      "personal_research_eligible": true,
+      "commercial_default_eligible": false,
+      "production_default_eligible": false,
+      "current_use": "2026 preseason raw-stat anchor transformed under FSFFL scoring",
+      "terms_evidence": {
+        "football_projection_page_verified": "2026-08-31",
+        "football_methodology_page_verified": "2026-08-31",
+        "note": "Football pages confirm proprietary projections and downloadable raw-stat tables. A Razzball projection FAQ elsewhere explicitly permits personal use but restricts republishing/model resale without consent; football-specific reuse language should be separately confirmed before treating that statement as dispositive."
+      },
+      "replacement_policy": "Must remain swappable. If commercial rights are not obtained, exclude or replace before commercial deployment."
     }
-  ]
+  ],
+  "deployment_contexts": {
+    "PERSONAL_RESEARCH": {
+      "description": "Private, noncommercial FSFFL research and league use.",
+      "rule": "A source may be used only when the contemplated personal use is permitted or otherwise explicitly approved; preserve source attribution/provenance and replacement metadata."
+    },
+    "COMMERCIAL": {
+      "description": "Paid, public, organizational, redistributed, or revenue-generating FSFFL deployment.",
+      "rule": "Require explicit commercial/model/redistribution rights or a separate license. Personal-use permission is not commercial permission."
+    }
+  }
 }
