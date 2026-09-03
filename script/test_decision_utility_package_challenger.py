@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the non-production package-concentration challenger."""
+"""Regression tests for package-concentration sensitivity around the production center prior."""
 from __future__ import annotations
 
 import importlib.util
