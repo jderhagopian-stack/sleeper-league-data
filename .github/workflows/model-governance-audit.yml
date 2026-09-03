@@ -14,7 +14,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Validate governed parameter registry
-        run: python script/validate_model_parameter_registry.py
+        run: |
+          python script/validate_model_parameter_registry.py
+          python script/validate_commercial_data_provenance.py
       - name: Run model governance audit
         run: |
           python script/audit_model_governance.py
