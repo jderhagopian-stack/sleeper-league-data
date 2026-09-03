@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Package-Concentration-Prior-1.0",
+  "family_id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
+  "authority_mode": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
+  "empirically_calibrated": false,
+  "commercial_provenance": {
+    "material_external_calibration_dependency": false,
+    "basis": "Inherited internal FSFFL package curves used as a governed expert-prior envelope; external proprietary historical value tables are not used to set the production coefficients.",
+    "update_rule": "Replace or narrow with commercially-permitted empirical evidence when available."
+  },
+  "principle": "Uncertain magnitude is not evidence of zero effect. Package concentration replaces raw additive package treatment inside FUTURE ASSET VALUE; it is not an added fifth channel.",
+  "curves": {
+    "mild": [
+      1,
+      0.92,
+      0.84,
+      0.78,
+      0.72
+    ],
+    "center": [
+      1,
+      0.85,
+      0.73,
+      0.64,
+      0.57
+    ],
+    "strong": [
+      1,
+      0.78,
+      0.62,
+      0.5,
+      0.42
+    ]
+  },
+  "center_derivation": "Arithmetic midpoint of the inherited mild and strong FSFFL package curves.",
+  "tail_policy": {
+    "mild": "floor at 0.72",
+    "strong": "continue -0.06 per additional asset to floor 0.28",
+    "center": "arithmetic midpoint of mild and strong tail weights"
+  },
+  "invariants": {
+    "one_for_one_unchanged": true,
+    "forced_cuts_excluded_from_package_transform": true,
+    "non_trade_future_effects_preserved_once": true,
+    "same_source_rank_repricing_forbidden": true,
+    "no_player_specific_tuning": true,
+    "no_transaction_specific_tuning": true,
+    "uncertainty_sensitivity_exposed": true
+  }
+}
