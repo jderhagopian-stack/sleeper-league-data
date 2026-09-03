@@ -6,15 +6,17 @@ on:
       - 'script/run_native_projection_v2_refinement_benchmark.py'
       - 'script/run_native_role_opportunity_challenger.py'
       - 'script/run_native_role_opportunity_vs_fftoday.py'
+      - 'script/run_native_snap_share_challenger.py'
       - 'data/model_validation/native_role_opportunity_challenger_spec.json'
       - 'data/model_validation/native_role_opportunity_challenger_scorecard.json'
+      - 'data/model_validation/native_snap_share_challenger_spec.json'
       - '.github/workflows/native-projection-v2-refinement.yml'
   workflow_dispatch:
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,12 +27,16 @@ jobs:
           python -m py_compile script/run_native_projection_v2_refinement_benchmark.py
           python -m py_compile script/run_native_role_opportunity_challenger.py
           python -m py_compile script/run_native_role_opportunity_vs_fftoday.py
-      - name: Run deterministic role/opportunity regression test
-        run: python script/run_native_role_opportunity_challenger.py --self-test
-      - name: Validate role/opportunity governance artifacts
+          python -m py_compile script/run_native_snap_share_challenger.py
+      - name: Run deterministic challenger regression tests
+        run: |
+          python script/run_native_role_opportunity_challenger.py --self-test
+          python script/run_native_snap_share_challenger.py --self-test
+      - name: Validate challenger governance artifacts
         run: |
           python -m json.tool data/model_validation/native_role_opportunity_challenger_spec.json > /dev/null
           python -m json.tool data/model_validation/native_role_opportunity_challenger_scorecard.json > /dev/null
+          python -m json.tool data/model_validation/native_snap_share_challenger_spec.json > /dev/null
       - name: Run targeted V2 refinement benchmark
         run: python script/run_native_projection_v2_refinement_benchmark.py
       - name: Run role/opportunity challenger benchmark
@@ -39,6 +45,10 @@ jobs:
         run: |
           python script/run_native_role_opportunity_vs_fftoday.py \
             --output data/model_validation/native_role_opportunity_vs_fftoday.json
+      - name: Run prior offensive snap share challenger benchmark
+        run: |
+          python script/run_native_snap_share_challenger.py \
+            --output data/model_validation/native_snap_share_challenger.json
       - uses: actions/upload-artifact@v4
         with:
           name: native-projection-v2-refinement
@@ -46,3 +56,4 @@ jobs:
             data/model_validation/native_projection_v2_refinement_benchmark.json
             data/model_validation/native_role_opportunity_challenger.json
             data/model_validation/native_role_opportunity_vs_fftoday.json
+            data/model_validation/native_snap_share_challenger.json
