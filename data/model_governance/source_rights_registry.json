@@ -34,22 +34,26 @@
       "provider": "PFF",
       "role": "dated historical market-reference material",
       "current_model_use": "historical research/reconstruction reference where present",
-      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
-      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_PENDING_REVIEW",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_COMMERCIAL_PERMISSION_REQUIRED",
       "material_production_dependency": false,
       "legal_determination_made": false,
-      "action": "May challenge hypotheses/sensitivity in research; do not materially determine a commercial production parameter unless rights are cleared."
+      "action": "Keep research-reference-only. Obtain a commercial/enterprise license or written permission before any PFF data materially determines a production/commercial parameter.",
+      "rights_review_basis": "PFF's current Terms of Use state consumer access/PFF Data is for personal, non-commercial use and direct users seeking commercial/editorial use to contact PFF sales.",
+      "rights_reviewed_at": "2026-09-03"
     },
     {
       "source_id": "FANTASYPROS-HISTORICAL-VALUES",
       "provider": "FantasyPros",
       "role": "dated historical market-reference material",
       "current_model_use": "historical research/reference where present",
-      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
-      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_PENDING_REVIEW",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_COMMERCIAL_PERMISSION_REQUIRED",
       "material_production_dependency": false,
       "legal_determination_made": false,
-      "action": "May challenge hypotheses/sensitivity in research; do not materially determine a commercial production parameter unless rights are cleared."
+      "action": "Keep research-reference-only. Obtain written commercial permission before any FantasyPros data materially determines a production/commercial parameter.",
+      "rights_review_basis": "FantasyPros Terms of Use restrict copying/reproduction beyond personal use and prohibit commercial use of portions of the site without prior permission.",
+      "rights_reviewed_at": "2026-09-03"
     }
   ],
   "invariants": {
