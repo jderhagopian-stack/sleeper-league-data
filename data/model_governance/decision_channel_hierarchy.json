@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Decision-Channel-Hierarchy-1.0",
+  "governing_principle": "Many inputs, few authoritative outputs. Detailed factors may inform a channel, but cannot become additional independent utility knobs unless they represent a validated residual not already captured elsewhere.",
+  "authoritative_outputs": [
+    {
+      "id": "CURRENT_TEAM_IMPACT",
+      "description": "What the move does to the team's current-season competitive strength.",
+      "existing_authoritative_evidence": [
+        "Simulator outcomes",
+        "transaction market-redraft delta",
+        "optimized starter redraft delta"
+      ],
+      "supporting_diagnostics": [
+        "starter dependency",
+        "position need",
+        "current roster fragility"
+      ],
+      "prohibited_duplicate_outputs": [
+        "generic starter premium",
+        "second injury/availability penalty",
+        "separate current-value bonus"
+      ]
+    },
+    {
+      "id": "FUTURE_ASSET_VALUE",
+      "description": "What the move does to expected future franchise/asset value.",
+      "existing_authoritative_evidence": [
+        "market dynasty delta"
+      ],
+      "supporting_diagnostics": [
+        "age",
+        "experience",
+        "pedigree",
+        "future distributions",
+        "pick quality"
+      ],
+      "provisional_residuals": [
+        "OPTIONALITY-RESIDUAL-001"
+      ],
+      "prohibited_duplicate_outputs": [
+        "same-source market momentum reprice",
+        "market-tier scarcity reprice",
+        "generic youth bonus on top of market value"
+      ]
+    },
+    {
+      "id": "LIQUIDITY_REVERSIBILITY",
+      "description": "How easily the resulting portfolio can be converted into other useful assets without material concession.",
+      "existing_authoritative_evidence": [
+        "explicitly authorized residual liquidity deltas only"
+      ],
+      "supporting_diagnostics": [
+        "asset demand breadth",
+        "trade frequency",
+        "manager-independent clearing evidence"
+      ],
+      "provisional_residuals": [
+        "LIQUIDITY-RESIDUAL-001"
+      ],
+      "prohibited_duplicate_outputs": [
+        "market-value-derived liquidity score",
+        "manager activity treated as focal economic value"
+      ]
+    },
+    {
+      "id": "ROSTER_RESILIENCE",
+      "description": "How well the roster remains functional under future/stress availability changes beyond current lineup/simulator effects.",
+      "existing_authoritative_evidence": [
+        "explicitly authorized residual resilience deltas only"
+      ],
+      "supporting_diagnostics": [
+        "depth insurance",
+        "replacement paths",
+        "future stress simulations"
+      ],
+      "provisional_residuals": [
+        "RESILIENCE-RESIDUAL-001"
+      ],
+      "prohibited_duplicate_outputs": [
+        "starter dependency already in current block",
+        "duplicate availability penalty"
+      ]
+    }
+  ],
+  "package_substitution_rule": {
+    "id": "PACKAGE_CONCENTRATION_TRANSFORM",
+    "description": "Quantity-for-quality economics are a transformation of the FUTURE_ASSET_VALUE coordinate for negotiated trade packages, not a fifth additive utility channel.",
+    "residual_family": "PACKAGE-CONCENTRATION-RESIDUAL-001",
+    "challenger_status": "ACTIVE_NON_PRODUCTION",
+    "production_status": "DISABLED_PENDING_PROMOTION",
+    "must_replace_not_stack": true,
+    "exclude": [
+      "forced-cut loss",
+      "current lineup replacement loss",
+      "same-source rank/scarcity premium"
+    ]
+  },
+  "non_economic_layers": [
+    {
+      "id": "SEARCH_DISCOVERY",
+      "examples": [
+        "seller motivation",
+        "market-distance search",
+        "target diversity",
+        "behavioral preference"
+      ],
+      "economic_authority": false
+    },
+    {
+      "id": "NEGOTIATION_FEASIBILITY",
+      "examples": [
+        "buyer shared utility",
+        "acceptance likelihood",
+        "behavioral fit"
+      ],
+      "economic_authority": false,
+      "note": "These determine whether a useful trade is realistic, not whether it is valuable to the focal team."
+    },
+    {
+      "id": "EXPLANATION_DIAGNOSTICS",
+      "examples": [
+        "break-glass value",
+        "strategic score",
+        "market-tier scarcity",
+        "optionality diagnostics"
+      ],
+      "economic_authority": false,
+      "note": "May explain a result without independently changing the final score."
+    }
+  ],
+  "simplification_targets": [
+    {
+      "family": "GM22-CONFIG-001",
+      "action": "DECOMPOSE_AND_RETIRE_UMBRELLA_SCORING_ROLE",
+      "rationale": "Broad umbrella mixes need, endowment, starter/depth, performance, usage, injury and utility. Each sub-signal should map to one channel or remain diagnostic/search-only."
+    },
+    {
+      "family": "CONSOLIDATION-PREMIUM-001",
+      "action": "KEEP_RETIRED",
+      "rationale": "Same-source rank repricing is redundant. Residual package concentration lives only in PACKAGE-CONCENTRATION-RESIDUAL-001."
+    },
+    {
+      "family": "MARKET-TIER-SCARCITY-001",
+      "action": "SPLIT_DIAGNOSTIC_MARKET_TIER_FROM_ROSTER_REPLACEMENT_EVIDENCE",
+      "rationale": "Market-tier scarcity duplicates market value; team-specific replacement evidence belongs under current or resilience depending on horizon."
+    },
+    {
+      "family": "ROSTER-INTERACTION-001",
+      "action": "KEEP_AS_DIAGNOSTIC_UNLESS_RESIDUAL_PROVEN",
+      "rationale": "Do not create a second portfolio adjustment if simulator/lineup/resilience channels already capture the effect."
+    }
+  ],
+  "hard_rules": {
+    "maximum_final_additive_utility_channels": 4,
+    "package_concentration_is_not_an_additive_channel": true,
+    "behavior_is_not_economic_value": true,
+    "same_signal_cannot_feed_multiple_authoritative_channels_without_explicit_residualization": true,
+    "legacy_broad_composite_scores_cannot_regain_final_authority": true
+  }
+}

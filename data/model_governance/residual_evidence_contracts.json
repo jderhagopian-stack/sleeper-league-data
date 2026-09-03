@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Residual-Evidence-Contracts-1.0",
+  "production_behavior_changed": false,
+  "principles": {
+    "bounded_prior_may_precede_full_empirical_identification": true,
+    "legacy_formula_is_not_automatically_the_prior": true,
+    "double_count_residualization_required_before_promotion": true,
+    "time_ordered_validation_required_where_historical_targets_exist": true,
+    "uncertainty_and_sensitivity_must_be_reported": true,
+    "challenger_before_production_promotion": true
+  },
+  "contracts": [
+    {
+      "family_id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
+      "current_stage": "CHALLENGER_ACTIVE_PRODUCTION_DISABLED",
+      "allowed_now": [
+        "bounded sensitivity using inherited package curves",
+        "challenger substitution for raw package additivity",
+        "cross-case regression testing"
+      ],
+      "forbidden_now": [
+        "same-source rank premium",
+        "additive fifth utility channel",
+        "double charging forced cuts or lineup loss",
+        "claiming inherited curve is empirically calibrated"
+      ],
+      "minimum_promotion_evidence": [
+        "frozen contemporaneous market values for completed trades",
+        "exact package asset composition",
+        "pre-trade roster context where available",
+        "time ordering preventing hindsight leakage",
+        "residualization against forced cuts and lineup effects"
+      ],
+      "stronger_evidence_desired": [
+        "rejected/expired offers or identifiable choice frontiers",
+        "cross-league transaction sample",
+        "held-out validation of package clearing residuals"
+      ],
+      "promotion_test": "Challenger must improve held-out residual fit or decision calibration versus additive baseline without degrading one-for-one invariance."
+    },
+    {
+      "family_id": "OPTIONALITY-RESIDUAL-001",
+      "current_stage": "DECOMPOSITION_REQUIRED_PRODUCTION_DISABLED",
+      "allowed_now": [
+        "diagnostic future-distribution analysis",
+        "construction of residual targets conditional on current market value",
+        "bounded challenger design using independently estimated future distributions"
+      ],
+      "forbidden_now": [
+        "direct activation of legacy upside_optionality score",
+        "same-source market trend as incremental future value",
+        "generic youth or rookie bonus on top of market price"
+      ],
+      "minimum_promotion_evidence": [
+        "frozen market value at decision date",
+        "future market-value or realized outcome at one or more horizons",
+        "age/experience/pedigree features known at decision date",
+        "conditioning on baseline market dynasty value",
+        "time-ordered holdout validation"
+      ],
+      "stronger_evidence_desired": [
+        "distributional rather than point target",
+        "multiple future horizons",
+        "regularized or hierarchical estimates by position/experience"
+      ],
+      "promotion_test": "Residual optionality must predict asymmetric future outcomes beyond current market dynasty value and any authorized liquidity/resilience channels."
+    },
+    {
+      "family_id": "LIQUIDITY-RESIDUAL-001",
+      "current_stage": "OBSERVED_EVIDENCE_REQUIRED_PRODUCTION_DISABLED",
+      "allowed_now": [
+        "trade-frequency and breadth-of-demand diagnostics",
+        "residual modeling conditional on market value"
+      ],
+      "forbidden_now": [
+        "activation of current player liquidity formula because it directly uses market_dynasty",
+        "owner behavioral activity as focal economic value",
+        "liquidity premium inferred solely from market tier"
+      ],
+      "minimum_promotion_evidence": [
+        "transaction opportunities or defensible exposure denominator",
+        "completed trade/clearing outcomes",
+        "current market value control",
+        "asset identity and date",
+        "manager-specific behavior separated from asset-level liquidity"
+      ],
+      "stronger_evidence_desired": [
+        "bid/ask or offer spread",
+        "number of distinct interested managers",
+        "time-to-trade or retradeability",
+        "cross-league demand breadth"
+      ],
+      "promotion_test": "Asset-level liquidity must add held-out explanatory/predictive value after current market price and manager behavior are controlled."
+    },
+    {
+      "family_id": "RESILIENCE-RESIDUAL-001",
+      "current_stage": "ABLATION_REQUIRED_PRODUCTION_DISABLED",
+      "allowed_now": [
+        "depth-insurance-only diagnostics",
+        "stress-scenario simulation ablation",
+        "future-horizon replacement analysis"
+      ],
+      "forbidden_now": [
+        "reusing single-starter dependency already captured by lineup/simulator",
+        "second injury/availability penalty on top of active_probability simulation",
+        "legacy 0.62/0.38 blend as direct final utility"
+      ],
+      "minimum_promotion_evidence": [
+        "baseline canonical Simulator/current lineup result",
+        "stress scenario or future-horizon roster outcome",
+        "depth-insurance-only contribution isolated from starter dependency",
+        "ablation showing incremental information beyond current channels"
+      ],
+      "stronger_evidence_desired": [
+        "historical injury/availability sequences",
+        "multi-week replacement path outcomes",
+        "position-specific stress calibration"
+      ],
+      "promotion_test": "Only incremental future/stress protection beyond current lineup and Simulator substitution may receive authority."
+    }
+  ]
+}

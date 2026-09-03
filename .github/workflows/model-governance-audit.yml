@@ -35,10 +35,70 @@ jobs:
           python script/audit_final_trade_ranking.py
           python script/audit_legacy_governance_bypass.py
           python script/audit_heuristic_refinement_first_pass.py
+          python script/audit_parameter_authority_missing_value.py
+          python script/package_concentration_sensitivity.py --cases data/model_validation/package_concentration_sensitivity_cases.json --output data/audit/package_concentration_sensitivity.json
+          python script/audit_trade_package_topology.py
+          python script/test_decision_utility_package_challenger.py
+          python script/run_package_challenger_cross_case.py --output data/audit/package_challenger_cross_case.json
+          python script/audit_residual_signal_decomposition.py
+          python script/validate_residual_evidence_contracts.py
+          python script/audit_residual_evidence_readiness.py
+          python script/validate_decision_channel_hierarchy.py
+          python script/validate_decision_channel_fit_audit.py
       - name: Validate audit
         run: |
           python - <<'PY'
           import json
+          pa=json.load(open('data/audit/parameter_authority_missing_value_audit.json'))
+          assert pa['summary']['passed'] is True
+          assert pa['policy']['zero_is_a_parameter'] is True
+          assert pa['policy']['uncertain_magnitude_is_not_evidence_of_zero_effect'] is True
+          assert pa['summary']['credible_effects_at_zero_authority_needing_review'] >= 2
+          assert pa['summary']['mixed_families_needing_decomposition'] >= 2
+          assert any(x['id']=='CONSOLIDATION-PREMIUM-001' and x['zero_may_be_unjustified_point_estimate'] for x in pa['findings'])
+          assert any(x['id']=='GM22-CONFIG-001' and x['family_decomposition_required'] for x in pa['findings'])
+          assert any(x['concept']=='optionality' for x in pa['unregistered_or_underdecomposed_concepts'])
+          assert pa['runtime_findings']['shared_future_block_is_raw_additive_market_dynasty_delta'] is True
+          assert pa['runtime_findings']['nonlinear_package_economics_exists_in_gm_discovery'] is True
+          assert pa['runtime_findings']['shared_decision_utility_does_not_consume_package_effective_value'] is True
+          assert pa['runtime_findings']['optionality_is_diagnostic_only_in_shared_utility'] is True
+          pcs=json.load(open('data/audit/package_concentration_sensitivity.json'))
+          assert pcs['production_scoring_changed'] is False
+          assert pcs['empirical_calibration_claimed'] is False
+          pres={x['case_id']:x for x in pcs['results']}
+          assert pres['WARREN_KYREN_2ND']['raw_additive_delta'] > 0
+          assert pres['WARREN_KYREN_2ND']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_SKATTEBO_FLOURNOY_3RD']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['legacy_mild_bound']['effective_delta'] < 0
+          assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['gm22_strong_bound']['concentration_residual_vs_additive'] < -500
+          challenger=json.load(open('data/audit/package_challenger_cross_case.json'))
+          assert challenger['production_behavior_changed'] is False
+          assert challenger['empirical_coefficient_fit_performed'] is False
+          assert challenger['summary']['one_for_one_all_unchanged'] is True
+          assert challenger['summary']['fragmentation_all_worsen_across_nonadditive_bounds'] is True
+          assert challenger['summary']['consolidation_all_improve_across_nonadditive_bounds'] is True
+          rows={x['id']:x for x in challenger['results']}
+          assert rows['01_warren_veteran_package']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['01_warren_veteran_package']['production_score']
+          assert rows['05_consolidation_two_for_one']['curve_results']['legacy_mild_bound']['challenger_score'] > rows['05_consolidation_two_for_one']['production_score']
+          assert rows['06_diversification_one_for_two']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['06_diversification_one_for_two']['production_score']
+          assert rows['01_warren_veteran_package']['prior_range_decision_robustness'] == 'ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
+          assert rows['05_consolidation_two_for_one']['prior_range_decision_robustness'] == 'ROBUST_POSITIVE_ACROSS_PRIOR_RANGE'
+          assert rows['06_diversification_one_for_two']['prior_range_decision_robustness'] == 'ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
+
+          residual=json.load(open('data/audit/residual_signal_decomposition_audit.json'))
+          assert residual['production_behavior_changed'] is False
+          assert residual['coefficient_fit_performed'] is False
+          assert residual['gates']['no_current_disabled_formula_is_blanket_reenabled'] is True
+          assert residual['gates']['liquidity_market_value_dependency_blocks_direct_activation'] is True
+          assert residual['gates']['optionality_mixed_signal_requires_decomposition'] is True
+          assert residual['gates']['resilience_dependency_component_must_not_be_counted_again'] is True
+
+          topo=json.load(open('data/audit/trade_package_topology_audit.json'))
+          assert topo['coefficient_fit_performed'] is False
+          assert topo['current_value_backfill_used'] is False
+          assert topo['policy']['completed_trade_topology_supports_concept_existence_not_coefficient_magnitude'] is True
+          assert topo['summary']['one_for_many'] > 0
+
           r=json.load(open('data/audit/model_governance_audit.json'))
           assert r['summary']['numeric_assumptions_flagged'] > 50
           ids={x['id'] for x in r['curated_findings']}

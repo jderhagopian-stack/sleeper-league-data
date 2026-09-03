@@ -1,0 +1,370 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Decision-Channel-Fit-Audit-1.0",
+  "question": "Can every material FSFFL factor be represented without economic distortion by the four proposed final value channels, a package transform, or a clearly non-value/meta layer?",
+  "candidate_final_value_channels": [
+    "CURRENT_TEAM_IMPACT",
+    "FUTURE_ASSET_VALUE",
+    "LIQUIDITY_REVERSIBILITY",
+    "ROSTER_RESILIENCE"
+  ],
+  "classification_rules": {
+    "economic_factor_requires_exactly_one_primary_value_home": true,
+    "package_substitutability_is_transform_not_channel": true,
+    "constraints_rules_and_confidence_are_not_value_channels": true,
+    "search_acceptance_and_behavior_are_not_focal_value_channels": true,
+    "same_factor_may_not_have_multiple_authoritative_value_homes_without_residualization": true,
+    "new_channel_required_only_if_distinct_economic_objective_cannot_fit_without_loss_or_double_counting": true
+  },
+  "granular_factor_map": [
+    {
+      "factor": "weekly and season scoring expectation",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Expected points affect present competitive strength."
+    },
+    {
+      "factor": "win/playoff/bye/championship probability",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "These are current competitive outcomes produced by the Simulator; opponent-strength externalities are already reflected here."
+    },
+    {
+      "factor": "optimized starter value",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Measures present lineup consequence of the move."
+    },
+    {
+      "factor": "position need",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Current need is only economically relevant through lineup/team-strength consequences; standalone need premium would duplicate them."
+    },
+    {
+      "factor": "starter dependency",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Present starter loss is already represented by optimized lineup and simulation evidence."
+    },
+    {
+      "factor": "current injury/availability",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Current-season availability belongs in projections/Simulator; no second injury penalty."
+    },
+    {
+      "factor": "current usage/performance evidence",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Feeds current projections rather than a standalone trade bonus."
+    },
+    {
+      "factor": "current dynasty market value",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "Primary future asset-value coordinate."
+    },
+    {
+      "factor": "future pick value",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "Represents future asset purchasing/realization value."
+    },
+    {
+      "factor": "pick quality / likely draft slot",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "Changes expected future pick value."
+    },
+    {
+      "factor": "age and experience horizon",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "Relevant only to expected future asset outcomes after conditioning on current value."
+    },
+    {
+      "factor": "NFL draft pedigree / development prior",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "Potential evidence for future outcome distribution; not a separate objective."
+    },
+    {
+      "factor": "expected appreciation/depreciation",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "A future value trajectory, not an independent channel."
+    },
+    {
+      "factor": "residual asymmetric upside / optionality",
+      "role": "FUTURE_ASSET_VALUE",
+      "reason": "If distinct after market/liquidity/resilience residualization, it changes the distribution of future asset value."
+    },
+    {
+      "factor": "same-source market momentum",
+      "role": "DEPRECATED_DUPLICATIVE",
+      "reason": "Cannot independently reprice the same current market anchor without residual evidence."
+    },
+    {
+      "factor": "market-tier elite/scarcity premium",
+      "role": "DEPRECATED_DUPLICATIVE",
+      "reason": "Market rank derived from the same market anchor is not a new economic objective."
+    },
+    {
+      "factor": "asset convertibility / retradeability",
+      "role": "LIQUIDITY_REVERSIBILITY",
+      "reason": "Economic flexibility can differ for portfolios with similar expected value."
+    },
+    {
+      "factor": "breadth of manager demand",
+      "role": "LIQUIDITY_REVERSIBILITY",
+      "reason": "If measured independently of owner behavior/current price, it informs conversion friction."
+    },
+    {
+      "factor": "clearing spread / value concession required to transact",
+      "role": "LIQUIDITY_REVERSIBILITY",
+      "reason": "Directly measures reversibility/friction."
+    },
+    {
+      "factor": "manager activity / willingness to trade",
+      "role": "NON_ECONOMIC_NEGOTIATION",
+      "reason": "Affects feasibility, not intrinsic value to the focal team."
+    },
+    {
+      "factor": "future depth insurance",
+      "role": "ROSTER_RESILIENCE",
+      "reason": "Distinct only to the extent it protects future/stress roster outcomes beyond current simulator substitution."
+    },
+    {
+      "factor": "replacement path under future injury/role shock",
+      "role": "ROSTER_RESILIENCE",
+      "reason": "Measures robustness of the roster to adverse future states."
+    },
+    {
+      "factor": "current-season substitution under injury",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Already sampled by current Simulator; cannot also count as resilience."
+    },
+    {
+      "factor": "same-team/backfield insurance",
+      "role": "ROSTER_RESILIENCE",
+      "reason": "Only any residual future/stress protection belongs here; current overlap must be removed."
+    },
+    {
+      "factor": "multi-asset diminishing substitutability / concentration",
+      "role": "PACKAGE_CONCENTRATION_TRANSFORM",
+      "reason": "Changes how a bundle maps into FUTURE_ASSET_VALUE; it is not a fifth independent objective."
+    },
+    {
+      "factor": "forced roster cut from incoming package",
+      "role": "CURRENT_TEAM_IMPACT",
+      "reason": "Exact roster legalization affects current roster and future asset delta directly; must not be recharged by package transform."
+    },
+    {
+      "factor": "roster-slot scarcity",
+      "role": "PACKAGE_CONCENTRATION_TRANSFORM",
+      "reason": "Only residual substitutability/slot burden not already realized through exact cuts may modify package value."
+    },
+    {
+      "factor": "league scoring / lineup / roster rules",
+      "role": "META_STRUCTURAL_RULES",
+      "reason": "Defines feasible states and scoring, not utility preference."
+    },
+    {
+      "factor": "projection uncertainty / variance",
+      "role": "META_UNCERTAINTY_CONFIDENCE",
+      "reason": "Should propagate into outcome distributions and recommendation confidence, not become a positive or negative value channel by itself."
+    },
+    {
+      "factor": "parameter uncertainty",
+      "role": "META_UNCERTAINTY_CONFIDENCE",
+      "reason": "Controls sensitivity/robustness and confidence in the recommendation, not economic value."
+    },
+    {
+      "factor": "team competitive-state objective weights",
+      "role": "META_OBJECTIVE_WEIGHTS",
+      "reason": "Determines how much the four economic channels matter to this team; it is not a fifth objective."
+    },
+    {
+      "factor": "strategic posture",
+      "role": "META_OBJECTIVE_WEIGHTS",
+      "reason": "Preference over the four channels, not another source of value."
+    },
+    {
+      "factor": "acceptance likelihood / buyer fit",
+      "role": "NON_ECONOMIC_NEGOTIATION",
+      "reason": "Determines whether the transaction is realistic, not focal economic value."
+    },
+    {
+      "factor": "seller motivation",
+      "role": "NON_ECONOMIC_SEARCH",
+      "reason": "Improves search coverage only."
+    },
+    {
+      "factor": "behavioral preferences",
+      "role": "NON_ECONOMIC_SEARCH",
+      "reason": "Useful for search/negotiation but not a focal value adjustment."
+    },
+    {
+      "factor": "market-distance prescreen",
+      "role": "NON_ECONOMIC_SEARCH",
+      "reason": "Simulation/search prioritization, not utility."
+    },
+    {
+      "factor": "accept/decline thresholds and Pareto rules",
+      "role": "META_DECISION_POLICY",
+      "reason": "Converts value evidence into action; not an economic channel."
+    },
+    {
+      "factor": "what-if / counterfactual branch assumptions",
+      "role": "META_RESEARCH",
+      "reason": "Research/sensitivity machinery, not present trade utility."
+    },
+    {
+      "factor": "decision confidence",
+      "role": "META_UNCERTAINTY_CONFIDENCE",
+      "reason": "Important output dimension, but should describe how certain the recommendation is rather than change the value score."
+    }
+  ],
+  "registry_family_map": {
+    "LEAGUE-RULES-001": [
+      "META_STRUCTURAL_RULES"
+    ],
+    "PROJECTION-MEAN-001": [
+      "CURRENT_TEAM_IMPACT"
+    ],
+    "PROJECTION-UNCERTAINTY-001": [
+      "META_UNCERTAINTY_CONFIDENCE",
+      "CURRENT_TEAM_IMPACT"
+    ],
+    "STATE-WEIGHTS-001": [
+      "META_OBJECTIVE_WEIGHTS"
+    ],
+    "CONSOLIDATION-PREMIUM-001": [
+      "DEPRECATED_DUPLICATIVE"
+    ],
+    "GM22-CONFIG-001": [
+      "SPLIT_REQUIRED"
+    ],
+    "MARKET-MOMENTUM-001": [
+      "DEPRECATED_DUPLICATIVE"
+    ],
+    "PICK-MODEL-001": [
+      "FUTURE_ASSET_VALUE",
+      "META_UNCERTAINTY_CONFIDENCE"
+    ],
+    "PACKAGE-ECON-001": [
+      "PACKAGE_CONCENTRATION_TRANSFORM",
+      "CURRENT_TEAM_IMPACT"
+    ],
+    "ROSTER-CUT-001": [
+      "CURRENT_TEAM_IMPACT",
+      "FUTURE_ASSET_VALUE"
+    ],
+    "ROSTER-INTERACTION-001": [
+      "ROSTER_RESILIENCE",
+      "NON_ECONOMIC_NEGOTIATION"
+    ],
+    "BEHAVIOR-001": [
+      "NON_ECONOMIC_SEARCH",
+      "NON_ECONOMIC_NEGOTIATION"
+    ],
+    "ACCEPTANCE-GATE-001": [
+      "NON_ECONOMIC_NEGOTIATION",
+      "META_DECISION_POLICY"
+    ],
+    "TRADE-PRESCREEN-001": [
+      "NON_ECONOMIC_SEARCH"
+    ],
+    "DECISION-GATES-001": [
+      "META_DECISION_POLICY"
+    ],
+    "TEAM-IMPROVEMENT-001": [
+      "META_OBJECTIVE_WEIGHTS",
+      "META_DECISION_POLICY"
+    ],
+    "TRADE-SCORE-001": [
+      "CURRENT_TEAM_IMPACT",
+      "FUTURE_ASSET_VALUE",
+      "LIQUIDITY_REVERSIBILITY",
+      "ROSTER_RESILIENCE",
+      "META_OBJECTIVE_WEIGHTS"
+    ],
+    "WHAT-IF-001": [
+      "META_RESEARCH",
+      "META_UNCERTAINTY_CONFIDENCE"
+    ],
+    "MARKET-TIER-SCARCITY-001": [
+      "DEPRECATED_DUPLICATIVE",
+      "CURRENT_TEAM_IMPACT"
+    ],
+    "PACKAGE-CONCENTRATION-RESIDUAL-001": [
+      "PACKAGE_CONCENTRATION_TRANSFORM"
+    ],
+    "OPTIONALITY-RESIDUAL-001": [
+      "FUTURE_ASSET_VALUE"
+    ],
+    "LIQUIDITY-RESIDUAL-001": [
+      "LIQUIDITY_REVERSIBILITY"
+    ],
+    "RESILIENCE-RESIDUAL-001": [
+      "ROSTER_RESILIENCE"
+    ]
+  },
+  "mixed_family_decomposition": {
+    "GM22-CONFIG-001": {
+      "need": "CURRENT_TEAM_IMPACT",
+      "preference/window": "META_OBJECTIVE_WEIGHTS",
+      "endowment": "NON_ECONOMIC_NEGOTIATION",
+      "starter/depth": "CURRENT_TEAM_IMPACT or ROSTER_RESILIENCE depending horizon; residualization required",
+      "performance/usage/injury": "CURRENT_TEAM_IMPACT through projections/Simulator",
+      "utility": "must resolve to one of the four channels; no umbrella composite authority"
+    },
+    "MARKET-TIER-SCARCITY-001": {
+      "market percentile/tier gap": "DEPRECATED_DUPLICATIVE",
+      "team-specific lineup replacement drop": "CURRENT_TEAM_IMPACT",
+      "future stress replacement scarcity": "ROSTER_RESILIENCE only if residual beyond current lineup/simulator"
+    }
+  },
+  "candidate_fifth_channels_examined": [
+    {
+      "candidate": "SCARCITY",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "Either already priced in market value or manifests through team-specific replacement/current-resilience effects."
+    },
+    {
+      "candidate": "OPTIONALITY",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "A distributional property of FUTURE_ASSET_VALUE after residualization, not a separate objective."
+    },
+    {
+      "candidate": "RISK_OR_UNCERTAINTY",
+      "decision": "REJECT_AS_VALUE_CHANNEL_BUT_KEEP_META_LAYER",
+      "reason": "Uncertainty should affect simulation distributions, sensitivity and confidence; rewarding/penalizing uncertainty directly would encode an unspoken risk preference and can double count downside/upside."
+    },
+    {
+      "candidate": "ROSTER_NEED",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "Need matters only through current team impact or future resilience."
+    },
+    {
+      "candidate": "SCORING_UPSIDE",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "Already represented by current competitive outcomes or future asset-value distributions depending horizon."
+    },
+    {
+      "candidate": "COUNTERPARTY_OR_MARKET_FEASIBILITY",
+      "decision": "REJECT_AS_VALUE_CHANNEL_BUT_KEEP_NEGOTIATION_LAYER",
+      "reason": "Affects whether a trade can happen, not whether it is beneficial."
+    },
+    {
+      "candidate": "STRATEGIC_FLEXIBILITY",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "Decomposes into liquidity/reversibility plus future optionality."
+    },
+    {
+      "candidate": "OPPONENT_STRENGTH_EXTERNALITY",
+      "decision": "REJECT_AS_CHANNEL",
+      "reason": "Canonical league simulation already measures how strengthening a counterparty changes focal playoff/title outcomes, which is CURRENT_TEAM_IMPACT."
+    }
+  ],
+  "conclusion": {
+    "new_economic_channel_required": false,
+    "recommended_final_additive_channel_count": 4,
+    "important_non_value_dimension": "META_UNCERTAINTY_CONFIDENCE",
+    "important_transform": "PACKAGE_CONCENTRATION_TRANSFORM",
+    "important_separate_layers": [
+      "NON_ECONOMIC_SEARCH",
+      "NON_ECONOMIC_NEGOTIATION",
+      "META_DECISION_POLICY"
+    ],
+    "qualification": "Four channels are structurally sufficient under the current factor inventory. This is an architecture result, not proof that current channel weights or residual coefficients are empirically optimal."
+  }
+}
