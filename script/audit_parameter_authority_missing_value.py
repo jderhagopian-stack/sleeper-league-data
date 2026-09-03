@@ -98,8 +98,9 @@ def main() -> None:
     override_text = (ROOT / "script" / "nonprojection_high_priority_overrides.py").read_text(encoding="utf-8")
 
     runtime_findings = {
-        "shared_future_block_is_raw_additive_market_dynasty_delta": (
-            'future_value = sf(s.get("market_dynasty_delta"))' in utility_text
+        "shared_future_block_uses_bounded_package_concentration": (
+            'package.transform_future_value(sim, "center")' in utility_text
+            and '"package_concentration_authority": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR"' in utility_text
         ),
         "state_aware_market_dynasty_delta_is_additive_asset_sum": (
             '"market_dynasty_delta": round(total(rec_rows, "market_dynasty") - total(sent_rows, "market_dynasty"), 2)' in state_aware_text
@@ -107,8 +108,9 @@ def main() -> None:
         "nonlinear_package_economics_exists_in_gm_discovery": (
             "def _u_package_effective_value" in gm_text and '"package_weights": [1.0, 0.78, 0.62, 0.50, 0.42]' in gm_text
         ),
-        "shared_decision_utility_does_not_consume_package_effective_value": (
-            "_u_package_effective_value" not in utility_text and "package_effective_value" not in utility_text
+        "shared_decision_utility_consumes_package_transform_only_inside_future_value": (
+            '"package_effective_future_value"' in utility_text
+            and '"package_concentration_new_channel_created": False' in utility_text
         ),
         "optionality_is_computed_in_state_aware_summary": (
             '"optionality_value_delta":' in state_aware_text
@@ -161,10 +163,10 @@ def main() -> None:
         "findings": findings,
         "runtime_findings": runtime_findings,
         "high_leverage_runtime_observation": (
-            "The production Shared Decision Utility future block currently consumes raw additive market-dynasty delta, "
-            "while nonlinear package economics exist upstream in GM discovery but are not consumed by final shared utility. "
-            "Therefore aggregation/concentration can affect which packages are found without necessarily affecting the final "
-            "economic ranking of those packages. Optionality is also calculated but explicitly diagnostic-only."
+            "The production Shared Decision Utility future block now applies the governed bounded provisional package-"
+            "concentration transform to negotiated trade legs while preserving non-trade future effects exactly once. "
+            "This closes the former search/final-authority gap without creating a fifth channel. Optionality remains "
+            "calculated but explicitly diagnostic-only."
         ),
         "systemic_findings": pol.get("high_leverage_systemic_findings") or [],
         "unregistered_or_underdecomposed_concepts": under,
