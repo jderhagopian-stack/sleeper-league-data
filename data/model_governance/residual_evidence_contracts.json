@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "model_version": "FSFFL-Residual-Evidence-Contracts-1.0",
+  "schema_version": "1.1",
+  "model_version": "FSFFL-Residual-Evidence-Contracts-1.1",
   "production_behavior_changed": false,
   "principles": {
     "bounded_prior_may_precede_full_empirical_identification": true,
@@ -8,36 +8,56 @@
     "double_count_residualization_required_before_promotion": true,
     "time_ordered_validation_required_where_historical_targets_exist": true,
     "uncertainty_and_sensitivity_must_be_reported": true,
-    "challenger_before_production_promotion": true
+    "challenger_before_production_promotion": true,
+    "uncertain_magnitude_is_not_evidence_of_zero_effect": true,
+    "credible_isolated_effects_may_receive_bounded_provisional_authority_before_full_empirical_identification": true,
+    "provisional_authority_and_empirical_calibration_are_distinct_promotion_levels": true,
+    "empirical_recalibration_should_narrow_or_replace_provisional_priors_over_time": true,
+    "commercially_restricted_or_rights_unclear_external_data_cannot_materially_determine_production_parameters": true
   },
   "contracts": [
     {
       "family_id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
-      "current_stage": "CHALLENGER_ACTIVE_PRODUCTION_DISABLED",
+      "current_stage": "BOUNDED_PROVISIONAL_AUTHORITY_ELIGIBLE_EMPIRICAL_RECALIBRATION_PENDING",
       "allowed_now": [
         "bounded sensitivity using inherited package curves",
         "challenger substitution for raw package additivity",
-        "cross-case regression testing"
+        "cross-case regression testing",
+        "promotion to a bounded provisional production prior when the residual is structurally isolated, directionally supported, non-duplicative, and uncertainty/sensitivity remain explicit",
+        "use of first-party, open/licensed, or otherwise commercially-permitted historical evidence to select or refine provisional bounds"
       ],
       "forbidden_now": [
         "same-source rank premium",
         "additive fifth utility channel",
         "double charging forced cuts or lineup loss",
-        "claiming inherited curve is empirically calibrated"
-      ],
-      "minimum_promotion_evidence": [
-        "frozen contemporaneous market values for completed trades",
-        "exact package asset composition",
-        "pre-trade roster context where available",
-        "time ordering preventing hindsight leakage",
-        "residualization against forced cuts and lineup effects"
+        "claiming a provisional prior is empirically calibrated",
+        "materially deriving a commercial production parameter from third-party data whose commercial-use rights are restricted, unclear, or unreviewed"
       ],
       "stronger_evidence_desired": [
         "rejected/expired offers or identifiable choice frontiers",
-        "cross-league transaction sample",
-        "held-out validation of package clearing residuals"
+        "cross-league transaction sample with commercially-permitted provenance",
+        "held-out validation of package clearing residuals",
+        "multiple independent historical value coordinates"
       ],
-      "promotion_test": "Challenger must improve held-out residual fit or decision calibration versus additive baseline without degrading one-for-one invariance."
+      "promotion_test": "Challenger must improve held-out residual fit or decision calibration versus additive baseline without degrading one-for-one invariance.",
+      "minimum_provisional_authority_evidence": [
+        "credible economic mechanism and observed directional evidence",
+        "residual boundary isolated from current-team impact, forced cuts, lineup effects, and same-source market repricing",
+        "one-for-one invariance and broad package-topology regression coverage",
+        "bounded prior with transparent center, lower/upper sensitivity rails, provenance, and update policy",
+        "no player-specific or transaction-specific tuning",
+        "recommendation sensitivity exposed when the decision changes across the prior range"
+      ],
+      "minimum_empirical_recalibration_evidence": [
+        "frozen contemporaneous market values for completed trades or another commercially-permitted historical value coordinate",
+        "exact package asset composition",
+        "pre-trade roster context where available",
+        "time ordering preventing hindsight leakage",
+        "residualization against forced cuts and lineup effects",
+        "held-out or otherwise defensible out-of-sample comparison against additive baseline"
+      ],
+      "provisional_promotion_test": "A bounded provisional prior may enter FUTURE ASSET VALUE when the residual effect is credible, structurally isolated, non-duplicative, topology regressions are stable, and decisions expose sensitivity across the governed range. Lack of a fully identified empirical coefficient is not a reason to force the effect to zero.",
+      "empirical_promotion_test": "Empirical recalibration should improve held-out residual fit or decision calibration versus the provisional/additive baselines without degrading one-for-one invariance or reintroducing overlap."
     },
     {
       "family_id": "OPTIONALITY-RESIDUAL-001",
