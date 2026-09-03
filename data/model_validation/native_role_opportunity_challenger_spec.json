@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "status": "VALIDATION_CHALLENGER_ONLY",
+  "purpose": "Test whether preseason-known role and opportunity-allocation features close the remaining FSFFL Native gap to established external projection systems without training on external forecasts or target-season realized usage.",
+  "diagnostic_basis": {
+    "native_vs_external": "The verified Native-vs-FFToday benchmark shows the largest stable remaining gap in QB, then RB and WR, while post-hoc injury diagnostics indicate injury seasons do not explain the gap away.",
+    "external_methodology_clue": "Established projection systems commonly begin from expected role/snap/opportunity allocation. This is treated only as a feature hypothesis; no external projection values become Native training labels."
+  },
+  "candidate_feature_families": {
+    "prior_team_opportunity_share": {
+      "description": "Player share of the immediately prior completed season's team opportunity at the relevant position/stat family.",
+      "QB": ["prior_team_pass_attempt_share", "prior_team_qb_rush_share"],
+      "RB": ["prior_team_rb_carry_share", "prior_team_skill_target_share"],
+      "WR": ["prior_team_skill_target_share"],
+      "TE": ["prior_team_skill_target_share"]
+    },
+    "opening_team_vacated_opportunity": {
+      "description": "Share of the target-season opening team's prior-year opportunity attributable to players not present on that target-season opening depth chart. Uses only prior-season stats plus target-season opening depth-chart membership.",
+      "QB": ["opening_team_vacated_qb_attempt_share"],
+      "RB": ["opening_team_vacated_rb_carry_share", "opening_team_vacated_skill_target_share"],
+      "WR": ["opening_team_vacated_skill_target_share"],
+      "TE": ["opening_team_vacated_skill_target_share"]
+    },
+    "role_share_interactions": {
+      "description": "Interactions between opening first-team/depth role and prior opportunity share, allowing the model to distinguish returning starters from high-history players who lost role.",
+      "QB": ["qb1_x_prior_pass_attempt_share"],
+      "RB": ["first_team_x_prior_rb_carry_share"],
+      "WR": ["first_team_x_prior_skill_target_share"],
+      "TE": ["first_team_x_prior_skill_target_share"]
+    }
+  },
+  "information_cutoff_policy": {
+    "allowed": [
+      "prior completed-season player and team statistics",
+      "target-season opening/pre-Week-1 team assignment",
+      "target-season opening/pre-Week-1 depth rank or first-team role",
+      "roster departures identifiable from the opening depth-chart snapshot"
+    ],
+    "forbidden": [
+      "target-season realized snaps",
+      "target-season realized routes, carries, targets or pass attempts",
+      "target-season realized team totals",
+      "in-season depth-chart changes",
+      "future injuries or transactions"
+    ]
+  },
+  "validation_policy": {
+    "base_model": "current Native V2 production-candidate feature bundle by position",
+    "holdouts": "rolling temporal holdouts",
+    "retain_feature_family_only_if": "material mean improvement with multi-season stability; intuitive football relevance is not sufficient",
+    "external_benchmark_followup": "Any retained family must subsequently be re-run on the exact Native-vs-external common cohort to confirm it closes external residual error rather than merely beating persistence.",
+    "production_promoted": false
+  },
+  "governance": {
+    "external_projection_used_as_training_target": false,
+    "target_season_realized_usage_used_as_feature": false,
+    "creates_new_projection_authority": false,
+    "production_behavior_changed": false
+  }
+}
