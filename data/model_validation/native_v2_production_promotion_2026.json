@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "status": "PRODUCTION_PROMOTION_CANDIDATE",
+  "season": 2026,
+  "model_family": "FSFFL Native V2",
+  "promotion_scope": {
+    "QB": "NO_CHANGE",
+    "RB": "NO_CHANGE",
+    "WR": "ADD_VALIDATED_ROLE_OPPORTUNITY_BUNDLE",
+    "TE": "ADD_VALIDATED_ROLE_OPPORTUNITY_BUNDLE"
+  },
+  "promoted_wr_te_features": [
+    "prior_team_skill_target_share",
+    "opening_team_vacated_skill_target_share",
+    "first_team_x_prior_skill_target_share"
+  ],
+  "evidence": {
+    "rolling_holdouts": {
+      "seasons": [2021, 2022, 2023, 2024],
+      "WR_delta_vs_native_v2_pp": 1.6460590703574098,
+      "WR_seasons_improved": 4,
+      "TE_delta_vs_native_v2_pp": 1.1562201054538033,
+      "TE_seasons_improved": 4
+    },
+    "independent_external_common_cohort": {
+      "source": "FFToday",
+      "feature_selection_used_external_source": false,
+      "WR_group_record_vs_prior_native": "11-4",
+      "WR_mean_improvement_vs_prior_native_pct": 0.5891852720571487,
+      "WR_median_improvement_vs_prior_native_pct": 0.5303119148290318,
+      "TE_group_record_vs_prior_native": "3-0",
+      "TE_mean_improvement_vs_prior_native_pct": 0.716875886344413,
+      "TE_median_improvement_vs_prior_native_pct": 0.4965578590592161
+    }
+  },
+  "2026_role_freeze": {
+    "verified_nfl_kickoff": "2026-09-09T20:20:00-04:00",
+    "production_cutoff_utc": "2026-09-10T00:00:00Z",
+    "buffer_before_kickoff_minutes": 20,
+    "policy": "Use latest available timestamped depth-chart snapshot strictly before cutoff, or an explicitly earlier --as-of timestamp when run before cutoff."
+  },
+  "still_provisional": [
+    "Historical <=2024 opening-role records are administrative Week 1 records rather than timestamp-proven daily snapshots.",
+    "Commercial approval for the current role source remains false pending dataset-specific rights review.",
+    "Snap-share challenger PR #198 remains separate and is not included unless it independently clears its evidence gate before this promotion is finalized."
+  ],
+  "governance": {
+    "external_projection_used_as_native_training_target": false,
+    "target_season_realized_usage_used_as_feature": false,
+    "fantasy_points_used_as_training_target": false,
+    "QB_or_RB_failed_features_promoted": false,
+    "downstream_authority_changed": false,
+    "production_projection_authority_only": true
+  }
+}
