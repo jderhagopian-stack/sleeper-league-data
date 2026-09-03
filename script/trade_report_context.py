@@ -16,7 +16,7 @@ import json
 import math
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Trade-Report-Context-1.0"
+MODEL_VERSION = "FSFFL-Trade-Report-Context-1.1"
 DATA = Path("data")
 
 
@@ -361,5 +361,8 @@ def apply_to_report(report, scenario):
         "future_pick_tier_is_directional_not_exact_draft_slot_probability": True,
         "long_term_trade_value_and_incremental_liquidity_defined_separately": True,
         "offer_origin_context_exposed": True,
+        "authoritative_future_asset_value_used_in_user_facing_report": True,
+        "raw_additive_market_delta_is_reference_only_when_package_transform_applied": True,
+        "package_prior_sensitivity_exposed_to_user": True,
     })
     return report
