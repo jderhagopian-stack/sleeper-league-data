@@ -80,22 +80,56 @@ jobs:
         env:
           FSFFL_SIMULATIONS: '50000'
         run: python script/run_fsffl_season_simulator.py
-      - name: Validate Simulator consumed Native authority
+      - name: Validate fresh Simulator outputs consumed Native authority
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           src=json.loads(Path('data/simulator/2026/sources/preseason_fsffl_points.json').read_text())
           weekly=json.loads(Path('data/simulator/2026/inputs/player_weekly_projections.json').read_text())
+          standings=json.loads(Path('data/simulator/2026/outputs/standings_projection.json').read_text())
+          validation=json.loads(Path('data/simulator/2026/outputs/validation_report.json').read_text())
           assert src['source'].startswith('FSFFL Native V2 authoritative')
           players=weekly.get('players') or weekly.get('player_projections') or {}
           assert len(players) >= 200, len(players)
-          ctx=Path('data/gm/league/simulator_context.json')
-          assert ctx.exists(), 'Simulator context was not generated'
-          c=json.loads(ctx.read_text())
-          teams=c.get('teams') or []
-          assert len(teams)==12, len(teams)
-          print({'weekly_players':len(players),'simulator_teams':len(teams)})
+          assert len(standings.get('teams') or []) == 12
+          assert validation.get('validation_passed') is True
+          assert standings.get('generated_at_utc'), 'Fresh standings timestamp missing'
+          assert validation.get('generated_at_utc'), 'Fresh validation timestamp missing'
+          print({
+              'weekly_players':len(players),
+              'simulator_teams':len(standings.get('teams') or []),
+              'standings_generated_at':standings['generated_at_utc'],
+          })
+          PY
+      - name: Promote fresh Simulator outputs into canonical GM context
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'script')
+          import build_fsffl_gm30 as gm30
+          season=gm30.active_season()
+          gm30.promote_universal_outputs(season)
+          print(f'Promoted fresh Simulator outputs into GM context for {season}.')
+          PY
+      - name: Validate GM Simulator context freshness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          standings=json.loads(Path('data/simulator/2026/outputs/standings_projection.json').read_text())
+          validation=json.loads(Path('data/simulator/2026/outputs/validation_report.json').read_text())
+          ctx=json.loads(Path('data/gm/league/simulator_context.json').read_text())
+          assert ctx.get('teams') == standings.get('teams'), 'GM context teams are stale vs fresh Simulator standings'
+          assert ctx.get('validation') == validation, 'GM context validation is stale vs fresh Simulator validation'
+          assert ctx.get('simulator_model_version') == standings.get('model_version')
+          assert len(ctx.get('teams') or []) == 12
+          print({
+              'status':'PASS',
+              'teams':len(ctx.get('teams') or []),
+              'simulator_generated_at':standings.get('generated_at_utc'),
+              'validation_generated_at':validation.get('generated_at_utc'),
+          })
           PY
       - name: Generate League Intelligence against refreshed Simulator context
         run: |
