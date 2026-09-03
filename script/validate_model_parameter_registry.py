@@ -99,6 +99,9 @@ def main() -> None:
         "learned_parameters_must_be_versioned": True,
         "learned_parameter_promotion_requires_validation_improvement": True,
         "software_validation_is_not_empirical_validation": True,
+        "production_parameter_material_external_dependencies_require_commercial_rights_review": True,
+        "research_only_external_data_may_inform_hypotheses_but_not_materially_set_commercial_production_parameters": True,
+        "provisional_authority_does_not_require_full_empirical_identification_when_effect_is_credible_isolated_bounded_and_sensitivity_exposed": True,
     }
     for key, expected in required_policy.items():
         if policy.get(key) is not expected:

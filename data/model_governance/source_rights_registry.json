@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Source-Rights-Registry-1.0",
+  "policy_ref": "data/model_governance/commercial_data_provenance_policy.json",
+  "sources": [
+    {
+      "source_id": "SLEEPER-LEAGUE-DATA",
+      "provider": "Sleeper",
+      "role": "league configuration, rosters, transactions, draft picks and historical league facts",
+      "current_model_use": "production and historical reconstruction",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "COMMERCIAL_LICENSE_OR_WRITTEN_APPROVAL_REQUIRED",
+      "material_production_dependency": true,
+      "legal_determination_made": false,
+      "action": "Before commercial launch, obtain the applicable Sleeper commercial license/written approval or replace the dependency with a commercially permitted integration/data path. Do not interpret private-development use as commercial authorization.",
+      "rights_review_basis": "Official Sleeper API documentation states the read-only API is free for non-commercial purposes and directs commercial users to contact Sleeper for licensing; current General Terms also restrict commercial/business use and unauthorized third-party data retrieval.",
+      "rights_reviewed_at": "2026-09-03"
+    },
+    {
+      "source_id": "FANTASYCALC-MARKET",
+      "provider": "FantasyCalc",
+      "role": "current dynasty market anchor and market diagnostics",
+      "current_model_use": "production market coordinate",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "COMMERCIAL_LICENSE_OR_WRITTEN_PERMISSION_REQUIRED",
+      "material_production_dependency": true,
+      "legal_determination_made": false,
+      "action": "Before commercial launch, obtain written commercial permission/license covering the production market-value integration or replace the material production market coordinate with a commercially permitted source.",
+      "rights_review_basis": "FantasyCalc's current Terms of Usage state that its Service/content is provided for personal, non-commercial use. Its FAQ says tool/sheet/app integrations are possible with restrictions and directs integrations to the terms policy.",
+      "rights_reviewed_at": "2026-09-03"
+    },
+    {
+      "source_id": "PFF-HISTORICAL-VALUES",
+      "provider": "PFF",
+      "role": "dated historical market-reference material",
+      "current_model_use": "historical research/reconstruction reference where present",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_COMMERCIAL_PERMISSION_REQUIRED",
+      "material_production_dependency": false,
+      "legal_determination_made": false,
+      "action": "Keep research-reference-only. Obtain a commercial/enterprise license or written permission before any PFF data materially determines a production/commercial parameter.",
+      "rights_review_basis": "PFF's current Terms of Use state consumer access/PFF Data is for personal, non-commercial use and direct users seeking commercial/editorial use to contact PFF sales.",
+      "rights_reviewed_at": "2026-09-03"
+    },
+    {
+      "source_id": "FANTASYPROS-HISTORICAL-VALUES",
+      "provider": "FantasyPros",
+      "role": "dated historical market-reference material",
+      "current_model_use": "historical research/reference where present",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "RESEARCH_REFERENCE_ONLY_COMMERCIAL_PERMISSION_REQUIRED",
+      "material_production_dependency": false,
+      "legal_determination_made": false,
+      "action": "Keep research-reference-only. Obtain written commercial permission before any FantasyPros data materially determines a production/commercial parameter.",
+      "rights_review_basis": "FantasyPros Terms of Use restrict copying/reproduction beyond personal use and prohibit commercial use of portions of the site without prior permission.",
+      "rights_reviewed_at": "2026-09-03"
+    }
+  ],
+  "invariants": {
+    "research_reference_only_cannot_be_material_production_dependency": true,
+    "material_production_dependency_requires_commercial_review_before_commercial_launch": true,
+    "source_status_is_not_a_legal_opinion": true
+  }
+}
