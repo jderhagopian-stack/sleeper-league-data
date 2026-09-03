@@ -27,9 +27,21 @@ is used here.
 from __future__ import annotations
 
 import statistics
+import importlib.util
+from pathlib import Path
 from typing import Any, Dict
 
-MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.1"
+SCRIPT = Path(__file__).resolve().parent
+
+def _load_package_concentration():
+    path = SCRIPT / "package_concentration.py"
+    spec = importlib.util.spec_from_file_location("fsffl_package_concentration", path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"
 
 
 def sf(x, default=0.0):
@@ -127,7 +139,10 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
     current_evidence = _current_value_evidence(sim, simulator_current_value)
     current_value = statistics.median(current_evidence.values())
 
-    future_value = sf(s.get("market_dynasty_delta"))
+    package = _load_package_concentration()
+    package_center = package.transform_future_value(sim, "center")
+    future_value = sf(package_center.get("package_effective_future_value"))
+    package_sensitivity = package.sensitivity(sim)
     liquidity_value = sf(s.get("liquidity_value_delta"))
     resilience_value = sf(s.get("resilience_value_delta"))
 
@@ -153,6 +168,16 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
             "optionality_incremental_value_authorized": False,
             "opponent_title_externality_has_separate_coefficient": False,
             "fixed_unit_conversion_coefficients_used": False,
+            "package_concentration": package_center,
+            "package_concentration_sensitivity_future_primitives": {
+                "mild": round(sf(package_sensitivity.get("mild_future")), 2),
+                "center": round(sf(package_sensitivity.get("center_future")), 2),
+                "strong": round(sf(package_sensitivity.get("strong_future")), 2),
+            },
+            "package_concentration_authority": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
+            "package_concentration_empirically_calibrated": False,
+            "package_concentration_replaces_future_additivity": True,
+            "package_concentration_new_channel_created": False,
         },
     }
 
@@ -195,6 +220,21 @@ def score(sim: Dict[str, Any]) -> Dict[str, Any]:
     components = {k: w[k] * sf(blocks[k]) for k in required}
     total = sum(components.values())
 
+    package_diag = (blocks.get("diagnostics") or {}).get("package_concentration_sensitivity_future_primitives") or {}
+    prior_scores = {}
+    for prior_name in ("mild", "center", "strong"):
+        alt_components = dict(components)
+        if prior_name in package_diag:
+            alt_components["future"] = w["future"] * sf(package_diag[prior_name])
+        prior_scores[prior_name] = round(sum(alt_components.values()), 2)
+    signs = {"positive" if v > 0 else "negative" if v < 0 else "zero" for v in prior_scores.values()}
+    if signs == {"positive"}:
+        prior_robustness = "ROBUST_POSITIVE_ACROSS_PRIOR_RANGE"
+    elif signs == {"negative"}:
+        prior_robustness = "ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE"
+    else:
+        prior_robustness = "SENSITIVE_TO_PRIOR_RANGE"
+
     return {
         "score": round(total, 2),
         "components": {k: round(v, 2) for k, v in components.items()},
@@ -211,5 +251,7 @@ def score(sim: Dict[str, Any]) -> Dict[str, Any]:
         "model_version": MODEL_VERSION,
         "scale_status": "DATA_DERIVED_LEAGUE_RELATIVE_NO_FIXED_UNIT_CONVERSION_COEFFICIENTS",
         "negotiation_plausibility_incremental_weight": 0.0,
+        "package_concentration_prior_scores": prior_scores,
+        "package_concentration_prior_range_decision_robustness": prior_robustness,
         "composite_strategic_and_break_glass_incremental_weight": 0.0,
     }
