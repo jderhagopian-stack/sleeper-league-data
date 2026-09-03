@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.1",
+  "status": "EXPANDED_FIELD_INFRASTRUCTURE_READY",
+  "purpose": "Broaden the FSFFL Projection Championship beyond the initial Razzball/FFToday/Native comparison while keeping predictive accuracy, historical freeze quality, source independence, access cost, and intended-use rights as separate gates.",
+  "as_of_date": "2026-09-03",
+  "principles": {
+    "benchmark_before_production": true,
+    "raw_stat_category_preferred": true,
+    "position_level_evidence_is_stabilizing_prior_only": true,
+    "public_access_does_not_imply_reuse_rights": true,
+    "paid_or_restricted_sources_may_be_accuracy_benchmarks": true,
+    "paid_or_restricted_sources_are_not_default_production_dependencies": true,
+    "aggregators_do_not_count_as_independent_votes_when_constituents_overlap": true,
+    "external_projections_are_not_native_training_targets": true
+  },
+  "tiers": {
+    "TIER_1_DIRECT_CHAMPIONSHIP": "Current raw-stat projections available and/or leakage-safe historical raw-stat evidence exists. Highest priority for normalization and common-cohort testing.",
+    "TIER_2_EXPANSION_CANDIDATE": "Credible raw-stat projection system exists, but historical freeze/access/rights evidence needs additional work.",
+    "TIER_3_META_BENCHMARK": "Useful consensus or aggregate benchmark, but source overlap prevents treating it as an independent ensemble vote.",
+    "TIER_4_RESEARCH_ONLY": "Potentially informative but access, schema, historical provenance, or rights make near-term raw-stat championship use uncertain."
+  },
+  "sources": [
+    {"source":"FSFFL Native V2","tier":"TIER_1_DIRECT_CHAMPIONSHIP","independence_family":"FSFFL_NATIVE","current_2026_raw_stats":true,"historical_raw_stat_evidence":"MULTIYEAR_ROLLING_HOLDOUTS; FFTODAY_COMMON_COHORT; WR_TE_OPPORTUNITY_CHALLENGER_VALIDATED","personal_research_eligibility":"YES","commercial_dependency_status":"INTERNAL_MODEL; UNDERLYING_DATA_LICENSES_GOVERN_SEPARATELY","ensemble_vote":true,"priority":"HIGHEST"},
+    {"source":"Razzball","tier":"TIER_1_DIRECT_CHAMPIONSHIP","independence_family":"RAZZBALL_PROPRIETARY_NFL_MODEL","current_2026_raw_stats":true,"historical_raw_stat_evidence":"CURRENT_2026_COMPLETE; MULTIYEAR_FROZEN_SERIES_STILL_NEEDED","personal_research_eligibility":"PARTIALLY_VERIFIED","commercial_dependency_status":"REQUIRES_SEPARATE_PERMISSION_OR_REPLACEMENT","ensemble_vote":true,"priority":"HIGHEST"},
+    {"source":"FFToday","tier":"TIER_1_DIRECT_CHAMPIONSHIP","independence_family":"FFTODAY_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"MULTIPLE_DATED_PRESEASON_SNAPSHOTS_PARTIALLY_VERIFIED; EXISTING_NATIVE_COMMON_COHORT_BENCHMARK","personal_research_eligibility":"RIGHTS_REVIEW_PENDING","commercial_dependency_status":"NOT_ELIGIBLE_UNTIL_RIGHTS_VERIFIED","ensemble_vote":true,"priority":"HIGHEST"},
+    {"source":"CBS Sports","tier":"TIER_1_DIRECT_CHAMPIONSHIP","independence_family":"CBS_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"2014_PROVIDER_FILE_TIMESTAMP_VERIFIED_PRESEASON; BROADER_HISTORY_RESEARCH_NEEDED","personal_research_eligibility":"RIGHTS_REVIEW_PENDING","commercial_dependency_status":"NOT_ELIGIBLE_UNTIL_RIGHTS_VERIFIED","ensemble_vote":true,"priority":"HIGH","why_interesting":"FFA 2014-2025 positional study reports CBS strongest historically at RB; current CBS pages expose detailed passing/rushing/receiving projection columns."},
+    {"source":"FantasyPros","tier":"TIER_1_DIRECT_CHAMPIONSHIP","independence_family":"FANTASYPROS_CONSENSUS_PROJECTION","current_2026_raw_stats":"ACCESS_PATH_REQUIRES_API_OR_PRODUCT_REVIEW","historical_raw_stat_evidence":"2014_PROVIDER_FILE_TIMESTAMP_VERIFIED_PRESEASON; FFA_POSITIONAL_HISTORY_AVAILABLE","personal_research_eligibility":"YES_FOR_PERSONAL_NONCOMMERCIAL_API_PROTOTYPING_SUBJECT_TO_CURRENT_TERMS","commercial_dependency_status":"SEPARATE_COMMERCIAL_AGREEMENT_REQUIRED","ensemble_vote":true,"priority":"HIGH","independence_note":"FantasyPros consensus may aggregate multiple analysts; do not simultaneously count a constituent and the consensus as fully independent without overlap controls."},
+    {"source":"Footballguys","tier":"TIER_2_EXPANSION_CANDIDATE","independence_family":"FOOTBALLGUYS_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"HISTORICAL_FREEZE_AND_ACCESS_REVIEW_NEEDED","personal_research_eligibility":"TERMS_REVIEW_PENDING","commercial_dependency_status":"NOT_ELIGIBLE_UNTIL_RIGHTS_VERIFIED","ensemble_vote":true,"priority":"HIGH","why_interesting":"Current season projection interface exposes passing, rushing and receiving raw-stat columns and a projection download control."},
+    {"source":"4for4","tier":"TIER_2_EXPANSION_CANDIDATE","independence_family":"4FOR4_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"PUBLIC_ACCURACY_HISTORY_STRONG; RAW_PRESEASON_SNAPSHOT_SERIES_NEEDS_VERIFICATION","personal_research_eligibility":"SUBSCRIPTION_AND_TERMS_REVIEW_REQUIRED","commercial_dependency_status":"NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT","ensemble_vote":true,"priority":"HIGH","why_interesting":"4for4 publishes sortable projections with relevant positional statistics and reports a long record of forecast/ranking accuracy."},
+    {"source":"RotoWire","tier":"TIER_2_EXPANSION_CANDIDATE","independence_family":"ROTOWIRE_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"HISTORICAL_PRESEASON_SNAPSHOT_SERIES_NEEDS_VERIFICATION","personal_research_eligibility":"PREMIUM_ACCESS_AND_TERMS_REVIEW_REQUIRED","commercial_dependency_status":"NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT","ensemble_vote":true,"priority":"MEDIUM_HIGH","why_interesting":"Current 2026 projections explicitly model raw passing, rushing, receiving, targets and injury/depth-chart context."},
+    {"source":"ESPN","tier":"TIER_2_EXPANSION_CANDIDATE","independence_family":"ESPN_PROPRIETARY_METHOD","current_2026_raw_stats":"RETRIEVAL_MECHANISM_EXISTS","historical_raw_stat_evidence":"2014_PROVIDER_FILE_TIMESTAMP_VERIFIED_PRESEASON; IMMUTABILITY_OF_OTHER_SEASONS_UNVERIFIED","personal_research_eligibility":"RIGHTS_REVIEW_PENDING","commercial_dependency_status":"NOT_ELIGIBLE_UNTIL_RIGHTS_VERIFIED","ensemble_vote":true,"priority":"MEDIUM_HIGH"},
+    {"source":"Sharp Football Analysis","tier":"TIER_2_EXPANSION_CANDIDATE","independence_family":"SHARP_RICH_HRIBAR_PROPRIETARY_METHOD","current_2026_raw_stats":true,"historical_raw_stat_evidence":"HISTORICAL_PRESEASON_SNAPSHOT_SERIES_NEEDS_VERIFICATION","personal_research_eligibility":"PAID_ACCESS_AND_TERMS_REVIEW_REQUIRED","commercial_dependency_status":"NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT","ensemble_vote":true,"priority":"MEDIUM","why_interesting":"Current 2026 projection tool covers 500+ players, multiple scoring formats and CSV export, but subscription access limits near-term production use."},
+    {"source":"Fantasy Football Analytics Average","tier":"TIER_3_META_BENCHMARK","independence_family":"MULTISOURCE_AGGREGATE","current_2026_raw_stats":"AVAILABLE_THROUGH_FFA_PRODUCT/API","historical_raw_stat_evidence":"SEASONAL_HISTORY_BACK_TO_2008; SOURCE_LEVEL_HISTORY_AVAILABLE_THROUGH_PRODUCT/API","personal_research_eligibility":"INSIDER_OR_API_ACCESS_REQUIRED_FOR_HISTORICAL_DOWNLOADS","commercial_dependency_status":"TERMS_AND_UNDERLYING_THIRD_PARTY_RIGHTS_REQUIRE_SEPARATE_REVIEW","ensemble_vote":false,"priority":"HIGH_AS_META_BENCHMARK","why_interesting":"FFA reports a 12-season study where source aggregation was highly robust and simple average slightly outperformed historical weighting overall.","overlap_warning":"Do not count FFA Average as an independent vote alongside the same providers included inside its consensus."},
+    {"source":"NumberFire","tier":"TIER_4_RESEARCH_ONLY","independence_family":"NUMBERFIRE_PROPRIETARY_METHOD","current_2026_raw_stats":"CURRENT_AVAILABILITY_UNVERIFIED","historical_raw_stat_evidence":"APPEARS_IN_OLDER_FFA_ARCHIVES_AND_2014-2025_POSITIONAL_STUDY","personal_research_eligibility":"UNVERIFIED","commercial_dependency_status":"UNVERIFIED","ensemble_vote":true,"priority":"LOWER_UNTIL_CURRENT_SOURCE_PATH_CONFIRMED"}
+  ],
+  "implemented_in_this_workstream": [
+    "Generic CSV/JSON current-source raw-stat normalizer with deterministic self-test.",
+    "Governed 2026 pre-kickoff source freeze manifest.",
+    "Research-only 2014 CBS/ESPN/FantasyPros/FFToday raw-stat common-cohort benchmark.",
+    "Historical Projection Benchmark CI coverage for expanded source governance and normalization."
+  ],
+  "next_actions": [
+    "Run the 2014 four-source raw-stat scorecard and retain it as single-season category-prior evidence only.",
+    "Acquire and normalize current 2026 CBS and FFToday snapshots with immutable freeze metadata.",
+    "Acquire FantasyPros current projections through an allowed personal/noncommercial path and document overlap controls.",
+    "Evaluate Footballguys current raw-stat download and historical snapshot provenance.",
+    "Verify 4for4 and RotoWire historical raw-stat availability and terms.",
+    "Run temporal category championships whenever at least two admissible sources overlap across enough seasons.",
+    "Do not change live 2026 source authority until the expanded board produces category-level held-out evidence and rights-aware deployment decisions."
+  ]
+}
