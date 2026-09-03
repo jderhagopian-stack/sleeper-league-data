@@ -47,16 +47,28 @@ def _rows(strategic: Dict[str, Any], key: str) -> List[Dict[str, Any]]:
     return out
 
 
+def explicit_trade_actions(sim: Dict[str, Any]):
+    direct = list(sim.get("trade_actions") or [])
+    if direct:
+        return [x for x in direct if str(x.get("type") or "").lower() == "trade"], "trade_actions"
+    effective = [
+        x for x in (sim.get("effective_actions") or [])
+        if str(x.get("type") or "").lower() == "trade"
+    ]
+    if effective:
+        return effective, "effective_actions_filtered_to_trade"
+    return [], None
+
+
 def trade_asset_ids(sim: Dict[str, Any]):
+    actions, source = explicit_trade_actions(sim)
     ids = set()
-    for action in sim.get("trade_actions") or []:
-        if str(action.get("type") or "").lower() != "trade":
-            continue
+    for action in actions:
         for pid in action.get("players") or []:
             ids.add(f"player:{pid}")
         for pick in action.get("picks") or []:
             ids.add(str(pick))
-    return ids
+    return ids, source
 
 
 def tail_weight(prior: Dict[str, Any], curve_name: str, idx: int) -> float:
@@ -100,7 +112,7 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
     all_sent = _rows(strategic, "sent")
     all_received = _rows(strategic, "received")
 
-    negotiated_ids = trade_asset_ids(sim)
+    negotiated_ids, trade_action_source = trade_asset_ids(sim)
     trade_filter_applied = bool(negotiated_ids)
     raw_total_future = sf(strategic.get("market_dynasty_delta"))
     if not trade_filter_applied:
@@ -119,6 +131,7 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
             "sent_parts": [],
             "received_parts": [],
             "trade_asset_filter_applied": False,
+            "trade_action_source": trade_action_source,
             "package_transform_applied": False,
             "automatic_cuts_excluded_from_package_concentration": True,
             "non_trade_future_effects_preserved_exactly_once": True,
@@ -158,6 +171,7 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
         "sent_parts": sent_parts,
         "received_parts": received_parts,
         "trade_asset_filter_applied": trade_filter_applied,
+        "trade_action_source": trade_action_source,
         "package_transform_applied": True,
         "automatic_cuts_excluded_from_package_concentration": True,
         "non_trade_future_effects_preserved_exactly_once": True,
