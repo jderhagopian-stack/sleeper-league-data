@@ -14,7 +14,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reporting import label, acceptance_fit, action, magnitude_word, competitive_context, roster_change_context, position_need_change_chart, probability_change_chart
 
-MODEL_VERSION='FSFFL-Trade-Decision-Report-1.11'
+MODEL_VERSION='FSFFL-Trade-Decision-Report-1.12'
 NAVY=colors.HexColor('#14213D');RED=colors.HexColor('#C23B36');GREEN=colors.HexColor('#2F7D4A');GRAY=colors.HexColor('#5F6B76');LIGHT=colors.HexColor('#F3F5F7');GOOD=colors.HexColor('#EAF5EE');BAD=colors.HexColor('#FBEDEC');MID=colors.HexColor('#D8DDE3');WHITE=colors.white;BLACK=colors.HexColor('#1C1F23')
 
 def sf(v,d=0.0):
@@ -57,6 +57,42 @@ def team_name(r,cur):
 def verdict(r):
     return action(r.get('recommended_next_action'))
 
+
+def decision_channel(row,name):
+    attr=row.get('decision_attribution') or {}
+    for item in attr.get('channels') or []:
+        if str(item.get('channel') or '')==str(name):
+            return item
+    return {}
+
+def overall_decision_value(row):
+    attr=row.get('decision_attribution') or {}
+    return sf(attr.get('final_shared_decision_utility'),sf(row.get('shared_decision_utility_score')))
+
+def future_asset_value(row):
+    return sf(decision_channel(row,'future').get('primitive_value'))
+
+def package_prior_profile(row):
+    attr=row.get('decision_attribution') or {}
+    scores=attr.get('package_concentration_prior_scores') or {}
+    return {
+        'mild':scores.get('mild'),
+        'center':scores.get('center'),
+        'strong':scores.get('strong'),
+        'robustness':attr.get('package_concentration_prior_range_decision_robustness'),
+    }
+
+def package_robustness_text(row):
+    p=package_prior_profile(row)
+    r=str(p.get('robustness') or '')
+    if r=='SENSITIVE_TO_PRIOR_RANGE':
+        return "Package-value uncertainty is material: the overall decision changes sign somewhere between the mild and strong governed assumptions."
+    if r=='ROBUST_POSITIVE_ACROSS_PRIOR_RANGE':
+        return "The overall decision remains positive across the full governed package-value range."
+    if r=='ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE':
+        return "The overall decision remains negative across the full governed package-value range."
+    return ''
+
 def roster_note(row,focus_uid):
     sim=row.get('simulation') or {}; res=sim.get('roster_resolution') or {}
     x=res.get(str(focus_uid)) or {}
@@ -92,8 +128,9 @@ def why(r,cur):
     st=sim.get('strategic') or {}
     title=sf(d.get('championship_probability'))
     wins=sf(d.get('expected_wins'))
-    dyn=sf(st.get('market_dynasty_delta'))
-    overall=sf(st.get('strategic_value_delta'))
+    raw_dyn=sf(st.get('market_dynasty_delta'))
+    future=future_asset_value(cur)
+    overall=overall_decision_value(cur)
     liq=sf(st.get('liquidity_value_delta'))
     parts=[]
 
@@ -104,21 +141,33 @@ def why(r,cur):
     elif title <= -.01 or wins <= -.10:
         parts.append("The move weakens the current-season outlook enough that the return must compensate elsewhere.")
 
-    if dyn < 0 and liq > 0:
-        parts.append("The long-term market-value and moveability signals point in different directions: the team gives up net dynasty market value, while the incoming assets add more incremental moveability than the non-pick assets being sent.")
-    elif dyn > 0 and liq < 0:
-        parts.append("The deal adds dynasty market value but concentrates it in less movable assets, so long-term value improves while incremental moveability falls.")
-    elif dyn <= -500 or liq <= -500:
-        parts.append("The price is the central concern: the team is giving up meaningful long-term value and/or incremental moveability for present production.")
-    elif dyn >= 500 or liq >= 500:
-        parts.append("The deal also improves at least one longer-term asset channel rather than requiring a pure win-now sacrifice.")
+    if raw_dyn > 0 and future < 0:
+        parts.append(
+            "Raw additive dynasty market value looks positive, but the authoritative Future Asset Value turns negative after accounting for package concentration and any separate roster-legalization effects. "
+            "In plain English, several smaller assets do not fully substitute for the concentrated value being surrendered."
+        )
+    elif raw_dyn < 0 and future > 0:
+        parts.append(
+            "Raw additive dynasty market value looks negative, but the authoritative Future Asset Value is positive after the governed package treatment and separate non-trade effects are applied."
+        )
+    elif future <= -500:
+        parts.append("Future Asset Value is a major cost of the trade after the package is valued as a package rather than as a simple sum.")
+    elif future >= 500:
+        parts.append("Future Asset Value is a meaningful strength of the trade even after the package-concentration adjustment.")
+
+    if liq > 0 and future < 0:
+        parts.append("The deal may add moveability while still losing Future Asset Value; those are different economic questions and are not counted as the same thing.")
 
     if overall <= -75 and (title > 0 or wins > 0):
-        parts.append("That creates a real tension between improving the 2026 roster and paying more than the model considers ideal for the upgrade.")
+        parts.append("That creates a real tension between improving the current roster and paying more than the model considers worthwhile overall.")
     elif overall >= 75:
-        parts.append("The current-season benefit and franchise-value effects point in the same direction.")
+        parts.append("The authoritative current and future effects combine into a positive overall decision value.")
     else:
-        parts.append("The overall franchise trade-off is close enough that roster fit and available alternatives matter more than a single summary score.")
+        parts.append("The overall trade-off is close enough that roster fit, uncertainty and available alternatives deserve extra weight in the decision.")
+
+    pr=package_robustness_text(cur)
+    if pr:
+        parts.append(pr)
 
     comp=competitive_context(r.get('focus_user_id'))
     if comp:
@@ -159,24 +208,50 @@ def what_could_change_answer(r,cur):
 
 def value_metric_explanation(r,cur):
     ctx=(r.get('value_metric_context') or {})
+    future_ctx=ctx.get('future_asset_value') or {}
+    raw_ctx=ctx.get('raw_additive_dynasty_market_value') or {}
+    pkg=ctx.get('package_concentration') or {}
     liq=(ctx.get('incremental_asset_liquidity') or {})
     delta=sf(liq.get('delta'))
     received=liq.get('received_components') or []
     sent=liq.get('sent_components') or []
     rec=max(received,key=lambda x:sf(x.get('incremental_liquidity_contribution')),default={})
     snd=max(sent,key=lambda x:sf(x.get('incremental_liquidity_contribution')),default={})
+    future=sf(future_ctx.get('value'),future_asset_value(cur))
+    raw=sf(raw_ctx.get('value'),sf(((cur.get('simulation') or {}).get('strategic') or {}).get('market_dynasty_delta')))
     parts=[
-        "<b>Long-Term Trade Value</b> is the change in league-wide dynasty market value.",
-        "<b>Incremental Asset Liquidity</b> is separate: it measures added moveability that is not already counted in market value."
+        f"<b>Future Asset Value</b> is {future:+,.0f}. This is the long-term value actually used by the decision model.",
+        f"<b>Raw Additive Market Reference</b> is {raw:+,.0f}. It is shown for context, but it is not the final future-value input when a multi-asset package transform applies.",
     ]
+    if pkg.get('applied'):
+        raw_pkg=sf(pkg.get('raw_trade_package_future_value'))
+        eff_pkg=sf(pkg.get('package_effective_trade_future_value'))
+        nontrade=sf(pkg.get('non_trade_future_value_preserved'))
+        parts.append(
+            f"For the negotiated assets, raw additive package value is {raw_pkg:+,.0f} and package-adjusted value is {eff_pkg:+,.0f}; "
+            f"separate non-trade future effects contribute {nontrade:+,.0f} and are preserved once."
+        )
+    p=(pkg.get('prior') or {})
+    if p.get('robustness')=='SENSITIVE_TO_PRIOR_RANGE':
+        parts.append(
+            f"<b>Important:</b> mild/center/strong overall values are {sf(p.get('mild_score')):+,.0f}, "
+            f"{sf(p.get('center_score')):+,.0f}, and {sf(p.get('strong_score')):+,.0f}. "
+            "The decision is sensitive to the provisional package assumption."
+        )
+    elif p.get('robustness') in {'ROBUST_POSITIVE_ACROSS_PRIOR_RANGE','ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'}:
+        parts.append(
+            f"Mild/center/strong overall values are {sf(p.get('mild_score')):+,.0f}, "
+            f"{sf(p.get('center_score')):+,.0f}, and {sf(p.get('strong_score')):+,.0f}; the sign is stable across the governed package range."
+        )
+    parts.append("<b>Incremental Asset Liquidity</b> is separate: it measures additional moveability beyond value already represented elsewhere when that residual channel is authorized.")
     if rec or snd:
         parts.append(
-            f"In this trade the incremental-liquidity change is {delta:+,.0f}; "
+            f"In this trade the incremental-liquidity diagnostic is {delta:+,.0f}; "
             f"{clean(rec.get('name') or 'incoming assets')} contributes about {sf(rec.get('incremental_liquidity_contribution')):,.0f} "
             f"versus about {sf(snd.get('incremental_liquidity_contribution')):,.0f} from {clean(snd.get('name') or 'the sent non-pick assets')}."
         )
     if any(x.get('basis')=='PICK_LIQUIDITY_ALREADY_EMBEDDED_IN_MARKET_VALUE' for x in sent+received):
-        parts.append("Future picks receive no separate moveability bonus here because their liquidity is already treated as embedded in their dynasty market price; counting it again would double count the same advantage.")
+        parts.append("Future picks receive no separate moveability bonus here because counting the same liquidity again would double count it.")
     return " ".join(parts)
 
 def pick_outlook_text(row):
@@ -214,11 +289,15 @@ def comparison_sentence(row):
     return "This is a different trade-off, but not clearly better or worse than the current offer."
 
 def option_text(row,i,market=False):
-    sim=row.get('simulation') or {}; d=sim.get('focus_delta') or {}; st=sim.get('strategic') or {}
+    sim=row.get('simulation') or {}; d=sim.get('focus_delta') or {}
     prefix=f"<b>{i}. "
     if market: prefix+=f"{clean(row.get('buyer_team'))}: "
     prefix+=f"Send {names(row.get('outgoing_asset_names'))}; receive {names(row.get('return_asset_names'))}.</b>"
-    txt=f"{prefix} Expected wins {sf(d.get('expected_wins')):+.2f}; championship odds {sf(d.get('championship_probability'))*100:+.1f} points; overall franchise impact {sf(st.get('strategic_value_delta')):+,.0f}. {comparison_sentence(row)}"
+    overall=overall_decision_value(row)
+    future=future_asset_value(row)
+    txt=f"{prefix} Expected wins {sf(d.get('expected_wins')):+.2f}; championship odds {sf(d.get('championship_probability'))*100:+.1f} points; Future Asset Value {future:+,.0f}; overall decision value {overall:+,.0f}. {comparison_sentence(row)}"
+    pr=package_robustness_text(row)
+    if pr: txt+=f" {pr}"
     fit=row.get('acceptance_likelihood')
     if fit: txt+=f" {acceptance_fit(fit)}."
     return txt
@@ -238,7 +317,7 @@ def sequence(r):
     return 'Hold rather than forcing a deal.'
 
 def render(r,out):
-    cur=r.get('current_offer_evaluation') or {}; sim=cur.get('simulation') or {}; before=sim.get('focus_before') or {}; after=sim.get('focus_after') or {}; st=sim.get('strategic') or {}
+    cur=r.get('current_offer_evaluation') or {}; sim=cur.get('simulation') or {}; before=sim.get('focus_before') or {}; after=sim.get('focus_after') or {}; st=sim.get('strategic') or {}; overall=overall_decision_value(cur); future=future_asset_value(cur)
     v=verdict(r); cs=(r.get('suggested_counteroffers') or [])[:2]; ms=(r.get('market_sweep_alternatives') or [])[:5]
     ss=getSampleStyleSheet()
     ss.add(ParagraphStyle(name='T19',parent=ss['Title'],fontName='Helvetica-Bold',fontSize=18,leading=20,textColor=NAVY))
@@ -266,8 +345,8 @@ def render(r,out):
       card('EXPECTED WINS',f"{sf(before.get('expected_wins')):.2f} -> {sf(after.get('expected_wins')):.2f}",sf(after.get('expected_wins'))>=sf(before.get('expected_wins'))),
       card('PLAYOFF ODDS',f"{sf(before.get('playoff_probability'))*100:.1f}% → {sf(after.get('playoff_probability'))*100:.1f}%",sf(after.get('playoff_probability'))>=sf(before.get('playoff_probability'))),
       card('CHAMPIONSHIP ODDS',f"{sf(before.get('championship_probability'))*100:.1f}% → {sf(after.get('championship_probability'))*100:.1f}%",sf(after.get('championship_probability'))>=sf(before.get('championship_probability'))),
-      card(label('strategic_value_delta').upper(),f"{sf(st.get('strategic_value_delta')):+,.0f}",sf(st.get('strategic_value_delta'))>=0),
-      card(label('market_dynasty_delta').upper(),f"{sf(st.get('market_dynasty_delta')):+,.0f}",sf(st.get('market_dynasty_delta'))>=0),
+      card('OVERALL DECISION VALUE',f"{overall:+,.0f}",overall>=0),
+      card('FUTURE ASSET VALUE',f"{future:+,.0f}",future>=0),
       card('INCREMENTAL ASSET LIQUIDITY',f"{sf(st.get('liquidity_value_delta')):+,.0f}",sf(st.get('liquidity_value_delta'))>=0),
     ]
     grid=Table([cards[:3],cards[3:]],colWidths=[2.47*inch]*3,rowHeights=[.56*inch,.56*inch]);grid.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1)]))
@@ -316,7 +395,7 @@ def render(r,out):
     else:story += [P('No outside trade option clearly beat the current choice.')]
     story += [P('WHAT TO DO NEXT','H19'),P(sequence(r)),
               P('WHAT COULD CHANGE THE ANSWER','H19'),P(what_could_change_answer(r,cur)),
-              Spacer(1,3),P("How to read the value numbers: long-term trade value is league-wide dynasty market value. Incremental asset liquidity is additional moveability not already embedded in that market value. Overall franchise impact is the roster-specific bottom-line judgment after winning chances, future value, roster fit and the governed liquidity/resilience channels are combined.",'S19')]
+              Spacer(1,3),P("How to read the value numbers: Future Asset Value is the authoritative long-term input after any governed package-concentration adjustment and separate non-trade future effects. Raw additive dynasty market value is reference context only for multi-asset packages. Overall Decision Value is the single four-channel Shared Decision Utility used for the recommendation; package-prior sensitivity is shown when it could matter.",'S19')]
     doc.build(story,onFirstPage=foot,onLaterPages=foot)
 
 def main():

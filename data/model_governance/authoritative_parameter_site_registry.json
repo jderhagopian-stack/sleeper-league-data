@@ -21,5 +21,52 @@
     "uncertainty_status",
     "downstream_consumers"
   ],
-  "entries": []
+  "entries": [
+    {
+      "site_signature": "79c50c0908873b6ea892bac1b3eedbe145461863",
+      "parameter_id": "PACKAGE-CONCENTRATION-SENSITIVITY-CONTAINER-001",
+      "file_path": "script/decision_utility.py",
+      "parameter_name": "prior_scores",
+      "runtime_authority": "NON_ECONOMIC_STRUCTURAL_DIAGNOSTIC",
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "Empty mapping initializes reporting of mild/center/strong Shared Decision Utility sensitivity; it has no numeric economic effect.",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "KEEP",
+      "uncertainty_status": "NONE_STRUCTURAL",
+      "downstream_consumers": [
+        "package concentration sensitivity reporting",
+        "decision attribution"
+      ]
+    },
+    {
+      "site_signature": "fd3d7e0ab2962f53bef2572040ba713ac0c26e32",
+      "parameter_id": "PACKAGE-CONCENTRATION-SIGN-BOUNDARY-POSITIVE-001",
+      "file_path": "script/decision_utility.py",
+      "parameter_name": "v",
+      "runtime_authority": "NON_ECONOMIC_STRUCTURAL_DIAGNOSTIC",
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "Mathematical zero boundary used only to label a sensitivity score positive versus non-positive; it does not change the score.",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "KEEP",
+      "uncertainty_status": "NONE_MATHEMATICAL_IDENTITY",
+      "downstream_consumers": [
+        "package concentration prior-range robustness label"
+      ]
+    },
+    {
+      "site_signature": "9a7bc9ac9e0e9c755ba0bca395004de1630437ce",
+      "parameter_id": "PACKAGE-CONCENTRATION-SIGN-BOUNDARY-NEGATIVE-001",
+      "file_path": "script/decision_utility.py",
+      "parameter_name": "v",
+      "runtime_authority": "NON_ECONOMIC_STRUCTURAL_DIAGNOSTIC",
+      "evidence_classification": "RULE_DEFINED",
+      "provenance": "Mathematical zero boundary used only to label a sensitivity score negative versus non-negative; it does not change the score.",
+      "identifiability_class": "RULE_OR_RUNTIME_MECHANIC",
+      "recommended_action": "KEEP",
+      "uncertainty_status": "NONE_MATHEMATICAL_IDENTITY",
+      "downstream_consumers": [
+        "package concentration prior-range robustness label"
+      ]
+    }
+  ]
 }

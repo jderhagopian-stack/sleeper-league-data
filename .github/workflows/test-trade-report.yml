@@ -100,6 +100,8 @@ jobs:
           assert 'championship_probability_conflicts_with_expected_points' in reasons
           print('adaptive trigger unit test passed',reasons)
           PY
+      - name: Unit test authoritative trade report value alignment
+        run: python script/test_trade_report_authority_alignment.py
       - name: Unit test final counter action governance
         run: |
           python - <<'PY'
@@ -233,12 +235,17 @@ jobs:
           assert abs(before['expected_points_for']-canonical['expected_points_for']) <= 1.0, (before,canonical)
           for k in ('playoff_probability','bye_probability','championship_probability'):
               assert abs(before[k]-canonical[k]) <= .005, (k,before[k],canonical[k])
-          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.11';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
-          assert (a.get('value_metric_context') or {}).get('long_term_trade_value')
+          assert s['pipeline_model_version']=='FSFFL-Trade-Query-Pipeline-1.19';assert s['report_model_version']=='FSFFL-Trade-Decision-Report-1.12';assert s['canonical_model_entry_point'].endswith('trade_engine.py')
+          assert (a.get('value_metric_context') or {}).get('future_asset_value')
+          assert (a.get('value_metric_context') or {}).get('raw_additive_dynasty_market_value')
+          assert (a.get('value_metric_context') or {}).get('package_concentration')
           assert (a.get('value_metric_context') or {}).get('incremental_asset_liquidity')
           assert (a.get('recommendation_profile') or {}).get('label')
           assert p['future_pick_outlook_uses_post_trade_simulator_ordering'] is True
           assert p['long_term_trade_value_and_incremental_liquidity_defined_separately'] is True
+          assert p['authoritative_future_asset_value_used_in_user_facing_report'] is True
+          assert p['raw_additive_market_delta_is_reference_only_when_package_transform_applied'] is True
+          assert p['package_prior_sensitivity_exposed_to_user'] is True
           assert pdf.exists() and pdf.stat().st_size>2000 and 1<=len(PdfReader(str(pdf)).pages)<=3
           text='\\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages).lower()
           banned=('state-aware','break-glass','liquidity value','objective weights','competitive externality','heuristic acceptance','post-sim','adaptive confirmation','simulation multiverse')
@@ -251,7 +258,7 @@ jobs:
               'attribution':cur.get('decision_attribution'),
               'recommended_next_action':a.get('recommended_next_action'),
           }},indent=2))
-          print('Market Sweep 1.26 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.11 test passed')
+          print('Market Sweep 1.26 / canonical trade-engine facade / roster interaction / baseline-aware roster resolution / plain-language report 1.12 authority-aligned test passed')
           PY
       - name: Audit downstream cut-plan sensitivity
         run: |

@@ -21,6 +21,36 @@ def _trade_signature(row):
         tuple(sorted(str(a.get('asset_id') or '') for a in (row.get('outgoing') or []))),
         tuple(sorted(str(a.get('asset_id') or '') for a in (row.get('incoming') or []))),
     )
+
+def _package_prior_confidence(row):
+    attr=(row or {}).get('focal_decision_attribution') or (row or {}).get('decision_attribution') or {}
+    scores=attr.get('package_concentration_prior_scores') or {}
+    robustness=attr.get('package_concentration_prior_range_decision_robustness')
+    if robustness=='SENSITIVE_TO_PRIOR_RANGE':
+        confidence='PROVISIONAL_PARAMETER_SENSITIVE'
+    elif robustness in {'ROBUST_POSITIVE_ACROSS_PRIOR_RANGE','ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'}:
+        confidence='ROBUST_ACROSS_GOVERNED_PRIOR_RANGE'
+    else:
+        confidence='NOT_APPLICABLE_OR_NOT_EXPOSED'
+    return {
+        'classification':confidence,
+        'robustness':robustness,
+        'mild_score':scores.get('mild'),
+        'center_score':scores.get('center'),
+        'strong_score':scores.get('strong'),
+        'changes_economic_score':False,
+        'changes_actionability':False,
+        'confidence_only':True,
+    }
+
+
+def _annotate_package_prior_confidence(row):
+    out=copy.deepcopy(row)
+    if str(out.get('channel') or '')=='TRADE':
+        out['package_prior_confidence']=_package_prior_confidence(out)
+    return out
+
+
 def _preserve_specialized_views(views, actionable_trade_signatures, simulation_sensitive_signatures):
     preserved={}
     for key,row in (views or {}).items():
@@ -175,7 +205,7 @@ def build_board(source,a,reviews):
     actionable_trades=[]
     simulation_sensitive_trades=[]
     for raw_row in raw_actionable_trades:
-        row=copy.deepcopy(bilateral_by_signature.get(_trade_signature(raw_row)) or raw_row)
+        row=_annotate_package_prior_confidence(bilateral_by_signature.get(_trade_signature(raw_row)) or raw_row)
         confirmation=row.get('focal_utility_stability_confirmation') or {}
         if bool(confirmation.get('confirmed_for_headline_action',True)):
             actionable_trades.append(row)
@@ -187,6 +217,14 @@ def build_board(source,a,reviews):
     ranked_candidates=actionable_trades+waivers
     ranked_candidates.sort(key=lambda x:float(x.get('team_improvement_score') or 0),reverse=True)
     b['ranked_single_step_opportunities']=ranked_candidates
+    b['package_prior_sensitive_trade_watchlist']=[
+        copy.deepcopy(x) for x in actionable_trades+simulation_sensitive_trades
+        if ((x.get('package_prior_confidence') or {}).get('classification')=='PROVISIONAL_PARAMETER_SENSITIVE')
+    ]
+    b['best_package_prior_sensitive_trade']=(
+        b['package_prior_sensitive_trade_watchlist'][0]
+        if b['package_prior_sensitive_trade_watchlist'] else None
+    )
     b['best_actionable_trade']=actionable
     b['best_trade_opportunity']=actionable or explore
     b['best_trade_to_explore']=explore
@@ -237,8 +275,11 @@ def build_board(source,a,reviews):
         ]
     b['portfolio_optimization']=build_portfolio(portfolio_source,a.focus_user_id,a.portfolio_depth,a.portfolio_max_moves,a.portfolio_beam_width,a.portfolio_sims,a.portfolio_confirm_sims,a.portfolio_confirm_top,a.seed,a.strategic_posture); b['prospective_validation']=_prospective(source)
     b['search_configuration']={'trade_candidates':a.trade_screen,'waiver_candidates':a.waiver_screen,'trade_packages_per_target':a.trade_packages_per_target,'price_frontier_targets':a.price_frontier_targets,'price_frontier_packages_per_target':a.price_frontier_packages_per_target,'quick_sims':a.quick_sims,'confirm_sims':a.confirm_sims,'portfolio_candidate_depth':a.portfolio_depth,'portfolio_max_moves':a.portfolio_max_moves,'portfolio_beam_width':a.portfolio_beam_width,'strategic_posture':a.strategic_posture,'actionability_stability_seeds':int(getattr(a,'actionability_stability_seeds',0)),'actionability_stability_sims_per_seed':int(getattr(a,'actionability_stability_sims',500))}
-    b.setdefault('policy',{}).update({'negotiation_frontier_creates_new_utility':False,'negotiation_price_frontier_uses_all_evaluated_trade_candidates':bool(source.get('trade_price_frontier_candidates')),'heuristic_acceptance_fit_is_probability':False,'theoretical_counterparty_failures_can_be_headline_action':False,'theoretical_packages_can_occupy_actionable_ranking':False,'non_positive_focal_utility_can_occupy_actionable_ranking':False,'actionable_routing_orders_only_by_existing_gm3_utility':True,'portfolio_search_excludes_theoretical_counterparty_failures':True,'targeted_adaptive_price_discovery_creates_new_utility':False,'targeted_adaptive_price_discovery_creates_new_trade_value':False,'targeted_adaptive_price_discovery_package_economics_owned_by_gm3':True,'targeted_adaptive_price_discovery_target_selection_owned_by_opportunity_search':True,'near_frontier_watchlist_creates_new_trade_value':False,'near_frontier_watchlist_creates_acceptance_probability':False,'near_frontier_watchlist_uses_fixed_utility_cutoff':False,'strategic_posture_changes_competitive_state':False,'strategic_posture_search_guidance_creates_new_utility':False,'strategic_posture_uses_existing_governed_weight_curve':True,'outbound_future_value_search_uses_existing_counterparty_gm3_packages':True,'outbound_future_value_search_creates_new_utility':False,'outbound_future_value_candidates_require_shared_utility_recheck':True,'focal_utility_sign_stability_creates_new_utility':False,'focal_utility_sign_stability_uses_fixed_margin_threshold':False,'bilateral_utility_sign_stability_creates_new_utility':False,'bilateral_utility_sign_stability_uses_fixed_margin_threshold':False,'simulation_sensitive_focal_utility_can_be_headline_action':False,'simulation_sensitive_bilateral_utility_can_be_headline_action':False,'portfolio_search_excludes_simulation_sensitive_focal_utility':True,'portfolio_search_excludes_simulation_sensitive_bilateral_utility':True,'specialist_views_require_actionability':False,'specialist_views_create_recommendation_authority':False,'price_frontier_routing_overlay_changes_trade_decision_authority':False,'simulation_sensitive_price_overlap_can_be_presented_as_actionable':False})
-    b.setdefault('capability_status',{}).update({'negotiation_frontier':True,'discrete_price_frontier':True,'progressive_price_frontier_search':True,'actionable_vs_explore_vs_theoretical_trade_separation':True,'high_impact_price_gap_bucket':True,'near_frontier_negotiation_watchlist':True,'targeted_adaptive_price_discovery':True,'competitive_state_strategic_posture_separation':True,'owner_strategic_posture_override':True,'outbound_future_value_trade_search':True,'multi_asset_incoming_trade_packages':True,'focal_utility_sign_stability_confirmation':True,'bilateral_utility_sign_stability_confirmation':True,'simulation_sensitive_trade_watchlist':True,'specialist_view_routing_status':True,'price_frontier_opportunity_routing_status':True})
+    b.setdefault('policy',{}).update({'negotiation_frontier_creates_new_utility':False,'negotiation_price_frontier_uses_all_evaluated_trade_candidates':bool(source.get('trade_price_frontier_candidates')),'heuristic_acceptance_fit_is_probability':False,'theoretical_counterparty_failures_can_be_headline_action':False,'theoretical_packages_can_occupy_actionable_ranking':False,'non_positive_focal_utility_can_occupy_actionable_ranking':False,'actionable_routing_orders_only_by_existing_gm3_utility':True,'portfolio_search_excludes_theoretical_counterparty_failures':True,'targeted_adaptive_price_discovery_creates_new_utility':False,'targeted_adaptive_price_discovery_creates_new_trade_value':False,'targeted_adaptive_price_discovery_package_economics_owned_by_gm3':True,'targeted_adaptive_price_discovery_target_selection_owned_by_opportunity_search':True,'near_frontier_watchlist_creates_new_trade_value':False,'near_frontier_watchlist_creates_acceptance_probability':False,'near_frontier_watchlist_uses_fixed_utility_cutoff':False,'strategic_posture_changes_competitive_state':False,'strategic_posture_search_guidance_creates_new_utility':False,'strategic_posture_uses_existing_governed_weight_curve':True,'outbound_future_value_search_uses_existing_counterparty_gm3_packages':True,'outbound_future_value_search_creates_new_utility':False,'outbound_future_value_candidates_require_shared_utility_recheck':True,'focal_utility_sign_stability_creates_new_utility':False,'focal_utility_sign_stability_uses_fixed_margin_threshold':False,'bilateral_utility_sign_stability_creates_new_utility':False,'bilateral_utility_sign_stability_uses_fixed_margin_threshold':False,'simulation_sensitive_focal_utility_can_be_headline_action':False,'simulation_sensitive_bilateral_utility_can_be_headline_action':False,'portfolio_search_excludes_simulation_sensitive_focal_utility':True,'portfolio_search_excludes_simulation_sensitive_bilateral_utility':True,'specialist_views_require_actionability':False,'specialist_views_create_recommendation_authority':False,'price_frontier_routing_overlay_changes_trade_decision_authority':False,'simulation_sensitive_price_overlap_can_be_presented_as_actionable':False,
+        'package_prior_confidence_changes_economic_score':False,
+        'package_prior_confidence_changes_actionability':False,
+        'package_prior_sensitive_trades_remain_visible_with_lower_parameter_confidence':True})
+    b.setdefault('capability_status',{}).update({'negotiation_frontier':True,'discrete_price_frontier':True,'progressive_price_frontier_search':True,'actionable_vs_explore_vs_theoretical_trade_separation':True,'high_impact_price_gap_bucket':True,'near_frontier_negotiation_watchlist':True,'targeted_adaptive_price_discovery':True,'competitive_state_strategic_posture_separation':True,'owner_strategic_posture_override':True,'outbound_future_value_trade_search':True,'multi_asset_incoming_trade_packages':True,'focal_utility_sign_stability_confirmation':True,'bilateral_utility_sign_stability_confirmation':True,'simulation_sensitive_trade_watchlist':True,'package_prior_sensitive_trade_watchlist':True,'specialist_view_routing_status':True,'price_frontier_opportunity_routing_status':True})
     b.setdefault('provenance',{})['negotiation_frontier_bilateral_authority']='canonical governed counterparty shared utility'; b['provenance']['targeted_adaptive_price_discovery_package_authority']='GM3 trade package economics'
     return b
 def main():

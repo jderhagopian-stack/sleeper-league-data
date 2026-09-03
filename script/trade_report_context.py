@@ -16,7 +16,7 @@ import json
 import math
 from pathlib import Path
 
-MODEL_VERSION = "FSFFL-Trade-Report-Context-1.0"
+MODEL_VERSION = "FSFFL-Trade-Report-Context-1.1"
 DATA = Path("data")
 
 
@@ -225,32 +225,71 @@ def future_pick_outlook(report):
     return out
 
 
+
+
+def _decision_channel(row, channel):
+    attr=(row.get("decision_attribution") or {})
+    for item in attr.get("channels") or []:
+        if str(item.get("channel") or "")==str(channel):
+            return item
+    return {}
+
+
+def _package_prior_profile(row):
+    attr=row.get("decision_attribution") or {}
+    scores=attr.get("package_concentration_prior_scores") or {}
+    robustness=attr.get("package_concentration_prior_range_decision_robustness")
+    return {
+        "mild_score": scores.get("mild"),
+        "center_score": scores.get("center"),
+        "strong_score": scores.get("strong"),
+        "robustness": robustness,
+        "sensitive_to_prior_range": robustness=="SENSITIVE_TO_PRIOR_RANGE",
+    }
+
+
 def recommendation_profile(report):
     action = str(report.get("recommended_next_action") or "")
     cur = report.get("current_offer_evaluation") or {}
     sim = cur.get("simulation") or {}
     d = sim.get("focus_delta") or {}
-    st = sim.get("strategic") or {}
+    attr = cur.get("decision_attribution") or {}
+    future = sf((_decision_channel(cur, "future") or {}).get("primitive_value"))
+    overall = sf(attr.get("final_shared_decision_utility"), sf(cur.get("shared_decision_utility_score")))
+    package = _package_prior_profile(cur)
     competitive_up = (
         sf(d.get("expected_wins")) >= 0
         and sf(d.get("playoff_probability")) >= 0
         and sf(d.get("championship_probability")) >= 0
     )
-    future_up = sf(st.get("market_dynasty_delta")) >= 0
-    overall_up = sf(st.get("strategic_value_delta")) >= 0
+    future_up = future >= 0
+    overall_up = overall >= 0
+
+    if package["sensitive_to_prior_range"]:
+        sensitivity_note = (
+            " The overall recommendation changes somewhere across the governed package-concentration "
+            "prior range, so treat it as lower-confidence until that prior is better calibrated."
+        )
+    elif package.get("robustness") == "ROBUST_POSITIVE_ACROSS_PRIOR_RANGE":
+        sensitivity_note = " The overall value stays positive across the governed package-concentration range."
+    elif package.get("robustness") == "ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE":
+        sensitivity_note = " The overall value stays negative across the governed package-concentration range."
+    else:
+        sensitivity_note = ""
+
     if action == "ACCEPT_NOW":
         if competitive_up and future_up and overall_up:
-            return {"label": "BROAD-BASED ACCEPT", "basis": "current and long-term outputs point in the same direction"}
+            return {"label": "BROAD-BASED ACCEPT", "basis": "current and future-authority outputs point in the same direction." + sensitivity_note, "package_prior": package}
         if competitive_up and not future_up:
-            return {"label": "WIN-NOW ACCEPT / FUTURE-VALUE TRADE-OFF", "basis": "competitive gains outweigh a long-term market-value cost"}
-        return {"label": "ACCEPT WITH MIXED TRADE-OFFS", "basis": "the governed utility is positive despite conflicting component directions"}
+            return {"label": "WIN-NOW ACCEPT / FUTURE-VALUE TRADE-OFF", "basis": "competitive gains outweigh a package-adjusted future-asset-value cost." + sensitivity_note, "package_prior": package}
+        return {"label": "ACCEPT WITH MIXED TRADE-OFFS", "basis": "the governed utility is positive despite conflicting component directions." + sensitivity_note, "package_prior": package}
     if action == "COUNTER_CURRENT_OFFEROR":
-        return {"label": "COUNTER FOR BETTER TERMS", "basis": "a better same-partner structure survives the final comparison"}
+        return {"label": "COUNTER FOR BETTER TERMS", "basis": "a better same-partner structure survives the final comparison." + sensitivity_note, "package_prior": package}
     if action == "SHOP_BEFORE_ACCEPTING":
-        return {"label": "SHOP BEFORE ACCEPTING", "basis": "a better outside structure survives the final comparison"}
+        return {"label": "SHOP BEFORE ACCEPTING", "basis": "a better outside structure survives the final comparison." + sensitivity_note, "package_prior": package}
     if action == "DECLINE":
-        return {"label": "DECLINE", "basis": "the current offer is not beneficial enough for the focal franchise"}
-    return {"label": action.replace("_", " "), "basis": "review required"}
+        return {"label": "DECLINE", "basis": "the current offer is not beneficial enough for the focal franchise." + sensitivity_note, "package_prior": package}
+    return {"label": action.replace("_", " "), "basis": "review required." + sensitivity_note, "package_prior": package}
 
 
 def offer_context(report, scenario):
@@ -283,14 +322,36 @@ def offer_context(report, scenario):
 def apply_to_report(report, scenario):
     report["offer_context"] = offer_context(report, scenario or {})
     report["future_pick_outlook"] = future_pick_outlook(report)
+    cur=report.get("current_offer_evaluation") or {}
+    attr=cur.get("decision_attribution") or {}
+    future_channel=_decision_channel(cur, "future")
+    pkg=((attr.get("diagnostics") or {}).get("package_concentration") or {})
     report["value_metric_context"] = {
-        "long_term_trade_value": {
-            "metric": "market_dynasty_delta",
-            "definition": "Change in league-wide dynasty market value of the assets exchanged.",
+        "future_asset_value": {
+            "metric": "decision_attribution.channels.future.primitive_value",
+            "value": future_channel.get("primitive_value"),
+            "definition": (
+                "Authoritative future-asset value used by Shared Decision Utility. For explicit multi-asset trades, "
+                "this replaces raw package additivity with the governed package-concentration prior while preserving "
+                "non-trade future effects exactly once."
+            ),
+        },
+        "raw_additive_dynasty_market_value": {
+            "metric": "simulation.strategic.market_dynasty_delta",
+            "value": ((cur.get("simulation") or {}).get("strategic") or {}).get("market_dynasty_delta"),
+            "definition": "Raw additive league-wide dynasty market-value delta; reference/diagnostic only once package concentration is active.",
+        },
+        "package_concentration": {
+            "applied": pkg.get("package_transform_applied"),
+            "raw_trade_package_future_value": pkg.get("raw_trade_package_future_value"),
+            "package_effective_trade_future_value": pkg.get("package_effective_trade_future_value"),
+            "non_trade_future_value_preserved": pkg.get("non_trade_future_value_preserved"),
+            "prior": _package_prior_profile(cur),
         },
         "incremental_asset_liquidity": liquidity_context(report),
         "why_they_can_move_opposite": (
-            "Dynasty market value measures how much the assets are worth; incremental asset liquidity measures additional moveability not already embedded in that market value. A trade can therefore lose market value while gaining incremental liquidity."
+            "Raw dynasty market value is the additive market reference. Future Asset Value is the governed decision input "
+            "after any package-concentration transform. Incremental asset liquidity is a separate residual channel when authorized."
         ),
     }
     report["recommendation_profile"] = recommendation_profile(report)
@@ -300,5 +361,8 @@ def apply_to_report(report, scenario):
         "future_pick_tier_is_directional_not_exact_draft_slot_probability": True,
         "long_term_trade_value_and_incremental_liquidity_defined_separately": True,
         "offer_origin_context_exposed": True,
+        "authoritative_future_asset_value_used_in_user_facing_report": True,
+        "raw_additive_market_delta_is_reference_only_when_package_transform_applied": True,
+        "package_prior_sensitivity_exposed_to_user": True,
     })
     return report

@@ -15,7 +15,7 @@ MARKET_SWEEP=Path('script/trade_engine.py')
 PDF_RENDERER=Path('script/render_trade_decision_report_v19.py')
 MODEL_VERSION='FSFFL-Trade-Query-Pipeline-1.19'
 EXPECTED_ANALYSIS_MODEL='FSFFL-Counter-Market-Sweep-1.26'
-REPORT_VERSION='FSFFL-Trade-Decision-Report-1.11'
+REPORT_VERSION='FSFFL-Trade-Decision-Report-1.12'
 DEFAULT_ADAPTIVE_CONFIRM_SIMS=50000
 
 
@@ -23,6 +23,27 @@ def run(cmd):subprocess.run(cmd,check=True)
 def sf(v,d=0.0):
     try:return float(v)
     except:return d
+
+
+
+
+def decision_channel(row,name):
+    attr=row.get('decision_attribution') or {}
+    for item in attr.get('channels') or []:
+        if str(item.get('channel') or '')==str(name):
+            return item
+    return {}
+
+
+def package_prior_profile(row):
+    attr=row.get('decision_attribution') or {}
+    scores=attr.get('package_concentration_prior_scores') or {}
+    return {
+        'mild':scores.get('mild'),
+        'center':scores.get('center'),
+        'strong':scores.get('strong'),
+        'robustness':attr.get('package_concentration_prior_range_decision_robustness'),
+    }
 
 
 def option_rows(report):
@@ -44,13 +65,24 @@ def sensitivity_reasons(report):
 
 
 def summary(report):
-    action=str(report.get('recommended_next_action') or 'REVIEW');cur=report.get('current_offer_evaluation') or {};sim=cur.get('simulation') or {};d=sim.get('focus_delta') or {};st=sim.get('strategic') or {};cs=report.get('suggested_counteroffers') or [];ms=report.get('market_sweep_alternatives') or []
+    action=str(report.get('recommended_next_action') or 'REVIEW');cur=report.get('current_offer_evaluation') or {};sim=cur.get('simulation') or {};d=sim.get('focus_delta') or {};cs=report.get('suggested_counteroffers') or [];ms=report.get('market_sweep_alternatives') or []
     label={'ACCEPT_NOW':'ACCEPT','COUNTER_CURRENT_OFFEROR':'COUNTER','SHOP_BEFORE_ACCEPTING':'SHOP BEFORE ACCEPTING','DECLINE':'DECLINE'}.get(action,action.replace('_',' '))
-    short=f"{label}. Current-offer impact: {float(d.get('expected_wins') or 0):+.2f} expected wins, {float(d.get('championship_probability') or 0)*100:+.1f} pts championship probability, {float(st.get('strategic_value_delta') or 0):+,.0f} overall franchise impact."
+    attr=cur.get('decision_attribution') or {}
+    overall=sf(attr.get('final_shared_decision_utility'),sf(cur.get('shared_decision_utility_score')))
+    future=sf(decision_channel(cur,'future').get('primitive_value'))
+    prior=package_prior_profile(cur)
+    short=f"{label}. Current-offer impact: {float(d.get('expected_wins') or 0):+.2f} expected wins, {float(d.get('championship_probability') or 0)*100:+.1f} pts championship probability. Future Asset Value {future:+,.0f}; overall decision value {overall:+,.0f}."
+    robustness=prior.get('robustness')
+    if robustness=='SENSITIVE_TO_PRIOR_RANGE':
+        short+=" Important: this recommendation is sensitive to the provisional package-concentration range, so confidence is lower until that prior is better calibrated."
+    elif robustness=='ROBUST_POSITIVE_ACROSS_PRIOR_RANGE':
+        short+=" The overall decision stays positive across the governed package-concentration range."
+    elif robustness=='ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE':
+        short+=" The overall decision stays negative across the governed package-concentration range."
     focus=str(report.get('focus_user_id') or '');rr=(sim.get('roster_resolution') or {}).get(focus) or {};cuts=int(rr.get('required_cuts') or 0)
     if cuts:short+=f" Requires {cuts} forced active-roster cut{'s' if cuts!=1 else ''}, already included in these values."
     ac=(report.get('simulation') or {}).get('adaptive_confirmation') or {}
-    if ac.get('triggered'):short+=f" Confirmed at {int(ac.get('confirmation_sims') or 0):,} simulations after an adaptive uncertainty check."
+    if ac.get('triggered'):short+=f" Confirmed at {int(ac.get('confirmation_sims') or 0):,} simulations."
     short+=f" {len(cs)} suggested counteroffer{'s' if len(cs)!=1 else ''}; {len(ms)} market alternative{'s' if len(ms)!=1 else ''}."
     return short
 

@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "model_version": "FSFFL-Economic-Signal-Dedup-1.0",
+  "schema_version": "1.1",
+  "model_version": "FSFFL-Economic-Signal-Dedup-1.1",
   "policy": {
     "one_economic_effect_one_authoritative_path": true,
     "same_source_market_repricing_cannot_be_residual_value": true,
@@ -27,10 +27,13 @@
       ],
       "current_paths": {
         "search_discovery": "build_fsffl_gm_engine._u_package_effective_value",
-        "final_shared_utility": "raw additive market_dynasty_delta"
+        "final_shared_utility": "bounded provisional package transform inside FUTURE ASSET VALUE via script/package_concentration.py",
+        "production_center": "arithmetic midpoint of inherited internal mild/strong FSFFL curves",
+        "uncertainty": "mild/center/strong full-utility sensitivity"
       },
-      "residual_candidate": true,
-      "double_count_guard": "Any promoted concentration effect must be computed only after excluding forced-cut and lineup effects and must not use market rank to reprice the same market anchor."
+      "residual_candidate": false,
+      "double_count_guard": "Production concentration replaces negotiated package additivity inside FUTURE ASSET VALUE only. Forced cuts and non-trade future effects remain separate and are preserved exactly once; lineup/current effects remain outside this block; same-source market rank repricing is forbidden.",
+      "residual_status": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR_EMPIRICAL_RECALIBRATION_PENDING"
     },
     {
       "concept": "optionality",
