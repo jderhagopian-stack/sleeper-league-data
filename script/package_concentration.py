@@ -30,6 +30,9 @@ def load_prior():
     return json.loads(PRIOR_PATH.read_text(encoding="utf-8"))
 
 
+PRIOR = load_prior()
+
+
 def _rows(strategic: Dict[str, Any], key: str) -> List[Dict[str, Any]]:
     out = []
     for row in strategic.get(key) or []:
@@ -89,7 +92,7 @@ def effective(rows: Iterable[Dict[str, Any]], prior: Dict[str, Any], curve_name:
 
 
 def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> Dict[str, Any]:
-    prior = load_prior()
+    prior = PRIOR
     if curve_name not in prior.get("curves", {}):
         raise ValueError(f"unknown package concentration curve {curve_name!r}")
 
@@ -99,21 +102,40 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
 
     negotiated_ids = trade_asset_ids(sim)
     trade_filter_applied = bool(negotiated_ids)
-    if trade_filter_applied:
-        sent = [x for x in all_sent if x["asset_id"] in negotiated_ids]
-        received = [x for x in all_received if x["asset_id"] in negotiated_ids]
-    else:
-        # Compatibility path for synthetic/legacy callers without explicit
-        # trade_actions. This preserves previous behavior but is exposed.
-        sent = all_sent
-        received = all_received
+    raw_total_future = sf(strategic.get("market_dynasty_delta"))
+    if not trade_filter_applied:
+        return {
+            "model_version": MODEL_VERSION,
+            "family_id": prior.get("family_id"),
+            "authority_mode": prior.get("authority_mode"),
+            "empirically_calibrated": bool(prior.get("empirically_calibrated")),
+            "curve_name": curve_name,
+            "raw_additive_future_value": round(raw_total_future, 2),
+            "raw_trade_package_future_value": 0.0,
+            "non_trade_future_value_preserved": round(raw_total_future, 2),
+            "package_effective_trade_future_value": 0.0,
+            "package_effective_future_value": round(raw_total_future, 2),
+            "concentration_residual_vs_additive": 0.0,
+            "sent_parts": [],
+            "received_parts": [],
+            "trade_asset_filter_applied": False,
+            "package_transform_applied": False,
+            "automatic_cuts_excluded_from_package_concentration": True,
+            "non_trade_future_effects_preserved_exactly_once": True,
+            "replacement_not_additive": True,
+            "same_source_rank_repricing_used": False,
+            "new_utility_channel_created": False,
+            "commercial_provenance": prior.get("commercial_provenance") or {},
+        }
+
+    sent = [x for x in all_sent if x["asset_id"] in negotiated_ids]
+    received = [x for x in all_received if x["asset_id"] in negotiated_ids]
 
     raw_trade_delta = round(
         sum(sf(x["market_dynasty"]) for x in received)
         - sum(sf(x["market_dynasty"]) for x in sent),
         2,
     )
-    raw_total_future = sf(strategic.get("market_dynasty_delta"))
     non_trade_future = round(raw_total_future - raw_trade_delta, 2)
 
     eff_sent, sent_parts = effective(sent, prior, curve_name)
@@ -136,7 +158,8 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
         "sent_parts": sent_parts,
         "received_parts": received_parts,
         "trade_asset_filter_applied": trade_filter_applied,
-        "automatic_cuts_excluded_from_package_concentration": trade_filter_applied,
+        "package_transform_applied": True,
+        "automatic_cuts_excluded_from_package_concentration": True,
         "non_trade_future_effects_preserved_exactly_once": True,
         "replacement_not_additive": True,
         "same_source_rank_repricing_used": False,
