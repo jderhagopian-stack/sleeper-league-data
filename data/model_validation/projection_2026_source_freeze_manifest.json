@@ -12,88 +12,18 @@
     "rights_status_recorded_separately_from_accuracy": true,
     "current_availability_does_not_establish_historical_eligibility": true,
     "meta_consensus_not_counted_as_independent_vote_when_constituents_overlap": true,
-    "final_freeze_must_precede_first_regular_season_kickoff": true
+    "final_freeze_must_precede_first_regular_season_kickoff": true,
+    "accuracy_benchmark_eligibility_is_separate_from_live_deployment_eligibility": true
   },
   "sources": [
-    {
-      "source": "FSFFL Native V2",
-      "current_2026_status": "READY",
-      "access_path": "repository native production pipeline",
-      "raw_categories": ["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],
-      "personal_research_eligible": true,
-      "commercial_status": "INTERNAL_MODEL_SUBJECT_TO_UNDERLYING_DATA_LICENSES"
-    },
-    {
-      "source": "Razzball",
-      "current_2026_status": "READY_EXISTING_SNAPSHOT",
-      "access_path": "existing governed Razzball preseason bridge",
-      "raw_categories": ["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],
-      "personal_research_eligible": true,
-      "commercial_status": "REPLACE_OR_LICENSE_BEFORE_COMMERCIAL"
-    },
-    {
-      "source": "FFToday",
-      "current_2026_status": "READY_FOR_RESEARCH_SNAPSHOT",
-      "access_path": "existing FFToday parser / current public projection pages",
-      "historical_status": "MULTIPLE_DATED_PRESEASON_SNAPSHOTS_PARTIALLY_VERIFIED",
-      "personal_research_eligible": false,
-      "rights_status": "PENDING_TERMS_REVIEW",
-      "commercial_status": "NOT_ELIGIBLE"
-    },
-    {
-      "source": "CBS Sports",
-      "current_2026_status": "DIRECT_RAW_STATS_VERIFIED",
-      "retrieved_on": "2026-09-03",
-      "source_pages": {
-        "QB": "https://secure-www.cbssports.com/fantasy/football/stats/",
-        "RB": "https://hubapi.cbssports.com/fantasy/football/stats/RB/2026/season/projections/ppr/",
-        "WR": "https://fantasy-api.cbssports.com/fantasy/football/stats/WR/2026/season/projections/nonppr/",
-        "TE": "https://www.cbssports.com/fantasy/football/stats/TE/2026/season/projections/nonppr/"
-      },
-      "raw_categories": ["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],
-      "historical_status": "2014_PROVIDER_FILE_TIMESTAMP_VERIFIED_PRESEASON; broader series unresolved",
-      "personal_research_eligible": false,
-      "rights_status": "PENDING_TERMS_REVIEW",
-      "commercial_status": "NOT_ELIGIBLE"
-    },
-    {
-      "source": "FantasyPros",
-      "current_2026_status": "API_PATH_VERIFIED",
-      "access_path": "GET /nfl/{season}/projections",
-      "api_scope": "weekly, preseason and rest-of-season NFL projections with full stat lines",
-      "personal_research_eligible": true,
-      "rights_status": "FREE_NONPRODUCTION_PROTOTYPING; PERSONAL_PRODUCTION_WITH_HOF; COMMERCIAL_SEPARATE",
-      "commercial_status": "SEPARATE_AGREEMENT_REQUIRED",
-      "historical_status": "commercial/bulk historical access distinct; 2014 archive slice independently timestamp-qualified"
-    },
-    {
-      "source": "4for4",
-      "current_2026_status": "PUBLIC_TABLE_SCHEMA_VERIFIED",
-      "retrieved_on": "2026-09-03",
-      "access_path": "2026 projection pages by position",
-      "raw_categories": ["completions","passing_attempts","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","receptions","receiving_yards","receiving_tds"],
-      "important_note": "URL scoring/site labels such as /cbs/ or /yahoo/ are league/scoring views of 4for4 projections, not independent CBS/Yahoo projection-source votes. Do not double-count them.",
-      "personal_research_eligible": false,
-      "rights_status": "SUBSCRIPTION_AND_TERMS_REVIEW_REQUIRED",
-      "commercial_status": "NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT"
-    },
-    {
-      "source": "RotoWire",
-      "current_2026_status": "RAW_SCHEMA_VERIFIED_PREMIUM",
-      "access_path": "https://www.rotowire.com/football/projections.php",
-      "raw_categories": ["passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],
-      "personal_research_eligible": false,
-      "rights_status": "PREMIUM_ACCESS_AND_TERMS_REVIEW_REQUIRED",
-      "commercial_status": "NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT"
-    },
-    {
-      "source": "Footballguys",
-      "current_2026_status": "RAW_STAT_DOWNLOAD_PATH_IDENTIFIED",
-      "access_path": "Footballguys season projection interface/download",
-      "personal_research_eligible": false,
-      "rights_status": "TERMS_REVIEW_PENDING",
-      "commercial_status": "NOT_ELIGIBLE"
-    }
+    {"source":"FSFFL Native V2","current_2026_status":"READY","access_path":"repository native production pipeline","raw_categories":["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],"personal_research_eligible":true,"commercial_status":"INTERNAL_MODEL_SUBJECT_TO_UNDERLYING_DATA_LICENSES"},
+    {"source":"Razzball","current_2026_status":"READY_EXISTING_SNAPSHOT","access_path":"existing governed Razzball preseason bridge","raw_categories":["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],"personal_research_eligible":true,"commercial_status":"REPLACE_OR_LICENSE_BEFORE_COMMERCIAL"},
+    {"source":"FFToday","current_2026_status":"READY_FOR_RESEARCH_SNAPSHOT","access_path":"existing FFToday parser / current public projection pages","historical_status":"MULTIPLE_DATED_PRESEASON_SNAPSHOTS_PARTIALLY_VERIFIED","personal_research_eligible":false,"rights_status":"PENDING_TERMS_REVIEW","commercial_status":"NOT_ELIGIBLE"},
+    {"source":"CBS Sports","current_2026_status":"DIRECT_RAW_STATS_VERIFIED","retrieved_on":"2026-09-03","source_pages":{"QB":"https://secure-www.cbssports.com/fantasy/football/stats/","RB":"https://hubapi.cbssports.com/fantasy/football/stats/RB/2026/season/projections/ppr/","WR":"https://fantasy-api.cbssports.com/fantasy/football/stats/WR/2026/season/projections/nonppr/","TE":"https://www.cbssports.com/fantasy/football/stats/TE/2026/season/projections/nonppr/"},"raw_categories":["passing_attempts","completions","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],"historical_status":"2014_PROVIDER_FILE_TIMESTAMP_VERIFIED_PRESEASON; broader series unresolved","personal_research_eligible":false,"rights_status":"PENDING_TERMS_REVIEW","commercial_status":"NOT_ELIGIBLE"},
+    {"source":"FantasyPros","current_2026_status":"API_PATH_VERIFIED","access_path":"GET /nfl/{season}/projections","api_scope":"weekly, preseason and rest-of-season NFL projections with full stat lines","personal_research_eligible":true,"rights_status":"FREE_NONPRODUCTION_PROTOTYPING; PERSONAL_PRODUCTION_WITH_HOF; COMMERCIAL_SEPARATE","commercial_status":"SEPARATE_AGREEMENT_REQUIRED","historical_status":"commercial/bulk historical access distinct; 2014 archive slice independently timestamp-qualified"},
+    {"source":"4for4","current_2026_status":"PUBLIC_TABLE_SCHEMA_VERIFIED","retrieved_on":"2026-09-03","access_path":"2026 projection pages by position","raw_categories":["completions","passing_attempts","passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","receptions","receiving_yards","receiving_tds"],"important_note":"URL scoring/site labels such as /cbs/ or /yahoo/ are league/scoring views of 4for4 projections, not independent CBS/Yahoo projection-source votes. Do not double-count them.","personal_research_eligible":false,"rights_status":"SUBSCRIPTION_AND_TERMS_REVIEW_REQUIRED","commercial_status":"NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT"},
+    {"source":"RotoWire","current_2026_status":"RAW_SCHEMA_VERIFIED_PREMIUM","access_path":"https://www.rotowire.com/football/projections.php","raw_categories":["passing_yards","passing_tds","interceptions","rushing_attempts","rushing_yards","rushing_tds","targets","receptions","receiving_yards","receiving_tds"],"personal_research_eligible":false,"rights_status":"PREMIUM_ACCESS_AND_TERMS_REVIEW_REQUIRED","commercial_status":"NOT_ELIGIBLE_UNDER_ZERO_COST_DEFAULT"},
+    {"source":"Footballguys","current_2026_status":"RAW_STAT_DOWNLOAD_PATH_IDENTIFIED","access_path":"Footballguys season projection interface/download","personal_research_eligible":false,"rights_status":"TERMS_REVIEW_PENDING","commercial_status":"NOT_ELIGIBLE"}
   ],
   "final_freeze_plan": {
     "target": "latest practical pre-kickoff snapshot before 2026-09-09T20:20:00-04:00",
