@@ -57,12 +57,35 @@ def _rows(strategic: Dict[str, Any], key: str):
     ]
 
 
-def package_future_value(strategic: Dict[str, Any], curve_name: str) -> Dict[str, Any]:
+def _trade_asset_ids(sim: Dict[str, Any]):
+    ids = set()
+    for action in sim.get("trade_actions") or []:
+        if str(action.get("type") or "").lower() != "trade":
+            continue
+        for pid in action.get("players") or []:
+            ids.add(f"player:{pid}")
+        for pick in action.get("picks") or []:
+            ids.add(str(pick))
+    return ids
+
+
+def package_future_value(sim: Dict[str, Any], curve_name: str) -> Dict[str, Any]:
     if curve_name not in PACKAGE.CURVES:
         raise ValueError(f"unknown package curve: {curve_name}")
 
+    strategic = sim.get("strategic") or {}
     sent = _rows(strategic, "sent")
     received = _rows(strategic, "received")
+
+    # Strategic summaries can include automatic roster cuts. Those losses are
+    # already modeled by roster legalization/current utility and must not also
+    # be treated as pieces of the negotiated trade package.
+    trade_ids = _trade_asset_ids(sim)
+    trade_filter_applied = bool(trade_ids)
+    if trade_filter_applied:
+        sent = [x for x in sent if x["asset_id"] in trade_ids]
+        received = [x for x in received if x["asset_id"] in trade_ids]
+
     curve = PACKAGE.CURVES[curve_name]
 
     effective_sent, sent_parts = PACKAGE.effective(sent, curve)
@@ -81,12 +104,14 @@ def package_future_value(strategic: Dict[str, Any], curve_name: str) -> Dict[str
         "replacement_not_additive": True,
         "same_source_rank_repricing_used": False,
         "forced_cut_or_lineup_adjustment_in_this_block": False,
+        "trade_asset_filter_applied": trade_filter_applied,
+        "automatic_cuts_excluded_from_package_concentration": trade_filter_applied,
     }
 
 
 def score(sim: Dict[str, Any], curve_name: str) -> Dict[str, Any]:
     base = BASE.score(sim)
-    package = package_future_value(sim.get("strategic") or {}, curve_name)
+    package = package_future_value(sim, curve_name)
 
     weights = base["objective_weights"]
     primitives = dict(base["primitive_blocks"])
