@@ -95,7 +95,8 @@ jobs:
           assert empirical_residual['current_value_backfill_used'] is False
           assert empirical_residual['package_concentration']['completed_trade_count'] > 0
           assert empirical_residual['package_concentration']['package_trade_count'] > 0
-          assert empirical_residual['package_concentration']['production_promotion_ready'] is False
+          assert empirical_residual['package_concentration']['empirical_calibration_ready'] is False
+          assert empirical_residual['package_concentration']['bounded_provisional_authority_possible'] is True
           assert all(not x['production_ready'] for x in empirical_residual['residual_targets'].values())
 
           residual=json.load(open('data/audit/residual_signal_decomposition_audit.json'))
