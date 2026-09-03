@@ -43,6 +43,7 @@ jobs:
           python script/audit_residual_signal_decomposition.py
           python script/validate_residual_evidence_contracts.py
           python script/audit_residual_evidence_readiness.py
+          python script/validate_decision_channel_hierarchy.py
       - name: Validate audit
         run: |
           python - <<'PY'
