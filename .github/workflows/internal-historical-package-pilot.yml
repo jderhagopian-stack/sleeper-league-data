@@ -1,0 +1,45 @@
+name: Internal Historical Package Pilot
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  pilot:
+    if: github.head_ref == 'research/internal-historical-package-pilot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run no-external historical package pilot
+        run: python script/run_internal_historical_package_pilot.py
+      - name: Validate research-only provenance
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('data/audit/internal_historical_package_pilot.json'))
+          assert p['research_only'] is True
+          assert p['production_behavior_changed'] is False
+          assert p['coefficient_fit_performed'] is False
+          assert p['production_prior_changed'] is False
+          assert p['external_historical_market_source_used'] is False
+          assert p['current_market_value_backfill_used'] is False
+          assert p['completed_trade_implies_exact_fair_value'] is False
+          assert p['pilot_trade_count'] >= 4
+          print(json.dumps({
+              'pilot_trade_count':p['pilot_trade_count'],
+              'aggregate':p['aggregate'],
+              'descriptive_rank':p['descriptive_rank_by_mean_clearing_distance'],
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: internal-historical-package-pilot
+          path: data/audit/internal_historical_package_pilot.json
+          if-no-files-found: error
+          retention-days: 7
