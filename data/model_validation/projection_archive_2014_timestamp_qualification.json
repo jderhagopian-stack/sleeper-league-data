@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "status": "PARTIAL_GATE_CLEARANCE",
+  "purpose": "Record timestamp and schema qualification for selected 2014 Fantasy Football Analytics archive slices without conflating timing evidence with reuse rights.",
+  "season": 2014,
+  "regular_season_open_date": "2014-09-04",
+  "evidence_basis": "Git commit history for provider-specific CSV paths plus direct schema inspection.",
+  "providers": [
+    {
+      "source": "CBS",
+      "path": "Data/Historical Projections/CBS-Projections-2014.csv",
+      "earliest_commit_utc": "2014-05-31T20:05:38Z",
+      "latest_commit_utc": "2014-07-04T04:44:47Z",
+      "timestamp_gate": "PASS_PRESEASON",
+      "raw_stats_available": true,
+      "rights_gate": "PENDING",
+      "calibration_eligible": false
+    },
+    {
+      "source": "FantasyPros",
+      "path": "Data/Historical Projections/FantasyPros-Projections-2014.csv",
+      "earliest_commit_utc": "2014-05-31T20:35:30Z",
+      "latest_commit_utc": "2014-08-28T02:22:23Z",
+      "timestamp_gate": "PASS_PRESEASON",
+      "raw_stats_available": true,
+      "rights_gate": "PENDING",
+      "calibration_eligible": false
+    },
+    {
+      "source": "FFToday",
+      "path": "Data/Historical Projections/FFtoday-Projections-2014.csv",
+      "earliest_commit_utc": "2014-06-07T16:38:44Z",
+      "latest_commit_utc": "2014-09-03T23:21:52Z",
+      "timestamp_gate": "PASS_PRESEASON",
+      "raw_stats_available": true,
+      "rights_gate": "PENDING",
+      "calibration_eligible": false
+    },
+    {
+      "source": "ESPN",
+      "path": "Data/Historical Projections/ESPN-Projections-2014.csv",
+      "earliest_commit_utc": "2014-06-23T01:44:06Z",
+      "latest_commit_utc": "2014-09-03T23:21:52Z",
+      "timestamp_gate": "PASS_PRESEASON",
+      "raw_stats_available": true,
+      "rights_gate": "PENDING",
+      "calibration_eligible": false
+    }
+  ],
+  "schema_notes": {
+    "common_raw_fields": [
+      "passAtt",
+      "passComp",
+      "passYds",
+      "passTds",
+      "passInt",
+      "rushAtt",
+      "rushYds",
+      "rushTds",
+      "rec",
+      "recYds",
+      "recTds"
+    ],
+    "provider_suffix_pattern": "provider-specific suffix appended to raw stat columns",
+    "scoring_fields_present": true,
+    "rule": "Use raw stat columns only for category championship; ignore provider fantasy-point totals except separate descriptive checks."
+  },
+  "governance": {
+    "public_repository_does_not_establish_reuse_rights": true,
+    "timestamp_pass_does_not_imply_rights_pass": true,
+    "calibration_eligible_requires_all_gates": true
+  }
+}
