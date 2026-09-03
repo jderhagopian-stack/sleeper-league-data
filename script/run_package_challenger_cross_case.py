@@ -94,6 +94,14 @@ def evaluate(case, catalog):
     wf = inferred_future_weight(current, future, score)
     wc = 1.0 - wf
     non_trade_future = round(future - raw_trade_delta, 2)
+    if "expected_non_trade_future_value" in case:
+        expected = round(sf(case["expected_non_trade_future_value"]), 2)
+        assert non_trade_future == expected, (
+            case["id"],
+            "non_trade_future_value",
+            non_trade_future,
+            expected,
+        )
 
     curves = {}
     for name, curve in pkg.CURVES.items():
@@ -143,6 +151,10 @@ def main():
 
     src = json.loads(Path(args.cases).read_text(encoding="utf-8"))
     catalog = values(src)
+    if not catalog:
+        raise SystemExit("frozen_asset_values is required for reproducible cross-case evaluation")
+    if not src.get("source_market_value_ref"):
+        raise SystemExit("source_market_value_ref is required for reproducible cross-case evaluation")
     missing = sorted({
         aid
         for case in src.get("cases") or []
