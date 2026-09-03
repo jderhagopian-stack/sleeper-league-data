@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "status": "VALIDATION_CHALLENGER_ONLY",
+  "purpose": "Test whether prior offensive snap participation adds independent preseason projection signal beyond the current Native V2 and the newly validated WR/TE role-opportunity bundle.",
+  "source": {
+    "dataset": "nflverse snap_counts",
+    "upstream": "Pro Football Reference snap counts served through nflverse",
+    "coverage_start": 2012,
+    "join": "PFR player id to nflverse players pfr_id/gsis_id mapping",
+    "rights_status": "DATASET_SPECIFIC_REVIEW_REQUIRED_BEFORE_COMMERCIAL_DEPENDENCY"
+  },
+  "base_policy": {
+    "QB": "current Native V2 QB feature bundle; rejected role/opportunity share features remain excluded",
+    "RB": "current Native V2 RB feature bundle; rejected role/opportunity share features remain excluded",
+    "WR": "current Native V2 plus retained provisional WR target-share/vacated-opportunity/role interaction bundle",
+    "TE": "current Native V2 plus retained provisional TE target-share/vacated-opportunity/role interaction bundle"
+  },
+  "candidate_families": {
+    "additive_snap": [
+      "lag1_offense_snaps",
+      "lag1_offense_snap_pct_mean"
+    ],
+    "role_conditioned_snap": [
+      "first_team_x_lag1_offense_snap_pct",
+      "depth_rank_x_lag1_offense_snap_pct"
+    ],
+    "snap_adjusted_volume": {
+      "QB": ["lag1_attempts_per_100_offense_snaps", "lag1_qb_rushes_per_100_offense_snaps"],
+      "RB": ["lag1_carries_per_100_offense_snaps", "lag1_targets_per_100_offense_snaps"],
+      "WR": ["lag1_targets_per_100_offense_snaps"],
+      "TE": ["lag1_targets_per_100_offense_snaps"]
+    }
+  },
+  "anti_double_counting": "Every snap challenger is evaluated on top of the currently accepted/provisional position-specific base. A snap feature must improve that stronger base; it does not receive credit for reproducing already retained opening-role or target-share information.",
+  "information_cutoff": {
+    "allowed": [
+      "completed prior-season offensive snap counts and snap percentages",
+      "completed prior-season raw football statistics",
+      "target-season opening role information already admitted by the Native V2 challenger architecture"
+    ],
+    "forbidden": [
+      "target-season realized snaps or snap percentage",
+      "target-season realized routes, targets, carries, attempts, team totals or injuries",
+      "external projection values as Native training labels"
+    ]
+  },
+  "validation": {
+    "rolling_holdouts": [2021, 2022, 2023, 2024],
+    "retention_gate": "At least +0.5 percentage points mean improvement versus the stronger position-specific base and improvement in at least 3 of 4 holdouts.",
+    "external_followup": "Any retained snap formulation must subsequently be tested on the exact independent external common cohort without re-selecting the formulation on that external data.",
+    "production_promoted": false
+  },
+  "governance": {
+    "target_season_snap_data_used": false,
+    "external_projection_used_as_training_target": false,
+    "creates_new_projection_authority": false,
+    "production_behavior_changed": false
+  }
+}
