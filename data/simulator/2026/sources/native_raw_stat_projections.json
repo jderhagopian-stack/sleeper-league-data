@@ -1,0 +1,2576 @@
+{
+  "as_of_utc": "2026-09-03T22:23:10+00:00",
+  "feature_sets": {
+    "QB": [
+      "recent_games_avg",
+      "lag1_low_availability",
+      "two_year_low_availability",
+      "opening_role_available",
+      "opening_is_first_team",
+      "opening_depth_rank",
+      "opening_team_known",
+      "opening_team_changed",
+      "qb1_x_lag1_attempts",
+      "qb1_x_lag1_pass_yards",
+      "qb1_x_lag1_rush_yards"
+    ],
+    "RB": [
+      "opening_role_available",
+      "opening_is_first_team",
+      "opening_depth_rank"
+    ],
+    "TE": [
+      "age_available",
+      "target_age",
+      "target_age_sq",
+      "career_year",
+      "opening_role_available",
+      "opening_is_first_team",
+      "opening_depth_rank",
+      "prior_team_skill_target_share",
+      "opening_team_vacated_skill_target_share",
+      "first_team_x_prior_skill_target_share"
+    ],
+    "WR": [
+      "age_available",
+      "target_age",
+      "target_age_sq",
+      "career_year",
+      "age_x_lag1_targets",
+      "opening_role_available",
+      "opening_is_first_team",
+      "opening_depth_rank",
+      "prior_team_skill_target_share",
+      "opening_team_vacated_skill_target_share",
+      "first_team_x_prior_skill_target_share"
+    ]
+  },
+  "governance": {
+    "commercial_role_source_approved": false,
+    "current_role_snapshot_timestamped": true,
+    "fantasy_scoring_used_in_training": false,
+    "target_season_realized_stats_used": false
+  },
+  "model": "FSFFL-Native-V2-role-aware",
+  "players": {
+    "00-0023459": {
+      "player_name": "Aaron Rodgers",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 478.46,
+        "interceptions": 9.106,
+        "passing_tds": 23.245,
+        "passing_yards": 3481.312,
+        "rushing_tds": 0.941,
+        "rushing_yards": 100.479
+      },
+      "team": "PIT"
+    },
+    "00-0026498": {
+      "player_name": "Matthew Stafford",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 540.71,
+        "interceptions": 10.848,
+        "passing_tds": 27.148,
+        "passing_yards": 4108.606,
+        "rushing_tds": 0.197,
+        "rushing_yards": 32.55
+      },
+      "team": "LA"
+    },
+    "00-0029604": {
+      "player_name": "Kirk Cousins",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 376.465,
+        "interceptions": 9.496,
+        "passing_tds": 15.361,
+        "passing_yards": 2702.517,
+        "rushing_tds": 1.087,
+        "rushing_yards": 68.031
+      },
+      "team": "LV"
+    },
+    "00-0030506": {
+      "player_name": "Travis Kelce",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.713,
+        "receiving_yards": 644.99,
+        "receptions": 59.865,
+        "targets": 91.806
+      },
+      "team": "KC"
+    },
+    "00-0030565": {
+      "player_name": "Geno Smith",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 410.354,
+        "interceptions": 9.573,
+        "passing_tds": 17.297,
+        "passing_yards": 2923.902,
+        "rushing_tds": 1.038,
+        "rushing_yards": 122.113
+      },
+      "team": "NYJ"
+    },
+    "00-0031381": {
+      "player_name": "Davante Adams",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.975,
+        "receiving_yards": 602.896,
+        "receptions": 40.732,
+        "rushing_tds": 0.0,
+        "rushing_yards": 0.0,
+        "targets": 75.829
+      },
+      "team": "LA"
+    },
+    "00-0031408": {
+      "player_name": "Mike Evans",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.355,
+        "receiving_yards": 495.063,
+        "receptions": 38.594,
+        "rushing_tds": 0.054,
+        "rushing_yards": 3.669,
+        "targets": 62.38
+      },
+      "team": "SF"
+    },
+    "00-0031588": {
+      "player_name": "Stefon Diggs",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.873,
+        "receiving_yards": 487.336,
+        "receptions": 45.206,
+        "rushing_tds": 0.0,
+        "rushing_yards": 1.027,
+        "targets": 63.551
+      },
+      "team": "WAS"
+    },
+    "00-0032764": {
+      "player_name": "Derrick Henry",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 258.342,
+        "receiving_tds": 0.61,
+        "receiving_yards": 172.092,
+        "receptions": 21.382,
+        "rushing_tds": 9.359,
+        "rushing_yards": 1147.059,
+        "targets": 27.159
+      },
+      "team": "BAL"
+    },
+    "00-0033077": {
+      "player_name": "Dak Prescott",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 472.545,
+        "interceptions": 10.338,
+        "passing_tds": 23.252,
+        "passing_yards": 3503.533,
+        "rushing_tds": 1.699,
+        "rushing_yards": 146.552
+      },
+      "team": "DAL"
+    },
+    "00-0033090": {
+      "player_name": "Hunter Henry",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 5.106,
+        "receiving_yards": 614.327,
+        "receptions": 55.33,
+        "targets": 81.044
+      },
+      "team": "NE"
+    },
+    "00-0033106": {
+      "player_name": "Jared Goff",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 544.02,
+        "interceptions": 10.761,
+        "passing_tds": 27.113,
+        "passing_yards": 4113.406,
+        "rushing_tds": 0.476,
+        "rushing_yards": 66.031
+      },
+      "team": "DET"
+    },
+    "00-0033119": {
+      "player_name": "Jacoby Brissett",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 395.596,
+        "interceptions": 8.206,
+        "passing_tds": 19.386,
+        "passing_yards": 2860.266,
+        "rushing_tds": 1.342,
+        "rushing_yards": 151.015
+      },
+      "team": "ARI"
+    },
+    "00-0033280": {
+      "player_name": "Christian McCaffrey",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 201.528,
+        "receiving_tds": 2.876,
+        "receiving_yards": 503.802,
+        "receptions": 64.75,
+        "rushing_tds": 7.535,
+        "rushing_yards": 900.094,
+        "targets": 83.067
+      },
+      "team": "SF"
+    },
+    "00-0033288": {
+      "player_name": "George Kittle",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.42,
+        "receiving_yards": 585.831,
+        "receptions": 51.659,
+        "targets": 72.703
+      },
+      "team": "SF"
+    },
+    "00-0033293": {
+      "player_name": "Aaron Jones",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 144.424,
+        "receiving_tds": 1.147,
+        "receiving_yards": 204.186,
+        "receptions": 28.805,
+        "rushing_tds": 4.243,
+        "rushing_yards": 620.21,
+        "targets": 36.917
+      },
+      "team": "MIN"
+    },
+    "00-0033873": {
+      "player_name": "Patrick Mahomes",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 464.801,
+        "interceptions": 8.987,
+        "passing_tds": 23.008,
+        "passing_yards": 3380.018,
+        "rushing_tds": 3.56,
+        "rushing_yards": 329.235
+      },
+      "team": "KC"
+    },
+    "00-0033906": {
+      "player_name": "Alvin Kamara",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 102.949,
+        "receiving_tds": 0.732,
+        "receiving_yards": 178.863,
+        "receptions": 24.174,
+        "rushing_tds": 2.859,
+        "rushing_yards": 420.376,
+        "targets": 31.206
+      },
+      "team": "NO"
+    },
+    "00-0033908": {
+      "player_name": "Cooper Kupp",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.803,
+        "receiving_yards": 282.168,
+        "receptions": 25.441,
+        "rushing_tds": 0.0,
+        "rushing_yards": 0.0,
+        "targets": 36.694
+      },
+      "team": "SEA"
+    },
+    "00-0033921": {
+      "player_name": "Chris Godwin Jr.",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.098,
+        "receiving_yards": 317.964,
+        "receptions": 30.075,
+        "rushing_tds": 0.016,
+        "rushing_yards": 1.878,
+        "targets": 41.237
+      },
+      "team": "TB"
+    },
+    "00-0034348": {
+      "player_name": "Courtland Sutton",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.285,
+        "receiving_yards": 805.154,
+        "receptions": 57.918,
+        "rushing_tds": 0.033,
+        "rushing_yards": 1.8,
+        "targets": 97.367
+      },
+      "team": "DEN"
+    },
+    "00-0034351": {
+      "player_name": "Dallas Goedert",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.421,
+        "receiving_yards": 559.595,
+        "receptions": 49.63,
+        "targets": 67.042
+      },
+      "team": "PHI"
+    },
+    "00-0034753": {
+      "player_name": "Mark Andrews",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.501,
+        "receiving_yards": 484.722,
+        "receptions": 45.438,
+        "targets": 55.544
+      },
+      "team": "BAL"
+    },
+    "00-0034796": {
+      "player_name": "Lamar Jackson",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 415.317,
+        "interceptions": 6.202,
+        "passing_tds": 20.836,
+        "passing_yards": 3164.725,
+        "rushing_tds": 3.349,
+        "rushing_yards": 389.127
+      },
+      "team": "BAL"
+    },
+    "00-0034827": {
+      "player_name": "DJ Moore",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.099,
+        "receiving_yards": 650.294,
+        "receptions": 53.174,
+        "rushing_tds": 0.409,
+        "rushing_yards": 46.221,
+        "targets": 79.316
+      },
+      "team": "BUF"
+    },
+    "00-0034844": {
+      "player_name": "Saquon Barkley",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 218.253,
+        "receiving_tds": 0.908,
+        "receiving_yards": 232.074,
+        "receptions": 30.927,
+        "rushing_tds": 7.176,
+        "rushing_yards": 958.302,
+        "targets": 39.166
+      },
+      "team": "PHI"
+    },
+    "00-0034855": {
+      "player_name": "Baker Mayfield",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 476.656,
+        "interceptions": 9.499,
+        "passing_tds": 24.023,
+        "passing_yards": 3497.69,
+        "rushing_tds": 2.267,
+        "rushing_yards": 285.088
+      },
+      "team": "TB"
+    },
+    "00-0034857": {
+      "player_name": "Josh Allen",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 458.521,
+        "interceptions": 7.852,
+        "passing_tds": 23.118,
+        "passing_yards": 3416.862,
+        "rushing_tds": 8.199,
+        "rushing_yards": 480.212
+      },
+      "team": "BUF"
+    },
+    "00-0034869": {
+      "player_name": "Sam Darnold",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 498.275,
+        "interceptions": 10.351,
+        "passing_tds": 23.567,
+        "passing_yards": 3757.554,
+        "rushing_tds": 1.049,
+        "rushing_yards": 136.189
+      },
+      "team": "SEA"
+    },
+    "00-0034960": {
+      "player_name": "Jakobi Meyers",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.822,
+        "receiving_yards": 466.114,
+        "receptions": 39.281,
+        "rushing_tds": 0.141,
+        "rushing_yards": 12.121,
+        "targets": 59.657
+      },
+      "team": "JAX"
+    },
+    "00-0035228": {
+      "player_name": "Kyler Murray",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 296.225,
+        "interceptions": 6.087,
+        "passing_tds": 12.027,
+        "passing_yards": 2072.88,
+        "rushing_tds": 2.285,
+        "rushing_yards": 206.253
+      },
+      "team": "MIN"
+    },
+    "00-0035229": {
+      "player_name": "T.J. Hockenson",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.477,
+        "receiving_yards": 472.765,
+        "receptions": 44.974,
+        "targets": 63.003
+      },
+      "team": "MIN"
+    },
+    "00-0035261": {
+      "player_name": "Tony Pollard",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 189.825,
+        "receiving_tds": 0.795,
+        "receiving_yards": 203.826,
+        "receptions": 27.612,
+        "rushing_tds": 5.966,
+        "rushing_yards": 815.877,
+        "targets": 35.717
+      },
+      "team": "TEN"
+    },
+    "00-0035640": {
+      "player_name": "DK Metcalf",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.6,
+        "receiving_yards": 734.56,
+        "receptions": 53.366,
+        "rushing_tds": 0.209,
+        "rushing_yards": 19.85,
+        "targets": 89.041
+      },
+      "team": "PIT"
+    },
+    "00-0035659": {
+      "player_name": "Terry McLaurin",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.173,
+        "receiving_yards": 634.571,
+        "receptions": 52.157,
+        "rushing_tds": 0.059,
+        "rushing_yards": 5.004,
+        "targets": 76.267
+      },
+      "team": "WAS"
+    },
+    "00-0035676": {
+      "player_name": "A.J. Brown",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.865,
+        "receiving_yards": 919.662,
+        "receptions": 72.446,
+        "rushing_tds": 0.084,
+        "rushing_yards": 5.367,
+        "targets": 110.391
+      },
+      "team": "NE"
+    },
+    "00-0035685": {
+      "player_name": "David Montgomery",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 157.329,
+        "receiving_tds": 1.092,
+        "receiving_yards": 170.638,
+        "receptions": 23.516,
+        "rushing_tds": 5.795,
+        "rushing_yards": 698.226,
+        "targets": 30.766
+      },
+      "team": "HOU"
+    },
+    "00-0035700": {
+      "player_name": "Josh Jacobs",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 136.531,
+        "receiving_tds": 0.249,
+        "receiving_yards": 88.054,
+        "receptions": 13.609,
+        "rushing_tds": 5.629,
+        "rushing_yards": 603.44,
+        "targets": 17.826
+      },
+      "team": "GB"
+    },
+    "00-0035710": {
+      "player_name": "Daniel Jones",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 412.621,
+        "interceptions": 8.482,
+        "passing_tds": 18.873,
+        "passing_yards": 3046.37,
+        "rushing_tds": 3.144,
+        "rushing_yards": 214.39
+      },
+      "team": "IND"
+    },
+    "00-0035719": {
+      "player_name": "Deebo Samuel Sr.",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.567,
+        "receiving_yards": 434.179,
+        "receptions": 38.095,
+        "rushing_tds": 0.441,
+        "rushing_yards": 49.337,
+        "targets": 58.109
+      },
+      "team": "SF"
+    },
+    "00-0036139": {
+      "player_name": "Rico Dowdle",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 150.715,
+        "receiving_tds": 0.679,
+        "receiving_yards": 188.491,
+        "receptions": 25.742,
+        "rushing_tds": 4.519,
+        "rushing_yards": 629.939,
+        "targets": 32.446
+      },
+      "team": "PIT"
+    },
+    "00-0036158": {
+      "player_name": "J.K. Dobbins",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 160.485,
+        "receiving_tds": 0.737,
+        "receiving_yards": 151.566,
+        "receptions": 21.23,
+        "rushing_tds": 5.226,
+        "rushing_yards": 700.601,
+        "targets": 27.375
+      },
+      "team": "DEN"
+    },
+    "00-0036212": {
+      "player_name": "Tua Tagovailoa",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 407.17,
+        "interceptions": 8.879,
+        "passing_tds": 17.167,
+        "passing_yards": 2911.975,
+        "rushing_tds": 0.595,
+        "rushing_yards": 63.373
+      },
+      "team": "ATL"
+    },
+    "00-0036223": {
+      "player_name": "Jonathan Taylor",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 258.683,
+        "receiving_tds": 1.257,
+        "receiving_yards": 285.093,
+        "receptions": 35.769,
+        "rushing_tds": 9.643,
+        "rushing_yards": 1146.499,
+        "targets": 46.119
+      },
+      "team": "IND"
+    },
+    "00-0036252": {
+      "player_name": "Michael Pittman",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.667,
+        "receiving_yards": 549.52,
+        "receptions": 46.378,
+        "rushing_tds": 0.021,
+        "rushing_yards": 3.347,
+        "targets": 71.448
+      },
+      "team": "PIT"
+    },
+    "00-0036264": {
+      "player_name": "Jordan Love",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 438.413,
+        "interceptions": 9.32,
+        "passing_tds": 22.179,
+        "passing_yards": 3268.572,
+        "rushing_tds": 1.222,
+        "rushing_yards": 177.011
+      },
+      "team": "GB"
+    },
+    "00-0036275": {
+      "player_name": "D'Andre Swift",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 194.494,
+        "receiving_tds": 1.274,
+        "receiving_yards": 226.261,
+        "receptions": 30.484,
+        "rushing_tds": 6.739,
+        "rushing_yards": 853.659,
+        "targets": 39.599
+      },
+      "team": "CHI"
+    },
+    "00-0036309": {
+      "player_name": "Darnell Mooney",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.925,
+        "receiving_yards": 307.178,
+        "receptions": 19.898,
+        "rushing_tds": 0.055,
+        "rushing_yards": 2.056,
+        "targets": 38.997
+      },
+      "team": "NYG"
+    },
+    "00-0036322": {
+      "player_name": "Justin Jefferson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.93,
+        "receiving_yards": 987.608,
+        "receptions": 79.105,
+        "rushing_tds": 0.175,
+        "rushing_yards": 9.23,
+        "targets": 117.366
+      },
+      "team": "MIN"
+    },
+    "00-0036355": {
+      "player_name": "Justin Herbert",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 445.998,
+        "interceptions": 8.281,
+        "passing_tds": 23.458,
+        "passing_yards": 3271.839,
+        "rushing_tds": 2.767,
+        "rushing_yards": 361.732
+      },
+      "team": "LAC"
+    },
+    "00-0036358": {
+      "player_name": "CeeDee Lamb",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.069,
+        "receiving_yards": 837.328,
+        "receptions": 66.329,
+        "rushing_tds": 0.114,
+        "rushing_yards": 8.434,
+        "targets": 99.349
+      },
+      "team": "DAL"
+    },
+    "00-0036389": {
+      "player_name": "Jalen Hurts",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 378.698,
+        "interceptions": 6.518,
+        "passing_tds": 19.306,
+        "passing_yards": 2782.047,
+        "rushing_tds": 6.24,
+        "rushing_yards": 391.694
+      },
+      "team": "PHI"
+    },
+    "00-0036407": {
+      "player_name": "Jerry Jeudy",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.988,
+        "receiving_yards": 658.356,
+        "receptions": 47.763,
+        "rushing_tds": 0.128,
+        "rushing_yards": 7.912,
+        "targets": 81.009
+      },
+      "team": "CLE"
+    },
+    "00-0036410": {
+      "player_name": "Tee Higgins",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.233,
+        "receiving_yards": 680.759,
+        "receptions": 52.204,
+        "rushing_tds": 0.0,
+        "rushing_yards": 0.292,
+        "targets": 80.855
+      },
+      "team": "CIN"
+    },
+    "00-0036442": {
+      "player_name": "Joe Burrow",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 447.042,
+        "interceptions": 8.149,
+        "passing_tds": 20.826,
+        "passing_yards": 3284.999,
+        "rushing_tds": 1.143,
+        "rushing_yards": 108.935
+      },
+      "team": "CIN"
+    },
+    "00-0036554": {
+      "player_name": "Nico Collins",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.502,
+        "receiving_yards": 885.989,
+        "receptions": 66.713,
+        "rushing_tds": 0.207,
+        "rushing_yards": 19.674,
+        "targets": 104.534
+      },
+      "team": "HOU"
+    },
+    "00-0036555": {
+      "player_name": "Chuba Hubbard",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 135.861,
+        "receiving_tds": 1.172,
+        "receiving_yards": 223.633,
+        "receptions": 31.055,
+        "rushing_tds": 4.163,
+        "rushing_yards": 596.598,
+        "targets": 39.628
+      },
+      "team": "CAR"
+    },
+    "00-0036613": {
+      "player_name": "Jaylen Waddle",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.629,
+        "receiving_yards": 563.93,
+        "receptions": 46.81,
+        "rushing_tds": 0.059,
+        "rushing_yards": 9.958,
+        "targets": 68.216
+      },
+      "team": "DEN"
+    },
+    "00-0036875": {
+      "player_name": "Rhamondre Stevenson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 145.694,
+        "receiving_tds": 1.444,
+        "receiving_yards": 244.683,
+        "receptions": 31.999,
+        "rushing_tds": 5.163,
+        "rushing_yards": 646.78,
+        "targets": 41.265
+      },
+      "team": "NE"
+    },
+    "00-0036893": {
+      "player_name": "Najee Harris",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 53.135,
+        "receiving_tds": 0.141,
+        "receiving_yards": 47.758,
+        "receptions": 7.887,
+        "rushing_tds": 1.493,
+        "rushing_yards": 228.425,
+        "targets": 10.279
+      },
+      "team": "NYG"
+    },
+    "00-0036900": {
+      "player_name": "Ja'Marr Chase",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 8.235,
+        "receiving_yards": 1277.426,
+        "receptions": 105.319,
+        "rushing_tds": 0.185,
+        "rushing_yards": 12.651,
+        "targets": 151.417
+      },
+      "team": "CIN"
+    },
+    "00-0036912": {
+      "player_name": "DeVonta Smith",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.238,
+        "receiving_yards": 862.323,
+        "receptions": 72.563,
+        "rushing_tds": 0.047,
+        "rushing_yards": 5.008,
+        "targets": 103.738
+      },
+      "team": "PHI"
+    },
+    "00-0036945": {
+      "player_name": "Justin Fields",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 60.815,
+        "interceptions": 1.042,
+        "passing_tds": 3.018,
+        "passing_yards": 407.401,
+        "rushing_tds": 2.31,
+        "rushing_yards": 156.961
+      },
+      "team": "KC"
+    },
+    "00-0036963": {
+      "player_name": "Amon-Ra St. Brown",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 8.136,
+        "receiving_yards": 1246.285,
+        "receptions": 106.281,
+        "rushing_tds": 0.127,
+        "rushing_yards": 11.316,
+        "targets": 148.728
+      },
+      "team": "DET"
+    },
+    "00-0036970": {
+      "player_name": "Kyle Pitts",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 5.126,
+        "receiving_yards": 715.034,
+        "receptions": 66.005,
+        "targets": 93.906
+      },
+      "team": "ATL"
+    },
+    "00-0036971": {
+      "player_name": "Trevor Lawrence",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 478.502,
+        "interceptions": 10.166,
+        "passing_tds": 23.443,
+        "passing_yards": 3535.927,
+        "rushing_tds": 4.808,
+        "rushing_yards": 298.429
+      },
+      "team": "JAX"
+    },
+    "00-0036972": {
+      "player_name": "Mac Jones",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 128.288,
+        "interceptions": 3.673,
+        "passing_tds": 6.392,
+        "passing_yards": 963.933,
+        "rushing_tds": 0.224,
+        "rushing_yards": 50.309
+      },
+      "team": "SF"
+    },
+    "00-0036973": {
+      "player_name": "Travis Etienne",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 184.642,
+        "receiving_tds": 1.594,
+        "receiving_yards": 265.978,
+        "receptions": 37.071,
+        "rushing_tds": 5.994,
+        "rushing_yards": 811.72,
+        "targets": 47.535
+      },
+      "team": "NO"
+    },
+    "00-0036997": {
+      "player_name": "Javonte Williams",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 196.262,
+        "receiving_tds": 1.169,
+        "receiving_yards": 235.249,
+        "receptions": 32.827,
+        "rushing_tds": 6.559,
+        "rushing_yards": 847.576,
+        "targets": 42.413
+      },
+      "team": "DAL"
+    },
+    "00-0037197": {
+      "player_name": "Isiah Pacheco",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 52.704,
+        "receiving_tds": 0.018,
+        "receiving_yards": 39.612,
+        "receptions": 7.465,
+        "rushing_tds": 1.578,
+        "rushing_yards": 220.931,
+        "targets": 9.991
+      },
+      "team": "DET"
+    },
+    "00-0037228": {
+      "player_name": "Jaylen Warren",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 168.61,
+        "receiving_tds": 1.395,
+        "receiving_yards": 257.406,
+        "receptions": 33.858,
+        "rushing_tds": 5.518,
+        "rushing_yards": 737.696,
+        "targets": 43.356
+      },
+      "team": "PIT"
+    },
+    "00-0037238": {
+      "player_name": "Drake London",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 6.357,
+        "receiving_yards": 964.255,
+        "receptions": 76.237,
+        "rushing_tds": 0.1,
+        "rushing_yards": 6.637,
+        "targets": 113.928
+      },
+      "team": "ATL"
+    },
+    "00-0037239": {
+      "player_name": "Chris Olave",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 6.299,
+        "receiving_yards": 1020.814,
+        "receptions": 83.924,
+        "rushing_tds": 0.061,
+        "rushing_yards": 7.187,
+        "targets": 125.144
+      },
+      "team": "NO"
+    },
+    "00-0037240": {
+      "player_name": "Jameson Williams",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.726,
+        "receiving_yards": 685.539,
+        "receptions": 51.218,
+        "rushing_tds": 0.154,
+        "rushing_yards": 16.627,
+        "targets": 78.458
+      },
+      "team": "DET"
+    },
+    "00-0037247": {
+      "player_name": "George Pickens",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.33,
+        "receiving_yards": 802.512,
+        "receptions": 60.58,
+        "rushing_tds": 0.031,
+        "rushing_yards": 5.412,
+        "targets": 93.713
+      },
+      "team": "DAL"
+    },
+    "00-0037248": {
+      "player_name": "James Cook",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 240.986,
+        "receiving_tds": 1.575,
+        "receiving_yards": 278.842,
+        "receptions": 33.981,
+        "rushing_tds": 8.817,
+        "rushing_yards": 1065.766,
+        "targets": 44.019
+      },
+      "team": "BUF"
+    },
+    "00-0037256": {
+      "player_name": "Rachaad White",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 96.12,
+        "receiving_tds": 0.93,
+        "receiving_yards": 175.983,
+        "receptions": 24.863,
+        "rushing_tds": 2.547,
+        "rushing_yards": 376.274,
+        "targets": 31.38
+      },
+      "team": "WAS"
+    },
+    "00-0037261": {
+      "player_name": "Khalil Shakir",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.382,
+        "receiving_yards": 529.199,
+        "receptions": 50.079,
+        "rushing_tds": 0.06,
+        "rushing_yards": 6.553,
+        "targets": 66.16
+      },
+      "team": "BUF"
+    },
+    "00-0037263": {
+      "player_name": "Tyler Allgeier",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 95.949,
+        "receiving_tds": 0.079,
+        "receiving_yards": 52.267,
+        "receptions": 9.888,
+        "rushing_tds": 3.164,
+        "rushing_yards": 408.333,
+        "targets": 12.304
+      },
+      "team": "ARI"
+    },
+    "00-0037291": {
+      "player_name": "Jalen Nailor",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.385,
+        "receiving_yards": 336.084,
+        "receptions": 26.083,
+        "rushing_tds": 0.012,
+        "rushing_yards": 6.483,
+        "targets": 41.357
+      },
+      "team": "LV"
+    },
+    "00-0037525": {
+      "player_name": "Jordan Mason",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 115.22,
+        "receiving_tds": 0.079,
+        "receiving_yards": 74.059,
+        "receptions": 11.327,
+        "rushing_tds": 3.642,
+        "rushing_yards": 493.794,
+        "targets": 14.216
+      },
+      "team": "MIN"
+    },
+    "00-0037545": {
+      "player_name": "Rashid Shaheed",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.191,
+        "receiving_yards": 390.507,
+        "receptions": 31.221,
+        "rushing_tds": 0.154,
+        "rushing_yards": 24.272,
+        "targets": 49.553
+      },
+      "team": "SEA"
+    },
+    "00-0037664": {
+      "player_name": "Alec Pierce",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.039,
+        "receiving_yards": 771.753,
+        "receptions": 53.123,
+        "rushing_tds": 0.054,
+        "rushing_yards": 7.461,
+        "targets": 88.152
+      },
+      "team": "IND"
+    },
+    "00-0037740": {
+      "player_name": "Garrett Wilson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.317,
+        "receiving_yards": 642.487,
+        "receptions": 53.255,
+        "rushing_tds": 0.1,
+        "rushing_yards": 7.304,
+        "targets": 77.869
+      },
+      "team": "NYJ"
+    },
+    "00-0037744": {
+      "player_name": "Trey McBride",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 6.426,
+        "receiving_yards": 1000.841,
+        "receptions": 90.935,
+        "targets": 135.683
+      },
+      "team": "ARI"
+    },
+    "00-0037746": {
+      "player_name": "Brian Robinson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 79.12,
+        "receiving_tds": 0.204,
+        "receiving_yards": 58.749,
+        "receptions": 9.234,
+        "rushing_tds": 2.419,
+        "rushing_yards": 338.335,
+        "targets": 12.125
+      },
+      "team": "ATL"
+    },
+    "00-0037816": {
+      "player_name": "Romeo Doubs",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.584,
+        "receiving_yards": 525.609,
+        "receptions": 42.768,
+        "rushing_tds": 0.006,
+        "rushing_yards": 3.523,
+        "targets": 64.679
+      },
+      "team": "NE"
+    },
+    "00-0037834": {
+      "player_name": "Brock Purdy",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 401.159,
+        "interceptions": 9.212,
+        "passing_tds": 17.663,
+        "passing_yards": 2979.176,
+        "rushing_tds": 2.719,
+        "rushing_yards": 174.353
+      },
+      "team": "SF"
+    },
+    "00-0037838": {
+      "player_name": "Isaiah Likely",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 2.526,
+        "receiving_yards": 363.523,
+        "receptions": 34.86,
+        "targets": 46.61
+      },
+      "team": "NYG"
+    },
+    "00-0037840": {
+      "player_name": "Kyren Williams",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 215.331,
+        "receiving_tds": 1.409,
+        "receiving_yards": 242.363,
+        "receptions": 33.369,
+        "rushing_tds": 7.611,
+        "rushing_yards": 946.366,
+        "targets": 42.996
+      },
+      "team": "LA"
+    },
+    "00-0038041": {
+      "player_name": "Jake Ferguson",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.432,
+        "receiving_yards": 604.181,
+        "receptions": 57.753,
+        "targets": 83.182
+      },
+      "team": "DAL"
+    },
+    "00-0038117": {
+      "player_name": "Wan'Dale Robinson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.857,
+        "receiving_yards": 640.639,
+        "receptions": 58.44,
+        "rushing_tds": 0.072,
+        "rushing_yards": 10.075,
+        "targets": 83.07
+      },
+      "team": "TEN"
+    },
+    "00-0038120": {
+      "player_name": "Breece Hall",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 186.721,
+        "receiving_tds": 1.524,
+        "receiving_yards": 280.624,
+        "receptions": 34.816,
+        "rushing_tds": 5.842,
+        "rushing_yards": 798.623,
+        "targets": 45.368
+      },
+      "team": "NYJ"
+    },
+    "00-0038124": {
+      "player_name": "Christian Watson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.887,
+        "receiving_yards": 591.187,
+        "receptions": 42.969,
+        "rushing_tds": 0.091,
+        "rushing_yards": 11.405,
+        "targets": 70.192
+      },
+      "team": "GB"
+    },
+    "00-0038128": {
+      "player_name": "Malik Willis",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 275.632,
+        "interceptions": 6.432,
+        "passing_tds": 10.337,
+        "passing_yards": 1995.116,
+        "rushing_tds": 2.273,
+        "rushing_yards": 181.2
+      },
+      "team": "MIA"
+    },
+    "00-0038134": {
+      "player_name": "Kenneth Walker III",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 176.383,
+        "receiving_tds": 1.238,
+        "receiving_yards": 225.169,
+        "receptions": 29.456,
+        "rushing_tds": 5.911,
+        "rushing_yards": 762.495,
+        "targets": 38.347
+      },
+      "team": "KC"
+    },
+    "00-0038393": {
+      "player_name": "Dontayvion Wicks",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.119,
+        "receiving_yards": 322.535,
+        "receptions": 25.524,
+        "rushing_tds": 0.024,
+        "rushing_yards": 6.134,
+        "targets": 41.41
+      },
+      "team": "PHI"
+    },
+    "00-0038454": {
+      "player_name": "Keaton Mitchell",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 59.873,
+        "receiving_tds": 0.466,
+        "receiving_yards": 92.181,
+        "receptions": 12.159,
+        "rushing_tds": 1.754,
+        "rushing_yards": 253.165,
+        "targets": 16.007
+      },
+      "team": "LAC"
+    },
+    "00-0038542": {
+      "player_name": "Bijan Robinson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 231.739,
+        "receiving_tds": 2.582,
+        "receiving_yards": 475.978,
+        "receptions": 58.231,
+        "rushing_tds": 8.474,
+        "rushing_yards": 1039.626,
+        "targets": 74.663
+      },
+      "team": "ATL"
+    },
+    "00-0038543": {
+      "player_name": "Jaxon Smith-Njigba",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 8.18,
+        "receiving_yards": 1317.225,
+        "receptions": 111.359,
+        "rushing_tds": 0.208,
+        "rushing_yards": 23.538,
+        "targets": 151.829
+      },
+      "team": "SEA"
+    },
+    "00-0038544": {
+      "player_name": "Quentin Johnston",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.428,
+        "receiving_yards": 608.835,
+        "receptions": 46.912,
+        "rushing_tds": 0.047,
+        "rushing_yards": 8.052,
+        "targets": 72.878
+      },
+      "team": "LAC"
+    },
+    "00-0038555": {
+      "player_name": "Tank Bigsby",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 70.967,
+        "receiving_tds": 0.247,
+        "receiving_yards": 69.023,
+        "receptions": 8.644,
+        "rushing_tds": 2.191,
+        "rushing_yards": 309.612,
+        "targets": 11.307
+      },
+      "team": "PHI"
+    },
+    "00-0038559": {
+      "player_name": "Michael Wilson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.921,
+        "receiving_yards": 599.021,
+        "receptions": 46.466,
+        "rushing_tds": 0.003,
+        "rushing_yards": 4.931,
+        "targets": 74.954
+      },
+      "team": "ARI"
+    },
+    "00-0038563": {
+      "player_name": "Tre Tucker",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.138,
+        "receiving_yards": 678.969,
+        "receptions": 54.14,
+        "rushing_tds": 0.248,
+        "rushing_yards": 31.01,
+        "targets": 82.969
+      },
+      "team": "LV"
+    },
+    "00-0038597": {
+      "player_name": "Chase Brown",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 185.019,
+        "receiving_tds": 2.082,
+        "receiving_yards": 358.676,
+        "receptions": 49.202,
+        "rushing_tds": 5.914,
+        "rushing_yards": 796.949,
+        "targets": 62.551
+      },
+      "team": "CIN"
+    },
+    "00-0038606": {
+      "player_name": "Parker Washington",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.34,
+        "receiving_yards": 509.525,
+        "receptions": 39.79,
+        "rushing_tds": 0.139,
+        "rushing_yards": 18.02,
+        "targets": 62.93
+      },
+      "team": "JAX"
+    },
+    "00-0038611": {
+      "player_name": "Chris Rodriguez Jr.",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 87.191,
+        "receiving_tds": 0.26,
+        "receiving_yards": 66.133,
+        "receptions": 9.45,
+        "rushing_tds": 2.968,
+        "rushing_yards": 373.58,
+        "targets": 12.407
+      },
+      "team": "JAX"
+    },
+    "00-0038933": {
+      "player_name": "Dalton Kincaid",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.114,
+        "receiving_yards": 485.984,
+        "receptions": 44.025,
+        "targets": 67.692
+      },
+      "team": "BUF"
+    },
+    "00-0038935": {
+      "player_name": "Brenton Strange",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.252,
+        "receiving_yards": 467.262,
+        "receptions": 43.684,
+        "targets": 63.81
+      },
+      "team": "JAX"
+    },
+    "00-0038951": {
+      "player_name": "Sean Tucker",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 51.706,
+        "receiving_tds": 0.104,
+        "receiving_yards": 33.239,
+        "receptions": 5.986,
+        "rushing_tds": 1.723,
+        "rushing_yards": 221.214,
+        "targets": 7.65
+      },
+      "team": "TB"
+    },
+    "00-0038994": {
+      "player_name": "Jordan Addison",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.343,
+        "receiving_yards": 546.406,
+        "receptions": 43.589,
+        "rushing_tds": 0.174,
+        "rushing_yards": 24.193,
+        "targets": 64.396
+      },
+      "team": "MIN"
+    },
+    "00-0038996": {
+      "player_name": "Tucker Kraft",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.909,
+        "receiving_yards": 483.429,
+        "receptions": 42.65,
+        "targets": 59.451
+      },
+      "team": "GB"
+    },
+    "00-0038997": {
+      "player_name": "Josh Downs",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.367,
+        "receiving_yards": 497.905,
+        "receptions": 43.669,
+        "rushing_tds": 0.073,
+        "rushing_yards": 6.919,
+        "targets": 62.538
+      },
+      "team": "IND"
+    },
+    "00-0039032": {
+      "player_name": "Tyjae Spears",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 66.782,
+        "receiving_tds": 0.953,
+        "receiving_yards": 194.387,
+        "receptions": 26.119,
+        "rushing_tds": 2.081,
+        "rushing_yards": 274.69,
+        "targets": 33.404
+      },
+      "team": "TEN"
+    },
+    "00-0039040": {
+      "player_name": "De'Von Achane",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 208.326,
+        "receiving_tds": 2.44,
+        "receiving_yards": 400.468,
+        "receptions": 52.748,
+        "rushing_tds": 6.785,
+        "rushing_yards": 897.332,
+        "targets": 66.895
+      },
+      "team": "MIA"
+    },
+    "00-0039064": {
+      "player_name": "Zay Flowers",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.715,
+        "receiving_yards": 986.876,
+        "receptions": 81.766,
+        "rushing_tds": 0.387,
+        "rushing_yards": 39.719,
+        "targets": 115.647
+      },
+      "team": "BAL"
+    },
+    "00-0039065": {
+      "player_name": "Sam LaPorta",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.455,
+        "receiving_yards": 487.856,
+        "receptions": 45.001,
+        "targets": 65.367
+      },
+      "team": "DET"
+    },
+    "00-0039067": {
+      "player_name": "Rashee Rice",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 3.741,
+        "receiving_yards": 615.077,
+        "receptions": 50.849,
+        "rushing_tds": 0.249,
+        "rushing_yards": 28.166,
+        "targets": 77.187
+      },
+      "team": "KC"
+    },
+    "00-0039075": {
+      "player_name": "Puka Nacua",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 7.399,
+        "receiving_yards": 1255.015,
+        "receptions": 106.897,
+        "rushing_tds": 0.379,
+        "rushing_yards": 45.796,
+        "targets": 145.591
+      },
+      "team": "LA"
+    },
+    "00-0039139": {
+      "player_name": "Jahmyr Gibbs",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 218.241,
+        "receiving_tds": 2.552,
+        "receiving_yards": 442.921,
+        "receptions": 55.126,
+        "rushing_tds": 8.229,
+        "rushing_yards": 978.699,
+        "targets": 70.338
+      },
+      "team": "DET"
+    },
+    "00-0039146": {
+      "player_name": "Jayden Reed",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.144,
+        "receiving_yards": 335.124,
+        "receptions": 29.632,
+        "rushing_tds": 0.162,
+        "rushing_yards": 16.158,
+        "targets": 39.885
+      },
+      "team": "GB"
+    },
+    "00-0039150": {
+      "player_name": "Bryce Young",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 391.074,
+        "interceptions": 8.249,
+        "passing_tds": 18.808,
+        "passing_yards": 2787.061,
+        "rushing_tds": 2.428,
+        "rushing_yards": 189.794
+      },
+      "team": "CAR"
+    },
+    "00-0039163": {
+      "player_name": "C.J. Stroud",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 427.927,
+        "interceptions": 8.953,
+        "passing_tds": 20.81,
+        "passing_yards": 3134.357,
+        "rushing_tds": 1.591,
+        "rushing_yards": 216.257
+      },
+      "team": "HOU"
+    },
+    "00-0039164": {
+      "player_name": "Anthony Richardson",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 5.535,
+        "interceptions": 0.309,
+        "passing_tds": 0.0,
+        "passing_yards": 27.981,
+        "rushing_tds": 0.815,
+        "rushing_yards": 54.827
+      },
+      "team": "IND"
+    },
+    "00-0039165": {
+      "player_name": "Zach Charbonnet",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 96.063,
+        "receiving_tds": 0.037,
+        "receiving_yards": 46.278,
+        "receptions": 7.78,
+        "rushing_tds": 3.889,
+        "rushing_yards": 414.092,
+        "targets": 10.491
+      },
+      "team": "SEA"
+    },
+    "00-0039337": {
+      "player_name": "Malik Nabers",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.007,
+        "receiving_yards": 594.03,
+        "receptions": 47.35,
+        "rushing_tds": 0.132,
+        "rushing_yards": 9.782,
+        "targets": 70.513
+      },
+      "team": "NYG"
+    },
+    "00-0039338": {
+      "player_name": "Brock Bowers",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 5.573,
+        "receiving_yards": 762.125,
+        "receptions": 69.252,
+        "targets": 99.201
+      },
+      "team": "LV"
+    },
+    "00-0039361": {
+      "player_name": "Bucky Irving",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 152.018,
+        "receiving_tds": 1.299,
+        "receiving_yards": 224.179,
+        "receptions": 31.253,
+        "rushing_tds": 4.765,
+        "rushing_yards": 673.613,
+        "targets": 39.543
+      },
+      "team": "TB"
+    },
+    "00-0039384": {
+      "player_name": "Tyrone Tracy Jr.",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 114.412,
+        "receiving_tds": 0.928,
+        "receiving_yards": 208.221,
+        "receptions": 26.711,
+        "rushing_tds": 3.42,
+        "rushing_yards": 485.476,
+        "targets": 34.311
+      },
+      "team": "NYG"
+    },
+    "00-0039391": {
+      "player_name": "Kimani Vidal",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 81.793,
+        "receiving_tds": 0.376,
+        "receiving_yards": 90.149,
+        "receptions": 12.056,
+        "rushing_tds": 2.514,
+        "rushing_yards": 342.478,
+        "targets": 15.905
+      },
+      "team": "LAC"
+    },
+    "00-0039398": {
+      "player_name": "Joe Milton III",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 7.985,
+        "interceptions": 0.121,
+        "passing_tds": 0.0,
+        "passing_yards": 35.773,
+        "rushing_tds": 0.062,
+        "rushing_yards": 6.508
+      },
+      "team": "DAL"
+    },
+    "00-0039410": {
+      "player_name": "Ryan Flournoy",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.715,
+        "receiving_yards": 275.034,
+        "receptions": 22.891,
+        "rushing_tds": 0.053,
+        "rushing_yards": 11.809,
+        "targets": 34.71
+      },
+      "team": "DAL"
+    },
+    "00-0039491": {
+      "player_name": "Jalen Coker",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.466,
+        "receiving_yards": 369.272,
+        "receptions": 31.473,
+        "rushing_tds": 0.043,
+        "rushing_yards": 5.504,
+        "targets": 44.547
+      },
+      "team": "CAR"
+    },
+    "00-0039732": {
+      "player_name": "Bo Nix",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 482.29,
+        "interceptions": 9.136,
+        "passing_tds": 23.983,
+        "passing_yards": 3485.465,
+        "rushing_tds": 3.828,
+        "rushing_yards": 324.871
+      },
+      "team": "DEN"
+    },
+    "00-0039738": {
+      "player_name": "Blake Corum",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 97.935,
+        "receiving_tds": 0.257,
+        "receiving_yards": 69.384,
+        "receptions": 10.318,
+        "rushing_tds": 3.034,
+        "rushing_yards": 413.73,
+        "targets": 13.276
+      },
+      "team": "LA"
+    },
+    "00-0039793": {
+      "player_name": "AJ Barner",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 3.312,
+        "receiving_yards": 483.319,
+        "receptions": 45.593,
+        "targets": 63.677
+      },
+      "team": "SEA"
+    },
+    "00-0039847": {
+      "player_name": "Theo Johnson",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 2.646,
+        "receiving_yards": 353.094,
+        "receptions": 31.498,
+        "targets": 42.912
+      },
+      "team": "NYG"
+    },
+    "00-0039849": {
+      "player_name": "Marvin Harrison Jr.",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.375,
+        "receiving_yards": 658.601,
+        "receptions": 46.824,
+        "rushing_tds": 0.073,
+        "rushing_yards": 7.825,
+        "targets": 77.926
+      },
+      "team": "ARI"
+    },
+    "00-0039851": {
+      "player_name": "Drake Maye",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 452.078,
+        "interceptions": 9.983,
+        "passing_tds": 23.585,
+        "passing_yards": 3489.653,
+        "rushing_tds": 3.558,
+        "rushing_yards": 375.017
+      },
+      "team": "NE"
+    },
+    "00-0039855": {
+      "player_name": "Jalen McMillan",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.761,
+        "receiving_yards": 266.71,
+        "receptions": 21.733,
+        "rushing_tds": 0.065,
+        "rushing_yards": 6.675,
+        "targets": 31.92
+      },
+      "team": "TB"
+    },
+    "00-0039875": {
+      "player_name": "Ray Davis",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 54.047,
+        "receiving_tds": 0.758,
+        "receiving_yards": 99.588,
+        "receptions": 13.856,
+        "rushing_tds": 1.173,
+        "rushing_yards": 221.727,
+        "targets": 17.675
+      },
+      "team": "BUF"
+    },
+    "00-0039880": {
+      "player_name": "Malik Washington",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.276,
+        "receiving_yards": 454.537,
+        "receptions": 40.534,
+        "rushing_tds": 0.462,
+        "rushing_yards": 58.714,
+        "targets": 59.986
+      },
+      "team": "MIA"
+    },
+    "00-0039893": {
+      "player_name": "Brian Thomas Jr.",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.648,
+        "receiving_yards": 753.598,
+        "receptions": 56.921,
+        "rushing_tds": 0.279,
+        "rushing_yards": 24.502,
+        "targets": 88.318
+      },
+      "team": "JAX"
+    },
+    "00-0039894": {
+      "player_name": "Xavier Worthy",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.565,
+        "receiving_yards": 448.315,
+        "receptions": 37.049,
+        "rushing_tds": 0.245,
+        "rushing_yards": 33.692,
+        "targets": 54.667
+      },
+      "team": "KC"
+    },
+    "00-0039910": {
+      "player_name": "Jayden Daniels",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 323.376,
+        "interceptions": 5.865,
+        "passing_tds": 14.707,
+        "passing_yards": 2367.072,
+        "rushing_tds": 3.568,
+        "rushing_yards": 354.16
+      },
+      "team": "WAS"
+    },
+    "00-0039915": {
+      "player_name": "Ladd McConkey",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.517,
+        "receiving_yards": 848.803,
+        "receptions": 68.972,
+        "rushing_tds": 0.107,
+        "rushing_yards": 8.141,
+        "targets": 100.731
+      },
+      "team": "LAC"
+    },
+    "00-0039917": {
+      "player_name": "Michael Penix Jr.",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 106.394,
+        "interceptions": 2.7,
+        "passing_tds": 5.469,
+        "passing_yards": 770.202,
+        "rushing_tds": 0.49,
+        "rushing_yards": 34.407
+      },
+      "team": "ATL"
+    },
+    "00-0039918": {
+      "player_name": "Caleb Williams",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 470.032,
+        "interceptions": 8.187,
+        "passing_tds": 24.491,
+        "passing_yards": 3448.585,
+        "rushing_tds": 2.771,
+        "rushing_yards": 345.274
+      },
+      "team": "CHI"
+    },
+    "00-0039919": {
+      "player_name": "Rome Odunze",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.63,
+        "receiving_yards": 712.338,
+        "receptions": 50.781,
+        "rushing_tds": 0.076,
+        "rushing_yards": 8.431,
+        "targets": 85.99
+      },
+      "team": "CHI"
+    },
+    "00-0039923": {
+      "player_name": "J.J. McCarthy",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 154.341,
+        "interceptions": 4.303,
+        "passing_tds": 5.792,
+        "passing_yards": 1102.1,
+        "rushing_tds": 1.777,
+        "rushing_yards": 107.122
+      },
+      "team": "MIN"
+    },
+    "00-0040122": {
+      "player_name": "Ashton Jeanty",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 175.842,
+        "receiving_tds": 1.689,
+        "receiving_yards": 302.613,
+        "receptions": 41.456,
+        "rushing_tds": 5.591,
+        "rushing_yards": 759.246,
+        "targets": 53.198
+      },
+      "team": "LV"
+    },
+    "00-0040124": {
+      "player_name": "Tetairoa McMillan",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 5.408,
+        "receiving_yards": 881.017,
+        "receptions": 69.878,
+        "rushing_tds": 0.002,
+        "rushing_yards": 5.75,
+        "targets": 106.644
+      },
+      "team": "CAR"
+    },
+    "00-0040126": {
+      "player_name": "Colston Loveland",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.291,
+        "receiving_yards": 557.681,
+        "receptions": 50.046,
+        "targets": 75.585
+      },
+      "team": "CHI"
+    },
+    "00-0040128": {
+      "player_name": "Tyler Warren",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.471,
+        "receiving_yards": 618.607,
+        "receptions": 56.933,
+        "targets": 82.493
+      },
+      "team": "IND"
+    },
+    "00-0040129": {
+      "player_name": "Emeka Egbuka",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 4.869,
+        "receiving_yards": 809.016,
+        "receptions": 60.912,
+        "rushing_tds": 0.045,
+        "rushing_yards": 10.844,
+        "targets": 99.651
+      },
+      "team": "TB"
+    },
+    "00-0040134": {
+      "player_name": "Pat Bryant",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.389,
+        "receiving_yards": 245.076,
+        "receptions": 19.122,
+        "rushing_tds": 0.0,
+        "rushing_yards": 1.533,
+        "targets": 30.611
+      },
+      "team": "DEN"
+    },
+    "00-0040138": {
+      "player_name": "Jaylin Noel",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.508,
+        "receiving_yards": 233.552,
+        "receptions": 18.97,
+        "rushing_tds": 0.091,
+        "rushing_yards": 13.09,
+        "targets": 29.6
+      },
+      "team": "HOU"
+    },
+    "00-0040142": {
+      "player_name": "Kaleb Johnson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 34.769,
+        "receiving_tds": 0.13,
+        "receiving_yards": 47.414,
+        "receptions": 6.569,
+        "rushing_tds": 0.767,
+        "rushing_yards": 139.405,
+        "targets": 8.846
+      },
+      "team": "GB"
+    },
+    "00-0040162": {
+      "player_name": "Dylan Sampson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 55.706,
+        "receiving_tds": 0.958,
+        "receiving_yards": 190.257,
+        "receptions": 24.425,
+        "rushing_tds": 1.504,
+        "rushing_yards": 233.527,
+        "targets": 31.403
+      },
+      "team": "CLE"
+    },
+    "00-0040170": {
+      "player_name": "Elic Ayomanor",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.288,
+        "receiving_yards": 365.959,
+        "receptions": 26.742,
+        "rushing_tds": 0.0,
+        "rushing_yards": 1.829,
+        "targets": 47.483
+      },
+      "team": "TEN"
+    },
+    "00-0040189": {
+      "player_name": "Oronde Gadsden II",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 2.553,
+        "receiving_yards": 333.243,
+        "receptions": 29.034,
+        "targets": 42.59
+      },
+      "team": "LAC"
+    },
+    "00-0040236": {
+      "player_name": "Kyle Monangai",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 111.559,
+        "receiving_tds": 0.537,
+        "receiving_yards": 140.912,
+        "receptions": 17.611,
+        "rushing_tds": 3.526,
+        "rushing_yards": 468.397,
+        "targets": 23.094
+      },
+      "team": "CHI"
+    },
+    "00-0040237": {
+      "player_name": "Tez Johnson",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.926,
+        "receiving_yards": 274.714,
+        "receptions": 20.917,
+        "rushing_tds": 0.109,
+        "rushing_yards": 15.43,
+        "targets": 34.602
+      },
+      "team": "TB"
+    },
+    "00-0040242": {
+      "player_name": "Jacory Croskey-Merritt",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 155.495,
+        "receiving_tds": 0.744,
+        "receiving_yards": 146.995,
+        "receptions": 19.302,
+        "rushing_tds": 5.111,
+        "rushing_yards": 671.298,
+        "targets": 25.398
+      },
+      "team": "WAS"
+    },
+    "00-0040583": {
+      "player_name": "Woody Marks",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 107.658,
+        "receiving_tds": 0.8,
+        "receiving_yards": 164.686,
+        "receptions": 22.165,
+        "rushing_tds": 3.136,
+        "rushing_yards": 452.387,
+        "targets": 28.631
+      },
+      "team": "HOU"
+    },
+    "00-0040584": {
+      "player_name": "Gunnar Helm",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 2.438,
+        "receiving_yards": 390.711,
+        "receptions": 37.552,
+        "targets": 54.057
+      },
+      "team": "TEN"
+    },
+    "00-0040586": {
+      "player_name": "Jaydon Blue",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 18.324,
+        "receiving_tds": 0.0,
+        "receiving_yards": 5.128,
+        "receptions": 0.624,
+        "rushing_tds": 0.469,
+        "rushing_yards": 71.792,
+        "targets": 0.939
+      },
+      "team": "DAL"
+    },
+    "00-0040648": {
+      "player_name": "Tory Horton",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.934,
+        "receiving_yards": 253.932,
+        "receptions": 18.603,
+        "rushing_tds": 0.0,
+        "rushing_yards": 1.706,
+        "targets": 30.944
+      },
+      "team": "SEA"
+    },
+    "00-0040663": {
+      "player_name": "Harold Fannin Jr.",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 4.28,
+        "receiving_yards": 611.077,
+        "receptions": 55.969,
+        "targets": 80.971
+      },
+      "team": "CLE"
+    },
+    "00-0040666": {
+      "player_name": "Omarion Hampton",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 137.688,
+        "receiving_tds": 1.285,
+        "receiving_yards": 239.52,
+        "receptions": 31.035,
+        "rushing_tds": 4.403,
+        "rushing_yards": 595.033,
+        "targets": 39.986
+      },
+      "team": "LAC"
+    },
+    "00-0040667": {
+      "player_name": "Matthew Golden",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.383,
+        "receiving_yards": 273.909,
+        "receptions": 23.141,
+        "rushing_tds": 0.197,
+        "rushing_yards": 26.628,
+        "targets": 34.95
+      },
+      "team": "GB"
+    },
+    "00-0040668": {
+      "player_name": "Shedeur Sanders",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 116.426,
+        "interceptions": 3.484,
+        "passing_tds": 4.396,
+        "passing_yards": 791.76,
+        "rushing_tds": 0.708,
+        "rushing_yards": 75.451
+      },
+      "team": "CLE"
+    },
+    "00-0040669": {
+      "player_name": "Isaac TeSlaa",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.256,
+        "receiving_yards": 286.868,
+        "receptions": 21.112,
+        "rushing_tds": 0.0,
+        "rushing_yards": 0.594,
+        "targets": 34.897
+      },
+      "team": "DET"
+    },
+    "00-0040676": {
+      "player_name": "Cam Ward",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 449.267,
+        "interceptions": 9.229,
+        "passing_tds": 19.829,
+        "passing_yards": 3129.962,
+        "rushing_tds": 2.16,
+        "rushing_yards": 203.677
+      },
+      "team": "TEN"
+    },
+    "00-0040691": {
+      "player_name": "Jaxson Dart",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 435.161,
+        "interceptions": 9.207,
+        "passing_tds": 20.051,
+        "passing_yards": 3145.069,
+        "rushing_tds": 5.527,
+        "rushing_yards": 442.996
+      },
+      "team": "NYG"
+    },
+    "00-0040705": {
+      "player_name": "Chimere Dike",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.869,
+        "receiving_yards": 291.811,
+        "receptions": 24.291,
+        "rushing_tds": 0.192,
+        "rushing_yards": 22.401,
+        "targets": 39.642
+      },
+      "team": "TEN"
+    },
+    "00-0040715": {
+      "player_name": "Cam Skattebo",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 128.02,
+        "receiving_tds": 1.377,
+        "receiving_yards": 233.926,
+        "receptions": 30.424,
+        "rushing_tds": 4.227,
+        "rushing_yards": 560.666,
+        "targets": 39.347
+      },
+      "team": "NYG"
+    },
+    "00-0040719": {
+      "player_name": "Bhayshul Tuten",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 109.773,
+        "receiving_tds": 0.987,
+        "receiving_yards": 157.522,
+        "receptions": 21.579,
+        "rushing_tds": 3.479,
+        "rushing_yards": 481.205,
+        "targets": 28.085
+      },
+      "team": "JAX"
+    },
+    "00-0040727": {
+      "player_name": "Tre Harris",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 1.393,
+        "receiving_yards": 244.393,
+        "receptions": 20.297,
+        "rushing_tds": 0.023,
+        "rushing_yards": 6.518,
+        "targets": 31.774
+      },
+      "team": "LAC"
+    },
+    "00-0040730": {
+      "player_name": "RJ Harvey",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 97.2,
+        "receiving_tds": 1.29,
+        "receiving_yards": 241.506,
+        "receptions": 32.453,
+        "rushing_tds": 3.367,
+        "rushing_yards": 424.717,
+        "targets": 41.306
+      },
+      "team": "DEN"
+    },
+    "00-0040734": {
+      "player_name": "TreVeyon Henderson",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 127.513,
+        "receiving_tds": 0.771,
+        "receiving_yards": 189.896,
+        "receptions": 24.325,
+        "rushing_tds": 4.39,
+        "rushing_yards": 544.743,
+        "targets": 31.208
+      },
+      "team": "NE"
+    },
+    "00-0040735": {
+      "player_name": "Luther Burden III",
+      "position": "WR",
+      "raw_stats": {
+        "receiving_tds": 2.492,
+        "receiving_yards": 434.672,
+        "receptions": 37.36,
+        "rushing_tds": 0.111,
+        "rushing_yards": 19.689,
+        "targets": 52.925
+      },
+      "team": "CHI"
+    },
+    "00-0040736": {
+      "player_name": "Mason Taylor",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 2.702,
+        "receiving_yards": 422.84,
+        "receptions": 40.686,
+        "targets": 57.454
+      },
+      "team": "NYJ"
+    },
+    "00-0040737": {
+      "player_name": "Terrance Ferguson",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 1.974,
+        "receiving_yards": 198.269,
+        "receptions": 17.243,
+        "targets": 26.64
+      },
+      "team": "LA"
+    },
+    "00-0040739": {
+      "player_name": "Elijah Arroyo",
+      "position": "TE",
+      "raw_stats": {
+        "receiving_tds": 1.441,
+        "receiving_yards": 173.71,
+        "receptions": 16.314,
+        "targets": 23.791
+      },
+      "team": "SEA"
+    },
+    "00-0040743": {
+      "player_name": "Tyler Shough",
+      "position": "QB",
+      "raw_stats": {
+        "attempts": 410.602,
+        "interceptions": 9.6,
+        "passing_tds": 17.533,
+        "passing_yards": 2967.513,
+        "rushing_tds": 2.812,
+        "rushing_yards": 232.688
+      },
+      "team": "NO"
+    },
+    "00-0040784": {
+      "player_name": "Quinshon Judkins",
+      "position": "RB",
+      "raw_stats": {
+        "carries": 168.748,
+        "receiving_tds": 0.887,
+        "receiving_yards": 187.14,
+        "receptions": 25.486,
+        "rushing_tds": 5.447,
+        "rushing_yards": 716.919,
+        "targets": 33.314
+      },
+      "team": "CLE"
+    }
+  },
+  "role_source_audit": {
+    "2017": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 453,
+      "rows": 36620,
+      "schema": "historical_week1_admin",
+      "season": 2017
+    },
+    "2018": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 482,
+      "rows": 36560,
+      "schema": "historical_week1_admin",
+      "season": 2018
+    },
+    "2019": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 482,
+      "rows": 36308,
+      "schema": "historical_week1_admin",
+      "season": 2019
+    },
+    "2020": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 491,
+      "rows": 36168,
+      "schema": "historical_week1_admin",
+      "season": 2020
+    },
+    "2021": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 464,
+      "rows": 37487,
+      "schema": "historical_week1_admin",
+      "season": 2021
+    },
+    "2022": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 479,
+      "rows": 37780,
+      "schema": "historical_week1_admin",
+      "season": 2022
+    },
+    "2023": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 457,
+      "rows": 37327,
+      "schema": "historical_week1_admin",
+      "season": 2023
+    },
+    "2024": {
+      "freeze_provenance": "PROVISIONAL_NOT_TIMESTAMPED",
+      "role_rows": 473,
+      "rows": 37312,
+      "schema": "historical_week1_admin",
+      "season": 2024
+    },
+    "2025": {
+      "cutoff": "2025-09-04T00:00:00+00:00",
+      "eligible_rows": 91234,
+      "fantasy_position_rows": 547,
+      "role_rows": 547,
+      "rows": 554215,
+      "schema": "timestamped",
+      "season": 2025,
+      "snapshot": "2025-09-03T07:14:41+00:00",
+      "snapshot_rows": 2135,
+      "teams": 32
+    },
+    "2026": {
+      "cutoff": "2026-09-03T22:23:10+00:00",
+      "eligible_rows": 494524,
+      "fantasy_position_rows": 571,
+      "role_rows": 571,
+      "rows": 494524,
+      "schema": "timestamped",
+      "season": 2026,
+      "snapshot": "2026-09-03T11:53:47+00:00",
+      "snapshot_rows": 2204,
+      "teams": 32
+    }
+  },
+  "season": "2026"
+}

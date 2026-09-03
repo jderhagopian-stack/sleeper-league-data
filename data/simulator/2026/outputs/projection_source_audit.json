@@ -35,10 +35,15 @@
       }
     ]
   },
-  "generated_at_utc": "2026-08-30T10:22:47.275190+00:00",
-  "mapped_rows": 5852,
-  "mapping_coverage": 0.91998,
+  "generated_at_utc": "2026-09-03T22:23:04.227102+00:00",
+  "mapped_rows": 6435,
+  "mapping_coverage": 0.88575,
   "quality_flags": [
+    {
+      "code": "LOW_MAPPING_COVERAGE",
+      "message": "Only 88.6% of weekly source rows mapped to Sleeper.",
+      "severity": "warning"
+    },
     {
       "code": "NO_EXPLICIT_WEEK_COLUMN",
       "message": "The current weekly source snapshot does not expose an explicit week column. No week number was invented.",
@@ -46,21 +51,21 @@
     },
     {
       "code": "NAME_FALLBACK_USED",
-      "message": "15 rows required normalized-name fallback across weekly + draft sources.",
+      "message": "17 rows required normalized-name fallback across weekly + draft sources.",
       "severity": "info"
     }
   ],
   "season": "2026",
-  "source_rows": 6361,
+  "source_rows": 7265,
   "weekly_source": {
-    "mapped_rows": 740,
-    "mapping_coverage": 0.91471,
+    "mapped_rows": 1323,
+    "mapping_coverage": 0.77233,
     "mapping_methods": {
       "ambiguous_name": 0,
-      "fantasypros_id": 740,
-      "normalized_name": 0,
-      "unmatched": 69
+      "fantasypros_id": 1321,
+      "normalized_name": 2,
+      "unmatched": 390
     },
-    "rows": 809
+    "rows": 1713
   }
 }
