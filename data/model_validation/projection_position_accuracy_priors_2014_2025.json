@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "status": "RESEARCH_PRIOR_ONLY",
+  "purpose": "Provide long-run positional source accuracy priors to stabilize single-season raw-stat category evidence without converting position-level fantasy-point accuracy into direct category authority.",
+  "source": {
+    "publisher": "Fantasy Football Analytics",
+    "analysis": "Which Projections Are Most Accurate?",
+    "coverage": "2014-2025",
+    "primary_metric": "MAE on seasonal fantasy points among top projected players",
+    "retrieved_on": "2026-09-03"
+  },
+  "governance": {
+    "direct_category_authority": false,
+    "stabilizing_prior_only": true,
+    "raw_stat_holdout_evidence_remains_primary": true,
+    "aggregation_overlap_must_be_controlled": true,
+    "production_behavior_changed": false
+  },
+  "positions": {
+    "QB": {
+      "historical_mae": {
+        "FantasyPros": 61.0,
+        "FFA Average": 61.7,
+        "FFA Weighted": 63.0,
+        "CBS": 63.1,
+        "FFToday": 63.6
+      },
+      "recent_2023_2025_mae": {
+        "NFL": 71.2,
+        "FantasySharks": 72.5,
+        "FFToday": 74.0,
+        "FantasyPros": 74.7,
+        "FFA Average": 75.9,
+        "FFA Weighted": 76.1,
+        "CBS": 82.1,
+        "ESPN": 86.7
+      },
+      "calibration_slope_ffa_average": 0.67
+    },
+    "RB": {
+      "historical_mae": {
+        "CBS": 52.2,
+        "FantasyPros": 52.4,
+        "FFToday": 52.8,
+        "FFA Average": 53.4,
+        "ESPN": 53.4,
+        "FFA Weighted": 54.1
+      },
+      "recent_2023_2025_mae": {
+        "CBS": 54.2,
+        "FantasyPros": 56.1,
+        "FFA Average": 56.9,
+        "FFA Weighted": 56.9,
+        "FFToday": 57.6
+      },
+      "calibration_slope_ffa_average": 0.79
+    },
+    "WR": {
+      "historical_mae": {
+        "FantasyPros": 40.2,
+        "FFToday": 41.1,
+        "ESPN": 42.0,
+        "CBS": 42.1,
+        "FFA Average": 42.2,
+        "FFA Weighted": 42.2,
+        "NumberFire": 42.3
+      },
+      "recent_2023_2025_mae": {
+        "FFToday": 40.9,
+        "FantasyPros": 41.9,
+        "NFL": 42.8,
+        "FFA Average": 43.8,
+        "FFA Weighted": 43.9,
+        "CBS": 47.5
+      },
+      "calibration_slope_ffa_average": 0.85
+    },
+    "TE": {
+      "historical_mae": {
+        "FantasyPros": 31.4,
+        "FFToday": 31.5,
+        "NumberFire": 31.9,
+        "ESPN": 31.9,
+        "FFA Weighted": 31.9,
+        "FFA Average": 32.3,
+        "CBS": 33.8
+      },
+      "recent_2023_2025_mae": {
+        "FFToday": 29.4,
+        "FantasyPros": 29.5,
+        "ESPN": 29.6,
+        "NFL": 29.6,
+        "NumberFire": 30.2,
+        "FFA Weighted": 30.4,
+        "FFA Average": 30.5,
+        "CBS": 34.3
+      },
+      "calibration_slope_ffa_average": 0.72
+    }
+  },
+  "structural_findings": {
+    "ffa_average_head_to_head_win_rate_vs_individual_sources": 0.69,
+    "ffa_average_overall_mae": 47.4,
+    "ffa_weighted_overall_mae": 47.8,
+    "simple_average_win_rate_vs_weighted": 0.64,
+    "interpretation": "Equal weighting is a mandatory benchmark because long-run source accuracy has not persisted strongly enough for historical weighting to consistently outperform simple averaging."
+  }
+}
