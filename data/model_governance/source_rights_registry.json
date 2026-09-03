@@ -21,11 +21,13 @@
       "provider": "FantasyCalc",
       "role": "current dynasty market anchor and market diagnostics",
       "current_model_use": "production market coordinate",
-      "source_class": "RIGHTS_UNCLEAR_OR_UNREVIEWED",
-      "commercial_readiness": "REVIEW_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+      "source_class": "COMMERCIAL_LICENSE_REQUIRED",
+      "commercial_readiness": "COMMERCIAL_LICENSE_OR_WRITTEN_PERMISSION_REQUIRED",
       "material_production_dependency": true,
       "legal_determination_made": false,
-      "action": "Resolve commercial-use rights or replace/license the market-value source before representing the model as commercially ready."
+      "action": "Before commercial launch, obtain written commercial permission/license covering the production market-value integration or replace the material production market coordinate with a commercially permitted source.",
+      "rights_review_basis": "FantasyCalc's current Terms of Usage state that its Service/content is provided for personal, non-commercial use. Its FAQ says tool/sheet/app integrations are possible with restrictions and directs integrations to the terms policy.",
+      "rights_reviewed_at": "2026-09-03"
     },
     {
       "source_id": "PFF-HISTORICAL-VALUES",
