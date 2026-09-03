@@ -104,7 +104,7 @@ jobs:
           retention-days: 14
 
   real-2014-expanded-championship:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'research/run-expanded-projection-championship'
     needs: benchmark-self-test
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -118,6 +118,15 @@ jobs:
           python script/run_2014_multisource_raw_stat_benchmark.py \
             --output data/model_validation/projection_2014_multisource_raw_stat_scorecard.json
           python -m json.tool data/model_validation/projection_2014_multisource_raw_stat_scorecard.json > /dev/null
+      - name: Print championship summary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('data/model_validation/projection_2014_multisource_raw_stat_scorecard.json'))
+          print(json.dumps(x['summary'], indent=2, sort_keys=True))
+          for category, row in sorted(x['categories'].items()):
+              print(category, row['winner_in_2014_cross_section'], 'n=', row['common_players'])
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: projection-2014-multisource-raw-stat-scorecard
