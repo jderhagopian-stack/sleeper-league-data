@@ -166,7 +166,7 @@ jobs:
           python - <<'PY'
           import json, os
           b=json.load(open('/tmp/opportunity-engine/opportunity-board.json'))
-          assert b['model_version']=='FSFFL-Opportunity-Engine-2.2'
+          assert b['model_version']=='FSFFL-Opportunity-Engine-2.3'
           assert b['policy']['creates_new_valuation_model'] is False
           assert b['policy']['creates_new_cross_channel_utility'] is False
           assert b['policy']['adaptive_search_creates_new_utility'] is False
@@ -203,7 +203,7 @@ jobs:
               for x in b['trade_decision_reviews']:
                   assert x['authority']=='Trade Decision'
                   assert x['trade_decision']['generated_proposal_willingness_observed'] is False
-          print('Opportunity Engine 2.2 governed production validation passed')
+          print('Opportunity Engine 2.3 governed production validation passed')
           PY
       - name: Validate standardized PDF deliverable
         if: always()
