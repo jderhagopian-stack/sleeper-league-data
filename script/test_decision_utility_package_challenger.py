@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the non-production package-concentration challenger."""
+"""Regression tests for package-concentration sensitivity around the production center prior."""
 from __future__ import annotations
 
 import importlib.util
@@ -71,8 +71,8 @@ def test_one_for_many_replaces_future_without_fifth_channel():
     x = sim([asset("ELITE", 4300)], [asset("A", 2400), asset("B", 1900)])
     base = mod.BASE.score(x)
     ch = mod.score(x, "legacy_mild_bound")
-    assert base["primitive_blocks"]["future"] == 0.0
-    assert ch["primitive_blocks"]["future"] < 0.0
+    assert base["primitive_blocks"]["future"] < 0.0
+    assert ch["primitive_blocks"]["future"] > base["primitive_blocks"]["future"]
     assert set(ch["components"]) == {"current", "future", "liquidity", "resilience"}
     assert ch["double_count_policy"]["raw_future_replaced_not_summed"] is True
     assert ch["double_count_policy"]["new_utility_channel_created"] is False
@@ -96,8 +96,10 @@ def test_consolidating_many_into_one_gets_symmetric_credit():
         [asset("ELITE", 4300)],
     )
     mild = mod.score(x, "legacy_mild_bound")
+    strong = mod.score(x, "gm22_strong_bound")
     assert mild["primitive_blocks"]["future"] > 0.0
-    assert mild["score_delta_vs_production"] > 0.0
+    assert mild["score_delta_vs_production"] < 0.0
+    assert strong["score_delta_vs_production"] > 0.0
 
 
 def test_forced_cut_is_excluded_from_package_but_preserved_in_future():
