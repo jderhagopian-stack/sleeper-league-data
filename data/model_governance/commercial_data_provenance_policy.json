@@ -43,6 +43,11 @@
     "RIGHTS_UNCLEAR_OR_UNREVIEWED": {
       "production_parameter_dependency_allowed": false,
       "default_treatment": "RESEARCH_REFERENCE_ONLY until rights are reviewed"
+    },
+    "COMMERCIAL_LICENSE_REQUIRED": {
+      "production_parameter_dependency_allowed": false,
+      "requirement": "Provider terms/documentation indicate commercial use requires a separate license, written agreement, or explicit approval. Current private/non-commercial development may proceed only within the applicable terms; commercial launch requires the permission to be resolved.",
+      "promotion_after_resolution": "Reclassify as COMMERCIAL_LICENSED only after the applicable agreement/permission is documented."
     }
   },
   "production_parameter_requirements": [
