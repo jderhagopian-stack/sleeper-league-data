@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
 """Shared FSFFL decision-utility primitives.
 
-Trade Decision and GM3 Team Improvement consume the same primitive utility.
+Trade Decision and GM3 Team Improvement consume the same four-channel utility.
 
-Version 2.1 retains the evidence-governed four-channel objective while repairing
-current-season evidence reconciliation:
-- Simulator outcome changes are still normalized league-relatively and converted
-  to value units using the focal roster's observed market-redraft scale;
-- that Simulator-derived current value is then combined by an unweighted median
-  with any directly observed transaction market-redraft delta and optimized
-  starter-redraft delta available from the same hypothetical;
-- the median ensemble avoids double-counting correlated current-season signals,
-  introduces no fitted exchange coefficient, and prevents a small simulation
-  gain from automatically overriding two contradictory roster/value signals;
-- future value remains the observed market-dynasty delta;
-- liquidity and resilience retain their existing value-denominated deltas;
-- optionality remains diagnostic only because residual incremental value has not
-  been independently demonstrated;
-- opponent title externality is folded directly into the championship outcome
-  before normalization rather than receiving a separate coefficient.
+Version 2.2 retains the evidence-governed current-season reconciliation from
+2.1 and promotes package concentration as a bounded provisional transform
+inside FUTURE ASSET VALUE:
+- current-season value combines Simulator outcome value, transaction
+  market-redraft delta, and optimized-starter redraft delta with an unweighted
+  same-unit median when those observations are available;
+- FUTURE ASSET VALUE starts from the dynasty market-value delta, but for
+  explicit negotiated multi-asset trades it replaces raw package additivity
+  with the governed package-concentration center prior;
+- automatic roster cuts and other non-trade future effects remain outside that
+  package transform and are preserved exactly once;
+- mild and strong package curves remain explicit sensitivity rails, and full
+  Shared Decision Utility is recomputed across the range so prior-sensitive
+  recommendations can be identified;
+- one-for-one trades are invariant by construction;
+- liquidity and resilience retain their separately authorized value-denominated
+  channels;
+- optionality remains diagnostic until a distinct residual is isolated;
+- behavior/acceptance does not enter focal economic utility;
+- no same-source market-rank repricing or fifth package channel is introduced.
 
-The only cross-channel weights are the governed continuous objective weights.
-No categorical state fallback or fixed current/future exchange-rate coefficient
-is used here.
+The package prior is explicitly provisional, not empirically calibrated. Its
+uncertainty is exposed and should be narrowed or replaced as stronger,
+commercially-permitted evidence accumulates.
 """
 from __future__ import annotations
 
