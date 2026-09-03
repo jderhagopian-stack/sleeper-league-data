@@ -30,7 +30,7 @@ jobs:
 
       - name: Build standardized report pack
         run: |
-          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator /tmp/fsffl-reports/draft /tmp/fsffl-reports/league /tmp/fsffl-reports/intelligence /tmp/fsffl-reports/history
+          mkdir -p /tmp/fsffl-reports/gm /tmp/fsffl-reports/simulator /tmp/fsffl-reports/draft /tmp/fsffl-reports/league /tmp/fsffl-reports/intelligence /tmp/fsffl-reports/history /tmp/fsffl-reports/preseason
           python - <<'PY'
           import json, subprocess
           from pathlib import Path
@@ -55,6 +55,20 @@ jobs:
                   'simulator_report':sim.split('/tmp/fsffl-reports/')[-1],
                   'draft_report':draft.split('/tmp/fsffl-reports/')[-1]
               })
+          li='/tmp/fsffl-reports/preseason/league-intelligence.json'
+          preseason='/tmp/fsffl-reports/preseason/2026-preseason-media-guide.pdf'
+          subprocess.run([
+              'python','script/league_intelligence/application.py',
+              '--focus-user-id','846634401482792960',
+              '--team-context','data/league_intelligence/hurts_so_good_team_context.json',
+              '--output',li
+          ],check=True)
+          subprocess.run([
+              'python','script/render_preseason_media_guide.py',
+              '--league-intelligence',li,
+              '--output',preseason
+          ],check=True)
+          manifest['league_reports']['preseason_media_guide']=preseason.split('/tmp/fsffl-reports/')[-1]
           static=[
               ('competitive_landscape','script/render_league_power_report.py','/tmp/fsffl-reports/league/competitive-landscape.pdf'),
               ('market_movement','script/render_market_movement_report.py','/tmp/fsffl-reports/intelligence/market-movement.pdf'),
@@ -76,13 +90,17 @@ jobs:
           root=Path('/tmp/fsffl-reports')
           manifest=json.loads((root/'manifest.json').read_text())
           assert len(manifest['team_reports']) == 12
-          assert set(manifest['league_reports']) == {'competitive_landscape','market_movement','record_book','multiverse_outliers'}
+          assert set(manifest['league_reports']) == {'competitive_landscape','market_movement','record_book','multiverse_outliers','preseason_media_guide'}
           pdfs=list(root.rglob('*.pdf'))
-          assert len(pdfs) == 40
+          assert len(pdfs) == 41
           for p in pdfs:
               assert p.stat().st_size > 2500
-              assert len(PdfReader(str(p)).pages) == 1
-          print('Validated 40 standardized one-page reports')
+              pages=len(PdfReader(str(p)).pages)
+              if p.name == '2026-preseason-media-guide.pdf':
+                  assert 28 <= pages <= 32, (p, pages)
+              else:
+                  assert pages == 1, (p, pages)
+          print('Validated 40 standardized one-page reports plus the multi-page preseason media guide')
           PY
 
       - name: Upload standardized report pack
