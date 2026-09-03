@@ -18,6 +18,7 @@ ALLOWED_CLASSES = {
     "FIRST_PARTY_OWNED",
     "OPEN_OR_COMMERCIALLY_PERMITTED",
     "COMMERCIAL_LICENSED",
+    "COMMERCIAL_LICENSE_REQUIRED",
     "RESEARCH_REFERENCE_ONLY",
     "RIGHTS_UNCLEAR_OR_UNREVIEWED",
 }
@@ -63,6 +64,9 @@ def main():
         if legal not in {True, False}:
             fail(f"{sid}: legal_determination_made must be boolean")
 
+        if cls == "COMMERCIAL_LICENSE_REQUIRED":
+            if "REQUIRED" not in readiness:
+                fail(f"{sid}: commercial-license-required source must remain explicitly gated")
         if cls in {"RESEARCH_REFERENCE_ONLY", "RIGHTS_UNCLEAR_OR_UNREVIEWED"}:
             if material and "REVIEW_REQUIRED" not in readiness:
                 fail(f"{sid}: rights-unclear material dependency must require commercial review")
