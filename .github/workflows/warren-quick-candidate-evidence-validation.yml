@@ -43,8 +43,14 @@ jobs:
           python - <<'PY'
           import json
           d=json.load(open('/tmp/warren-market.json'))
-          rows=(d.get('top_5_alternatives') or []) + (d.get('realistic_counter_alternatives') or [])
-          assert rows, 'expected generated trade alternatives'
+          rows=(d.get('ranked_finalists') or []) + (d.get('alternate_buyer_candidates') or [])
+          # De-duplicate because alternate-buyer candidates may also be finalists.
+          dedup={}
+          for row in rows:
+              key=(str(row.get('buyer_user_id') or ''),tuple(row.get('outgoing_assets') or []),tuple(row.get('return_assets') or []))
+              dedup[key]=row
+          rows=list(dedup.values())
+          assert rows, 'expected simulated generated trade candidates'
           checked=[]
           for row in rows:
               sim=row.get('simulation') or {}
