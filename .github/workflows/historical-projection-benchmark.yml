@@ -75,7 +75,10 @@ jobs:
             data/model_validation/native_vs_fftoday_residual_cohort.csv \
             --output data/model_validation/native_vs_fftoday_residual_diagnostic.json
       - name: Validate benchmark output
-        run: python -m json.tool data/model_validation/native_vs_fftoday_historical_benchmark.json > /dev/null
+        run: |
+          python -m json.tool data/model_validation/native_vs_fftoday_historical_benchmark.json > /dev/null
+          python -m json.tool data/model_validation/native_vs_fftoday_residual_diagnostic.json > /dev/null
+          test -s data/model_validation/native_vs_fftoday_residual_cohort.csv
       - uses: actions/upload-artifact@v4
         with:
           name: native-vs-fftoday-historical-benchmark
