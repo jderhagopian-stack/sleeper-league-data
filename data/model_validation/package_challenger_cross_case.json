@@ -145,9 +145,9 @@
       "id": "12_equal_three_for_one_consolidation",
       "context": "RETOOL",
       "purpose": "Generic equal-value 3-for-1 consolidation topology",
-      "current_primitive": 0,
+      "current_primitive": 100,
       "future_primitive": 0,
-      "production_score": 0,
+      "production_score": 50,
       "production_action": "REVIEW",
       "sent_assets": [
         "synthetic:a3000",
@@ -162,9 +162,9 @@
       "id": "13_equal_one_for_three_fragmentation",
       "context": "REBUILD",
       "purpose": "Generic equal-value 1-for-3 fragmentation topology",
-      "current_primitive": 0,
+      "current_primitive": 100,
       "future_primitive": 0,
-      "production_score": 0,
+      "production_score": 50,
       "production_action": "REVIEW",
       "sent_assets": [
         "synthetic:elite6000"
@@ -179,9 +179,9 @@
       "id": "14_equal_player_plus_pick_fragmentation",
       "context": "CONTENDER",
       "purpose": "Equal-value player for player-plus-pick package",
-      "current_primitive": 0,
+      "current_primitive": 100,
       "future_primitive": 0,
-      "production_score": 0,
+      "production_score": 50,
       "production_action": "REVIEW",
       "sent_assets": [
         "synthetic:player5000"
@@ -195,9 +195,9 @@
       "id": "15_equal_player_plus_pick_consolidation",
       "context": "CONTENDER",
       "purpose": "Reverse equal-value player-plus-pick consolidation",
-      "current_primitive": 0,
+      "current_primitive": 100,
       "future_primitive": 0,
-      "production_score": 0,
+      "production_score": 50,
       "production_action": "REVIEW",
       "sent_assets": [
         "synthetic:player4000",
