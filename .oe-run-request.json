@@ -1,7 +1,9 @@
 {
   "requested_team_name": "Hurts So Good",
-  "requested_model": "FSFFL-Opportunity-Engine-2.2",
+  "focus_user_id": "846634401482792960",
+  "requested_model": "FSFFL-Opportunity-Engine-2.3",
   "report_pipeline": "FSFFL Reporting Layer",
-  "reason": "Production validation after PR 151 bilateral shared utility parity, current-outcome restoration, liquidity de-duplication, and resilience de-duplication. Explicitly validate Lamar-for-Chase and Darnold-plus-2028-1st-for-Gibbs price curves.",
-  "requested_at_utc": "2026-09-01T07:22:08.714Z"
+  "mode": "OPEN_ENDED_BETA_TEST",
+  "reason": "Fresh post-PR-190 production use test. Do not target historical regression cases. Search the live league state for the best governed trade, waiver, hold, and negotiation opportunities; validate realistic bilateral pricing, package concentration, package-prior confidence, and user-facing report authority.",
+  "requested_at_utc": "2026-09-03T15:24:00Z"
 }
