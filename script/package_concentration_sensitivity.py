@@ -121,8 +121,7 @@ def evaluate_case(case, values):
         }
 
     nonadditive = [curves[k]["effective_delta"] for k in curves if k != "additive_benchmark"]
-    signs = {"positive" if x > 0 else "negative" if x < 0 else "zero" for x in nonadditive}
-    return {
+    signs = {"positive" if x > 0 else "negative" if x < 0 else "zero" for x in nonadditive}\n    first_sign = next(iter(signs), None)\n    robust_sign = (\n        first_sign.upper()\n        if first_sign and all(s == first_sign for s in signs)\n        else "SENSITIVE_TO_PRIOR_RANGE"\n    )\n    return {
         "case_id": case.get("case_id"),
         "label": case.get("label"),
         "sent_assets": sent,
