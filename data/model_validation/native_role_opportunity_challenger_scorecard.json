@@ -1,73 +1,116 @@
 {
-  "schema_version": "1.0",
-  "status": "VALIDATED_ROLLING_HOLDOUT_CHALLENGER",
+  "schema_version": "1.1",
+  "status": "VALIDATED_ROLLING_AND_SINGLE_EXTERNAL_COMMON_COHORT",
   "experiment": "native_preseason_role_opportunity_allocation_challenger",
-  "authoritative_run": {
-    "workflow_run_id": 33809499681,
-    "workflow_run_number": 19,
-    "artifact_id": 9914309532,
-    "artifact_digest": "sha256:ee1d08d522aca6d796b3c8af3b814511f2fae8ae9cb0a138490ef4360ed34f8b",
-    "head_sha": "0fb7036c4338eb22746ae3e0829f561677c3aa4a",
-    "holdout_seasons": [2021, 2022, 2023, 2024]
+  "authoritative_runs": {
+    "rolling_holdout": {
+      "workflow_run_id": 33809499681,
+      "workflow_run_number": 19,
+      "artifact_id": 9914309532,
+      "artifact_digest": "sha256:ee1d08d522aca6d796b3c8af3b814511f2fae8ae9cb0a138490ef4360ed34f8b",
+      "head_sha": "0fb7036c4338eb22746ae3e0829f561677c3aa4a",
+      "holdout_seasons": [2021, 2022, 2023, 2024]
+    },
+    "external_common_cohort": {
+      "workflow_run_id": 33810040976,
+      "workflow_run_number": 22,
+      "artifact_id": 9914493931,
+      "artifact_digest": "sha256:8c7af8cd52f0d5218ba2410afced3de68b4c44289735d972e1ca3f428faab0a1",
+      "head_sha": "41484d8c53c0287009be4161ce1793fbcdafff78",
+      "external_source": "FFToday",
+      "feature_selection_used_external_results": false
+    }
   },
   "selection": {
     "QB": {
       "selected": null,
       "decision": "REJECT_ALL_TESTED_ROLE_OPPORTUNITY_BUNDLES",
-      "best_interpretable_result": "No tested bundle achieved the restrained retention gate; do not add prior-share/vacated-opportunity features to QB from this experiment."
+      "best_interpretable_result": "No tested bundle achieved the restrained rolling-holdout retention gate; do not add prior-share/vacated-opportunity features to QB from this experiment."
     },
     "RB": {
       "selected": null,
       "decision": "REJECT_ALL_TESTED_ROLE_OPPORTUNITY_BUNDLES",
-      "best_interpretable_result": "No tested bundle achieved the restrained retention gate; do not add prior-share/vacated-opportunity features to RB from this experiment."
+      "best_interpretable_result": "No tested bundle achieved the restrained rolling-holdout retention gate; do not add prior-share/vacated-opportunity features to RB from this experiment."
     },
     "WR": {
       "selected": "share_vacated_interactions",
-      "delta_vs_native_v2_pp": 1.6460590703574098,
-      "seasons_improved": 4,
-      "seasons_tested": 4,
-      "season_deltas_pp": {
-        "2021": 1.1881248087542158,
-        "2022": 1.4729178528948754,
-        "2023": 2.1275741903223047,
-        "2024": 1.7956194294582506
-      },
       "feature_bundle": [
         "prior_team_skill_target_share",
         "opening_team_vacated_skill_target_share",
         "first_team_x_prior_skill_target_share"
       ],
-      "decision": "ADVANCE_TO_EXTERNAL_COMMON_COHORT_GATE"
+      "rolling_holdout": {
+        "delta_vs_native_v2_pp": 1.6460590703574098,
+        "seasons_improved": 4,
+        "seasons_tested": 4,
+        "season_deltas_pp": {
+          "2021": 1.1881248087542158,
+          "2022": 1.4729178528948754,
+          "2023": 2.1275741903223047,
+          "2024": 1.7956194294582506
+        }
+      },
+      "external_common_cohort": {
+        "external_source": "FFToday",
+        "groups": 15,
+        "challenger_wins": 11,
+        "base_wins": 4,
+        "mean_challenger_improvement_vs_base_pct": 0.5864854400449212,
+        "median_challenger_improvement_vs_base_pct": 0.5318869411176682,
+        "mean_challenger_native_mae": 51.5100193354085,
+        "mean_base_native_mae": 51.58489971943789,
+        "mean_external_mae": 52.507431558246644,
+        "gate_passed": true
+      },
+      "decision": "RETAIN_AS_PROVISIONAL_NATIVE_CHALLENGER_PENDING_PROVENANCE_AND_SECOND_SOURCE_GATES"
     },
     "TE": {
       "selected": "share_vacated_interactions",
-      "delta_vs_native_v2_pp": 1.1562201054538033,
-      "seasons_improved": 4,
-      "seasons_tested": 4,
-      "season_deltas_pp": {
-        "2021": 0.7030143486040252,
-        "2022": 1.348524306581126,
-        "2023": 1.6656874433680358,
-        "2024": 0.9076543232620278
-      },
       "feature_bundle": [
         "prior_team_skill_target_share",
         "opening_team_vacated_skill_target_share",
         "first_team_x_prior_skill_target_share"
       ],
-      "decision": "ADVANCE_TO_EXTERNAL_COMMON_COHORT_GATE"
+      "rolling_holdout": {
+        "delta_vs_native_v2_pp": 1.1562201054538033,
+        "seasons_improved": 4,
+        "seasons_tested": 4,
+        "season_deltas_pp": {
+          "2021": 0.7030143486040252,
+          "2022": 1.348524306581126,
+          "2023": 1.6656874433680358,
+          "2024": 0.9076543232620278
+        }
+      },
+      "external_common_cohort": {
+        "external_source": "FFToday",
+        "groups": 3,
+        "challenger_wins": 3,
+        "base_wins": 0,
+        "mean_challenger_improvement_vs_base_pct": 0.7161791498606694,
+        "median_challenger_improvement_vs_base_pct": 0.49669635161106057,
+        "mean_challenger_native_mae": 60.787031483427434,
+        "mean_base_native_mae": 61.10171509793156,
+        "mean_external_mae": 63.77011494252873,
+        "gate_passed": true,
+        "sample_caution": "Only one externally eligible TE season (2024) is currently available."
+      },
+      "decision": "RETAIN_AS_PROVISIONAL_NATIVE_CHALLENGER_PENDING_PROVENANCE_AND_SECOND_SOURCE_GATES"
     }
   },
   "interpretation": {
-    "headline": "Target-opportunity context is position-specific. The tested bundle produced stable multi-season gains for WR and TE, but not for QB or RB.",
-    "wr_te_hypothesis": "For pass catchers, prior share alone is modest; the useful signal emerges when prior target share is conditioned on target-season opening role and how much prior-year target opportunity has vacated the opening team.",
-    "qb_rb_caution": "Do not generalize the WR/TE result to QB or RB. Their tested variants failed the evidence gate and remain excluded.",
-    "next_gate": "Re-run WR and TE selected bundles against FFToday on the exact matched historical player-season-stat cohort. Rolling improvement versus persistence alone is insufficient for production promotion."
+    "headline": "Target-opportunity context adds stable, independently confirmed signal for WR and TE but not for QB or RB.",
+    "wr_te_hypothesis": "Prior target share is most useful when conditioned on target-season opening role and the amount of prior-year target opportunity vacated on the opening team.",
+    "external_confirmation": "The WR/TE bundle was selected solely on rolling temporal holdouts and then improved current Native on the exact FFToday common cohort, reducing the risk that the original gain was merely a persistence-baseline artifact.",
+    "qb_rb_caution": "Do not generalize the WR/TE result to QB or RB. Their tested variants failed the rolling evidence gate and remain excluded.",
+    "next_gate": "Before production promotion, improve historical role freeze provenance and seek confirmation from a second independent time-frozen external source. Separately test prior offensive snap share as a candidate Native information family."
   },
   "governance": {
     "external_projection_used_as_training_target": false,
+    "external_results_used_for_feature_selection": false,
     "target_season_realized_usage_used_as_feature": false,
     "historical_role_provenance": "PROVISIONAL_WEEK1_ADMINISTRATIVE_RECORD_NOT_TIMESTAMPED",
+    "independent_external_sources_confirming": 1,
     "production_promoted": false,
     "production_behavior_changed": false,
     "qb_rb_features_promoted": false,
