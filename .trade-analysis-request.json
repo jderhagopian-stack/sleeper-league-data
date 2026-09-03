@@ -1,0 +1,31 @@
+{
+  "basename": "devonta-for-kyren-trade-decision",
+  "quick_sims": 500,
+  "adaptive_confirm_sims": 50000,
+  "search_depth": 60,
+  "scenario": {
+    "scenario_id": "hurts_so_good_devonta_for_kyren_2026_09_03",
+    "description": "Hurts So Good sends DeVonta Smith for Kyren Williams. First post-PR-190 beta Trade Decision case.",
+    "focus_user_id": "846634401482792960",
+    "actions": [
+      {
+        "type": "trade",
+        "from_user_id": "846634401482792960",
+        "to_user_id": "853063390963277824",
+        "players": [
+          "7525"
+        ],
+        "picks": []
+      },
+      {
+        "type": "trade",
+        "from_user_id": "853063390963277824",
+        "to_user_id": "846634401482792960",
+        "players": [
+          "8150"
+        ],
+        "picks": []
+      }
+    ]
+  }
+}
