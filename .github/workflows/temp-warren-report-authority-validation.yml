@@ -1,0 +1,90 @@
+name: TEMP Warren Report Authority Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  warren-report-authority:
+    if: github.head_ref == 'feature/provisional-package-concentration-final'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Run lower-cost live Warren pipeline for authority/presentation validation
+        run: |
+          rm -rf /tmp/warren-report-authority
+          mkdir -p /tmp/warren-report-authority
+          python script/trade_engine.py \
+            --scenario data/model_validation/warren_current_main_regression.json \
+            --quick-sims 200 \
+            --confirm-sims 1000 \
+            --search-depth 60 \
+            --seed 20260821 \
+            --output /tmp/warren-report-authority/warren.json
+          python script/render_trade_decision_report_v19.py \
+            --input /tmp/warren-report-authority/warren.json \
+            --output /tmp/warren-report-authority/warren.pdf
+      - name: Validate authoritative future value and PDF language
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+
+          r=json.load(open('/tmp/warren-report-authority/warren.json'))
+          cur=r['current_offer_evaluation']
+          attr=cur['decision_attribution']
+          ch={x['channel']:x for x in attr['channels']}
+          future=float(ch['future']['primitive_value'])
+          raw=float(cur['simulation']['strategic']['market_dynasty_delta'])
+          scores=attr['package_concentration_prior_scores']
+          robust=attr['package_concentration_prior_range_decision_robustness']
+          ctx=r['value_metric_context']
+          policy=r['policy']
+
+          assert raw > 800, raw
+          assert future < 0, future
+          assert abs(float((ctx['future_asset_value'] or {}).get('value'))-future) < .01
+          assert abs(float((ctx['raw_additive_dynasty_market_value'] or {}).get('value'))-raw) < .01
+          assert ctx['package_concentration']['applied'] is True
+          assert all(float(scores[x]) < 0 for x in ('mild','center','strong')), scores
+          assert robust=='ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE'
+          assert policy['authoritative_future_asset_value_used_in_user_facing_report'] is True
+          assert policy['raw_additive_market_delta_is_reference_only_when_package_transform_applied'] is True
+          assert policy['package_prior_sensitivity_exposed_to_user'] is True
+
+          pdf=Path('/tmp/warren-report-authority/warren.pdf')
+          assert pdf.exists() and pdf.stat().st_size > 2000
+          text='\n'.join((p.extract_text() or '') for p in PdfReader(str(pdf)).pages)
+          lower=text.lower()
+          assert 'future asset value' in lower
+          assert 'raw additive market reference' in lower
+          assert 'overall decision value' in lower
+          assert 'overall franchise impact' not in lower
+          assert 'long-term trade value' not in lower
+          assert 'remains negative across the full governed package-value range' in lower
+
+          summary={
+            'raw_additive_reference':raw,
+            'authoritative_future_asset_value':future,
+            'overall_decision_value':attr['final_shared_decision_utility'],
+            'prior_scores':scores,
+            'robustness':robust,
+            'pdf_pages':len(PdfReader(str(pdf)).pages),
+          }
+          Path('/tmp/warren-report-authority/summary.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps(summary,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warren-report-authority-validation
+          path: /tmp/warren-report-authority/*
+          if-no-files-found: error
+          retention-days: 3
