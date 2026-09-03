@@ -39,6 +39,7 @@ jobs:
           python script/package_concentration_sensitivity.py --cases data/model_validation/package_concentration_sensitivity_cases.json --output data/audit/package_concentration_sensitivity.json
           python script/audit_trade_package_topology.py
           python script/test_decision_utility_package_challenger.py
+          python script/run_package_challenger_cross_case.py --output data/audit/package_challenger_cross_case.json
       - name: Validate audit
         run: |
           python - <<'PY'
@@ -65,6 +66,17 @@ jobs:
           assert pres['WARREN_SKATTEBO_FLOURNOY_3RD']['curves']['legacy_mild_bound']['effective_delta'] < 0
           assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['legacy_mild_bound']['effective_delta'] < 0
           assert pres['WARREN_MONTGOMERY_NUSSMEIER_3RDS']['curves']['gm22_strong_bound']['concentration_residual_vs_additive'] < -500
+          challenger=json.load(open('data/audit/package_challenger_cross_case.json'))
+          assert challenger['production_behavior_changed'] is False
+          assert challenger['empirical_coefficient_fit_performed'] is False
+          assert challenger['summary']['one_for_one_all_unchanged'] is True
+          assert challenger['summary']['fragmentation_all_worsen_across_nonadditive_bounds'] is True
+          assert challenger['summary']['consolidation_all_improve_across_nonadditive_bounds'] is True
+          rows={x['id']:x for x in challenger['results']}
+          assert rows['01_warren_veteran_package']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['01_warren_veteran_package']['production_score']
+          assert rows['05_consolidation_two_for_one']['curve_results']['legacy_mild_bound']['challenger_score'] > rows['05_consolidation_two_for_one']['production_score']
+          assert rows['06_diversification_one_for_two']['curve_results']['legacy_mild_bound']['challenger_score'] < rows['06_diversification_one_for_two']['production_score']
+
           topo=json.load(open('data/audit/trade_package_topology_audit.json'))
           assert topo['coefficient_fit_performed'] is False
           assert topo['current_value_backfill_used'] is False
