@@ -42,6 +42,7 @@ jobs:
           python script/run_package_challenger_cross_case.py --output data/audit/package_challenger_cross_case.json
           python script/audit_residual_signal_decomposition.py
           python script/validate_residual_evidence_contracts.py
+          python script/audit_residual_evidence_readiness.py
       - name: Validate audit
         run: |
           python - <<'PY'
