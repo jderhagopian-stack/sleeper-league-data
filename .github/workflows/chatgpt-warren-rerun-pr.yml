@@ -1,0 +1,56 @@
+name: ChatGPT Warren Trade Rerun PR
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  trade-analysis:
+    if: github.head_ref == 'chatgpt/warren-rerun-20260903'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy 'reportlab>=4,<5' 'pypdf>=4,<7'
+      - name: Run current FSFFL trade pipeline
+        run: |
+          mkdir -p /tmp/fsffl-trade-output
+          python script/run_trade_report.py \
+            --scenario data/model_validation/warren_current_main_regression.json \
+            --out-dir /tmp/fsffl-trade-output \
+            --basename warren-current-rerun \
+            --quick-sims 500 \
+            --adaptive-confirm-sims 50000 \
+            --search-depth 60 \
+            > /tmp/fsffl-trade-output/pipeline.log
+      - name: Validate and summarize
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+          root=Path('/tmp/fsffl-trade-output')
+          a=json.loads((root/'warren-current-rerun.json').read_text())
+          s=json.loads((root/'warren-current-rerun-summary.json').read_text())
+          pdf=root/'warren-current-rerun.pdf'
+          assert pdf.exists()
+          assert a['simulation']['canonical_state_mutated'] is False
+          print(json.dumps({
+            'model_version':a.get('model_version'),
+            'pipeline_model_version':s.get('pipeline_model_version'),
+            'report_model_version':s.get('report_model_version'),
+            'short_answer':s.get('short_answer'),
+            'pdf_pages':len(PdfReader(str(pdf)).pages)
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warren-current-rerun
+          path: /tmp/fsffl-trade-output/*
+          if-no-files-found: error
+          retention-days: 7
