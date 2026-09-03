@@ -31,14 +31,24 @@ def main():
             errors.append(f"{fid}: missing from parameter registry")
             continue
         if reg[fid].get("authoritative_use") is not False:
-            errors.append(f"{fid}: must remain production-disabled during evidence-contract phase")
+            errors.append(f"{fid}: provisional/residual family cannot be mislabeled empirically authoritative")
         row=rows.get(fid) or {}
-        if not row.get("minimum_promotion_evidence"):
-            errors.append(f"{fid}: minimum promotion evidence required")
+        if fid == "PACKAGE-CONCENTRATION-RESIDUAL-001":
+            if not row.get("minimum_provisional_authority_evidence"):
+                errors.append(f"{fid}: minimum provisional-authority evidence required")
+            if not row.get("minimum_empirical_recalibration_evidence"):
+                errors.append(f"{fid}: minimum empirical-recalibration evidence required")
+            if not str(row.get("provisional_promotion_test") or "").strip():
+                errors.append(f"{fid}: provisional promotion test required")
+            if not str(row.get("empirical_promotion_test") or "").strip():
+                errors.append(f"{fid}: empirical promotion test required")
+        else:
+            if not row.get("minimum_promotion_evidence"):
+                errors.append(f"{fid}: minimum promotion evidence required")
+            if not str(row.get("promotion_test") or "").strip():
+                errors.append(f"{fid}: promotion test required")
         if not row.get("forbidden_now"):
             errors.append(f"{fid}: current forbidden uses required")
-        if not str(row.get("promotion_test") or "").strip():
-            errors.append(f"{fid}: promotion test required")
 
     p=c.get("principles") or {}
     for key in (
@@ -48,6 +58,11 @@ def main():
         "time_ordered_validation_required_where_historical_targets_exist",
         "uncertainty_and_sensitivity_must_be_reported",
         "challenger_before_production_promotion",
+        "uncertain_magnitude_is_not_evidence_of_zero_effect",
+        "credible_isolated_effects_may_receive_bounded_provisional_authority_before_full_empirical_identification",
+        "provisional_authority_and_empirical_calibration_are_distinct_promotion_levels",
+        "empirical_recalibration_should_narrow_or_replace_provisional_priors_over_time",
+        "commercially_restricted_or_rights_unclear_external_data_cannot_materially_determine_production_parameters",
     ):
         if p.get(key) is not True:
             errors.append(f"missing/false contract principle: {key}")
