@@ -8,7 +8,7 @@ player-season-position-stat cohort against realized nflverse regular-season stat
 """
 from __future__ import annotations
 
-import argparse, json, re, sys, unicodedata, urllib.parse, urllib.request
+import argparse, csv, json, re, sys, unicodedata, urllib.parse, urllib.request
 from collections import defaultdict
 from datetime import datetime
 from html.parser import HTMLParser
@@ -212,7 +212,7 @@ def native_predictions(rows: list[dict], target_season: int, position: str) -> d
     return out
 
 
-def run(inventory_path: Path, start_season: int = 2016) -> dict:
+def run(inventory_path: Path, start_season: int = 2016, longform_output: Path | None = None) -> dict:
     inv = eligible_inventory(inventory_path)
     if not inv:
         raise ValueError("no eligible FFToday snapshots")
@@ -296,6 +296,29 @@ def run(inventory_path: Path, start_season: int = 2016) -> dict:
         "FFToday does not expose every native target statistic; only shared raw football statistics are scored.",
         "This is one independent external source and therefore is diagnostic, not sufficient by itself for source/blend promotion.",
     ]
+    if longform_output is not None:
+        longform_output.parent.mkdir(parents=True, exist_ok=True)
+        with longform_output.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(
+                fh,
+                fieldnames=[
+                    "season","position","player_name","stat",
+                    "native_projection","external_projection","actual",
+                ],
+            )
+            writer.writeheader()
+            for season, pos, name, stat in sorted(native):
+                key = (season, pos, name, stat)
+                writer.writerow({
+                    "season": season,
+                    "position": pos,
+                    "player_name": name,
+                    "stat": stat,
+                    "native_projection": native[key],
+                    "external_projection": external[key],
+                    "actual": actual[key],
+                })
+        result["longform_residual_output"] = str(longform_output)
     return result
 
 
@@ -304,8 +327,9 @@ def main():
     p.add_argument("--inventory",type=Path,default=Path("data/model_validation/historical_projection_source_inventory.json"))
     p.add_argument("--start-season",type=int,default=2016)
     p.add_argument("--output",type=Path,default=Path("data/model_validation/native_vs_fftoday_historical_benchmark.json"))
+    p.add_argument("--longform-output",type=Path)
     a=p.parse_args()
-    r=run(a.inventory,a.start_season)
+    r=run(a.inventory,a.start_season,a.longform_output)
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(r,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print(json.dumps({

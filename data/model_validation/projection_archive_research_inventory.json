@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "status": "RESEARCH_ONLY_NOT_CALIBRATION_ELIGIBLE",
+  "purpose": "Catalog historical multi-source projection archives that may help source discovery and residual research but have not yet cleared FSFFL preseason-freeze and rights gates.",
+  "admission_rule": "Repository presence or a historical filename is not sufficient. Each provider-season-position projection set must independently prove contemporaneous preseason timing, raw-stat meaning, source identity/independence, and permitted intended use before authoritative calibration.",
+  "archives": [
+    {
+      "archive": "FantasyFootballAnalytics/FantasyFootballAnalyticsR",
+      "repository": "FantasyFootballAnalytics/FantasyFootballAnalyticsR",
+      "observed_on": "2026-09-03",
+      "public_repository": true,
+      "repository_license_status": "NO_TOP_LEVEL_LICENSE_FILE_OBSERVED",
+      "archive_note": "Repository contains historical projection CSV/RData files assembled from multiple third-party providers. Package documentation states historical projection scraping is generally difficult and supports scraping multiple analysts/sources.",
+      "observed_provider_files": {
+        "FFToday": [
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014
+        ],
+        "ESPN": [
+          2012,
+          2013,
+          2014
+        ],
+        "CBS": [
+          2012,
+          2013,
+          2014
+        ],
+        "FantasyPros": [
+          2013,
+          2014
+        ],
+        "NFL": [
+          2012,
+          2013,
+          2014
+        ],
+        "Yahoo": [
+          2014
+        ],
+        "numberFire": [
+          2014
+        ],
+        "Accuscore": [
+          2014
+        ],
+        "FOX": [
+          2014
+        ],
+        "FantasySharks": [
+          2014
+        ],
+        "Footballguys": [
+          2014
+        ],
+        "WalterFootball": [
+          2014
+        ]
+      },
+      "aggregate_files": [
+        "LeagueProjections-2012",
+        "LeagueProjections-2013",
+        "LeagueProjections-2014",
+        "LeagueProjections-2015"
+      ],
+      "calibration_eligible": false,
+      "blocked_reasons": [
+        "Original provider snapshot timestamps have not been independently established for each file.",
+        "Repository availability does not establish reuse rights for embedded third-party projection data.",
+        "Aggregate files may contain multiple analysts/providers and must not be treated as independent source votes without de-duplication.",
+        "Schema/raw-stat comparability has not yet been audited provider by provider."
+      ],
+      "permitted_current_use": [
+        "source discovery",
+        "schema feasibility research",
+        "non-authoritative ensemble-method prototyping with explicit research-only labels"
+      ]
+    }
+  ],
+  "next_qualification_steps": [
+    "Inspect file metadata and commit history for earliest repository availability.",
+    "Identify provider-specific update dates or contemporaneous publication evidence.",
+    "Map raw stat columns and scoring-derived columns separately.",
+    "Confirm analyst/provider independence to avoid duplicated source families.",
+    "Review intended-use rights separately for personal research and commercial deployment.",
+    "Admit only provider-season-position slices that clear every gate into historical_projection_source_inventory.json."
+  ]
+}
