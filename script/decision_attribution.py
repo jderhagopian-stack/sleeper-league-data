@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 SCRIPT = Path(__file__).resolve().parent
-MODEL_VERSION = "FSFFL-Decision-Attribution-1.1"
+MODEL_VERSION = "FSFFL-Decision-Attribution-1.2"
 
 
 def _load_utility():
@@ -55,7 +55,10 @@ def reconcile(sim: Dict[str, Any]) -> Dict[str, Any]:
             "Simulator league-relative outcomes, transaction market-redraft delta, "
             "and optimized-starter redraft delta when available"
         ),
-        "future": "GM3 market-dynasty delta",
+        "future": (
+            "GM3 market-dynasty delta with governed bounded provisional package-concentration "
+            "transform applied only to negotiated trade legs; non-trade future effects preserved once"
+        ),
         "liquidity": "GM3 residual liquidity delta, only when independently authorized",
         "resilience": "GM3 residual resilience delta, only when independently authorized",
     }
@@ -82,6 +85,8 @@ def reconcile(sim: Dict[str, Any]) -> Dict[str, Any]:
         "reconciliation_tolerance": tol,
         "suppressed_unauthorized_objective_weight": scored.get("suppressed_unauthorized_objective_weight") or {},
         "diagnostics": scored.get("diagnostics") or {},
+        "package_concentration_prior_scores": scored.get("package_concentration_prior_scores") or {},
+        "package_concentration_prior_range_decision_robustness": scored.get("package_concentration_prior_range_decision_robustness"),
         "calculation_is_explanatory_only": True,
         "creates_independent_score": False,
     }
