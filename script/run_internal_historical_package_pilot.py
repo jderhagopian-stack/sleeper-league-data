@@ -78,8 +78,10 @@ def eligible_ledger_rows():
         if t.get("status")!="complete" or len(t.get("sides") or [])!=2:
             continue
         season=int(t.get("season") or 0)
-        # 2022 would require a 2021 FSFFL reconstruction base that is not part
-        # of the governed historical dataset. Do not silently improvise it.
+        # 2022 was the live startup draft. Sleeper "pick" order represented
+        # nomination mechanics rather than rookie-draft capital, so 2022 is
+        # intentionally excluded from package/pick calibration rather than
+        # being treated as a missing reconstruction problem.
         if season < 2023:
             continue
         sides=t["sides"]
