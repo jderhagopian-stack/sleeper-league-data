@@ -104,15 +104,17 @@
   "high_leverage_systemic_findings": [
     {
       "id": "FINAL-UTILITY-SPARSITY-001",
-      "finding": "Shared Decision Utility currently reduces future value to raw additive market-dynasty delta. Strategic core/hold premiums, break-glass value, optionality, and nonlinear package economics do not independently enter final utility.",
-      "risk": "Upstream GM/search layers can recognize roster economics that disappear before final ranking, producing quantity-for-quality recommendations that look reasonable in discovery but are under-penalized at decision time.",
-      "required_action": "Audit every upstream economic signal for semantic uniqueness, then either map it into an existing final utility channel, authorize a bounded residual prior, or document why zero incremental authority is correct."
+      "finding": "Shared Decision Utility now applies bounded provisional package concentration inside FUTURE ASSET VALUE. Optionality remains diagnostic, and legacy strategic/break-glass composites remain non-authoritative unless separately decomposed.",
+      "risk": "Residual economic effects other than package concentration may still disappear before final ranking if they remain credible but un-decomposed; package aggregation itself is no longer silently zeroed.",
+      "required_action": "Continue residual decomposition for optionality/liquidity/resilience, using bounded provisional authority when a distinct residual is credibly isolated and sensitivity can be exposed.",
+      "status": "PACKAGE_CONCENTRATION_GAP_RESOLVED_OTHER_RESIDUALS_PENDING"
     },
     {
       "id": "SEARCH-FINAL-AUTHORITY-PARITY-001",
-      "finding": "Nonlinear package weights are active in GM package discovery, while final Shared Decision Utility uses additive market value.",
-      "risk": "Candidate generation and candidate evaluation can disagree about aggregation economics.",
-      "required_action": "Create a single governed package/concentration evidence primitive consumable by both search and final utility, with uncertainty ranges and no same-source rank repricing."
+      "finding": "Package concentration now has one governed bounded-prior primitive in final FUTURE ASSET VALUE, while robust multi-curve discovery remains a search-stage recall safeguard.",
+      "risk": "Search and final utility can still differ intentionally because discovery optimizes recall across multiple curves while final utility uses the governed center plus sensitivity rails; this difference must remain explicit rather than becoming a hidden second value system.",
+      "required_action": "Keep search multi-curve robustness and final center-prior scoring tied to the same governed envelope; empirically narrow or replace the envelope over time.",
+      "status": "RESOLVED_WITH_GOVERNED_SHARED_ENVELOPE"
     },
     {
       "id": "OPTIONALITY-AUTHORITY-GAP-001",
