@@ -21,6 +21,25 @@ def line_for(row):
     return desc
 
 
+
+def package_prior_note(row):
+    pc=(row or {}).get("package_prior_confidence") or {}
+    cls=pc.get("classification")
+    if cls=="PROVISIONAL_PARAMETER_SENSITIVE":
+        return (
+            f" Package-prior confidence: **SENSITIVE**; mild/center/strong values "
+            f"{float(pc.get('mild_score') or 0):+,.1f} / {float(pc.get('center_score') or 0):+,.1f} / "
+            f"{float(pc.get('strong_score') or 0):+,.1f}. This lowers parameter confidence only; it does not change the score or actionability."
+        )
+    if cls=="ROBUST_ACROSS_GOVERNED_PRIOR_RANGE":
+        return (
+            f" Package-prior confidence: **ROBUST** across mild/center/strong "
+            f"({float(pc.get('mild_score') or 0):+,.1f} / {float(pc.get('center_score') or 0):+,.1f} / "
+            f"{float(pc.get('strong_score') or 0):+,.1f})."
+        )
+    return ""
+
+
 def render(board):
     posture = board.get("strategic_posture") or {}
     lines = [
@@ -51,7 +70,7 @@ def render(board):
                 if actionable and actionable.get('counterparty_shared_decision_utility_score') is not None
                 else ""
             )
-        ) if actionable else "No trade currently clears both sides of the governed price frontier.",
+        ) + package_prior_note(actionable) if actionable else "No trade currently clears both sides of the governed price frontier.",
         "",
         "## SIMULATION-SENSITIVE / NOT PROMOTED",
     ]
@@ -148,7 +167,7 @@ def render(board):
             suffix = ""
             if row.get("channel") == "TRADE" and row.get("counterparty_shared_decision_utility_score") is not None:
                 suffix = f"; counterparty utility {float(row.get('counterparty_shared_decision_utility_score')):+,.1f}"
-            lines.append(f"{i}. {line_for(row)}{suffix}")
+            lines.append(f"{i}. {line_for(row)}{suffix}{package_prior_note(row) if row.get('channel')=='TRADE' else ''}")
     else:
         lines.append("No positive single-step opportunity cleared the governed benchmark.")
 
