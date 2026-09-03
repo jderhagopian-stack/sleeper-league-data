@@ -115,7 +115,12 @@ jobs:
                   assert c.get('verdict_vs_current_offer')=='MIXED',c
               fit=(row.get('counterparty_feasibility') or {})
               assert fit.get('affects_trade_valuation') is False,fit
-              if c.get('verdict_vs_current_offer')=='BETTER':better.append(row)
+              if row.get('generated_option_action_eligible') is False:
+                  assert row.get('actionable_better_than_current_offer') is False
+                  if c.get('verdict_vs_current_offer')=='BETTER':
+                      assert row.get('better_than_current_offer_but_market_test_only') is True
+              if c.get('verdict_vs_current_offer')=='BETTER' and row.get('generated_option_action_eligible',True) is not False:
+                  better.append(row)
 
           current=r.get('current_offer_evaluation') or {}
           buyer_viable=bool((current.get('buyer_rationality') or {}).get('current_state_viable'))
@@ -132,7 +137,7 @@ jobs:
           assert focal_viable is True
           assert p['current_offer_is_evaluated_on_focal_utility_not_counterparty_willingness'] is True
           assert g['current_offer_counterparty_utility_can_veto_acceptance'] is False
-          assert g['shared_option_governance_model_version']=='FSFFL-Option-Outcome-Consistency-1.6'
+          assert g['shared_option_governance_model_version']=='FSFFL-Option-Outcome-Consistency-1.7'
           for row in r.get('suggested_counteroffers') or []:
               if row.get('counter_strategy')=='OFFEROR_ANCHORED_TARGET_PRESERVING_CONCESSION':
                   sim=row.get('simulation') or {}
