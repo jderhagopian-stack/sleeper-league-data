@@ -117,5 +117,10 @@
       "risk": "A real asymmetry between an elite young asset and fragmented replacement assets may be omitted rather than merely uncertain.",
       "required_action": "Split optionality into distinct components (upside/reversibility versus liquidity/resilience/market value overlap) and test bounded priors."
     }
-  ]
+  ],
+  "baseline_integration": {
+    "quick_trade_market_current_evidence_parity": "PRODUCTION_BASELINE_PR_180",
+    "main_commit_after_parity_merge": "3104c67544563c72aa1e8effe8b8b0739a980f7f",
+    "implication": "Residual-parameter challenger evaluation assumes quick and confirmed trade candidates both receive deterministic optimized-starter evidence; package concentration must not compensate for evidence-propagation defects."
+  }
 }
