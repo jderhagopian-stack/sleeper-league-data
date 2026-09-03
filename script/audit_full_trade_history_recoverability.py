@@ -56,7 +56,7 @@ def classify(t):
     has_players=any(x>0 for x in pls)
 
     if season < 2023:
-        return "NEEDS_PRE_2023_HISTORICAL_RECONSTRUCTION_BASE"
+        return "EXCLUDE_2022_STARTUP_NONCOMPARABLE_DRAFT_MECHANICS"
     if has_picks:
         return "NEEDS_HISTORICAL_PICK_VALUE_COORDINATE"
     # Player-only 2023+ trades can use the current reconstructed-at-time
@@ -107,12 +107,13 @@ def main():
 
     immediately_usable=sum(v for k,v in buckets.items() if k.startswith("READY_"))
     needs_pick=buckets["NEEDS_HISTORICAL_PICK_VALUE_COORDINATE"]
-    needs_old=buckets["NEEDS_PRE_2023_HISTORICAL_RECONSTRUCTION_BASE"]
+    excluded_startup=buckets["EXCLUDE_2022_STARTUP_NONCOMPARABLE_DRAFT_MECHANICS"]
     special=sum(v for k,v in buckets.items() if k.startswith("SPECIAL_"))
 
-    # The most important number: how many are excluded for a solvable data
-    # coordinate reason rather than because the observation is intrinsically bad.
-    recoverable_with_known_infrastructure_work=immediately_usable+needs_pick+needs_old
+    # The 2022 startup was a live auction-style nomination process. Sleeper
+    # draft picks were nomination order, not dynasty rookie draft capital, so
+    # those pick mechanics must never be used to infer historical pick value.
+    recoverable_with_known_infrastructure_work=immediately_usable+needs_pick
 
     payload={
         "schema_version":"1.0",
@@ -129,7 +130,7 @@ def main():
         "topology_by_recovery_bucket":{k:dict(v) for k,v in sorted(topology_by_bucket.items())},
         "immediately_usable_reconstructed_player_only_count":immediately_usable,
         "needs_historical_pick_coordinate_count":needs_pick,
-        "needs_pre_2023_reconstruction_base_count":needs_old,
+        "excluded_2022_startup_trade_count":excluded_startup,
         "special_case_count":special,
         "recoverable_with_known_infrastructure_work_count":recoverable_with_known_infrastructure_work,
         "recoverable_fraction":round(recoverable_with_known_infrastructure_work/len(completed),4) if completed else 0,
@@ -146,8 +147,8 @@ def main():
             },
             {
                 "priority":3,
-                "bucket":"NEEDS_PRE_2023_HISTORICAL_RECONSTRUCTION_BASE",
-                "action":"Extend the historical state/value provider one season earlier so 2022 trades can be reconstructed without current-value backfill.",
+                "bucket":"EXCLUDE_2022_STARTUP_NONCOMPARABLE_DRAFT_MECHANICS",
+                "action":"Do not use the 2022 startup draft nomination order as rookie-pick valuation evidence. Treat 2022 startup mechanics as non-comparable and excluded from pick-coordinate calibration.",
             },
             {
                 "priority":4,
@@ -160,6 +161,7 @@ def main():
             "quality_weighting_preferred_to_blanket_exclusion":True,
             "current_value_backfill_forbidden":True,
             "external_restricted_data_not_required_for_recovery_plan":True,
+            "2022_startup_nomination_order_not_pick_value_evidence":True,
             "completed_trade_does_not_imply_exact_fair_value":True,
         },
         "records":records,
@@ -178,7 +180,7 @@ def main():
 
     assert payload["completed_trade_count"]==144
     assert payload["bilateral_completed_trade_count"]>=140
-    assert payload["recoverable_with_known_infrastructure_work_count"]>=140
+    assert payload["recoverable_with_known_infrastructure_work_count"]>=120
     assert payload["principles"]["quality_weighting_preferred_to_blanket_exclusion"] is True
     assert payload["principles"]["current_value_backfill_forbidden"] is True
 
