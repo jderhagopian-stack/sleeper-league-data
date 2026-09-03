@@ -100,6 +100,8 @@ jobs:
           assert 'championship_probability_conflicts_with_expected_points' in reasons
           print('adaptive trigger unit test passed',reasons)
           PY
+      - name: Unit test authoritative trade report value alignment
+        run: python script/test_trade_report_authority_alignment.py
       - name: Unit test final counter action governance
         run: |
           python - <<'PY'
