@@ -85,8 +85,8 @@ def main():
             fail(f"missing required historical source governance entry {sid}")
         if src["material_production_dependency"] is not False:
             fail(f"{sid}: historical research reference cannot be material production dependency")
-        if src["commercial_readiness"] != "RESEARCH_REFERENCE_ONLY_PENDING_REVIEW":
-            fail(f"{sid}: must remain research-only pending rights review")
+        if src["commercial_readiness"] != "RESEARCH_REFERENCE_ONLY_COMMERCIAL_PERMISSION_REQUIRED":
+            fail(f"{sid}: must remain research-only with commercial permission required")
 
     print(json.dumps({
         "source_count": len(sources),
