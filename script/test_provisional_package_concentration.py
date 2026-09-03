@@ -49,6 +49,28 @@ def main():
     assert unchanged["package_transform_applied"] is False
     assert unchanged["non_trade_future_value_preserved"] == 0.0
 
+    # Team Improvement / Opportunity Engine compatibility: older payloads may
+    # expose negotiated trades inside effective_actions alongside automatic cuts.
+    # The transform must recover only explicit trade legs and exclude the cut.
+    compat=sim(
+        [row(1,300),row(9,80,"AUTO CUT")],
+        [row(2,200),row(3,150)],
+        -30,
+        [1,2,3],
+    )
+    compat["effective_actions"]=[
+        {"type":"trade","from_user_id":"u","to_user_id":"v","players":[1],"picks":[]},
+        {"type":"trade","from_user_id":"v","to_user_id":"u","players":[2,3],"picks":[]},
+        {"type":"cut","user_id":"u","players":[9]},
+    ]
+    compat["trade_actions"]=[]
+    compat_center=PKG.transform_future_value(compat,"center")
+    assert compat_center["package_transform_applied"] is True
+    assert compat_center["trade_action_source"]=="effective_actions_filtered_to_trade"
+    assert compat_center["raw_trade_package_future_value"]==50.0
+    assert compat_center["non_trade_future_value_preserved"]==-80.0
+    assert all(x["asset_id"]!="player:9" for x in compat_center["sent_parts"])
+
     # One-for-one must be invariant under every prior curve.
     one=sim([row(1,100)],[row(2,100)],0,[1,2])
     for curve in ("mild","center","strong"):
@@ -91,6 +113,7 @@ def main():
 
     print({
         "nontrade_consumer_unchanged":True,
+        "effective_actions_trade_compatibility":True,
         "one_for_one_invariant":True,
         "fragmentation_center_future":vals["center"],
         "forced_cut_preserved":center["non_trade_future_value_preserved"],
