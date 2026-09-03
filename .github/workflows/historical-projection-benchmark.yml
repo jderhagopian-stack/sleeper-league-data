@@ -9,8 +9,10 @@ on:
       - 'script/benchmark_native_vs_external_raw_stats.py'
       - 'script/run_native_vs_fftoday_historical_benchmark.py'
       - 'script/audit_projection_source_sustainability.py'
+      - 'script/benchmark_projection_championship_ensemble.py'
       - 'data/model_validation/historical_projection_source_inventory.json'
       - 'data/model_validation/projection_source_candidate_registry.json'
+      - 'data/model_validation/projection_championship_ensemble_spec.json'
       - 'data/model_validation/native_vs_fftoday_external_scorecard.json'
       - '.github/workflows/historical-projection-benchmark.yml'
   workflow_dispatch:
@@ -31,6 +33,7 @@ jobs:
           python -m py_compile script/benchmark_native_vs_external_raw_stats.py
           python -m py_compile script/run_native_vs_fftoday_historical_benchmark.py
           python -m py_compile script/audit_projection_source_sustainability.py
+          python -m py_compile script/benchmark_projection_championship_ensemble.py
       - name: Run deterministic benchmark regression tests
         run: |
           python script/build_historical_projection_benchmark_input.py --self-test
@@ -38,11 +41,13 @@ jobs:
           python script/benchmark_historical_projections_common_cohort.py --self-test
           python script/benchmark_native_vs_external_raw_stats.py --self-test
           python script/audit_projection_source_sustainability.py --self-test
+          python script/benchmark_projection_championship_ensemble.py --self-test
           python script/audit_projection_source_sustainability.py
       - name: Validate source governance JSON
         run: |
           python -m json.tool data/model_validation/historical_projection_source_inventory.json > /dev/null
           python -m json.tool data/model_validation/projection_source_candidate_registry.json > /dev/null
+          python -m json.tool data/model_validation/projection_championship_ensemble_spec.json > /dev/null
           python -m json.tool data/model_validation/native_vs_fftoday_external_scorecard.json > /dev/null
 
   real-native-vs-fftoday:
