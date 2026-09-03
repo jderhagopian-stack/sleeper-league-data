@@ -1,0 +1,31 @@
+{
+  "scenario_id": "2026-09-03-warren-current-main-regression",
+  "description": "Current-main regression: MochaSmevs sends Tyler Warren and receives Mark Andrews, DK Metcalf, 2029 late 2nd (Drigs24), 2029 late 3rd (Drigs24), and 2029 early 3rd (The Associate). Offer initiator intentionally unspecified because source evidence does not establish it.",
+  "transaction_status": "proposed",
+  "focus_user_id": "844785316274483200",
+  "participant_user_ids": [
+    "844785316274483200",
+    "850548458887704576"
+  ],
+  "actions": [
+    {
+      "type": "trade",
+      "from_user_id": "844785316274483200",
+      "to_user_id": "850548458887704576",
+      "players": ["12518"],
+      "picks": []
+    },
+    {
+      "type": "trade",
+      "from_user_id": "850548458887704576",
+      "to_user_id": "844785316274483200",
+      "players": ["5012", "5846"],
+      "picks": [
+        "pick:2029:R2:orig11",
+        "pick:2029:R3:orig11",
+        "pick:2029:R3:orig4"
+      ]
+    }
+  ],
+  "offer_context_note": "Offer initiator intentionally left unset; evaluate economic utility and search visibility without inventing observed-willingness semantics."
+}
