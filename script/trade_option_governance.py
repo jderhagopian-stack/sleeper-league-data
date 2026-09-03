@@ -15,7 +15,7 @@ and thresholds are intentionally unchanged.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.6"
+MODEL_VERSION = "FSFFL-Option-Outcome-Consistency-1.7"
 EPS = 1e-9
 DECISION_OUTPUTS = ("shared_decision_utility_score",)
 FRONTIER_DIAGNOSTIC_OUTPUTS = (
@@ -213,10 +213,12 @@ def recompute_action(report, inherited):
     counters = [
         x for x in (report.get("suggested_counteroffers") or [])
         if (x.get("comparison_to_current_offer") or {}).get("verdict_vs_current_offer") == "BETTER"
+        and x.get("generated_option_action_eligible", True) is not False
     ]
     markets = [
         x for x in (report.get("market_sweep_alternatives") or [])
         if (x.get("comparison_to_current_offer") or {}).get("verdict_vs_current_offer") == "BETTER"
+        and x.get("generated_option_action_eligible", True) is not False
     ]
 
     if not current_offer_focally_acceptable(current):
@@ -267,7 +269,14 @@ def apply_to_report(report):
                 "affects_trade_valuation": False,
                 "reported_separately": True,
             }
-            row["actionable_better_than_current_offer"] = comp.get("verdict_vs_current_offer") == "BETTER"
+            row["actionable_better_than_current_offer"] = (
+                comp.get("verdict_vs_current_offer") == "BETTER"
+                and row.get("generated_option_action_eligible", True) is not False
+            )
+            row["better_than_current_offer_but_market_test_only"] = (
+                comp.get("verdict_vs_current_offer") == "BETTER"
+                and row.get("generated_option_action_eligible", True) is False
+            )
 
     inherited = str(report.get("recommended_next_action") or "REVIEW")
     final_action, action_basis = recompute_action(report, inherited)
