@@ -66,7 +66,7 @@ jobs:
           from pathlib import Path
           from pypdf import PdfReader
           r=json.load(open('/tmp/team-improvement/report.json'))
-          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.6'
+          assert r['model_version']=='FSFFL-GM-Team-Improvement-Lab-1.7'
           assert r['projection_universe']['model_version']=='FSFFL-Full-Projection-Universe-1.0'
           assert r['projection_universe']['coverage']['final_projection_players'] > r['projection_universe']['coverage']['native_projection_players']
           assert r['hold_benchmark']['team_improvement_score']==0
@@ -84,7 +84,7 @@ jobs:
           assert r['policy']['competitive_state_tilts_but_does_not_dominate'] is True
           assert r['policy']['championship_probability_uses_diminishing_returns'] is False
           assert r['policy']['dynasty_value_destruction_guardrail'] is False
-          assert r['ranking_calibration']['version']=='shared-decision-utility-2.1'
+          assert r['ranking_calibration']['version']=='shared-decision-utility-2.2'
           assert r['search_summary']['waiver_candidates_screened'] > 0
           assert r['recommended_action']['channel'] in {'TRADE','WAIVER','HOLD'}
           observed_non_hold=0
@@ -107,7 +107,16 @@ jobs:
                   sim=row.get('simulation') or {}
                   assert 'competitive_externality' in sim
                   assert 'net_title_equity_swing_against_focus' in sim
+                  assert sim.get('trade_actions'), sim
+                  assert all(str(x.get('type') or '').lower()=='trade' for x in sim.get('trade_actions') or [])
                   assert row.get('focal_decision_attribution',{}).get('reconciles') is True
+                  assert row.get('focal_shared_decision_utility_matches_team_improvement_score') is True
+                  fdiag=(row.get('focal_decision_attribution') or {}).get('diagnostics') or {}
+                  pkg=fdiag.get('package_concentration') or {}
+                  assert pkg.get('package_transform_applied') is True, pkg
+                  assert pkg.get('trade_action_source')=='trade_actions', pkg
+                  assert pkg.get('new_utility_channel_created') is False, pkg
+                  assert pkg.get('non_trade_future_effects_preserved_exactly_once') is True, pkg
                   if sim.get('counterparty'):
                       assert row.get('counterparty_decision_attribution',{}).get('reconciles') is True
                       assert row.get('counterparty_shared_decision_utility_source')=='same_simulation_same_shared_utility_as_focal'
@@ -141,7 +150,7 @@ jobs:
                   'counterparty_attribution':row.get('counterparty_decision_attribution'),
               })
           print(json.dumps({'decision_path_reconciliation_samples':samples},indent=2))
-          print('Team Improvement Lab 1.6 governed multi-lane discovery validation passed')
+          print('Team Improvement Lab 1.7 package-authority parity validation passed')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
