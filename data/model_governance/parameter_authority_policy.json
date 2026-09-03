@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "model_version": "FSFFL-Parameter-Authority-Policy-1.0",
+  "schema_version": "1.1",
+  "model_version": "FSFFL-Parameter-Authority-Policy-1.1",
   "principles": {
     "zero_is_a_parameter": true,
     "uncertain_magnitude_is_not_evidence_of_zero_effect": true,
@@ -9,7 +9,10 @@
     "provisional_priors_must_support_sensitivity_analysis": true,
     "duplicate_or_misclassified_signals_remain_zero_incremental_authority": true,
     "production_promotion_requires_no_double_counting": true,
-    "empirical_recalibration_should_replace_or_narrow_priors_over_time": true
+    "empirical_recalibration_should_replace_or_narrow_priors_over_time": true,
+    "provisional_authority_does_not_require_full_empirical_identification": true,
+    "empirical_validation_is_the_preferred_recalibration_end_state_not_a_precondition_for_every_nonzero_effect": true,
+    "production_parameter_material_external_dependencies_require_commercially_permitted_provenance": true
   },
   "authority_modes": {
     "ACTIVE_STRUCTURAL_OR_EVIDENCE_DERIVED": "Active because the value is rule-, simulation-, market-, or evidence-derived in the intended semantic role.",
@@ -93,9 +96,9 @@
     },
     {
       "concept": "asset_concentration_and_best_asset_premium",
-      "status": "REGISTERED_RESIDUAL_FAMILY_SENSITIVITY_ACTIVE_PRODUCTION_DISABLED",
-      "observation": "PACKAGE-CONCENTRATION-RESIDUAL-001 is registered and has a non-production sensitivity envelope. The remaining gap is evidentiary promotion of the residual transform, not registry coverage.",
-      "next_step": "Use the frozen package-concentration sensitivity envelope; calibrate only from frozen residual evidence and preserve one-for-one invariance."
+      "status": "REGISTERED_RESIDUAL_FAMILY_PROVISIONAL_AUTHORITY_ELIGIBLE",
+      "observation": "PACKAGE-CONCENTRATION-RESIDUAL-001 is registered and structurally isolated as a transform inside FUTURE ASSET VALUE. Its magnitude remains uncertain, but uncertainty alone is not a reason for zero authority.",
+      "next_step": "Select a governed bounded provisional center and rails from internal, open/licensed, or otherwise commercially-permitted evidence; keep one-for-one invariance, forced-cut de-duplication, and recommendation sensitivity explicit; empirically recalibrate over time."
     }
   ],
   "high_leverage_systemic_findings": [
