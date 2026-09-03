@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
 DATA = ROOT / "data"
 OUT = DATA / "audit" / "decision_path_integration_audit.json"
-MODEL_VERSION = "FSFFL-Decision-Path-Integration-Audit-1.0"
+MODEL_VERSION = "FSFFL-Decision-Path-Integration-Audit-1.1"
 
 
 def load(path: Path, name: str):
@@ -110,8 +110,11 @@ def main():
 
     findings = {
         "shared_utility_is_single_numeric_composer": (
-            'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.1"' in du
+            'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"' in du
             and "components = {k: w[k] * sf(blocks[k]) for k in required}" in du
+            and 'required = ("current", "future", "liquidity", "resilience")' in du
+            and 'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in du
+            and '"package_concentration_new_channel_created": False' in du
         ),
         "age_scarcity_injury_are_not_independent_shared_utility_addends": (
             'required = ("current", "future", "liquidity", "resilience")' in du
