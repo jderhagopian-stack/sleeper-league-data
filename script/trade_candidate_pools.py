@@ -14,7 +14,7 @@ future-value cliff.
 """
 from __future__ import annotations
 
-MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.1"
+MODEL_VERSION = "FSFFL-Trade-Candidate-Pools-1.2"
 
 
 def sf(v, d=0.0):
@@ -56,25 +56,64 @@ def focal_ok(row):
     return True
 
 
+def generated_option_action_eligible(row):
+    """Whether buyer-side feasibility is strong enough to drive the final action.
+
+    Search/report visibility is deliberately broader than action authority.
+    Missing buyer utility retains the option as a market test instead of
+    suppressing it, but cannot make it an actionable recommendation.
+    """
+    br = row.get("buyer_rationality") or {}
+    score = br.get("buyer_decision_utility_score")
+    gate = br.get("market_intelligence_hard_gate_pass")
+    if score is not None:
+        return sf(score) >= 0.0
+    if gate is not None:
+        return bool(gate)
+    return False
+
+
 def enrich_counter(row):
     out = dict(row)
     br = out.get("buyer_rationality") or {}
     acceptance = br.get("heuristic_acceptance_fit") or out.get("acceptance_likelihood")
     plausibility = str(out.get("plausibility") or "UNRATED")
+    eligible = generated_option_action_eligible(out)
+    out["generated_option_action_eligible"] = eligible
     out["counter_validation_status"] = (
-        "VALIDATED_ACCEPTANCE"
-        if acceptance in {"HIGH", "MEDIUM"}
-        else "STRUCTURALLY_PLAUSIBLE_ACCEPTANCE_UNVALIDATED"
+        "ACTIONABLE_BUYER_FEASIBILITY"
+        if eligible
+        else "MARKET_TEST_BUYER_FEASIBILITY_UNVALIDATED"
     )
     out["acceptance_likelihood"] = acceptance
     out["counter_confidence_note"] = (
         f"{acceptance} acceptance fit"
         if acceptance
-        else f"{plausibility} structural plausibility; buyer acceptance not fully validated"
+        else f"{plausibility} structural plausibility; use as a negotiation test, not a predicted accept"
     )
-    out["report_role"] = "SUGGESTED_COUNTEROFFER"
+    out["report_role"] = "SUGGESTED_COUNTEROFFER" if eligible else "COUNTER_MARKET_TEST"
     return out
 
+
+def enrich_market(row):
+    out = dict(row)
+    br = out.get("buyer_rationality") or {}
+    acceptance = br.get("heuristic_acceptance_fit") or out.get("acceptance_likelihood")
+    eligible = generated_option_action_eligible(out)
+    out["generated_option_action_eligible"] = eligible
+    out["market_test_status"] = (
+        "ACTIONABLE_BUYER_FEASIBILITY"
+        if eligible
+        else "MARKET_TEST_BUYER_FEASIBILITY_UNVALIDATED"
+    )
+    out["acceptance_likelihood"] = acceptance
+    out["report_role"] = "MARKET_SWEEP_ALTERNATIVE" if eligible else "MARKET_TEST_OPPORTUNITY"
+    out["market_test_note"] = (
+        "Buyer-side feasibility supports action authority."
+        if eligible
+        else "Focally beneficial simulated structure worth testing with this manager; buyer acceptance is not validated and does not drive the final action."
+    )
+    return out
 
 def apply_to_report(report):
     """Organize an existing candidate frontier exactly as v1.21 did."""
@@ -131,6 +170,7 @@ def apply_to_report(report):
     for row in (
         (report.get("top_5_alternatives") or [])
         + (report.get("realistic_counter_alternatives") or [])
+        + (report.get("alternate_buyer_candidates") or [])
     ):
         if (
             not row
@@ -155,7 +195,7 @@ def apply_to_report(report):
         if fam in seen:
             continue
         seen.add(fam)
-        market.append(row)
+        market.append(enrich_market(row))
         if len(market) == 5:
             break
 
@@ -175,6 +215,9 @@ def apply_to_report(report):
         "market_sweep_max": 5,
         "market_sweep_excludes_current_partner": True,
         "market_sweep_never_padded": True,
+        "market_test_options_retained_when_buyer_feasibility_unvalidated": True,
+        "market_test_options_cannot_drive_final_action_without_buyer_feasibility": True,
+        "search_visibility_separate_from_action_authority": True,
         "counter_and_market_pools_separate": True,
         "descriptive_state_labels_create_candidate_eligibility_cliffs": False,
         "continuous_state_aware_score_controls_focal_option_eligibility": True,
