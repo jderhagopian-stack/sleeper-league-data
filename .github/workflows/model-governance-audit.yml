@@ -39,6 +39,7 @@ jobs:
           python script/package_concentration_sensitivity.py --cases data/model_validation/package_concentration_sensitivity_cases.json --output data/audit/package_concentration_sensitivity.json
           python script/audit_trade_package_topology.py
           python script/test_decision_utility_package_challenger.py
+          python script/test_provisional_package_concentration.py
           python script/run_package_challenger_cross_case.py --output data/audit/package_challenger_cross_case.json
           python script/audit_residual_signal_decomposition.py
           python script/validate_residual_evidence_contracts.py
