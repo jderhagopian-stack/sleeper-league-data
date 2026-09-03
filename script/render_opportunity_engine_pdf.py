@@ -7,7 +7,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, PageBreak
 from fsffl_report_style import *
 
-MODEL_VERSION='FSFFL-Opportunity-Engine-Report-1.1'
+MODEL_VERSION='FSFFL-Opportunity-Engine-Report-1.2'
 
 def load(p): return json.loads(Path(p).read_text(encoding='utf-8'))
 def desc(m): return str((m or {}).get('description') or 'None identified')
@@ -32,6 +32,24 @@ def row_table(s, rows, widths, header=True):
     t.setStyle(TableStyle(cmds))
     return t
 
+
+def package_prior_text(row):
+    pc=(row or {}).get('package_prior_confidence') or {}
+    cls=pc.get('classification')
+    if cls=='PROVISIONAL_PARAMETER_SENSITIVE':
+        return (
+            f"<br/><b>Package-prior confidence:</b> SENSITIVE; mild/center/strong "
+            f"{safe_float(pc.get('mild_score')):+,.0f} / {safe_float(pc.get('center_score')):+,.0f} / "
+            f"{safe_float(pc.get('strong_score')):+,.0f}. Confidence only; score/actionability unchanged."
+        )
+    if cls=='ROBUST_ACROSS_GOVERNED_PRIOR_RANGE':
+        return (
+            f"<br/><b>Package-prior confidence:</b> ROBUST across mild/center/strong "
+            f"({safe_float(pc.get('mild_score')):+,.0f} / {safe_float(pc.get('center_score')):+,.0f} / "
+            f"{safe_float(pc.get('strong_score')):+,.0f})."
+        )
+    return ''
+
 def action_box(s,label,row,empty_text,tone='blue'):
     if not row:
         body=P(s,empty_text,'FS_Body')
@@ -39,7 +57,7 @@ def action_box(s,label,row,empty_text,tone='blue'):
         nf=(row.get('negotiation_frontier') or {})
         posture=nf.get('negotiation_posture')
         extra=f"<br/><b>Next step:</b> {str(posture).replace('_',' ')}" if posture else ''
-        body=P(s,f"<b>{desc(row)}</b><br/>GM3 improvement: <b>{score(row):+,.1f}</b>{extra}",'FS_Body')
+        body=P(s,f"<b>{desc(row)}</b><br/>Overall Decision Value: <b>{score(row):+,.1f}</b>{extra}{package_prior_text(row)}",'FS_Body')
     bg={'blue':LIGHT_BLUE,'green':LIGHT_GREEN,'gold':LIGHT_GOLD,'gray':LIGHT_GRAY}.get(tone,LIGHT_GRAY)
     t=Table([[P(s,label,'FS_CardLabel'),body]],colWidths=[1.35*inch,6.09*inch])
     t.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),NAVY),('TEXTCOLOR',(0,0),(0,0),WHITE),('BACKGROUND',(1,0),(1,0),bg),('BOX',(0,0),(-1,-1),.6,MID_GRAY),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
@@ -81,7 +99,7 @@ def render(board_path, output):
     ]
 
     tone=LIGHT_GREEN if best.get('channel')!='HOLD' else LIGHT_GRAY
-    banner=Table([[P(s,'CURRENT DECISION','FS_WhiteLabel'),P(s,f"<b>{desc(best)}</b><br/>Governed GM3 improvement: <b>{score(best):+,.1f}</b>",'FS_Body')]],colWidths=[1.35*inch,6.09*inch])
+    banner=Table([[P(s,'CURRENT DECISION','FS_WhiteLabel'),P(s,f"<b>{desc(best)}</b><br/>Overall Decision Value: <b>{score(best):+,.1f}</b>{package_prior_text(best)}",'FS_Body')]],colWidths=[1.35*inch,6.09*inch])
     banner.setStyle(TableStyle([('BACKGROUND',(0,0),(0,0),NAVY),('BACKGROUND',(1,0),(1,0),tone),('BOX',(0,0),(-1,-1),.7,MID_GRAY),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),7)]))
     story += [banner,Spacer(1,6)]
 
