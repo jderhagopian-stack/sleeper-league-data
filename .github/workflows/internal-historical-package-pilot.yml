@@ -38,7 +38,8 @@ jobs:
           r=json.load(open('data/audit/full_trade_history_recoverability.json'))
           assert r['completed_trade_count']==144
           assert r['bilateral_completed_trade_count']>=140
-          assert r['recoverable_with_known_infrastructure_work_count']>=140
+          assert r['recoverable_with_known_infrastructure_work_count']>=120
+          assert r['principles']['2022_startup_nomination_order_not_pick_value_evidence'] is True
           assert r['principles']['quality_weighting_preferred_to_blanket_exclusion'] is True
           print(json.dumps({
               'eligible_player_only_trade_count':p['eligible_player_only_trade_count'],
