@@ -100,9 +100,40 @@ def test_consolidating_many_into_one_gets_symmetric_credit():
     assert mild["score_delta_vs_production"] > 0.0
 
 
+def test_forced_cut_is_excluded_from_package_but_preserved_in_future():
+    trade_sent = asset("player:ELITE", 4300)
+    trade_a = asset("player:A", 2400)
+    trade_b = asset("player:B", 2200)
+    forced_cut = asset("player:CUT", 300)
+    x = sim([trade_sent, forced_cut], [trade_a, trade_b])
+    # Base strategic future is +0: 4600 received - 4600 sent, but the actual
+    # negotiated trade itself is +300 before the forced cut.
+    x["trade_actions"] = [
+        {
+            "type": "trade",
+            "players": ["ELITE"],
+            "picks": [],
+        },
+        {
+            "type": "trade",
+            "players": ["A", "B"],
+            "picks": [],
+        },
+    ]
+    mild = mod.score(x, "legacy_mild_bound")
+    pkg = mild["package_concentration"]
+    assert pkg["trade_asset_filter_applied"] is True
+    assert pkg["raw_trade_package_future_value"] == 300.0
+    assert pkg["non_trade_future_value_preserved"] == -300.0
+    assert pkg["automatic_cuts_excluded_from_package_concentration"] is True
+    assert pkg["non_trade_future_effects_preserved_exactly_once"] is True
+    assert pkg["package_effective_future_value"] < 0.0
+
+
 if __name__ == "__main__":
     test_one_for_one_is_unchanged()
     test_one_for_many_replaces_future_without_fifth_channel()
     test_fragmentation_penalty_increases_across_inherited_bounds()
     test_consolidating_many_into_one_gets_symmetric_credit()
+    test_forced_cut_is_excluded_from_package_but_preserved_in_future()
     print("package concentration challenger regression passed")
