@@ -41,6 +41,14 @@ def row(pid,val,name=None):
 
 
 def main():
+    # Shared utility consumers without explicit trade actions must remain additive.
+    nontrade=sim([row(1,300)],[row(2,100),row(3,100),row(4,100)],0,[1,2,3,4])
+    nontrade["trade_actions"]=[]
+    unchanged=PKG.transform_future_value(nontrade,"center")
+    assert unchanged["package_effective_future_value"] == 0.0
+    assert unchanged["package_transform_applied"] is False
+    assert unchanged["non_trade_future_value_preserved"] == 0.0
+
     # One-for-one must be invariant under every prior curve.
     one=sim([row(1,100)],[row(2,100)],0,[1,2])
     for curve in ("mild","center","strong"):
@@ -82,6 +90,7 @@ def main():
     assert diag["package_concentration"]["commercial_provenance"]["material_external_calibration_dependency"] is False
 
     print({
+        "nontrade_consumer_unchanged":True,
         "one_for_one_invariant":True,
         "fragmentation_center_future":vals["center"],
         "forced_cut_preserved":center["non_trade_future_value_preserved"],
