@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "status": "RECENT_RAW_STAT_QUALIFICATION_IN_PROGRESS",
+  "purpose": "Reduce dependence on the 2014 cross-section by prioritizing recent, demonstrably preseason, raw-stat projection snapshots.",
+  "qualified_recent_snapshots": {
+    "FFToday": {
+      "2024": {
+        "positions": ["QB", "RB", "WR", "TE"],
+        "snapshot_date": "2024-09-02",
+        "regular_season_open_date": "2024-09-05",
+        "status": "ELIGIBLE_PRESEASON"
+      },
+      "2025": {
+        "positions": ["QB", "RB", "WR", "TE"],
+        "snapshot_date": "2025-08-31",
+        "regular_season_open_date": "2025-09-04",
+        "status": "ELIGIBLE_PRESEASON"
+      }
+    }
+  },
+  "additional_existing_qualified_history": {
+    "FFToday": {
+      "2021": ["QB", "RB", "WR"],
+      "2022": ["QB", "RB", "WR", "TE"]
+    }
+  },
+  "held_out_or_pending": {
+    "FFToday_2023": {
+      "status": "SAME_DAY_REVIEW_REQUIRED",
+      "reason": "Displayed update date equals opening date; time of publication before kickoff not yet established."
+    },
+    "FantasyPros": {
+      "status": "RECENT_SECOND_SOURCE_CANDIDATE_PROVENANCE_NOT_YET_SUFFICIENT",
+      "evidence": [
+        "FantasyPros API documents week=0 as preseason projections and accepts historical season values.",
+        "Dated May 2024 preseason insight pages demonstrate that 2024 preseason projections existed before kickoff."
+      ],
+      "remaining_gate": "Need reproducible full raw-stat snapshot provenance showing the retrieved historical values are the contemporaneous preseason freeze rather than a mutable/reconstructed response."
+    },
+    "CBS": {
+      "status": "RECENT_SECOND_SOURCE_CANDIDATE",
+      "remaining_gate": "Need multi-season recent raw-stat preseason snapshots with defensible timestamp provenance."
+    },
+    "ESPN": {
+      "status": "RECENT_SECOND_SOURCE_CANDIDATE",
+      "remaining_gate": "Need multi-season recent raw-stat preseason snapshots with defensible timestamp provenance."
+    }
+  },
+  "championship_implication": {
+    "recent_raw_stat_evidence_now_available": true,
+    "single_source_recent_history_strengthened": true,
+    "multi_source_recent_category_championship_ready": false,
+    "reason": "Recent FFToday history is strong, but at least one second independent source still needs comparable recent time-frozen raw-stat snapshots."
+  },
+  "production_behavior_changed": false
+}
