@@ -19,7 +19,7 @@ OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
 UTILITY=ROOT/"script"/"decision_utility.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-3.2"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-3.3"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -39,7 +39,7 @@ def main():
       and all(x in utility for x in [
         'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"',
         'statistics.median(values.values())',
-        'PACKAGE_CONCENTRATION.PRIOR.get("active_curve", "strong")',
+        'active_curve = str(prior.get("active_curve") or "center")',
         'PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)',
         '"package_concentration_replaces_future_additivity": True',
         '"package_concentration_new_channel_created": False',
