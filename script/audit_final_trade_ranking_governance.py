@@ -19,7 +19,7 @@ OVERLAY=ROOT/"script"/"decision_lab_state_aware.py"
 UTILITY=ROOT/"script"/"decision_utility.py"
 ABLATION=ROOT/"script"/"audit_final_score_ablation.py"
 REGISTRY=DATA/"model_parameter_registry.json"
-MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-3.1"
+MODEL_VERSION="FSFFL-Final-Trade-Ranking-Governance-3.2"
 
 def load(path,default=None):
     if not path.exists(): return default
@@ -39,7 +39,8 @@ def main():
       and all(x in utility for x in [
         'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"',
         'statistics.median(values.values())',
-        'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")',
+        'PACKAGE_CONCENTRATION.PRIOR.get("active_curve", "strong")',
+        'PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)',
         '"package_concentration_replaces_future_additivity": True',
         '"package_concentration_new_channel_created": False',
         'components = {k: w[k] * sf(blocks[k]) for k in required}',
@@ -110,7 +111,7 @@ def main():
       {
         "id":"FINAL-SCORE-OVERLAP-001","severity":"HIGH",
         "status":"STRUCTURALLY_DEDUPLICATED_PRIMITIVE_CHANNELS" if primitive_formula and not composites_active_in_final and not plausibility_contaminates_strategic else "UNRESOLVED",
-        "observation":"The shared focal utility remains a four-channel composition. Current value converts correlated Simulator outcomes with league-relative denominators and a median ensemble; FUTURE ASSET VALUE applies the governed package-concentration transform only to explicit negotiated trade legs while preserving non-trade future effects once. Liquidity and direct replacement resilience stay value-denominated. No fifth channel or fixed unit-conversion coefficients are introduced, and optionality/composite GM summaries remain diagnostic only.",
+        "observation":"The shared focal utility remains a four-channel composition. Current value converts correlated Simulator outcomes with league-relative denominators and a median ensemble; FUTURE ASSET VALUE applies the governed active package-concentration transform only to explicit negotiated trade legs while preserving non-trade future effects once. Liquidity and direct replacement resilience stay value-denominated. No fifth channel or fixed unit-conversion coefficients are introduced, and optionality/composite GM summaries remain diagnostic only.",
         "authoritative_incremental_claim_allowed":False,
       },
       {
@@ -146,6 +147,7 @@ def main():
         "fixed_unit_conversion_coefficients_removed":True,
         "objective_preference_weights_remain_provisional":True,
         "final_rank_coefficient_promotion_requires_out_of_sample_improvement":True,
+        "package_concentration_curve_selected_by_governed_active_parameter":True,
       },
       "summary":{
         "primitive_post_sim_formula_detected":primitive_formula,
