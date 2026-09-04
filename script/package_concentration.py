@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Governed package-concentration transform for FUTURE ASSET VALUE.
 
-This module applies a bounded provisional prior to negotiated multi-asset trade
-packages. It replaces raw additive package value inside the existing FUTURE
-ASSET VALUE channel. It does not create a fifth channel.
+This module applies the governed active package-concentration curve to negotiated
+multi-asset trade packages. It replaces raw additive package value inside the
+existing FUTURE ASSET VALUE channel and does not create a fifth channel.
 
-Automatic roster cuts and other non-trade future effects are preserved exactly
-once outside the package transform.
+The active curve is selected by the governed prior artifact. Explicit curve names
+remain available for sensitivity and research comparisons. Automatic roster cuts
+and other non-trade future effects are preserved exactly once outside the package
+transform.
 """
 from __future__ import annotations
 
@@ -16,7 +18,7 @@ from typing import Any, Dict, Iterable, List
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIOR_PATH = ROOT / "data/gm/package_concentration_prior.json"
-MODEL_VERSION = "FSFFL-Package-Concentration-1.0"
+MODEL_VERSION = "FSFFL-Package-Concentration-1.1"
 
 
 def sf(x, default=0.0):
@@ -103,8 +105,10 @@ def effective(rows: Iterable[Dict[str, Any]], prior: Dict[str, Any], curve_name:
     return round(total, 2), parts
 
 
-def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> Dict[str, Any]:
+def transform_future_value(sim: Dict[str, Any], curve_name: str | None = None) -> Dict[str, Any]:
     prior = PRIOR
+    if curve_name is None:
+        curve_name = str(prior.get("active_curve") or "center")
     if curve_name not in prior.get("curves", {}):
         raise ValueError(f"unknown package concentration curve {curve_name!r}")
 
@@ -120,6 +124,7 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
             "model_version": MODEL_VERSION,
             "family_id": prior.get("family_id"),
             "authority_mode": prior.get("authority_mode"),
+            "empirically_supported": bool(prior.get("empirically_supported")),
             "empirically_calibrated": bool(prior.get("empirically_calibrated")),
             "curve_name": curve_name,
             "raw_additive_future_value": round(raw_total_future, 2),
@@ -160,6 +165,7 @@ def transform_future_value(sim: Dict[str, Any], curve_name: str = "center") -> D
         "model_version": MODEL_VERSION,
         "family_id": prior.get("family_id"),
         "authority_mode": prior.get("authority_mode"),
+        "empirically_supported": bool(prior.get("empirically_supported")),
         "empirically_calibrated": bool(prior.get("empirically_calibrated")),
         "curve_name": curve_name,
         "raw_additive_future_value": round(raw_total_future, 2),
