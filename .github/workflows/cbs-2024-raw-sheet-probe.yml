@@ -1,0 +1,59 @@
+name: CBS 2024 Raw Sheet Probe
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/cbs-2024-raw-sheet-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch published CBS 2024 preseason QB projection sheet
+        run: |
+          set -euo pipefail
+          url='https://docs.google.com/spreadsheets/d/e/2PACX-1vRSLbPOpHYIzmkYX2H2QPlQVb2kvJVvZ0GRF5EPkQ_EuqCNZ-YG8I3CGC6eINcxqkfwufN-pZUaRb3t/pub?gid=0&single=true&output=csv'
+          curl --fail --location --retry 3 --retry-delay 2 "$url" -o /tmp/cbs_2024_qb.csv
+          test -s /tmp/cbs_2024_qb.csv
+      - name: Validate raw-stat table shape
+        run: |
+          python - <<'PY'
+          import csv, json, pathlib, re
+          p=pathlib.Path('/tmp/cbs_2024_qb.csv')
+          rows=list(csv.reader(p.open(newline='', encoding='utf-8-sig')))
+          if len(rows) < 10:
+              raise SystemExit(f'too few rows: {len(rows)}')
+          header=' | '.join(rows[0])
+          normalized=re.sub(r'[^a-z0-9]+',' ',header.lower())
+          tokens=set(normalized.split())
+          expected_groups=[{'att','attempts'}, {'yds','yards'}, {'td','tds','touchdowns'}]
+          matched=sum(bool(tokens & group) for group in expected_groups)
+          if matched < 2:
+              raise SystemExit(f'raw-stat header not proven: {header}')
+          out={
+            'status':'RECOVERED_PUBLISHED_PRESEASON_SHEET',
+            'source':'CBS / Heath Cummings',
+            'season':2024,
+            'position':'QB',
+            'article_published_at':'2024-08-29T23:39:00-04:00',
+            'n_rows':len(rows)-1,
+            'header':rows[0],
+            'sample_rows':rows[1:4],
+            'production_authority':False,
+          }
+          pathlib.Path('/tmp/cbs_2024_qb_probe.json').write_text(json.dumps(out,indent=2)+'\n')
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cbs-2024-qb-preseason-sheet-probe
+          path: |
+            /tmp/cbs_2024_qb.csv
+            /tmp/cbs_2024_qb_probe.json
+          retention-days: 14
