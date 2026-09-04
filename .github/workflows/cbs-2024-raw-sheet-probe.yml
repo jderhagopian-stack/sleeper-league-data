@@ -47,7 +47,7 @@ jobs:
           pathlib.Path('/tmp/cbs_2024_all_position_probe.json').write_text(json.dumps(out,indent=2)+'\n')
           print(json.dumps(out,indent=2))
           PY
-      - name: Run recent CBS vs FFToday QB raw-stat championship
+      - name: Run recent CBS vs FFToday all-position raw-stat championship
         run: python script/run_2024_cbs_vs_fftoday_qb_raw_stat_benchmark.py
       - uses: actions/upload-artifact@v4
         with:
@@ -58,5 +58,5 @@ jobs:
             /tmp/cbs_2024_wr.csv
             /tmp/cbs_2024_te.csv
             /tmp/cbs_2024_all_position_probe.json
-            /tmp/cbs_fftoday_2024_qb_scorecard.json
+            /tmp/cbs_fftoday_2024_all_position_scorecard.json
           retention-days: 14
