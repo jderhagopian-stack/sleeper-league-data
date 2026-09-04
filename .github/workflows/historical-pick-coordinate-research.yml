@@ -1,0 +1,131 @@
+name: Historical Pick Coordinate Research
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  historical-pick-coordinate:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'research/historical-pick-coordinate-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile historical research modules
+        run: |
+          python -m py_compile script/historical_pick_coordinate.py
+          python -m py_compile script/run_historical_pick_calibration_research.py
+          python -m py_compile script/test_historical_pick_coordinate.py
+          python -m py_compile script/analyze_historical_pick_recovery_gaps.py
+          python -m py_compile script/run_historical_faab_nuisance_sensitivity.py
+          python -m py_compile script/analyze_historical_faab_archetypes.py
+          python -m py_compile script/analyze_historical_manager_influence.py
+          python -m py_compile script/run_augmented_historical_package_calibration.py
+
+      - name: Validate point-in-time leakage boundaries
+        run: python script/test_historical_pick_coordinate.py
+
+      - name: Run expanded historical pick/package research
+        run: python script/run_historical_pick_calibration_research.py
+
+      - name: Diagnose remaining recovery gaps
+        run: python script/analyze_historical_pick_recovery_gaps.py
+
+      - name: Run bounded FAAB nuisance sensitivity
+        run: python script/run_historical_faab_nuisance_sensitivity.py
+
+      - name: Classify FAAB trade archetypes
+        run: python script/analyze_historical_faab_archetypes.py
+
+      - name: Check leave-one-manager-out stability
+        run: python script/analyze_historical_manager_influence.py
+
+      - name: Run augmented package calibration
+        run: python script/run_augmented_historical_package_calibration.py
+
+      - name: Validate governance and research-only authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("data")
+          spec=json.load(open(root/"model_governance/historical_pick_coordinate_spec.json"))
+          recover=json.load(open(root/"audit/historical_pick_coordinate_recoverability.json"))
+          pkg=json.load(open(root/"audit/historical_package_concentration_expanded.json"))
+          temporal=json.load(open(root/"audit/historical_package_temporal_validation.json"))
+          quality=json.load(open(root/"audit/historical_pick_evidence_quality.json"))
+          gaps=json.load(open(root/"audit/historical_pick_recovery_gap_analysis.json"))
+          faab=json.load(open(root/"audit/historical_faab_nuisance_sensitivity.json"))
+          archetypes=json.load(open(root/"audit/historical_faab_archetypes.json"))
+          influence=json.load(open(root/"audit/historical_manager_influence.json"))
+          augmented=json.load(open(root/"audit/historical_package_calibration_augmented_faab.json"))
+
+          assert spec["authority"]=="RESEARCH_CALIBRATION_ONLY"
+          assert spec["economic_channel"]=="FUTURE_ASSET_VALUE"
+          assert spec["creates_new_channel"] is False
+          assert spec["production_authority"] is False
+          assert recover["completed_trade_count"]==144
+          assert recover["principles"]["2022_startup_nomination_order_not_pick_value_evidence"] is True
+          assert recover["principles"]["future_rookie_draft_results_do_not_leak_backward"] is True
+          assert recover["principles"]["current_pick_values_not_historical_truth"] is True
+          assert pkg["research_only"] is True
+          assert pkg["production_behavior_changed"] is False
+          assert pkg["production_prior_changed"] is False
+          assert pkg["shared_decision_utility_changed"] is False
+          assert temporal["random_split_used"] is False
+          assert quality["production_authority"] is False
+          assert gaps["production_authority"] is False
+          assert faab["production_authority"] is False
+          assert faab["faab_hard_exchange_rate_assigned"] is False
+          assert archetypes["production_authority"] is False
+          assert influence["production_authority"] is False
+          assert influence["manager_specific_exclusion_rule_used"] is False
+          assert augmented["production_authority"] is False
+          assert augmented["production_behavior_changed"] is False
+          assert augmented["production_prior_changed"] is False
+          assert augmented["faab_hard_exchange_rate_assigned"] is False
+
+          source=Path("script/historical_pick_coordinate.py").read_text()
+          for needle in ("market_values_fantasycalc.json", "infer_fc_pick_values", "FantasyCalc"):
+              assert needle not in source, needle
+
+          print(json.dumps({
+              "completed_trade_count":recover["completed_trade_count"],
+              "base_recoverable_primary_trade_count":recover["recoverable_primary_trade_count"],
+              "base_unequal_package_trade_count":pkg["unequal_package_trade_count"],
+              "faab_robust_trade_count":faab["robust_trade_count"],
+              "faab_archetype_counts":archetypes["counts"],
+              "augmented_primary_trade_count":augmented["augmented_primary_trade_count"],
+              "augmented_unequal_package_count":augmented["augmented_unequal_package_count"],
+              "augmented_rank_stable_across_faab_rails":augmented["ranking_stable_across_all_faab_rails"],
+              "augmented_ranking_by_faab_rail":augmented["ranking_by_faab_rail"],
+              "augmented_train_ranking":augmented["primary_ratio_result"]["temporal"]["train_ranking"],
+              "augmented_validation_ranking":augmented["primary_ratio_result"]["temporal"]["validation_ranking"],
+              "augmented_manager_leaveout_ranking_changes":augmented["primary_ratio_result"]["manager_leaveout_ranking_changes"],
+          },indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: historical-pick-coordinate-research
+          path: |
+            data/audit/historical_pick_coordinate_recoverability.json
+            data/audit/historical_package_concentration_expanded.json
+            data/audit/historical_pick_evidence_quality.json
+            data/audit/historical_package_temporal_validation.json
+            data/audit/historical_pick_coordinate_summary.md
+            data/audit/historical_pick_recovery_gap_analysis.json
+            data/audit/historical_faab_nuisance_sensitivity.json
+            data/audit/historical_faab_archetypes.json
+            data/audit/historical_manager_influence.json
+            data/audit/historical_package_calibration_augmented_faab.json
+          if-no-files-found: error
+          retention-days: 14
