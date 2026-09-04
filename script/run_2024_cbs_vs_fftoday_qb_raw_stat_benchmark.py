@@ -20,9 +20,9 @@ STATS={
 }
 FFT_LAYOUT={
  'QB':[('completions',1),('attempts',2),('passing_yards',3),('passing_tds',4),('interceptions',5),('rushing_attempts',6),('rushing_yards',7),('rushing_tds',8)],
- 'RB':[('rushing_attempts',1),('rushing_yards',2),('rushing_tds',4),('receptions',5),('receiving_yards',6),('receiving_tds',8)],
- 'WR':[('receptions',1),('receiving_yards',2),('receiving_tds',4),('rushing_attempts',5),('rushing_yards',6),('rushing_tds',8)],
- 'TE':[('receptions',1),('receiving_yards',2),('receiving_tds',4)],
+ 'RB':[('rushing_attempts',1),('rushing_yards',2),('rushing_tds',3),('receptions',4),('receiving_yards',5),('receiving_tds',6)],
+ 'WR':[('receptions',1),('receiving_yards',2),('receiving_tds',3),('rushing_attempts',4),('rushing_yards',5),('rushing_tds',6)],
+ 'TE':[('receptions',1),('receiving_yards',2),('receiving_tds',3)],
 }
 ACTUAL_FIELDS={
  'completions':'completions','attempts':'attempts','passing_yards':'passing_yards','passing_tds':'passing_tds','interceptions':'interceptions',
