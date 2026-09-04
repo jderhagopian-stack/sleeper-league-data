@@ -15,11 +15,12 @@ SCRIPT = ROOT / "script"
 OUT = ROOT / "data" / "audit"
 OUT.mkdir(parents=True, exist_ok=True)
 
-MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.4"
+MODEL_VERSION = "FSFFL-Decision-Path-Integrity-Audit-1.5"
 
 
 def text(name: str) -> str:
     return (SCRIPT / name).read_text(encoding="utf-8")
+
 
 def text_path(*parts: str) -> str:
     return SCRIPT.joinpath(*parts).read_text(encoding="utf-8")
@@ -32,20 +33,7 @@ def main():
     option_governance = text("trade_option_governance.py")
     roster_overlay = text("roster_interaction_overlay.py")
     roster_resolution = text("roster_resolution_governance.py")
-    candidate_pools = text("trade_candidate_pools.py")
-    trade_behavior = text_path("trade_decision", "behavior_integration.py")
-    historical_behavior = text_path("trade_decision", "historical_behavior_policy.py")
-    state_policy = text("trade_state_policy.py")
-    candidate_selector = text("trade_candidate_selector.py")
     state_selector_composition = text("trade_state_selector_composition.py")
-    multi_asset_packages = text("trade_multi_asset_packages.py")
-    multi_asset_composition = text("trade_multi_asset_composition.py")
-    negotiation_family = text("trade_negotiation_family.py")
-    bilateral_gate = text("trade_bilateral_gate.py")
-    bilateral_composition = text("trade_bilateral_composition.py")
-    v30 = text("run_trade_market_sweep_v30.py")
-    v29 = text("run_trade_market_sweep_v29.py")
-    v23 = text("run_trade_market_sweep_v23.py")
     v20 = text("run_trade_market_sweep_v20.py")
     utility = text("decision_utility.py")
     v13 = text("run_trade_market_sweep_v13.py")
@@ -127,10 +115,14 @@ def main():
         and "realistic" in v16
     )
 
-    # The final score must use Shared Decision Utility 2.0. Current-season
-    # outcomes are normalized against the canonical league baseline and combined
-    # without hand-set cross-metric coefficients; future, liquidity and
-    # resilience remain distinct value-denominated channels.
+    governed_package_curve = (
+        'prior = PACKAGE_CONCENTRATION.PRIOR' in utility
+        and 'active_curve = str(prior.get("active_curve") or "center")' in utility
+        and 'active_curve not in prior.get("curves", {})' in utility
+        and 'PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)' in utility
+        and '"package_concentration_active_curve": active_curve' in utility
+    )
+
     final_overlap_tokens = {
         "shared_utility_called": 'resolved = utility.score(sim)' in v20,
         "league_relative_current_signal": (
@@ -138,7 +130,7 @@ def main():
             and 'ref = sim.get("league_reference") or {}' in utility
         ),
         "package_adjusted_future_value_in_final_score": (
-            'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in utility
+            governed_package_curve
             and '"package_effective_future_value"' in utility
             and '"package_concentration_replaces_future_additivity": True' in utility
             and '"package_concentration_new_channel_created": False' in utility
@@ -249,19 +241,16 @@ def main():
             "id": "FINAL-SCORE-OVERLAP-001",
             "severity": "HIGH",
             "status": "UNRESOLVED_OVERLAP" if final_composite_overlap else "STRUCTURALLY_DEDUPLICATED",
-            "observation": (
-                "The final score uses Shared Decision Utility 2.2: league-relative Simulator current outcomes plus package-adjusted FUTURE ASSET VALUE and direct liquidity/replacement-resilience channels. Package concentration replaces negotiated package additivity inside the future channel only; optionality, strategic and break-glass composites remain diagnostic, and fixed cross-unit conversion constants are absent."
-            ),
+            "observation": "The final score uses Shared Decision Utility 2.2: league-relative Simulator current outcomes plus package-adjusted FUTURE ASSET VALUE and direct liquidity/replacement-resilience channels. Package concentration uses the governed active curve and replaces negotiated package additivity inside the future channel only; optionality, strategic and break-glass composites remain diagnostic, and fixed cross-unit conversion constants are absent.",
             "detected_components": final_overlap_tokens,
+            "governed_active_package_curve_detected": governed_package_curve,
             "authoritative_empirical_claim_allowed": False,
         },
         {
             "id": "BEHAVIOR-OOS-001",
             "severity": "HIGH",
             "status": "PREDICTIVE_HOLDOUT_PRESENT" if behavior_oos_predictive_test else "STRUCTURAL_VALIDATION_ONLY",
-            "observation": (
-                "Behavioral Intelligence 3 has strong leakage/boundedness/sample-confidence tests, but its production workflow does not demonstrate held-out prediction of future manager acceptance/actions. Its hand-set blend weights and adjustment caps therefore remain bounded secondary evidence rather than statistically estimated acceptance coefficients."
-            ),
+            "observation": "Behavioral Intelligence 3 has strong leakage/boundedness/sample-confidence tests, but its production workflow does not demonstrate held-out prediction of future manager acceptance/actions. Its hand-set blend weights and adjustment caps therefore remain bounded secondary evidence rather than statistically estimated acceptance coefficients.",
             "holdout_predictive_acceptance_test_detected": behavior_oos_predictive_test,
             "authoritative_empirical_claim_allowed": behavior_oos_predictive_test,
         },
