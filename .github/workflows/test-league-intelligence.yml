@@ -6,6 +6,9 @@ on:
     paths:
       - 'docs/league-intelligence-analytics-terminal.md'
       - 'script/league_intelligence/**'
+      - 'script/player_value/**'
+      - 'script/test_fsffl_player_value.py'
+      - 'data/player_value/**'
       - 'script/gm3/team_context.py'
       - 'script/gm3/team_improvement.py'
       - 'script/test_gm3_team_context.py'
@@ -30,7 +33,9 @@ jobs:
       - name: Validate governed view contracts
         run: python script/test_league_intelligence_contract.py
       - name: Validate read-only application and Player Value rankings
-        run: python script/test_league_intelligence_terminal.py
+        run: |
+          python script/test_fsffl_player_value.py
+          python script/test_league_intelligence_terminal.py
       - name: Validate governed GM3 team-context publisher
         run: python script/test_gm3_team_context.py
       - name: Validate read-only Decision and Utility Inspector
@@ -48,7 +53,8 @@ jobs:
             --output /tmp/league-intelligence-terminal.json \
             --markdown-output /tmp/player-value-rankings.md
           grep -q 'FSFFL Player Value & Rankings Terminal' /tmp/player-value-rankings.md
-          grep -q 'Model-versus-market ranking: unavailable' /tmp/player-value-rankings.md
+          grep -q 'FSFFL current-season contribution ranking' /tmp/player-value-rankings.md
+          grep -q 'Like-for-like long-term model-versus-market comparison: unavailable' /tmp/player-value-rankings.md
           grep -q 'Team-relative player context' /tmp/player-value-rankings.md
           grep -q 'League positional strength heat map' /tmp/player-value-rankings.md
           grep -q 'Trade-partner intelligence' /tmp/player-value-rankings.md

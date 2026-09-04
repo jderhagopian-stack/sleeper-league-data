@@ -44,6 +44,11 @@ assert all(
     for r in rows
 )
 assert all(r["field_provenance"]["ranks"]["creates_new_value"] is False for r in rows)
+assert any(r["fsffl_current_season_value"] is not None for r in rows)
+assert all(
+    r["fsffl_value_context"]["not_a_trade_price"] is True
+    for r in rows if r["fsffl_value_context"]["available"]
+)
 
 value_contract = payload["contract_health"]["player_value_authority"]
 assert value_contract["quarantined_player_count"] > 0
@@ -52,8 +57,14 @@ assert value_contract["terminal_uses_published_fsffl_value_for_ranking"] is Fals
 assert value_contract["quarantine_enforced"] is True
 assert value_contract["active_rankings_safe_for_presentation"] is True
 assert value_contract["authoritative_model_vs_market_available"] is False
-assert payload["capability_status"]["model_vs_market"] is False
-assert payload["capability_status"]["model_vs_market_blocked_by_source_contract"] is True
+assert value_contract["authoritative_current_season_vs_dynasty_market_available"] is True
+native_contract = payload["contract_health"]["native_player_value"]
+assert native_contract["compatible"] is True
+assert native_contract["source_hash_mismatches"] == []
+assert payload["capability_status"]["model_vs_market"] is True
+assert payload["capability_status"]["current_season_vs_dynasty_market"] is True
+assert payload["capability_status"]["long_term_model_vs_market"] is False
+assert payload["capability_status"]["long_term_model_vs_market_blocked_by_validation"] is True
 
 landscape = payload["views"]["league_competitive_landscape"]
 assert landscape["creates_independent_power_score"] is False
@@ -108,8 +119,9 @@ if team_context_path.exists():
 markdown = app.render_player_rankings_markdown(payload, limit=10)
 assert "FSFFL Player Value & Rankings Terminal" in markdown
 assert "Long-term market ranking" in markdown
-assert "Current-season projection ranking" in markdown
-assert "Model-versus-market ranking: unavailable" in markdown
+assert "FSFFL current-season contribution ranking" in markdown
+assert "Largest current-season versus dynasty-market gaps" in markdown
+assert "Like-for-like long-term model-versus-market comparison: unavailable" in markdown
 assert "pre-separation team-profile artifacts are excluded" in markdown
 
 print("League Intelligence Terminal first-slice regressions passed")
