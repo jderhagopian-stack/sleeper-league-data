@@ -28,6 +28,7 @@ jobs:
           python -m py_compile script/analyze_historical_faab_archetypes.py
           python -m py_compile script/analyze_historical_manager_influence.py
           python -m py_compile script/run_augmented_historical_package_calibration.py
+          python -m py_compile script/analyze_historical_faab_evidence_weight_sensitivity.py
 
       - name: Validate point-in-time leakage boundaries
         run: python script/test_historical_pick_coordinate.py
@@ -50,6 +51,9 @@ jobs:
       - name: Run augmented package calibration
         run: python script/run_augmented_historical_package_calibration.py
 
+      - name: Test FAAB evidence-weight sensitivity
+        run: python script/analyze_historical_faab_evidence_weight_sensitivity.py
+
       - name: Validate governance and research-only authority
         run: |
           python - <<'PY'
@@ -67,6 +71,7 @@ jobs:
           archetypes=json.load(open(root/"audit/historical_faab_archetypes.json"))
           influence=json.load(open(root/"audit/historical_manager_influence.json"))
           augmented=json.load(open(root/"audit/historical_package_calibration_augmented_faab.json"))
+          faab_weight=json.load(open(root/"audit/historical_faab_evidence_weight_sensitivity.json"))
 
           assert spec["authority"]=="RESEARCH_CALIBRATION_ONLY"
           assert spec["economic_channel"]=="FUTURE_ASSET_VALUE"
@@ -92,6 +97,12 @@ jobs:
           assert augmented["production_behavior_changed"] is False
           assert augmented["production_prior_changed"] is False
           assert augmented["faab_hard_exchange_rate_assigned"] is False
+          assert faab_weight["research_only"] is True
+          assert faab_weight["production_authority"] is False
+          assert faab_weight["production_behavior_changed"] is False
+          assert faab_weight["production_prior_changed"] is False
+          assert faab_weight["faab_hard_exchange_rate_assigned"] is False
+          assert faab_weight["evidence_weight_is_empirically_identified"] is False
 
           source=Path("script/historical_pick_coordinate.py").read_text()
           for needle in ("market_values_fantasycalc.json", "infer_fc_pick_values", "FantasyCalc"):
@@ -101,6 +112,7 @@ jobs:
               "completed_trade_count":recover["completed_trade_count"],
               "base_recoverable_primary_trade_count":recover["recoverable_primary_trade_count"],
               "base_unequal_package_trade_count":pkg["unequal_package_trade_count"],
+              "zero_prior_draft_evidence_pick_assets":gaps["pick_assets_with_zero_prior_completed_draft_evidence"],
               "faab_robust_trade_count":faab["robust_trade_count"],
               "faab_archetype_counts":archetypes["counts"],
               "augmented_primary_trade_count":augmented["augmented_primary_trade_count"],
@@ -110,6 +122,11 @@ jobs:
               "augmented_train_ranking":augmented["primary_ratio_result"]["temporal"]["train_ranking"],
               "augmented_validation_ranking":augmented["primary_ratio_result"]["temporal"]["validation_ranking"],
               "augmented_manager_leaveout_ranking_changes":augmented["primary_ratio_result"]["manager_leaveout_ranking_changes"],
+              "faab_weight_rank_stable":faab_weight["ranking_stable_across_weight_and_nuisance_grid"],
+              "faab_weight_train_stable":faab_weight["train_ranking_stable_across_grid"],
+              "faab_weight_validation_stable":faab_weight["validation_ranking_stable_across_grid"],
+              "faab_weight_strong_beats_center":faab_weight["strong_beats_center_across_grid"],
+              "faab_weight_min_strong_advantage":faab_weight["minimum_strong_vs_center_distance_advantage"],
           },indent=2))
           PY
 
@@ -127,5 +144,6 @@ jobs:
             data/audit/historical_faab_archetypes.json
             data/audit/historical_manager_influence.json
             data/audit/historical_package_calibration_augmented_faab.json
+            data/audit/historical_faab_evidence_weight_sensitivity.json
           if-no-files-found: error
           retention-days: 14
