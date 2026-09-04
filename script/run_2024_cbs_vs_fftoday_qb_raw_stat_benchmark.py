@@ -40,6 +40,10 @@ def num(v:str)->float:
     if not m: raise ValueError(v)
     return float(m.group())
 
+def zfloat(v:str)->float:
+    v=(v or '').strip()
+    return 0.0 if not v else float(v)
+
 def get(url:str)->bytes:
     req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Language':'en-US,en;q=0.9','Referer':'https://www.fftoday.com/','Connection':'close'})
     with urllib.request.urlopen(req,timeout=90) as r: return r.read()
@@ -50,13 +54,13 @@ def parse_cbs(position:str)->dict:
     for r in rows[1:]:
         try:
             if position=='QB':
-                name=norm_name(r[1]); vals={'attempts':float(r[3]),'completions':float(r[18]),'passing_yards':float(r[5]),'passing_tds':float(r[6]),'interceptions':float(r[7]),'rushing_attempts':float(r[8]),'rushing_yards':float(r[10]),'rushing_tds':float(r[11])}
+                name=norm_name(r[1]); vals={'attempts':float(r[3]),'completions':float(r[18]),'passing_yards':float(r[5]),'passing_tds':float(r[6]),'interceptions':float(r[7]),'rushing_attempts':zfloat(r[8]),'rushing_yards':zfloat(r[10]),'rushing_tds':zfloat(r[11])}
             elif position=='RB':
-                name=norm_name(r[2]); vals={'rushing_attempts':float(r[5]),'rushing_yards':float(r[7]),'rushing_tds':float(r[8]),'receptions':float(r[10]),'receiving_yards':float(r[12]),'receiving_tds':float(r[13])}
+                name=norm_name(r[2]); vals={'rushing_attempts':zfloat(r[5]),'rushing_yards':zfloat(r[7]),'rushing_tds':zfloat(r[8]),'receptions':zfloat(r[10]),'receiving_yards':zfloat(r[12]),'receiving_tds':zfloat(r[13])}
             elif position=='WR':
-                name=norm_name(r[2]); vals={'receptions':float(r[6]),'receiving_yards':float(r[8]),'receiving_tds':float(r[9]),'rushing_attempts':float(r[10]),'rushing_yards':float(r[12]),'rushing_tds':float(r[13])}
+                name=norm_name(r[2]); vals={'receptions':zfloat(r[6]),'receiving_yards':zfloat(r[8]),'receiving_tds':zfloat(r[9]),'rushing_attempts':zfloat(r[10]),'rushing_yards':zfloat(r[12]),'rushing_tds':zfloat(r[13])}
             else:
-                name=norm_name(r[2]); vals={'receptions':float(r[6]),'receiving_yards':float(r[8]),'receiving_tds':float(r[9])}
+                name=norm_name(r[2]); vals={'receptions':zfloat(r[6]),'receiving_yards':zfloat(r[8]),'receiving_tds':zfloat(r[9])}
             if name: out[name]=vals
         except (ValueError,IndexError):
             continue
