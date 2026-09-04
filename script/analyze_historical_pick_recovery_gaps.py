@@ -54,8 +54,8 @@ def main() -> None:
             elif basis is not None:
                 pick_basis[str(basis)] += 1
             provenance = c.get("provenance") or {}
-            prior = provenance.get("eligible_prior_completed_rookie_drafts")
-            if prior == 0:
+            prior_draft_seasons = provenance.get("draft_evidence_seasons_available_before_trade") or []
+            if len(prior_draft_seasons) == 0:
                 no_prior_draft_evidence += 1
             if not c.get("exact_slot_known_at_trade_time"):
                 exact_slot_unknown += 1
