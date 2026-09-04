@@ -1,43 +1,42 @@
 {
-  "schema_version": "1.0",
-  "model_version": "FSFFL-Package-Concentration-Prior-1.0",
+  "schema_version": "1.1",
+  "model_version": "FSFFL-Package-Concentration-Prior-1.1",
   "family_id": "PACKAGE-CONCENTRATION-RESIDUAL-001",
-  "authority_mode": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
+  "authority_mode": "ACTIVE_EMPIRICALLY_SUPPORTED_STANDARD",
+  "active_curve": "strong",
+  "empirically_supported": true,
   "empirically_calibrated": false,
+  "calibration_status": "SUPPORTED_BUT_NOT_POINT_OPTIMIZED",
   "commercial_provenance": {
     "material_external_calibration_dependency": false,
-    "basis": "Inherited internal FSFFL package curves used as a governed expert-prior envelope; external proprietary historical value tables are not used to set the production coefficients.",
-    "update_rule": "Replace or narrow with commercially-permitted empirical evidence when available."
+    "basis": "Internal point-in-time FSFFL league trade history supports meaningful package concentration without relying on restricted proprietary historical value tables.",
+    "evidence_summary": "Across the augmented historical sample, the strong curve outperformed center, mild, and additive treatment overall, in the earlier training period, in the later holdout period, across one-for-many, many-for-one, and many-for-many topologies, across bounded FAAB sensitivity, and under leave-one-manager-out checks.",
+    "update_rule": "Continue challenger calibration in the research workstream. Replace the active curve when a challenger demonstrates a materially better and robust out-of-sample fit across temporal holdout, topology, uncertainty, manager-influence, provenance, and governance gates."
   },
-  "principle": "Uncertain magnitude is not evidence of zero effect. Package concentration replaces raw additive package treatment inside FUTURE ASSET VALUE; it is not an added fifth channel.",
+  "principle": "Package concentration replaces raw additive package treatment inside FUTURE ASSET VALUE; it is not an added fifth channel. The active strong curve is evidence-backed but is not claimed to be the final point-optimal curve.",
   "curves": {
-    "mild": [
-      1,
-      0.92,
-      0.84,
-      0.78,
-      0.72
-    ],
-    "center": [
-      1,
-      0.85,
-      0.73,
-      0.64,
-      0.57
-    ],
-    "strong": [
-      1,
-      0.78,
-      0.62,
-      0.5,
-      0.42
-    ]
+    "mild": [1, 0.92, 0.84, 0.78, 0.72],
+    "center": [1, 0.85, 0.73, 0.64, 0.57],
+    "strong": [1, 0.78, 0.62, 0.5, 0.42]
   },
   "center_derivation": "Arithmetic midpoint of the inherited mild and strong FSFFL package curves.",
   "tail_policy": {
     "mild": "floor at 0.72",
     "strong": "continue -0.06 per additional asset to floor 0.28",
     "center": "arithmetic midpoint of mild and strong tail weights"
+  },
+  "promotion_evidence": {
+    "source_workstream": "PR-192 historical point-in-time trade calibration",
+    "base_primary_trade_count": 68,
+    "augmented_primary_trade_count": 87,
+    "augmented_unequal_package_count": 60,
+    "strong_vs_center_summary": "Strong reduced weighted absolute clearing distance by about ten and a half percent versus center in the primary augmented comparison.",
+    "strong_vs_additive_summary": "Strong reduced weighted absolute clearing distance by about twenty-nine and seven-tenths percent versus additive treatment in the primary augmented comparison.",
+    "temporal_train_ranking": ["strong", "center", "mild", "additive"],
+    "temporal_holdout_ranking": ["strong", "center", "mild", "additive"],
+    "faab_rail_ranking_stable_0_to_50pct": true,
+    "leave_one_manager_out_ranking_changes": 0,
+    "topology_ranking_stable": true
   },
   "invariants": {
     "one_for_one_unchanged": true,
@@ -46,6 +45,7 @@
     "same_source_rank_repricing_forbidden": true,
     "no_player_specific_tuning": true,
     "no_transaction_specific_tuning": true,
-    "uncertainty_sensitivity_exposed": true
+    "uncertainty_sensitivity_exposed": true,
+    "research_challenger_cannot_self_promote": true
   }
 }

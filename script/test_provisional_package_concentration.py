@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for bounded provisional package concentration authority."""
+"""Regression tests for governed package concentration authority."""
 from __future__ import annotations
 
 import importlib.util
@@ -41,7 +41,15 @@ def row(pid,val,name=None):
 
 
 def main():
-    # Shared utility consumers without explicit trade actions must remain additive.
+    prior=PKG.PRIOR
+    assert prior["authority_mode"]=="ACTIVE_EMPIRICALLY_SUPPORTED_STANDARD"
+    assert prior["active_curve"]=="strong"
+    assert prior["empirically_supported"] is True
+    assert prior["empirically_calibrated"] is False
+    assert prior["calibration_status"]=="SUPPORTED_BUT_NOT_POINT_OPTIMIZED"
+    assert "research_challengers" not in prior
+    assert prior["invariants"]["research_challenger_cannot_self_promote"] is True
+
     nontrade=sim([row(1,300)],[row(2,100),row(3,100),row(4,100)],0,[1,2,3,4])
     nontrade["trade_actions"]=[]
     unchanged=PKG.transform_future_value(nontrade,"center")
@@ -49,9 +57,6 @@ def main():
     assert unchanged["package_transform_applied"] is False
     assert unchanged["non_trade_future_value_preserved"] == 0.0
 
-    # Team Improvement / Opportunity Engine compatibility: older payloads may
-    # expose negotiated trades inside effective_actions alongside automatic cuts.
-    # The transform must recover only explicit trade legs and exclude the cut.
     compat=sim(
         [row(1,300),row(9,80,"AUTO CUT")],
         [row(2,200),row(3,150)],
@@ -71,21 +76,17 @@ def main():
     assert compat_center["non_trade_future_value_preserved"]==-80.0
     assert all(x["asset_id"]!="player:9" for x in compat_center["sent_parts"])
 
-    # One-for-one must be invariant under every prior curve.
     one=sim([row(1,100)],[row(2,100)],0,[1,2])
     for curve in ("mild","center","strong"):
         out=PKG.transform_future_value(one,curve)
         assert out["package_effective_future_value"] == 0.0
         assert out["concentration_residual_vs_additive"] == 0.0
 
-    # Equal additive 1-for-3 fragmentation must become worse, not better.
     frag=sim([row(1,300)],[row(2,100),row(3,100),row(4,100)],0,[1,2,3,4])
     vals={c:PKG.transform_future_value(frag,c)["package_effective_future_value"] for c in ("mild","center","strong")}
     assert vals["mild"] < 0 and vals["center"] < 0 and vals["strong"] < 0
     assert vals["strong"] < vals["center"] < vals["mild"]
 
-    # Automatic cut is in strategic sent rows but not in negotiated trade_actions.
-    # It must be preserved once as non-trade future value and never concentration-discounted.
     cut=sim(
         [row(1,300),row(9,80,"AUTO CUT")],
         [row(2,200),row(3,150)],
@@ -101,24 +102,29 @@ def main():
 
     scored=DU.score(frag)
     assert scored["model_version"] == "FSFFL-Shared-Decision-Utility-2.2"
-    assert scored["primitive_blocks"]["future"] == vals["center"]
-    assert scored["package_concentration_prior_scores"]["center"] == scored["score"]
+    assert scored["primitive_blocks"]["future"] == vals["strong"]
+    assert scored["package_concentration_prior_scores"]["strong"] == scored["score"]
     assert scored["package_concentration_prior_range_decision_robustness"] == "ROBUST_NEGATIVE_ACROSS_PRIOR_RANGE"
     diag=scored["diagnostics"]
-    assert diag["package_concentration_authority"] == "ACTIVE_BOUNDED_PROVISIONAL_PRIOR"
+    assert diag["package_concentration_active_curve"] == "strong"
+    assert diag["package_concentration_authority"] == "ACTIVE_EMPIRICALLY_SUPPORTED_STANDARD"
+    assert diag["package_concentration_empirically_supported"] is True
     assert diag["package_concentration_empirically_calibrated"] is False
+    assert diag["package_concentration_calibration_status"]=="SUPPORTED_BUT_NOT_POINT_OPTIMIZED"
     assert diag["package_concentration_replaces_future_additivity"] is True
     assert diag["package_concentration_new_channel_created"] is False
     assert diag["package_concentration"]["commercial_provenance"]["material_external_calibration_dependency"] is False
 
     print({
+        "active_curve":"strong",
         "nontrade_consumer_unchanged":True,
         "effective_actions_trade_compatibility":True,
         "one_for_one_invariant":True,
-        "fragmentation_center_future":vals["center"],
+        "fragmentation_strong_future":vals["strong"],
         "forced_cut_preserved":center["non_trade_future_value_preserved"],
         "prior_scores":scored["package_concentration_prior_scores"],
         "robustness":scored["package_concentration_prior_range_decision_robustness"],
+        "research_challengers_separated_from_production_prior":True,
     })
 
 

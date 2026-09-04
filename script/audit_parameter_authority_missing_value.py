@@ -99,8 +99,9 @@ def main() -> None:
 
     runtime_findings = {
         "shared_future_block_uses_bounded_package_concentration": (
-            'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in utility_text
-            and '"package_concentration_authority": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR"' in utility_text
+            'active_curve = str(prior.get("active_curve") or "center")' in utility_text
+            and 'PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)' in utility_text
+            and '"package_concentration_authority": prior.get("authority_mode")' in utility_text
             and '"package_concentration_replaces_future_additivity": True' in utility_text
             and '"package_concentration_new_channel_created": False' in utility_text
         ),
@@ -165,7 +166,7 @@ def main() -> None:
         "findings": findings,
         "runtime_findings": runtime_findings,
         "high_leverage_runtime_observation": (
-            "The production Shared Decision Utility future block now applies the governed bounded provisional package-"
+            "The production Shared Decision Utility future block now applies the governed active package-"
             "concentration transform to negotiated trade legs while preserving non-trade future effects exactly once. "
             "This closes the former search/final-authority gap without creating a fifth channel. Optionality remains "
             "calculated but explicitly diagnostic-only."

@@ -4,19 +4,21 @@
 Trade Decision and GM3 Team Improvement consume the same four-channel utility.
 
 Version 2.2 retains the evidence-governed current-season reconciliation from
-2.1 and promotes package concentration as a bounded provisional transform
-inside FUTURE ASSET VALUE:
+2.1 and package concentration inside FUTURE ASSET VALUE:
 - current-season value combines Simulator outcome value, transaction
   market-redraft delta, and optimized-starter redraft delta with an unweighted
   same-unit median when those observations are available;
 - FUTURE ASSET VALUE starts from the dynasty market-value delta, but for
   explicit negotiated multi-asset trades it replaces raw package additivity
-  with the governed package-concentration center prior;
+  with the governed active package-concentration curve;
+- the active curve is configured in the governed package prior rather than
+  hard-coded here, so future evidence-backed recalibration does not require a
+  Shared Decision Utility architecture rewrite;
 - automatic roster cuts and other non-trade future effects remain outside that
   package transform and are preserved exactly once;
-- mild and strong package curves remain explicit sensitivity rails, and full
-  Shared Decision Utility is recomputed across the range so prior-sensitive
-  recommendations can be identified;
+- mild, center, and strong package curves remain explicit sensitivity rails,
+  and full Shared Decision Utility is recomputed across the range so
+  parameter-sensitive recommendations can be identified;
 - one-for-one trades are invariant by construction;
 - liquidity and resilience retain their separately authorized value-denominated
   channels;
@@ -24,9 +26,9 @@ inside FUTURE ASSET VALUE:
 - behavior/acceptance does not enter focal economic utility;
 - no same-source market-rank repricing or fifth package channel is introduced.
 
-The package prior is explicitly provisional, not empirically calibrated. Its
-uncertainty is exposed and should be narrowed or replaced as stronger,
-commercially-permitted evidence accumulates.
+The active package curve may be empirically supported without being claimed as
+the final point-optimal curve. Research challengers remain non-authoritative
+until they clear the governed promotion gates.
 """
 from __future__ import annotations
 
@@ -68,9 +70,6 @@ def _market_redraft_scale(strategic):
     if scale is not None:
         return scale, "baseline_team_market_redraft_value"
 
-    # Compatibility fallback for legacy/test rows that do not yet expose the
-    # full-team scale. Use observed transaction redraft exposure rather than a
-    # hand-set constant.
     rows = list(strategic.get("sent") or []) + list(strategic.get("received") or [])
     exposure = sum(abs(sf(x.get("market_redraft"))) for x in rows)
     if exposure > 0:
@@ -101,19 +100,12 @@ def _relative_current_outcomes(sim):
         net_title_delta = title_delta - buyer_title_delta
     add("net_championship_probability", net_title_delta, ref.get("championship_probability_mean"))
 
-    # Median rather than a weighted sum prevents four highly correlated current
-    # outcomes from being counted four times and requires no hand-set relative
-    # coefficients among points, wins, playoffs and championship equity.
     signal = statistics.median(values.values()) if values else 0.0
     return signal, values
 
 
 def _current_value_evidence(sim, simulator_value):
-    """Return same-unit current-season evidence without inventing coefficients.
-
-    Each included observation is already denominated in market-redraft value
-    units. Missing sources are omitted rather than silently treated as zero.
-    """
+    """Return same-unit current-season evidence without inventing coefficients."""
     evidence = {"simulator_outcome_value": sf(simulator_value)}
     strategic = sim.get("strategic") or {}
 
@@ -146,8 +138,12 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
     current_evidence = _current_value_evidence(sim, simulator_current_value)
     current_value = statistics.median(current_evidence.values())
 
-    package_center = PACKAGE_CONCENTRATION.transform_future_value(sim, "center")
-    future_value = sf(package_center.get("package_effective_future_value"))
+    prior = PACKAGE_CONCENTRATION.PRIOR
+    active_curve = str(prior.get("active_curve") or "center")
+    if active_curve not in prior.get("curves", {}):
+        raise RuntimeError(f"Governed package prior specifies unknown active curve {active_curve!r}")
+    package_active = PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)
+    future_value = sf(package_active.get("package_effective_future_value"))
     package_sensitivity = PACKAGE_CONCENTRATION.sensitivity(sim)
     liquidity_value = sf(s.get("liquidity_value_delta"))
     resilience_value = sf(s.get("resilience_value_delta"))
@@ -174,14 +170,17 @@ def primitive_blocks(sim: Dict[str, Any]) -> Dict[str, Any]:
             "optionality_incremental_value_authorized": False,
             "opponent_title_externality_has_separate_coefficient": False,
             "fixed_unit_conversion_coefficients_used": False,
-            "package_concentration": package_center,
+            "package_concentration": package_active,
+            "package_concentration_active_curve": active_curve,
             "package_concentration_sensitivity_future_primitives": {
                 "mild": round(sf(package_sensitivity.get("mild_future")), 2),
                 "center": round(sf(package_sensitivity.get("center_future")), 2),
                 "strong": round(sf(package_sensitivity.get("strong_future")), 2),
             },
-            "package_concentration_authority": "ACTIVE_BOUNDED_PROVISIONAL_PRIOR",
-            "package_concentration_empirically_calibrated": False,
+            "package_concentration_authority": prior.get("authority_mode"),
+            "package_concentration_empirically_supported": bool(prior.get("empirically_supported")),
+            "package_concentration_empirically_calibrated": bool(prior.get("empirically_calibrated")),
+            "package_concentration_calibration_status": prior.get("calibration_status"),
             "package_concentration_replaces_future_additivity": True,
             "package_concentration_new_channel_created": False,
         },
@@ -217,9 +216,6 @@ def score(sim: Dict[str, Any]) -> Dict[str, Any]:
     total_weight = sum(w.values())
     if total_weight <= 0:
         raise RuntimeError("Shared decision utility received non-positive authorized objective weights")
-    # Structural de-duplication rule: a channel explicitly disabled by the
-    # governing strategic profile cannot consume objective-weight mass. The
-    # remaining governed weights are renormalized; no new coefficient is fit.
     w = {k: v / total_weight for k, v in w.items()}
 
     blocks = primitive_blocks(sim)
