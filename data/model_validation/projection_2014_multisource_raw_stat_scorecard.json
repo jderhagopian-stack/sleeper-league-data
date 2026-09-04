@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "status": "RESEARCH_ONLY_SINGLE_SEASON",
+  "season": 2014,
+  "sources": ["CBS", "ESPN", "FFToday", "FantasyPros"],
+  "category_count": 23,
+  "summary": {
+    "equal_weight_category_wins": 6,
+    "single_source_category_wins": {"CBS": 3, "ESPN": 5, "FFToday": 7, "FantasyPros": 2}
+  },
+  "categories": {
+    "QB|attempts": {"common_players":39,"equal_weight_mae":129.03076923076924,"mae_by_source":{"CBS":134.14102564102564,"ESPN":129.66666666666666,"FFToday":129.64102564102564,"FantasyPros":142.36666666666665},"winner_in_2014_cross_section":"equal_weight"},
+    "QB|completions": {"common_players":39,"equal_weight_mae":80.08141025641027,"mae_by_source":{"CBS":82.94871794871794,"ESPN":80.0,"FFToday":80.05128205128206,"FantasyPros":87.84871794871795},"winner_in_2014_cross_section":"ESPN"},
+    "QB|interceptions": {"common_players":39,"equal_weight_mae":4.841666666666667,"mae_by_source":{"CBS":5.269230769230769,"ESPN":4.564102564102564,"FFToday":4.9743589743589745,"FantasyPros":5.302564102564103},"winner_in_2014_cross_section":"ESPN"},
+    "QB|passing_tds": {"common_players":39,"equal_weight_mae":7.007692307692308,"mae_by_source":{"CBS":7.935897435897436,"ESPN":6.564102564102564,"FFToday":6.846153846153846,"FantasyPros":7.633333333333333},"winner_in_2014_cross_section":"ESPN"},
+    "QB|passing_yards": {"common_players":39,"equal_weight_mae":932.1461538461538,"mae_by_source":{"CBS":1045.025641025641,"ESPN":912.1538461538462,"FFToday":908.2564102564103,"FantasyPros":1040.097435897436},"winner_in_2014_cross_section":"FFToday"},
+    "QB|rushing_attempts": {"common_players":39,"equal_weight_mae":15.507692307692306,"mae_by_source":{"CBS":16.05128205128205,"ESPN":15.974358974358974,"FFToday":15.794871794871796,"FantasyPros":16.415384615384617},"winner_in_2014_cross_section":"equal_weight"},
+    "QB|rushing_tds": {"common_players":39,"equal_weight_mae":0.9006410256410257,"mae_by_source":{"CBS":0.9615384615384616,"ESPN":0.9743589743589743,"FFToday":0.7948717948717948,"FantasyPros":0.9384615384615385},"winner_in_2014_cross_section":"FFToday"},
+    "QB|rushing_yards": {"common_players":39,"equal_weight_mae":80.46089743589744,"mae_by_source":{"CBS":80.38461538461539,"ESPN":90.56410256410257,"FFToday":79.94871794871794,"FantasyPros":83.17692307692307},"winner_in_2014_cross_section":"FFToday"},
+    "RB|receiving_tds": {"common_players":77,"equal_weight_mae":0.9402597402597404,"mae_by_source":{"CBS":0.935064935064935,"ESPN":0.961038961038961,"FFToday":0.935064935064935,"FantasyPros":0.9454545454545454},"winner_in_2014_cross_section":"CBS"},
+    "RB|receiving_yards": {"common_players":77,"equal_weight_mae":110.65941558441558,"mae_by_source":{"CBS":110.77922077922078,"ESPN":115.05194805194805,"FFToday":117.12987012987013,"FantasyPros":112.4922077922078},"winner_in_2014_cross_section":"equal_weight"},
+    "RB|receptions": {"common_players":77,"equal_weight_mae":13.211363636363636,"mae_by_source":{"CBS":13.097402597402597,"ESPN":13.155844155844155,"FFToday":14.519480519480519,"FantasyPros":13.342857142857143},"winner_in_2014_cross_section":"CBS"},
+    "RB|rushing_attempts": {"common_players":77,"equal_weight_mae":63.92272727272727,"mae_by_source":{"CBS":70.31818181818181,"ESPN":66.0909090909091,"FFToday":62.81818181818182,"FantasyPros":63.624675324675316},"winner_in_2014_cross_section":"FFToday"},
+    "RB|rushing_tds": {"common_players":77,"equal_weight_mae":2.573701298701299,"mae_by_source":{"CBS":2.727272727272727,"ESPN":2.6233766233766236,"FFToday":2.6623376623376624,"FantasyPros":2.5675324675324673},"winner_in_2014_cross_section":"FantasyPros"},
+    "RB|rushing_yards": {"common_players":77,"equal_weight_mae":308.82922077922075,"mae_by_source":{"CBS":337.15584415584414,"ESPN":305.46753246753246,"FFToday":303.94805194805195,"FantasyPros":309.15844155844155},"winner_in_2014_cross_section":"FFToday"},
+    "TE|receiving_tds": {"common_players":38,"equal_weight_mae":2.6138157894736844,"mae_by_source":{"CBS":2.9210526315789473,"ESPN":2.5526315789473686,"FFToday":2.4210526315789473,"FantasyPros":2.6657894736842103},"winner_in_2014_cross_section":"FFToday"},
+    "TE|receiving_yards": {"common_players":38,"equal_weight_mae":231.7855263157895,"mae_by_source":{"CBS":244.82894736842104,"ESPN":228.57894736842104,"FFToday":232.42105263157896,"FantasyPros":232.8815789473684},"winner_in_2014_cross_section":"ESPN"},
+    "TE|receptions": {"common_players":38,"equal_weight_mae":17.998026315789474,"mae_by_source":{"CBS":17.75,"ESPN":18.05263157894737,"FFToday":19.710526315789473,"FantasyPros":17.794736842105266},"winner_in_2014_cross_section":"CBS"},
+    "WR|receiving_tds": {"common_players":87,"equal_weight_mae":2.6479885057471266,"mae_by_source":{"CBS":2.82183908045977,"ESPN":2.5517241379310347,"FFToday":2.7011494252873565,"FantasyPros":2.629885057471264},"winner_in_2014_cross_section":"ESPN"},
+    "WR|receiving_yards": {"common_players":87,"equal_weight_mae":252.96379310344827,"mae_by_source":{"CBS":269.98850574712645,"ESPN":256.95402298850576,"FFToday":254.80459770114942,"FantasyPros":254.69655172413792},"winner_in_2014_cross_section":"equal_weight"},
+    "WR|receptions": {"common_players":87,"equal_weight_mae":16.052011494252874,"mae_by_source":{"CBS":17.25862068965517,"ESPN":16.908045977011493,"FFToday":16.344827586206897,"FantasyPros":16.19080459770115},"winner_in_2014_cross_section":"equal_weight"},
+    "WR|rushing_attempts": {"common_players":108,"equal_weight_mae":1.4907407407407407,"mae_by_source":{"ESPN":1.5740740740740742,"FFToday":1.6111111111111112,"FantasyPros":1.4907407407407407},"winner_in_2014_cross_section":"FantasyPros"},
+    "WR|rushing_tds": {"common_players":108,"equal_weight_mae":0.041666666666666664,"mae_by_source":{"ESPN":0.046296296296296294,"FFToday":0.037037037037037035,"FantasyPros":0.041666666666666664},"winner_in_2014_cross_section":"FFToday"},
+    "WR|rushing_yards": {"common_players":108,"equal_weight_mae":11.137345679012345,"mae_by_source":{"ESPN":12.12037037037037,"FFToday":11.148148148148149,"FantasyPros":11.143518518518519},"winner_in_2014_cross_section":"equal_weight"}
+  },
+  "governance": {"production_authority": false,"raw_stats_only": true,"common_cohort_required": true,"archive_timing_verified_separately": true},
+  "limitations": ["Only one season; cannot learn or validate temporal ensemble weights.","Provider reuse rights remain a separate unresolved gate.","Use as category prior/diagnostic evidence only, never sole production-promotion evidence."],
+  "production_behavior_changed": false
+}
