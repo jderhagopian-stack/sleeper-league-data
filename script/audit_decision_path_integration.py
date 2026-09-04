@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script"
 DATA = ROOT / "data"
 OUT = DATA / "audit" / "decision_path_integration_audit.json"
-MODEL_VERSION = "FSFFL-Decision-Path-Integration-Audit-1.1"
+MODEL_VERSION = "FSFFL-Decision-Path-Integration-Audit-1.2"
 
 
 def load(path: Path, name: str):
@@ -113,7 +113,8 @@ def main():
             'MODEL_VERSION = "FSFFL-Shared-Decision-Utility-2.2"' in du
             and "components = {k: w[k] * sf(blocks[k]) for k in required}" in du
             and 'required = ("current", "future", "liquidity", "resilience")' in du
-            and 'PACKAGE_CONCENTRATION.transform_future_value(sim, "center")' in du
+            and 'PACKAGE_CONCENTRATION.PRIOR.get("active_curve", "strong")' in du
+            and 'PACKAGE_CONCENTRATION.transform_future_value(sim, active_curve)' in du
             and '"package_concentration_new_channel_created": False' in du
         ),
         "age_scarcity_injury_are_not_independent_shared_utility_addends": (
@@ -293,6 +294,7 @@ def main():
             "lineup_simulator_projection_universe_mismatch": True,
             "trade_projection_baseline_hypothetical_asymmetry": True,
             "touched_lineup_simulator_metadata_mismatch": True,
+            "hardcoded_package_curve_authority_drift": True,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
