@@ -22,13 +22,17 @@ def get(url:str)->bytes:
     with urllib.request.urlopen(req,timeout=90) as r: return r.read()
 
 def parse_cbs()->dict:
-    rows=list(csv.DictReader(get(CBS_URL).decode('utf-8-sig').splitlines()))
+    rows=list(csv.reader(get(CBS_URL).decode('utf-8-sig').splitlines()))
+    expected=['Rank','QB','FPTs','ATT','Y/A','YDS','TD','INT','RU','Y/A','RU YDS','TD']
+    if not rows or rows[0][:12] != expected:
+        raise SystemExit(f'CBS header changed/unverified: {rows[0][:12] if rows else None}')
     out={}
-    for r in rows:
-        name=norm_name(r.get('QB',''))
+    for r in rows[1:]:
+        if len(r)<12: continue
+        name=norm_name(r[1])
         if not name: continue
         try:
-            out[name]={'attempts':float(r['ATT']),'completions':float(r['COMP']),'passing_yards':float(r['YDS']),'passing_tds':float(r['TD']),'interceptions':float(r['INT']),'rushing_attempts':float(r['RU']),'rushing_yards':float(r['RU YDS']),'rushing_tds':float(r['TD.1'])}
+            out[name]={'attempts':float(r[3]),'completions':float(r[18]),'passing_yards':float(r[5]),'passing_tds':float(r[6]),'interceptions':float(r[7]),'rushing_attempts':float(r[8]),'rushing_yards':float(r[10]),'rushing_tds':float(r[11])}
         except Exception: continue
     return out
 
@@ -75,17 +79,14 @@ def actuals()->dict:
         if r.get('position')!='QB': continue
         name=norm_name(r.get('player_name',''))
         if not name: continue
-        out[name]={
-            'attempts':float(r.get('attempts',0) or 0),'completions':float(r.get('completions',0) or 0),'passing_yards':float(r.get('passing_yards',0) or 0),'passing_tds':float(r.get('passing_tds',0) or 0),'interceptions':float(r.get('interceptions',0) or 0),'rushing_attempts':float(r.get('carries',r.get('rushing_attempts',0)) or 0),'rushing_yards':float(r.get('rushing_yards',0) or 0),'rushing_tds':float(r.get('rushing_tds',0) or 0)}
+        out[name]={'attempts':float(r.get('attempts',0) or 0),'completions':float(r.get('completions',0) or 0),'passing_yards':float(r.get('passing_yards',0) or 0),'passing_tds':float(r.get('passing_tds',0) or 0),'interceptions':float(r.get('interceptions',0) or 0),'rushing_attempts':float(r.get('carries',r.get('rushing_attempts',0)) or 0),'rushing_yards':float(r.get('rushing_yards',0) or 0),'rushing_tds':float(r.get('rushing_tds',0) or 0)}
     return out
 
 def mae(vals): return sum(abs(a-p) for p,a in vals)/len(vals)
 
 def main():
-    cbs,fft,act=parse_cbs(),parse_fft(),actuals()
-    common=sorted(set(cbs)&set(fft)&set(act))
-    if len(common)<10:
-        raise SystemExit(f'common-player join unexpectedly small: cbs={len(cbs)} fft={len(fft)} actual={len(act)} common={len(common)}')
+    cbs,fft,act=parse_cbs(),parse_fft(),actuals(); common=sorted(set(cbs)&set(fft)&set(act))
+    if len(common)<10: raise SystemExit(f'common-player join unexpectedly small: cbs={len(cbs)} fft={len(fft)} actual={len(act)} common={len(common)}')
     detail={}; wins={'CBS':0,'FFToday':0,'tie':0,'equal_weight':0}
     for s in STATS:
         triples=[(cbs[n][s],fft[n][s],act[n][s]) for n in common]
