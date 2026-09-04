@@ -47,8 +47,7 @@ def main():
     assert prior["empirically_supported"] is True
     assert prior["empirically_calibrated"] is False
     assert prior["calibration_status"]=="SUPPORTED_BUT_NOT_POINT_OPTIMIZED"
-    challenger=prior["research_challengers"]["geometric_decay_0_65"]
-    assert challenger["authority"]=="RESEARCH_ONLY"
+    assert "research_challengers" not in prior
     assert prior["invariants"]["research_challenger_cannot_self_promote"] is True
 
     nontrade=sim([row(1,300)],[row(2,100),row(3,100),row(4,100)],0,[1,2,3,4])
@@ -125,7 +124,7 @@ def main():
         "forced_cut_preserved":center["non_trade_future_value_preserved"],
         "prior_scores":scored["package_concentration_prior_scores"],
         "robustness":scored["package_concentration_prior_range_decision_robustness"],
-        "challenger_remains_research_only":True,
+        "research_challengers_separated_from_production_prior":True,
     })
 
 
