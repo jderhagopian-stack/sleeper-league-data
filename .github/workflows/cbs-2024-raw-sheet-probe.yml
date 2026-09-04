@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/cbs-2024-raw-sheet-probe.yml'
+      - 'script/run_2024_cbs_vs_fftoday_qb_raw_stat_benchmark.py'
   workflow_dispatch:
 
 jobs:
@@ -50,10 +51,13 @@ jobs:
           pathlib.Path('/tmp/cbs_2024_qb_probe.json').write_text(json.dumps(out,indent=2)+'\n')
           print(json.dumps(out,indent=2))
           PY
+      - name: Run recent CBS vs FFToday QB raw-stat championship
+        run: python script/run_2024_cbs_vs_fftoday_qb_raw_stat_benchmark.py
       - uses: actions/upload-artifact@v4
         with:
           name: cbs-2024-qb-preseason-sheet-probe
           path: |
             /tmp/cbs_2024_qb.csv
             /tmp/cbs_2024_qb_probe.json
+            /tmp/cbs_fftoday_2024_qb_scorecard.json
           retention-days: 14
