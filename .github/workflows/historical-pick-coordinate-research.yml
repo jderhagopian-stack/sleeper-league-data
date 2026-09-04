@@ -29,6 +29,7 @@ jobs:
           python -m py_compile script/analyze_historical_manager_influence.py
           python -m py_compile script/run_augmented_historical_package_calibration.py
           python -m py_compile script/analyze_historical_faab_evidence_weight_sensitivity.py
+          python -m py_compile script/analyze_historical_faab_missing_principal.py
 
       - name: Validate point-in-time leakage boundaries
         run: python script/test_historical_pick_coordinate.py
@@ -41,6 +42,9 @@ jobs:
 
       - name: Run bounded FAAB nuisance sensitivity
         run: python script/run_historical_faab_nuisance_sensitivity.py
+
+      - name: Diagnose missing FAAB principal coordinates
+        run: python script/analyze_historical_faab_missing_principal.py
 
       - name: Classify FAAB trade archetypes
         run: python script/analyze_historical_faab_archetypes.py
@@ -68,6 +72,7 @@ jobs:
           quality=json.load(open(root/"audit/historical_pick_evidence_quality.json"))
           gaps=json.load(open(root/"audit/historical_pick_recovery_gap_analysis.json"))
           faab=json.load(open(root/"audit/historical_faab_nuisance_sensitivity.json"))
+          faab_missing=json.load(open(root/"audit/historical_faab_missing_principal_diagnostic.json"))
           archetypes=json.load(open(root/"audit/historical_faab_archetypes.json"))
           influence=json.load(open(root/"audit/historical_manager_influence.json"))
           augmented=json.load(open(root/"audit/historical_package_calibration_augmented_faab.json"))
@@ -90,6 +95,10 @@ jobs:
           assert gaps["production_authority"] is False
           assert faab["production_authority"] is False
           assert faab["faab_hard_exchange_rate_assigned"] is False
+          assert faab_missing["research_only"] is True
+          assert faab_missing["production_authority"] is False
+          assert faab_missing["historical_value_backfill_performed"] is False
+          assert faab_missing["future_information_used"] is False
           assert archetypes["production_authority"] is False
           assert influence["production_authority"] is False
           assert influence["manager_specific_exclusion_rule_used"] is False
@@ -114,6 +123,8 @@ jobs:
               "base_unequal_package_trade_count":pkg["unequal_package_trade_count"],
               "zero_prior_draft_evidence_pick_assets":gaps["pick_assets_with_zero_prior_completed_draft_evidence"],
               "faab_robust_trade_count":faab["robust_trade_count"],
+              "faab_missing_principal_count":faab_missing["missing_principal_trade_count"],
+              "faab_missing_principal_causes":faab_missing["cause_counts"],
               "faab_archetype_counts":archetypes["counts"],
               "augmented_primary_trade_count":augmented["augmented_primary_trade_count"],
               "augmented_unequal_package_count":augmented["augmented_unequal_package_count"],
@@ -141,6 +152,7 @@ jobs:
             data/audit/historical_pick_coordinate_summary.md
             data/audit/historical_pick_recovery_gap_analysis.json
             data/audit/historical_faab_nuisance_sensitivity.json
+            data/audit/historical_faab_missing_principal_diagnostic.json
             data/audit/historical_faab_archetypes.json
             data/audit/historical_manager_influence.json
             data/audit/historical_package_calibration_augmented_faab.json
