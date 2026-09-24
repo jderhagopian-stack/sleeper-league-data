@@ -1,0 +1,54 @@
+name: Current FSFFL Franchise Count Analysis
+
+on:
+  push:
+    branches:
+      - analysis/current-franchise-count-20260924
+
+permissions:
+  contents: read
+
+jobs:
+  current-franchise-count:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run old-model live franchise-history calculation
+        run: |
+          python - <<'PY'
+          import json
+          import script.update_sleeper as m
+
+          history = m.build_history()
+          players = m.build_compact_player_map(history)
+          acquisitions = m.build_acquisition_analytics(history, players)
+          rows = m.build_player_franchise_history(
+              history,
+              players,
+              acquisitions["acquisition_ledger"],
+          )
+          latest = max(
+              (e.get("created") or 0 for r in rows for e in r.get("events", [])),
+              default=0,
+          )
+          top = [
+              {
+                  "rank": i,
+                  "player_name": row.get("player_name"),
+                  "position": row.get("position"),
+                  "unique_fsffl_teams": row.get("unique_fsffl_teams"),
+                  "fsffl_team_history": row.get("fsffl_team_history"),
+                  "trade_acquisitions": row.get("trade_acquisitions"),
+                  "recorded_acquisition_events": row.get("recorded_acquisition_events"),
+                  "reacquisitions": row.get("reacquisitions"),
+              }
+              for i, row in enumerate(rows[:10], start=1)
+          ]
+          print("FSFFL_CURRENT_LATEST_EVENT_MS=" + str(latest))
+          print("FSFFL_CURRENT_HISTORY_ROWS=" + str(len(rows)))
+          print("FSFFL_CURRENT_TOP10=" + json.dumps(top, separators=(",", ":")))
+          PY
