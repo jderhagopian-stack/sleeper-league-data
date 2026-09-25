@@ -17,38 +17,107 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run old-model live franchise-history calculation
+      - name: Reconstruct complete player franchise ownership
         run: |
           python - <<'PY'
           import json
+          import time
+          from collections import defaultdict, Counter
           import script.update_sleeper as m
 
           history = m.build_history()
           players = m.build_compact_player_map(history)
-          acquisitions = m.build_acquisition_analytics(history, players)
-          rows = m.build_player_franchise_history(
-              history,
-              players,
-              acquisitions["acquisition_ledger"],
-          )
-          latest = max(
-              (e.get("created") or 0 for r in rows for e in r.get("events", [])),
-              default=0,
-          )
-          top = [
-              {
-                  "rank": i,
-                  "player_name": row.get("player_name"),
-                  "position": row.get("position"),
-                  "unique_fsffl_teams": row.get("unique_fsffl_teams"),
-                  "fsffl_team_history": row.get("fsffl_team_history"),
-                  "trade_acquisitions": row.get("trade_acquisitions"),
-                  "recorded_acquisition_events": row.get("recorded_acquisition_events"),
-                  "reacquisitions": row.get("reacquisitions"),
-              }
-              for i, row in enumerate(rows[:10], start=1)
-          ]
-          print("FSFFL_CURRENT_LATEST_EVENT_MS=" + str(latest))
-          print("FSFFL_CURRENT_HISTORY_ROWS=" + str(len(rows)))
-          print("FSFFL_CURRENT_TOP10=" + json.dumps(top, separators=(",", ":")))
+
+          # Stable franchise identity = Sleeper owner/user_id.
+          # Evidence includes draft ownership, every completed transaction add
+          # (trade, waiver, FA, commissioner, etc.), and current roster ownership.
+          owner_dir, season_rosters = m.build_owner_directory(history)
+
+          evidence = defaultdict(list)
+
+          def add(pid, uid, season, kind, created=None, transaction_id=None):
+              if pid is None or uid is None:
+                  return
+              pid, uid = str(pid), str(uid)
+              evidence[pid].append({
+                  "user_id": uid,
+                  "season": str(season),
+                  "kind": kind,
+                  "created": created or 0,
+                  "transaction_id": transaction_id,
+              })
+
+          for season_data in history:
+              league = season_data.get("league") or {}
+              season = str(league.get("season") or "unknown")
+              r2u = season_rosters.get(season, {})
+
+              # Initial/startup and rookie draft ownership.
+              for draft_record in season_data.get("drafts", []) or []:
+                  for pick in draft_record.get("picks", []) or []:
+                      pid = pick.get("player_id")
+                      uid = None
+                      picked_by = pick.get("picked_by")
+                      if picked_by is not None and str(picked_by) in owner_dir:
+                          uid = str(picked_by)
+                      elif pick.get("roster_id") is not None:
+                          uid = r2u.get(str(pick.get("roster_id")))
+                      add(pid, uid, season, "draft")
+
+              # All completed transaction adds, importantly INCLUDING TRADES.
+              for tx in season_data.get("transactions", []) or []:
+                  if tx.get("status") not in {None, "complete", "completed"}:
+                      continue
+                  ttype = tx.get("type") or "transaction"
+                  for pid, roster_id in (tx.get("adds") or {}).items():
+                      uid = r2u.get(str(roster_id))
+                      add(pid, uid, season, ttype, tx.get("created"), tx.get("transaction_id"))
+
+              # Current/season-end roster ownership catches any ownership not
+              # otherwise represented by a draft or transaction add.
+              for roster in season_data.get("rosters", []) or []:
+                  uid = roster.get("owner_id")
+                  for pid in (roster.get("players") or []):
+                      add(pid, uid, season, "roster_snapshot")
+
+          rows=[]
+          for pid, events in evidence.items():
+              # Franchise identity is stable owner user_id; repeated stints count once.
+              unique=[]
+              seen=set()
+              for e in sorted(events, key=lambda x:(x["season"], x["created"])):
+                  uid=e["user_id"]
+                  if uid not in seen:
+                      seen.add(uid)
+                      unique.append(uid)
+
+              p=players.get(pid,{})
+              trade_events=sum(1 for e in events if e["kind"]=="trade")
+              meaningful_events=sum(1 for e in events if e["kind"]!="roster_snapshot")
+              rows.append({
+                  "player_id":pid,
+                  "player_name":p.get("full_name") or pid,
+                  "position":p.get("position"),
+                  "unique_fsffl_teams":len(unique),
+                  "user_ids":unique,
+                  "team_history":[
+                      owner_dir.get(uid,{}).get("team_name")
+                      or owner_dir.get(uid,{}).get("manager")
+                      or uid for uid in unique
+                  ],
+                  "trade_events":trade_events,
+                  "ownership_events":meaningful_events,
+                  "evidence":events,
+              })
+
+          rows.sort(key=lambda x:(
+              -x["unique_fsffl_teams"],
+              -x["trade_events"],
+              -x["ownership_events"],
+              x["player_name"],
+          ))
+
+          watson = next((r for r in rows if r["player_name"]=="Deshaun Watson"), None)
+          print("FSFFL_RECON_WATSON="+json.dumps(watson,separators=(",",":")))
+          print("FSFFL_RECON_TOP20="+json.dumps(rows[:20],separators=(",",":")))
           PY
