@@ -1,30 +1,26 @@
 {
-  "basename": "devonta-for-kyren-trade-decision",
+  "basename": "mochasmevs-mhj-chuba-associate-picks",
   "quick_sims": 500,
   "adaptive_confirm_sims": 50000,
   "search_depth": 60,
   "scenario": {
-    "scenario_id": "hurts_so_good_devonta_for_kyren_2026_09_03",
-    "description": "Hurts So Good sends DeVonta Smith for Kyren Williams. First post-PR-190 beta Trade Decision case.",
-    "focus_user_id": "846634401482792960",
+    "scenario_id": "mochasmevs_mhj_associate3_for_chuba_associate2_2026_09_30",
+    "description": "MochaSmevs sends Marvin Harrison and The Associate 2027 3rd; receives Chuba Hubbard and The Associate 2027 2nd.",
+    "focus_user_id": "844785316274483200",
     "actions": [
       {
         "type": "trade",
-        "from_user_id": "846634401482792960",
-        "to_user_id": "853063390963277824",
-        "players": [
-          "7525"
-        ],
-        "picks": []
+        "from_user_id": "844785316274483200",
+        "to_user_id": "676939933792964608",
+        "players": ["11628"],
+        "picks": ["pick:2027:R3:orig4"]
       },
       {
         "type": "trade",
-        "from_user_id": "853063390963277824",
-        "to_user_id": "846634401482792960",
-        "players": [
-          "8150"
-        ],
-        "picks": []
+        "from_user_id": "676939933792964608",
+        "to_user_id": "844785316274483200",
+        "players": ["7594"],
+        "picks": ["pick:2027:R2:orig4"]
       }
     ]
   }
