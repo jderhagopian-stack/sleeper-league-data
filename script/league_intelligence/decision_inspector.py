@@ -151,9 +151,32 @@ def inspect_decision(
     source_path: Optional[str] = None,
     selector: Optional[str] = None,
 ) -> dict[str, Any]:
+    normalized_record = dict(record)
     simulation = _mapping(record.get("simulation") or record.get("governed_simulation"))
-    focal = _perspective(record, simulation)
-    counterparty = _perspective(record, simulation, counterparty=True)
+    comparisons = _mapping(record.get("team_comparisons"))
+    attributions = _mapping(record.get("decision_attribution_by_user"))
+    focus_user_id = str(record.get("focus_user_id") or "")
+    if comparisons and focus_user_id in comparisons:
+        counterparty_ids = [user_id for user_id in comparisons if str(user_id) != focus_user_id]
+        counterparty_id = str(counterparty_ids[0]) if counterparty_ids else ""
+        focal_comparison = _mapping(comparisons.get(focus_user_id))
+        counterparty_comparison = _mapping(comparisons.get(counterparty_id))
+        simulation = {
+            **simulation,
+            "focus_delta": _mapping(focal_comparison.get("delta")),
+            "strategic": _mapping(focal_comparison.get("strategic")),
+            "roster_resolution": _mapping(record.get("roster_resolution")),
+            "counterparty": {
+                "focus_delta": _mapping(counterparty_comparison.get("delta")),
+                "strategic": _mapping(counterparty_comparison.get("strategic")),
+            },
+        }
+        if focus_user_id in attributions:
+            normalized_record["focal_decision_attribution"] = attributions[focus_user_id]
+        if counterparty_id in attributions:
+            normalized_record["counterparty_decision_attribution"] = attributions[counterparty_id]
+    focal = _perspective(normalized_record, simulation)
+    counterparty = _perspective(normalized_record, simulation, counterparty=True)
     negotiation = _mapping(record.get("negotiation_frontier"))
     near_frontier = _mapping(
         record.get("near_frontier_evidence") or negotiation.get("near_frontier_evidence")

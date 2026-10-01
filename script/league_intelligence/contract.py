@@ -91,14 +91,15 @@ def first_release_contracts() -> tuple[ViewContract, ...]:
     contracts = (
         ViewContract(
             view_id="player-value-rankings",
-            version="1.0",
-            purpose="Expose model, market, and governed team-specific player intelligence without creating a new value score.",
-            upstream_authorities=("Canonical valuation sources", "GM3"),
+            version="1.1",
+            purpose="Expose independent current-season FSFFL contribution, market standing, and governed team-specific intelligence without creating value inside the view.",
+            upstream_authorities=("FSFFL Player Value", "External market source", "GM3"),
             governed_fields=(
                 "canonical_player_id",
                 "position",
-                "fsffl_model_value",
-                "market_value",
+                "fsffl_current_season_value",
+                "market_dynasty_value",
+                "fsffl_current_minus_market_percentile",
                 "gm3_team_specific_context",
                 "owner_team_id",
             ),

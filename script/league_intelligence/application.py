@@ -21,7 +21,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from league_intelligence import decision_inspector
 
 
-MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.3"
+MODEL_VERSION = "FSFFL-League-Intelligence-Terminal-1.4"
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA = ROOT / "data"
 
@@ -183,8 +183,10 @@ def _rank_map(
 def _rank_players(
     assets: Mapping[str, Any], projections: Mapping[str, Any],
     team_context: Optional[Mapping[str, Mapping[str, Any]]] = None,
+    native_values: Optional[Mapping[str, Any]] = None,
 ) -> list[Dict[str, Any]]:
     team_context = team_context or {}
+    native_values = native_values or {}
     source_rows = [dict(row) for row in (assets.get("players") or [])]
     projection_players = projections.get("players") or {}
     projection_summaries = {
@@ -208,6 +210,15 @@ def _rank_players(
     projection_ranks, projection_position_ranks = _rank_map(
         projection_rows, lambda row: row.get("projection_ppg")
     )
+    native_rows = {
+        str(row.get("player_id") or ""): row
+        for row in (native_values.get("players") or [])
+        if isinstance(row, Mapping)
+    }
+    native_population = [
+        row.get("fsffl_current_season_value") for row in native_rows.values()
+    ]
+    market_population = [row.get("market_dynasty") for row in source_rows]
     ordered = sorted(
         source_rows,
         key=lambda row: (
@@ -220,6 +231,12 @@ def _rank_players(
     output: list[Dict[str, Any]] = []
     for row in ordered:
         player_id = str(row.get("player_id") or "")
+        native = native_rows.get(player_id) or {}
+        native_percentile = (
+            _percentile(native.get("fsffl_current_season_value"), native_population)
+            if native else None
+        )
+        market_percentile = _percentile(row.get("market_dynasty"), market_population)
         output.append({
             "player_id": player_id,
             "name": row.get("name"),
@@ -239,6 +256,29 @@ def _rank_players(
             "current_season_projection_rank": projection_ranks.get(player_id),
             "current_season_projection_position_rank": projection_position_ranks.get(player_id),
             "current_season_projection": projection_summaries[player_id],
+            "fsffl_current_season_value": _round(native.get("fsffl_current_season_value"), 3),
+            "fsffl_current_season_rank": native.get("fsffl_current_season_rank"),
+            "fsffl_current_season_position_rank": native.get("fsffl_current_season_position_rank"),
+            "fsffl_current_season_percentile": native_percentile,
+            "market_dynasty_percentile": market_percentile,
+            "fsffl_current_minus_market_percentile": (
+                round(native_percentile - market_percentile, 4)
+                if native_percentile is not None and market_percentile is not None else None
+            ),
+            "fsffl_value_context": {
+                "available": bool(native),
+                "regular_season_expected_points": _round(native.get("regular_season_expected_points"), 3),
+                "regular_season_uncertainty_sd": _round(native.get("regular_season_uncertainty_sd"), 3),
+                "league_average_marginal_lineup_points": _round(native.get("league_average_marginal_lineup_points"), 3),
+                "actual_roster_contexts_evaluated": native.get("actual_roster_contexts_evaluated"),
+                "global_starter_frontier_marginal_points": _round(native.get("global_starter_frontier_marginal_points"), 3),
+                "position_replacement_frontier_points": _round(native.get("position_replacement_frontier_points"), 3),
+                "projected_points_vs_position_frontier": _round(native.get("projected_points_vs_position_frontier"), 3),
+                "expected_lineup_contributor": native.get("expected_lineup_contributor"),
+                "comparison_scope": "current-season FSFFL contribution versus long-term dynasty market standing",
+                "like_for_like_long_term_comparison": False,
+                "not_a_trade_price": True,
+            },
             "published_fsffl_value_status": _published_fsffl_value_status(row),
             "team_specific_context": team_context.get(player_id) or {
                 "available": False,
@@ -262,6 +302,12 @@ def _rank_players(
                     "source": "data/simulator/2026/inputs/player_weekly_projections.json#players",
                     "model_stage": projections.get("model_stage"),
                     "source_description": projections.get("source"),
+                },
+                "fsffl_current_season_value": {
+                    "authority": "FSFFL Player Value application",
+                    "source": "data/player_value/fsffl_current_season_value.json#players",
+                    "source_model": native_values.get("model_version"),
+                    "market_inputs_consumed": native_values.get("market_inputs_consumed"),
                 },
                 "ranks": {
                     "authority": "League Intelligence monotonic presentation transform",
@@ -548,9 +594,50 @@ def _player_value_contract_status(players: Iterable[Mapping[str, Any]]) -> Dict[
         "quarantine_enforced": True,
         "active_rankings_safe_for_presentation": True,
         "authoritative_model_vs_market_available": False,
+        "authoritative_current_season_vs_dynasty_market_available": any(
+            row.get("fsffl_current_season_value") is not None for row in players
+        ),
+        "long_term_model_vs_market_available": False,
         "note": (
             "Legacy adjusted values are quarantined; values equal to market are disclosed as aliases, "
             "not presented as independent model values."
+        ),
+    }
+
+
+def _native_value_contract_status(
+    path: Path, payload: Mapping[str, Any], data_dir: Path
+) -> Dict[str, Any]:
+    expected = {
+        "league_rules": data_dir / "league.json",
+        "projection_system": data_dir / "simulator" / "2026" / "inputs" / "player_weekly_projections.json",
+        "league_rosters": data_dir / "rosters.json",
+    }
+    manifest = payload.get("source_manifest") or {}
+    mismatches = []
+    for role, source_path in expected.items():
+        published = (manifest.get(role) or {}).get("sha256")
+        current = _sha256(source_path) if source_path.exists() else None
+        if not published or published != current:
+            mismatches.append({"role": role, "published_sha256": published, "current_sha256": current})
+    compatible = (
+        payload.get("status") == "CURRENT_SEASON_GOVERNED"
+        and payload.get("market_inputs_consumed") is False
+        and payload.get("not_a_trade_price") is True
+        and not mismatches
+    )
+    return {
+        "available": True,
+        "compatible": compatible,
+        "source_path": str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path),
+        "source_model": payload.get("model_version"),
+        "source_hash_mismatches": mismatches,
+        "terminal_consumes_payload": compatible,
+        "current_season_authority_available": compatible,
+        "long_term_authority_available": False,
+        "note": (
+            "Current-season value is independently calculated from projections and FSFFL rules."
+            if compatible else "Native value artifact failed its freshness or authority contract and is excluded."
         ),
     }
 
@@ -568,17 +655,34 @@ def build_terminal(
     projection_path = data_dir / "simulator" / "2026" / "inputs" / "player_weekly_projections.json"
     standings_path = data_dir / "gm" / "league" / "simulator_context.json"
     league_path = data_dir / "league.json"
+    native_value_path = data_dir / "player_value" / "fsffl_current_season_value.json"
     assets = _load(asset_path)
     projections = _load(projection_path)
     standings = _load(standings_path)
     league = _load(league_path)
+    if native_value_path.exists():
+        native_value_payload = _load(native_value_path)
+        native_value_status = _native_value_contract_status(native_value_path, native_value_payload, data_dir)
+    else:
+        native_value_payload = {}
+        native_value_status = {
+            "available": False,
+            "compatible": False,
+            "terminal_consumes_payload": False,
+            "current_season_authority_available": False,
+            "long_term_authority_available": False,
+            "reason": "no governed FSFFL Player Value artifact is published",
+        }
 
     team_context_status, team_context_records, team_context_payload = _team_context_status(
         team_context_path, data_dir, focus_user_id
     )
     if not focus_user_id and team_context_payload:
         focus_user_id = str(team_context_payload.get("focus_user_id") or "")
-    players = _rank_players(assets, projections, team_context_records)
+    players = _rank_players(
+        assets, projections, team_context_records,
+        native_value_payload if native_value_status.get("compatible") else None,
+    )
     player_value_contract = _player_value_contract_status(players)
     heat_map = _positional_heat_map(assets, projections, league, standings)
     trade_partner_map = _trade_partner_map(heat_map, focus_user_id, team_context_payload)
@@ -623,10 +727,19 @@ def build_terminal(
             _source_record(projection_path, projections, role="published current-season projection means and uncertainty"),
             _source_record(standings_path, standings, role="published Simulator competitive outcomes"),
             _source_record(league_path, league, role="rule-defined league roster construction"),
+            _source_record(
+                native_value_path, native_value_payload,
+                role="independent current-season FSFFL player contribution",
+            ) if native_value_payload else {
+                "path": str(native_value_path.relative_to(ROOT)),
+                "role": "independent current-season FSFFL player contribution",
+                "available": False,
+            },
         ],
         "contract_health": {
             "competitive_state_strategic_posture": _legacy_contract_status(data_dir),
             "player_value_authority": player_value_contract,
+            "native_player_value": native_value_status,
             "gm3_team_context": team_context_status,
             "decision_utility_inspector": decision_status,
         },
@@ -634,7 +747,7 @@ def build_terminal(
             "player_value_rankings": {
                 "authority": {
                     "long_term": "published external market dynasty value",
-                    "current_season": "published projection-system weekly mean and uncertainty",
+                    "current_season": "FSFFL Player Value application over Projection System output and league rules",
                 },
                 "creates_new_player_value": False,
                 "creates_cross_horizon_composite": False,
@@ -642,11 +755,18 @@ def build_terminal(
                 "sort_default": "long_term_market_value descending",
                 "player_count": len(players),
                 "players": players,
+                "comparison_semantics": {
+                    "available": bool(native_value_status.get("compatible")),
+                    "field": "fsffl_current_minus_market_percentile",
+                    "meaning": "current-season FSFFL contribution percentile minus dynasty market percentile",
+                    "like_for_like_long_term": False,
+                    "recommendation": False,
+                },
                 "unavailable_perspectives": [{
-                    "perspective": "independent FSFFL model value and model-versus-market discrepancy",
+                    "perspective": "independent long-term FSFFL model value and like-for-like dynasty-market discrepancy",
                     "reason": (
-                        "the published fsffl_value field is either a market alias or a legacy adjusted "
-                        "value without a current canonical authority contract"
+                        "no governed multi-year player projection has cleared time-ordered validation; "
+                        "the legacy fsffl_value remains quarantined"
                     ),
                 }],
             },
@@ -676,8 +796,11 @@ def build_terminal(
             "long_term_market_rankings": True,
             "current_season_projection_rankings": True,
             "projection_uncertainty": True,
-            "model_vs_market": False,
-            "model_vs_market_blocked_by_source_contract": True,
+            "current_season_vs_dynasty_market": bool(native_value_status.get("compatible")),
+            "model_vs_market": bool(native_value_status.get("compatible")),
+            "long_term_model_vs_market": False,
+            "model_vs_market_blocked_by_source_contract": False,
+            "long_term_model_vs_market_blocked_by_validation": True,
             "league_competitive_landscape": True,
             "team_specific_player_context": bool(team_context_status.get("compatible")),
             "viewer_team_and_current_owner_context": bool(team_context_status.get("compatible")),
@@ -708,10 +831,11 @@ def render_player_rankings_markdown(payload: Mapping[str, Any], *, limit: int = 
         "## Source health",
         "",
         "- Active long-term perspective: published market dynasty value.",
-        "- Active current-season perspective: published weekly projection mean and uncertainty.",
+        "- Active current-season perspective: independent FSFFL contribution above the rule-derived league lineup frontier.",
         f"- Quarantined legacy adjusted player values: {contract['quarantined_player_count']}.",
         f"- Market aliases not presented as independent model values: {contract['market_anchor_alias_count']}.",
-        "- Model-versus-market ranking: unavailable until a current independent FSFFL player-value authority is published.",
+        "- FSFFL-versus-market comparison: available for current-season contribution versus dynasty-market standing.",
+        "- Like-for-like long-term model-versus-market comparison: unavailable until a multi-year model clears temporal validation.",
         "",
         "## Long-term market ranking",
         "",
@@ -729,27 +853,50 @@ def render_player_rankings_markdown(payload: Mapping[str, Any], *, limit: int = 
         )
 
     projected = [
-        row for row in players if row.get("current_season_projection_rank") is not None
+        row for row in players if row.get("fsffl_current_season_rank") is not None
     ]
-    projected.sort(key=lambda row: row["current_season_projection_rank"])
+    projected.sort(key=lambda row: (row["fsffl_current_season_rank"], -(_number(row.get("fsffl_current_season_value")) or 0.0)))
     lines.extend([
         "",
-        "## Current-season projection ranking",
+        "## FSFFL current-season contribution ranking",
         "",
-        "| Rank | Player | Pos | Owner | Mean | P25 | P75 | SD | Long-term Rank |",
-        "|---:|---|:---:|---|---:|---:|---:|---:|---:|",
+        "| Rank | Player | Pos | Owner | Marginal points | Expected points | Market rank | Percentile gap |",
+        "|---:|---|:---:|---|---:|---:|---:|---:|",
     ])
     for row in projected[:limit]:
-        projection = row["current_season_projection"]
+        context = row["fsffl_value_context"]
         lines.append(
-            f"| {row['current_season_projection_rank']} | {row['name']} | {row['position']} | "
+            f"| {row['fsffl_current_season_rank']} | {row['name']} | {row['position']} | "
             f"{row.get('current_owner_team') or 'Unrostered'} | "
-            f"{_fmt(projection.get('mean_weekly_projection'))} | "
-            f"{_fmt(projection.get('mean_weekly_p25'))} | "
-            f"{_fmt(projection.get('mean_weekly_p75'))} | "
-            f"{_fmt(projection.get('mean_weekly_sd'))} | "
-            f"{row.get('long_term_market_rank') or '-'} |"
+            f"{_fmt(row.get('fsffl_current_season_value'))} | "
+            f"{_fmt(context.get('regular_season_expected_points'))} | "
+            f"{row.get('long_term_market_rank') or '-'} | "
+            f"{_fmt((_number(row.get('fsffl_current_minus_market_percentile')) or 0.0) * 100, 1)} pts |"
         )
+
+    comparable = [
+        row for row in players
+        if row.get("fsffl_current_minus_market_percentile") is not None
+    ]
+    over = sorted(comparable, key=lambda row: row["fsffl_current_minus_market_percentile"], reverse=True)
+    under = sorted(comparable, key=lambda row: row["fsffl_current_minus_market_percentile"])
+    lines.extend([
+        "",
+        "## Largest current-season versus dynasty-market gaps",
+        "",
+        "A positive gap means FSFFL projects more immediate lineup contribution than the dynasty market standing implies. It is an investigative horizon difference, not a buy/sell recommendation or trade price.",
+        "",
+        "| Direction | Player | Pos | FSFFL percentile | Market percentile | Gap |",
+        "|---|---|:---:|---:|---:|---:|",
+    ])
+    for direction, rows in (("FSFFL higher", over[:8]), ("Market higher", under[:8])):
+        for row in rows:
+            lines.append(
+                f"| {direction} | {row['name']} | {row['position']} | "
+                f"{_fmt((_number(row.get('fsffl_current_season_percentile')) or 0.0) * 100, 1)}% | "
+                f"{_fmt((_number(row.get('market_dynasty_percentile')) or 0.0) * 100, 1)}% | "
+                f"{_fmt((_number(row.get('fsffl_current_minus_market_percentile')) or 0.0) * 100, 1)} pts |"
+            )
 
     for position in ("QB", "RB", "WR", "TE"):
         position_rows = [row for row in players if row["position"] == position]

@@ -138,6 +138,33 @@ partial = inspector.inspect_decision({"description": "No attribution", "team_imp
 assert partial["source_contract"]["partial_inspection"] is True
 assert partial["source_contract"]["fully_reconciled_attribution"] is False
 
+decision_lab = {
+    "description": "Roster Decision Lab shape",
+    "focus_user_id": "viewer",
+    "actions": [{"type": "trade"}],
+    "simulation": {"n_sims": 100},
+    "team_comparisons": {
+        "viewer": {
+            "delta": {"expected_wins": -0.4, "playoff_probability": -0.05, "championship_probability": -0.02},
+            "strategic": {"competitive_state": "contender", "strategic_posture": "AUTO"},
+        },
+        "seller": {
+            "delta": {"expected_wins": 0.2, "playoff_probability": 0.03, "championship_probability": 0.01},
+            "strategic": {"competitive_state": "retool", "strategic_posture": "AUTO"},
+        },
+    },
+    "decision_attribution_by_user": {
+        "viewer": attribution(-25.0, -50.0, 12.5),
+        "seller": attribution(15.0, 20.0, 7.5),
+    },
+}
+decision_lab_view = inspector.inspect_decision(decision_lab)
+assert decision_lab_view["focal_team"]["simulator_delta"]["expected_wins"] == -0.4
+assert decision_lab_view["counterparty"]["simulator_delta"]["expected_wins"] == 0.2
+assert decision_lab_view["focal_team"]["shared_decision_utility"] == -25.0
+assert decision_lab_view["counterparty"]["shared_decision_utility"] == 15.0
+assert decision_lab_view["source_contract"]["fully_reconciled_attribution"] is True
+
 try:
     inspector.select_record({"rows": [record]})
 except ValueError:
