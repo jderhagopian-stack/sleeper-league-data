@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "model_version": "FSFFL-Historical-Pick-Coordinate-1.0",
+  "authority": "RESEARCH_CALIBRATION_ONLY",
+  "economic_channel": "FUTURE_ASSET_VALUE",
+  "creates_new_channel": false,
+  "production_authority": false,
+  "purpose": "Reconstruct rookie-pick value as of a historical trade timestamp using only evidence knowable at or before that timestamp.",
+  "hard_exclusions": {
+    "startup_2022": "Sleeper startup picks were nomination/order mechanics and have zero rookie-pick valuation authority.",
+    "future_draft_results": true,
+    "future_player_performance": true,
+    "current_pick_values": true,
+    "current_market_backfill": true,
+    "restricted_proprietary_hidden_dependency": true
+  },
+  "cases": {
+    "current_year_exact_slot_known": "Use exact slot only when the historical knowledge boundary proves it was known.",
+    "current_year_unresolved": "Use a point-in-time slot distribution and explicit uncertainty.",
+    "future_year": "Use round, horizon, historical team-state slot distribution and bounded time sensitivity.",
+    "hindsight_known_today": "May be used only later to evaluate reconstruction quality, never as decision-time input."
+  },
+  "output_contract": [
+    "value_center",
+    "value_lower",
+    "value_upper",
+    "round",
+    "pick_season",
+    "expected_slot_in_round",
+    "expected_tier",
+    "time_to_realization_seasons",
+    "evidence_quality",
+    "calibration_suitability",
+    "provenance",
+    "exact_slot_known_at_trade_time",
+    "slot_distribution"
+  ],
+  "evidence_quality": {
+    "HIGH": "Exact known slot plus at least two prior completed FSFFL rookie drafts.",
+    "MEDIUM": "Unresolved slot with credible point-in-time distribution plus at least two prior completed rookie drafts.",
+    "LOW": "Sparse prior evidence or broad unresolved uncertainty; sensitivity only.",
+    "EXCLUDED": "Leakage, startup mechanics, non-comparable semantics, or unsupported round."
+  },
+  "promotion_firewall": {
+    "package_prior_unchanged": true,
+    "shared_decision_utility_unchanged": true,
+    "opportunity_engine_authority_unchanged": true,
+    "trade_decision_authority_unchanged": true,
+    "separate_explicit_promotion_required": true
+  }
+}
