@@ -1,0 +1,58 @@
+name: Internal Historical Package Pilot
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  pilot:
+    if: github.head_ref == 'research/internal-historical-package-pilot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run no-external historical package pilot
+        run: |
+          python script/run_internal_historical_package_pilot.py
+          python script/audit_full_trade_history_recoverability.py
+      - name: Validate research-only provenance
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('data/audit/internal_historical_package_pilot.json'))
+          assert p['research_only'] is True
+          assert p['production_behavior_changed'] is False
+          assert p['coefficient_fit_performed'] is False
+          assert p['production_prior_changed'] is False
+          assert p['external_historical_market_source_used'] is False
+          assert p['current_market_value_backfill_used'] is False
+          assert p['completed_trade_implies_exact_fair_value'] is False
+          assert p['pick_containing_trades_excluded_from_calibration'] is True
+          assert p['informative_unequal_package_trade_count'] >= 3
+          assert p['one_for_one_control_count'] >= 5
+          r=json.load(open('data/audit/full_trade_history_recoverability.json'))
+          assert r['completed_trade_count']==144
+          assert r['bilateral_completed_trade_count']>=140
+          assert r['recoverable_with_known_infrastructure_work_count']>=120
+          assert r['principles']['2022_startup_nomination_order_not_pick_value_evidence'] is True
+          assert r['principles']['quality_weighting_preferred_to_blanket_exclusion'] is True
+          print(json.dumps({
+              'eligible_player_only_trade_count':p['eligible_player_only_trade_count'],
+              'informative_unequal_package_trade_count':p['informative_unequal_package_trade_count'],
+              'one_for_one_control_count':p['one_for_one_control_count'],
+              'equal_count_multi_asset_control_count':p['equal_count_multi_asset_control_count'],
+              'informative_aggregate':p['informative_aggregate'],
+              'descriptive_rank':p['descriptive_rank_on_unequal_packages'],
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: internal-historical-package-pilot
+          path: data/audit/internal_historical_package_pilot.json
+          if-no-files-found: error
+          retention-days: 7
